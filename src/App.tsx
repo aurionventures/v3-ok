@@ -485,11 +485,11 @@ const App = () => (
           
           {/* Admin Routes */}
           <Route 
-            path="/admin" 
+            path="/admin/login" 
             element={<LoginAdmin />}
           />
           <Route 
-            path="/admin-panel" 
+            path="/admin" 
             element={
               <ProtectedRoute >
                 <Admin />

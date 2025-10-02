@@ -104,7 +104,7 @@ export default function Login() {
         // Redirect based on user role
         switch (userType) {
           case 'admin':
-            navigate('/admin-panel');
+            navigate('/admin');
             break;
           case 'parceiro':
             navigate('/parceiro');
