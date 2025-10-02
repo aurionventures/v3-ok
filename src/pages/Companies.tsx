@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Building2, Search, PlusCircle, Download, Trash2, Pencil, Loader2
+  Building2, Search, PlusCircle, Download, Trash2, Pencil, Loader2,
+  Briefcase, Users
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,11 @@ import { InviteTypeSelector } from "@/components/invitation/InviteTypeSelector";
 import { InviteForm } from "@/components/invitation/InviteForm";
 import { CompanyFilters, CompanyFiltersState } from "@/components/admin/CompanyFilters";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
+import MetricCard from "@/components/metrics/MetricCard";
 
 const Companies = () => {
   const navigate = useNavigate();
-  const { companies, loading, error, deleteCompany, fetchCompanies } = useCompanies();
+  const { companies, loading, error, stats, deleteCompany, fetchCompanies } = useCompanies();
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewCompanyDialogOpen, setIsNewCompanyDialogOpen] = useState(false);
   const [inviteStep, setInviteStep] = useState<'select' | 'form'>('select');
@@ -211,8 +213,32 @@ const Companies = () => {
         <Header title="Empresas" />
         <div className="flex-1 overflow-y-auto p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold">Gestão de Parceiros</h1>
-            <p className="text-gray-500">Gerencie os parceiros da plataforma Legacy</p>
+            <h1 className="text-2xl font-bold">Gestão de Empresas</h1>
+            <p className="text-gray-500">Gerencie parceiros e clientes da plataforma Legacy</p>
+          </div>
+
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <MetricCard
+              title="Total de Empresas"
+              value={stats.total}
+              icon={<Building2 className="w-6 h-6" />}
+              description="Total de parceiros e clientes"
+            />
+            <MetricCard
+              title="Parceiros"
+              value={stats.totalPartners}
+              icon={<Briefcase className="w-6 h-6" />}
+              description="Parceiros cadastrados"
+              className="border-l-4 border-l-purple-500"
+            />
+            <MetricCard
+              title="Clientes"
+              value={stats.totalClients}
+              icon={<Users className="w-6 h-6" />}
+              description="Clientes na plataforma"
+              className="border-l-4 border-l-blue-500"
+            />
           </div>
 
           <div className="flex justify-between items-center mb-6">
@@ -278,7 +304,7 @@ const Companies = () => {
                       <TableRow>
                         <TableHead>Empresa</TableHead>
                         <TableHead>Tipo</TableHead>
-                        {/* <TableHead>Plano</TableHead> */}
+                        <TableHead>Setor</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Ações</TableHead>
                       </TableRow>
@@ -292,20 +318,25 @@ const Companies = () => {
                           className="cursor-pointer hover:bg-accent/50"
                           onClick={() => handleCompanyClick(company.id)}
                         >
-                          <TableCell className="font-medium">{company.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {company.type === "parceiro" ? (
+                                <Briefcase className="w-4 h-4 text-purple-600" />
+                              ) : (
+                                <Building2 className="w-4 h-4 text-blue-600" />
+                              )}
+                              {company.name}
+                            </div>
+                          </TableCell>
                           <TableCell>
-                            <Badge variant={company.type === "cliente" ? "default" : "secondary"}>
+                            <Badge 
+                              variant="outline"
+                              className={company.type === "parceiro" ? "border-purple-500 text-purple-700" : "border-blue-500 text-blue-700"}
+                            >
                               {company.type === "cliente" ? "Cliente" : "Parceiro"}
                             </Badge>
                           </TableCell>
-                          {/* <TableCell>
-                            <Badge variant={
-                              company.plan === "Enterprise" ? "default" : 
-                              company.plan === "Professional" ? "secondary" : "outline"
-                            }>
-                              {company.plan}
-                            </Badge>
-                          </TableCell> */}
+                          <TableCell>{company.sector || "Não especificado"}</TableCell>
                           <TableCell>{company.contactEmail}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
@@ -348,7 +379,7 @@ const Companies = () => {
                       <TableRow>
                         <TableHead>Empresa</TableHead>
                         <TableHead>Tipo</TableHead>
-                        {/* <TableHead>Plano</TableHead> */}
+                        <TableHead>Setor</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Data de Criação</TableHead>
                         <TableHead>Ações</TableHead>
@@ -359,15 +390,25 @@ const Companies = () => {
                         .filter(company => company.status === "inactive")
                         .map((company) => (
                         <TableRow key={company.id}>
-                          <TableCell className="font-medium">{company.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {company.type === "parceiro" ? (
+                                <Briefcase className="w-4 h-4 text-purple-600" />
+                              ) : (
+                                <Building2 className="w-4 h-4 text-blue-600" />
+                              )}
+                              {company.name}
+                            </div>
+                          </TableCell>
                           <TableCell>
-                            <Badge variant={company.type === "cliente" ? "outline" : "secondary"}>
+                            <Badge 
+                              variant="outline"
+                              className={company.type === "parceiro" ? "border-purple-500 text-purple-700" : "border-blue-500 text-blue-700"}
+                            >
                               {company.type === "cliente" ? "Cliente" : "Parceiro"}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{company.plan}</Badge>
-                          </TableCell>
+                          <TableCell>{company.sector || "Não especificado"}</TableCell>
                           <TableCell>{company.contactEmail}</TableCell>
                           <TableCell>{new Date(company.created_at).toLocaleDateString('pt-BR')}</TableCell>
                           <TableCell>
@@ -403,29 +444,34 @@ const Companies = () => {
                       <TableRow>
                         <TableHead>Empresa</TableHead>
                         <TableHead>Tipo</TableHead>
-                        {/* <TableHead>Plano</TableHead> */}
+                        <TableHead>Setor</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredCompanies.map((company) => (
+                       {filteredCompanies.map((company) => (
                         <TableRow key={company.id} className="cursor-pointer hover:bg-accent/50" onClick={() => handleCompanyClick(company.id)}>
-                          <TableCell className="font-medium">{company.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {company.type === "parceiro" ? (
+                                <Briefcase className="w-4 h-4 text-purple-600" />
+                              ) : (
+                                <Building2 className="w-4 h-4 text-blue-600" />
+                              )}
+                              {company.name}
+                            </div>
+                          </TableCell>
                           <TableCell>
-                            <Badge variant={company.type === "cliente" ? "default" : "secondary"}>
+                            <Badge 
+                              variant="outline"
+                              className={company.type === "parceiro" ? "border-purple-500 text-purple-700" : "border-blue-500 text-blue-700"}
+                            >
                               {company.type === "cliente" ? "Cliente" : "Parceiro"}
                             </Badge>
                           </TableCell>
-                          {/* <TableCell>
-                            <Badge variant={
-                              company.plan === "Enterprise" ? "default" : 
-                              company.plan === "Professional" ? "secondary" : "outline"
-                            }>
-                              {company.plan}
-                            </Badge>
-                          </TableCell> */}
+                          <TableCell>{company.sector || "Não especificado"}</TableCell>
                           <TableCell>{company.contactEmail}</TableCell>
                           <TableCell>
                             <Badge variant={company.status === "active" ? "default" : "destructive"}>

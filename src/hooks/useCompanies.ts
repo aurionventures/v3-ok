@@ -28,6 +28,7 @@ export const useCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalPartners: 0, totalClients: 0, total: 0 });
   const { toast } = useToast();
 
   const fetchCompanies = async () => {
@@ -109,7 +110,12 @@ export const useCompanies = () => {
           };
         });
 
+      // Calculate statistics
+      const totalPartners = transformedCompanies.filter(c => c.role === 'parceiro').length;
+      const totalClients = transformedCompanies.filter(c => c.role === 'cliente').length;
+      
       setCompanies(transformedCompanies);
+      setStats({ totalPartners, totalClients, total: transformedCompanies.length });
     } catch (err: any) {
       console.error('Erro ao buscar empresas:', err);
       setError(err.message || 'Erro ao carregar empresas');
@@ -280,6 +286,7 @@ export const useCompanies = () => {
     companies,
     loading,
     error,
+    stats,
     fetchCompanies,
     addCompany,
     updateCompany,
