@@ -138,9 +138,9 @@ export default function Login() {
       case 'admin':
         return { email: 'admin@gov.com', password: 'admin123' };
       case 'parceiro':
-        return { email: '', password: '' };
+        return { email: 'parceiro@consultor.com', password: 'parceiro123' };
       case 'cliente':
-        return { email: 'cliente@empresa.com', password: 'cliente123' };
+        return { email: 'cliente@empresa.com', password: '123456' };
       default:
         return { email: '', password: '' };
     }

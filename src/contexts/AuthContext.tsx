@@ -69,10 +69,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (credentials: { email: string; password: string; role: string }): Promise<boolean> => {
-    // TODO: Implementar lógica de login real com Supabase
-    // Por enquanto, apenas retorna sucesso
-    console.log('Login attempt:', credentials);
-    return true;
+    try {
+      // Credenciais de demonstração
+      const demoAccounts: Record<string, { password: string; role: string; name: string; company?: string }> = {
+        'cliente@empresa.com': { 
+          password: '123456', 
+          role: 'cliente', 
+          name: 'Cliente Demo',
+          company: 'Empresa Demo'
+        },
+        'admin@gov.com': { 
+          password: 'admin123', 
+          role: 'admin', 
+          name: 'Admin Demo'
+        },
+        'parceiro@consultor.com': { 
+          password: 'parceiro123', 
+          role: 'parceiro', 
+          name: 'Parceiro Demo',
+          company: 'Consultoria Demo'
+        }
+      };
+
+      const account = demoAccounts[credentials.email.toLowerCase()];
+      
+      if (account && 
+          account.password === credentials.password && 
+          account.role === credentials.role) {
+        
+        // Criar objeto de usuário autenticado
+        const authUser: AuthUser = {
+          id: `demo-${account.role}-${Date.now()}`,
+          email: credentials.email,
+          role: account.role,
+          name: account.name,
+          company: account.company,
+          aud: 'authenticated',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          app_metadata: {},
+          user_metadata: {},
+          identities: [],
+        };
+
+        setUserWithPersistence(authUser);
+        console.log('Login de demonstração bem-sucedido:', account.name);
+        return true;
+      }
+
+      console.log('Credenciais inválidas para demonstração');
+      return false;
+    } catch (error) {
+      console.error('Erro durante login:', error);
+      return false;
+    }
   };
 
   const logout = async () => {
