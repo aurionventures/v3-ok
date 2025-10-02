@@ -224,6 +224,24 @@ export default function Login() {
                   </CardDescription>
                 </CardHeader>
               </Card>
+
+              <Card 
+                className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+                onClick={() => {
+                  const credentials = getDefaultCredentials('admin');
+                  setUserType('admin');
+                  setEmail(credentials.email);
+                  setPassword(credentials.password);
+                }}
+              >
+                <CardHeader className="text-center">
+                  <Shield className="h-8 w-8 mx-auto text-green-600" />
+                  <CardTitle>Admin Master</CardTitle>
+                  <CardDescription>
+                    Acesso para administradores da plataforma
+                  </CardDescription>
+                </CardHeader>
+              </Card>
             </div>
           </div>
         </div>
