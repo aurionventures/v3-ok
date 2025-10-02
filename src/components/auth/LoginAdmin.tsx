@@ -20,7 +20,7 @@ export default function LoginAdmin({ onBack }: LoginAdminProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async () => {
@@ -30,40 +30,15 @@ export default function LoginAdmin({ onBack }: LoginAdminProps) {
         toast({ title: "Erro de Login", description: "Por favor, preencha todos os campos.", variant: "destructive" });
         return;
       }
-      // Valida token administrativo via Edge Function
-      console.log('🔐 Tentando validar token para:', email);
-      const { data, error } = await supabase.functions.invoke('validate-code', {
-        method: 'POST',
-        body: { email, code: password },
-      });
-      
-      console.log('📋 Resposta da validação:', { data, error });
-      
-      if (error) {
-        console.error('❌ Erro na validação:', error);
-        toast({ 
-          title: "Erro de Login", 
-          description: error.message || "Email ou token inválidos. Verifique se o token não expirou.", 
-          variant: "destructive" 
-        });
-        return;
+
+      const success = await login({ email, password, role: 'admin' });
+
+      if (success) {
+        toast({ title: "Login bem-sucedido", description: "Bem-vindo ao painel administrativo" });
+        navigate('/admin-panel');
+      } else {
+        toast({ title: "Erro de Login", description: "Email ou senha incorretos.", variant: "destructive" });
       }
-      
-      if (!data || !data.user) {
-        console.error('❌ Dados de usuário não encontrados:', data);
-        toast({ 
-          title: "Erro de Login", 
-          description: "Dados do usuário não encontrados. Tente novamente.", 
-          variant: "destructive" 
-        });
-        return;
-      }
-      
-      console.log('✅ Usuário autenticado:', data.user);
-      // Popula contexto com usuário autenticado
-      setUser(data.user);
-      toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${data.user.email}` });
-      navigate('/admin-panel');
     } catch (err: any) {
       toast({ title: "Erro", description: err.message || "Falha no login.", variant: "destructive" });
     } finally {
@@ -108,13 +83,13 @@ export default function LoginAdmin({ onBack }: LoginAdminProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Token de Acesso</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input 
                   id="password" 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite seu token de acesso enviado por email"
+                  placeholder="Digite sua senha"
                 />
               </div>
               <div className="flex gap-2">
@@ -133,12 +108,6 @@ export default function LoginAdmin({ onBack }: LoginAdminProps) {
                 >
                   {loading ? 'Entrando...' : 'Entrar'}
                 </Button>
-              </div>
-              <div className="text-center text-sm text-gray-600 mt-4">
-                Não tem um token de acesso?{" "}
-                <Link to="/generate-admin-token" className="text-legacy-500 hover:underline">
-                  Solicite um token
-                </Link>
               </div>
             </CardContent>
           </Card>

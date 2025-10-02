@@ -27,7 +27,7 @@ export default function LoginParceiro({ onBack, initialEmail = '' }: LoginParcei
     }
   }, [initialEmail]);
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async () => {
@@ -43,59 +43,21 @@ export default function LoginParceiro({ onBack, initialEmail = '' }: LoginParcei
     setLoading(true);
 
     try {
-      console.log('Tentando login com:', { email, role: 'parceiro' });
-      
-      // Chamar Edge Function para validar código e fazer login
-      const { data, error } = await supabase.functions.invoke('validate-code', {
-        body: {
-          email: email,
-          code: password
-        }
-      });
+      const success = await login({ email, password, role: 'parceiro' });
 
-      if (error) {
-        console.error('Erro na validação:', error);
+      if (success) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo ao painel do Parceiro",
+        });
+        navigate('/parceiro');
+      } else {
         toast({
           title: "Erro no login",
-          description: "Erro ao validar credenciais",
+          description: "Email ou senha incorretos",
           variant: "destructive",
         });
-        return;
       }
-
-      if (!data || !data.user) {
-        console.error('Credenciais inválidas');
-        toast({
-          title: "Erro no login",
-          description: "Credenciais inválidas ou código expirado",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Criar AuthUser com dados retornados
-      const authUser = {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        role: data.user.role,
-        company: data.user.company || data.user.name,
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        app_metadata: {},
-        user_metadata: {},
-        identities: [],
-      };
-
-      // Fazer login usando o contexto
-      setUser(authUser);
-
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo ao painel do Parceiro",
-      });
-      navigate('/parceiro');
     } catch (error) {
       toast({
         title: "Erro",
@@ -143,13 +105,13 @@ export default function LoginParceiro({ onBack, initialEmail = '' }: LoginParcei
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Token de acesso</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input 
                   id="password" 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite o código de acesso recebido por email"
+                  placeholder="Digite sua senha"
                 />
               </div>
               <div className="flex gap-2">

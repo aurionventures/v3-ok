@@ -20,7 +20,7 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
 
 
@@ -31,40 +31,15 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
         toast({ title: "Erro de Login", description: "Por favor, preencha todos os campos.", variant: "destructive" });
         return;
       }
-      // Chama Edge Function validate-code
-      const { data, error } = await supabase.functions.invoke('validate-code', {
-        method: 'POST',
-        body: { email, code: password },
-      });
-      if (error) {
-        toast({ title: "Erro de Login", description: error.message || "Email ou token inválidos.", variant: "destructive" });
-        return;
-      }
-     
-      
-      // Verificar se o usuário tem a estrutura correta
-      if (!data.user || !data.user.role) {
-        console.error('Usuário ou role não encontrado');
-        toast({ title: "Erro", description: "Dados do usuário inválidos", variant: "destructive" });
-        return;
-      }
-      
-      // Corrigir o role para 'cliente' se for 'user'
-      const correctedUser = {
-        ...data.user,
-        role: data.user.role === 'user' ? 'cliente' : data.user.role
-      };
-      
-      console.log('Usuário corrigido:', correctedUser);
-      
-      // Persiste usuário no contexto
-      setUser(correctedUser);
-      toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${data.user.email}` });
-      
-      // Pequeno delay para garantir que o contexto seja atualizado
-      setTimeout(() => {
+
+      const success = await login({ email, password, role: 'cliente' });
+
+      if (success) {
+        toast({ title: "Login bem-sucedido", description: `Bem-vindo ao painel do cliente` });
         navigate('/dashboard');
-      }, 100);
+      } else {
+        toast({ title: "Erro de Login", description: "Email ou senha incorretos.", variant: "destructive" });
+      }
     } catch (err: any) {
       toast({ title: "Erro", description: err.message || "Falha no login.", variant: "destructive" });
     } finally {
@@ -108,13 +83,13 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Token de Acesso</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input 
                   id="password" 
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite seu token de acesso enviado por email"
+                  placeholder="Digite sua senha"
                 />
               </div>
               <div className="flex gap-2">
@@ -133,12 +108,6 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
                 >
                   {loading ? 'Entrando...' : 'Entrar'}
                 </Button>
-              </div>
-              <div className="text-center text-sm text-gray-600 mt-4">
-                Não tem um token de acesso?{" "}
-                <Link to="/generate-company-token" className="text-legacy-500 hover:underline">
-                  Solicite um token de acesso
-                </Link>
               </div>
             </CardContent>
           </Card>
