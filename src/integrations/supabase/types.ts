@@ -14,16 +14,133 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      access_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by_partner: string | null
+          email: string
+          expires_at: string
+          id: string
+          used_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by_partner?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          used_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by_partner?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_codes_created_by_partner_fkey"
+            columns: ["created_by_partner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          created_by_partner: string | null
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          sector: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          created_by_partner?: string | null
+          email: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          sector?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          created_by_partner?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          sector?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_created_by_partner_fkey"
+            columns: ["created_by_partner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "parceiro" | "cliente" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +267,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "parceiro", "cliente", "user"],
+    },
   },
 } as const
