@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Building2, Mail, Phone, Briefcase, Copy, Check } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface AddClientModalProps {
@@ -88,9 +88,9 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
       // Verificar se email já existe no banco antes de criar
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
-        .select('id, email, role, created_by_partner')
+        .select('id, email, created_by_partner')
         .eq('email', formData.email)
-        .single();
+        .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
         // PGRST116 = no rows found, que é ok

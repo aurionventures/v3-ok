@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Company {
@@ -7,7 +7,11 @@ export interface Company {
   name: string;
   email: string;
   role: 'admin' | 'parceiro' | 'cliente' | 'user';
+  company: string;
+  sector: string | null;
+  phone: string | null;
   created_at: string;
+  created_by_partner: string | null;
   // Campos calculados para a interface
   plan: string;
   status: 'active' | 'inactive';
@@ -31,9 +35,20 @@ export const useCompanies = () => {
       setLoading(true);
       setError(null);
       
+      // Buscar users com seus roles usando JOIN
       const { data, error: fetchError } = await supabase
         .from('users')
-        .select('id, email, name, role, created_at')
+        .select(`
+          id,
+          email,
+          name,
+          company,
+          sector,
+          phone,
+          created_at,
+          created_by_partner,
+          user_roles!inner(role)
+        `)
         .order('created_at', { ascending: false });
 
       if (fetchError) {
@@ -41,52 +56,58 @@ export const useCompanies = () => {
       }
 
       // Transformar dados do banco para o formato da interface
-      // Filtrar apenas parceiros por enquanto
-      const transformedCompanies: Company[] = data
-        .filter(user => user.role === 'parceiro') // Mostrar apenas parceiros
-        .map((user, index) => {
-        // Determinar tipo baseado no role (sempre parceiro agora)
-        const type = 'parceiro' as const;
-        
-        // Determinar status baseado na data de criação (simulação)
-        const createdAt = new Date(user.created_at);
-        const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-        const status = daysSinceCreation < 30 ? 'active' : 'inactive';
+      const transformedCompanies: Company[] = (data || [])
+        .filter((user: any) => {
+          const role = user.user_roles?.[0]?.role;
+          return role === 'parceiro' || role === 'cliente';
+        })
+        .map((user: any, index: number) => {
+          const role = user.user_roles?.[0]?.role;
+          const type = role === 'parceiro' ? 'parceiro' : 'cliente';
+          
+          // Determinar status baseado na data de criação
+          const createdAt = new Date(user.created_at);
+          const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          const status = daysSinceCreation < 180 ? 'active' : 'inactive';
 
-        // Determinar plano baseado no role e index (simulação)
-        const plans = ['Basic', 'Professional', 'Enterprise'];
-        const plan = plans[index % 3];
+          // Determinar plano (simulação)
+          const plans = ['Basic', 'Professional', 'Enterprise'];
+          const plan = plans[index % 3];
 
-        // Determinar status de pagamento (simulação)
-        const paymentStatuses: Company['paymentStatus'][] = ['Pago', 'Aguardando', 'Pendente', 'Vencido'];
-        const paymentStatus = paymentStatuses[index % 4];
+          // Determinar status de pagamento (simulação)
+          const paymentStatuses: Company['paymentStatus'][] = ['Pago', 'Aguardando', 'Pendente', 'Vencido'];
+          const paymentStatus = paymentStatuses[index % 4];
 
-        // Calcular próximo pagamento (simulação)
-        const nextPaymentDate = new Date(createdAt);
-        nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 6);
-        const nextPayment = nextPaymentDate.toLocaleDateString('pt-BR');
+          // Calcular próximo pagamento (simulação)
+          const nextPaymentDate = new Date(createdAt);
+          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 6);
+          const nextPayment = nextPaymentDate.toLocaleDateString('pt-BR');
 
-        // Determinar número de usuários (simulação baseada no plano)
-        const usersByPlan = { 'Basic': 3, 'Professional': 8, 'Enterprise': 15 };
-        const users = usersByPlan[plan as keyof typeof usersByPlan] || 3;
+          // Determinar número de usuários (simulação)
+          const usersByPlan = { 'Basic': 3, 'Professional': 8, 'Enterprise': 15 };
+          const users = usersByPlan[plan as keyof typeof usersByPlan] || 3;
 
-        return {
-          id: user.id,
-          name: user.name || user.email.split('@')[0],
-          email: user.email,
-          role: user.role as Company['role'],
-          created_at: user.created_at,
-          plan,
-          status,
-          type,
-          paymentStatus,
-          users,
-          nextPayment,
-          contact: user.name || user.email.split('@')[0],
-          contactEmail: user.email,
-          contactPhone: '(11) 99999-9999' // Simulação
-        };
-      });
+          return {
+            id: user.id,
+            name: user.company || user.name || user.email.split('@')[0],
+            email: user.email,
+            role: role as Company['role'],
+            company: user.company || 'Sem nome',
+            sector: user.sector,
+            phone: user.phone,
+            created_at: user.created_at,
+            created_by_partner: user.created_by_partner,
+            plan,
+            status,
+            type,
+            paymentStatus,
+            users,
+            nextPayment,
+            contact: user.name || user.email.split('@')[0],
+            contactEmail: user.email,
+            contactPhone: user.phone || '(11) 99999-9999'
+          };
+        });
 
       setCompanies(transformedCompanies);
     } catch (err: any) {
@@ -106,20 +127,36 @@ export const useCompanies = () => {
     name: string;
     email: string;
     role: 'admin' | 'parceiro' | 'cliente' | 'user';
+    company?: string;
+    sector?: string;
   }) => {
     try {
-      const { data, error: insertError } = await supabase
+      // Inserir usuário
+      const { data: userData, error: insertError } = await supabase
         .from('users')
         .insert({
           name: companyData.name,
           email: companyData.email,
-          role: companyData.role
+          company: companyData.company || companyData.name,
+          sector: companyData.sector
         })
         .select()
         .single();
 
       if (insertError) {
         throw insertError;
+      }
+
+      // Inserir role do usuário
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userData.id,
+          role: companyData.role
+        });
+
+      if (roleError) {
+        throw roleError;
       }
 
       // Recarregar lista de empresas
@@ -130,7 +167,7 @@ export const useCompanies = () => {
         description: `${companyData.name} foi adicionada com sucesso`
       });
 
-      return data;
+      return userData;
     } catch (err: any) {
       console.error('Erro ao adicionar empresa:', err);
       toast({
@@ -149,12 +186,26 @@ export const useCompanies = () => {
         .update({
           name: updates.name,
           email: updates.contactEmail,
-          role: updates.role
+          company: updates.company,
+          sector: updates.sector,
+          phone: updates.phone
         })
         .eq('id', id);
 
       if (updateError) {
         throw updateError;
+      }
+
+      // Atualizar role se necessário
+      if (updates.role) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ role: updates.role })
+          .eq('user_id', id);
+
+        if (roleError) {
+          console.error('Erro ao atualizar role:', roleError);
+        }
       }
 
       // Recarregar lista de empresas
@@ -179,25 +230,29 @@ export const useCompanies = () => {
     try {
       console.log('🗑️ Tentando deletar usuário com ID:', id);
       
-      // Usar Edge Function para deletar com service role key
-      const { data, error } = await supabase.functions.invoke('delete-partner', {
-        method: 'POST',
-        body: { id }
-      });
+      // Deletar role primeiro (CASCADE vai deletar o usuário)
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', id);
 
-      console.log('📋 Resultado da exclusão:', { data, error });
-
-      if (error) {
-        console.error('❌ Erro na exclusão:', error);
-        throw error;
+      if (roleError) {
+        console.error('❌ Erro ao deletar role:', roleError);
+        throw roleError;
       }
 
-      if (data?.success) {
-        console.log('✅ Usuário deletado com sucesso:', data.deletedUser);
-      } else {
-        console.warn('⚠️ Falha na exclusão:', data?.error);
-        throw new Error(data?.error || 'Falha ao deletar parceiro');
+      // Deletar usuário
+      const { error: deleteError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        console.error('❌ Erro ao deletar usuário:', deleteError);
+        throw deleteError;
       }
+
+      console.log('✅ Usuário deletado com sucesso');
 
       // Recarregar lista de empresas
       await fetchCompanies();
