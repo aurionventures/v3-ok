@@ -1,0 +1,13 @@
+project_id = "lerrudingqtvdrjtawwd"
+
+[functions.validate-code]
+verify_jwt = false
+
+[functions.request-access]
+verify_jwt = false
+
+[functions.request-admin-access]
+verify_jwt = false
+
+[functions.me]
+verify_jwt = false
