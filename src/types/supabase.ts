@@ -52,6 +52,374 @@ export type Database = {
           },
         ]
       }
+      councils: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          type: string
+          description: string | null
+          quorum: number | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          name: string
+          type?: string
+          description?: string | null
+          quorum?: number | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          name?: string
+          type?: string
+          description?: string | null
+          quorum?: number | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      council_members: {
+        Row: {
+          id: string
+          council_id: string
+          user_id: string | null
+          name: string
+          role: string
+          start_date: string
+          end_date: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          council_id: string
+          user_id?: string | null
+          name: string
+          role: string
+          start_date: string
+          end_date?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          council_id?: string
+          user_id?: string | null
+          name?: string
+          role?: string
+          start_date?: string
+          end_date?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "council_members_council_id_fkey"
+            columns: ["council_id"]
+            isOneToOne: false
+            referencedRelation: "councils"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      corporate_structure_members: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          birth_date: string | null
+          age: number | null
+          category: string
+          role: string
+          involvement: string | null
+          status: string
+          email: string | null
+          phone: string | null
+          document: string | null
+          address: Json | null
+          is_family_member: boolean
+          is_external: boolean
+          priority_order: number
+          shareholding: string | null
+          created_by: string | null
+          updated_by: string | null
+          user_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          name: string
+          birth_date?: string | null
+          age?: number | null
+          category: string
+          role: string
+          involvement?: string | null
+          status?: string
+          email?: string | null
+          phone?: string | null
+          document?: string | null
+          address?: Json | null
+          is_family_member?: boolean
+          is_external?: boolean
+          priority_order?: number
+          shareholding?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          name?: string
+          birth_date?: string | null
+          age?: number | null
+          category?: string
+          role?: string
+          involvement?: string | null
+          status?: string
+          email?: string | null
+          phone?: string | null
+          document?: string | null
+          address?: Json | null
+          is_family_member?: boolean
+          is_external?: boolean
+          priority_order?: number
+          shareholding?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          id: string
+          council_id: string
+          company_id: string | null
+          title: string
+          description: string | null
+          date: string
+          time: string | null
+          type: string | null
+          agenda: string | null
+          scheduled_date: string | null
+          start_time: string | null
+          end_time: string | null
+          location: string | null
+          status: string
+          meeting_type: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          council_id: string
+          company_id?: string | null
+          title: string
+          description?: string | null
+          date?: string
+          time?: string | null
+          type?: string | null
+          agenda?: string | null
+          scheduled_date?: string | null
+          start_time?: string | null
+          end_time?: string | null
+          location?: string | null
+          status?: string
+          meeting_type?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          council_id?: string
+          company_id?: string | null
+          title?: string
+          description?: string | null
+          date?: string
+          time?: string | null
+          type?: string | null
+          agenda?: string | null
+          scheduled_date?: string | null
+          start_time?: string | null
+          end_time?: string | null
+          location?: string | null
+          status?: string
+          meeting_type?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_council_id_fkey"
+            columns: ["council_id"]
+            isOneToOne: false
+            referencedRelation: "councils"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      voting_projects: {
+        Row: {
+          id: string
+          council_id: string
+          title: string
+          description: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          council_id: string
+          title: string
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          council_id?: string
+          title?: string
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voting_projects_council_id_fkey"
+            columns: ["council_id"]
+            isOneToOne: false
+            referencedRelation: "councils"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      votes: {
+        Row: {
+          id: string
+          project_id: string
+          member_id: string
+          vote: string
+          comment: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          member_id: string
+          vote: string
+          comment?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          member_id?: string
+          vote?: string
+          comment?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "voting_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "council_members"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      council_documents: {
+        Row: {
+          id: string
+          council_id: string
+          company_id: string
+          name: string
+          type: string
+          file_url: string
+          file_size: string | null
+          mime_type: string | null
+          version: string | null
+          uploaded_by: string | null
+          tags: string[] | null
+          description: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          council_id: string
+          company_id: string
+          name: string
+          type: string
+          file_url: string
+          file_size?: string | null
+          mime_type?: string | null
+          version?: string | null
+          uploaded_by?: string | null
+          tags?: string[] | null
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          council_id?: string
+          company_id?: string
+          name?: string
+          type?: string
+          file_url?: string
+          file_size?: string | null
+          mime_type?: string | null
+          version?: string | null
+          uploaded_by?: string | null
+          tags?: string[] | null
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "council_documents_council_id_fkey"
+            columns: ["council_id"]
+            isOneToOne: false
+            referencedRelation: "councils"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       users: {
         Row: {
           company_id: string | null
