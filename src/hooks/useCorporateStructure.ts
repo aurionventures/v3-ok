@@ -67,6 +67,180 @@ export const useCorporateStructure = () => {
     }
   }
 
+  // Dados fictícios para demonstração
+  const getMockMembers = (): CorporateStructureMember[] => {
+    return [
+      {
+        id: 'mock-1',
+        company_id: user?.company || 'demo',
+        name: 'Carlos Eduardo Silva',
+        age: 58,
+        category: 'Fundadores',
+        role: 'CEO & Fundador',
+        involvement: 'CEO',
+        status: 'Ativo',
+        email: 'carlos.silva@empresa.com',
+        phone: '+55 11 98765-4321',
+        shareholding: '45%',
+        is_family_member: true,
+        is_external: false,
+        priority_order: 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      },
+      {
+        id: 'mock-2',
+        company_id: user?.company || 'demo',
+        name: 'Maria Fernanda Silva',
+        age: 55,
+        category: 'Fundadores',
+        role: 'Diretora Financeira',
+        involvement: 'CFO',
+        status: 'Ativo',
+        email: 'maria.silva@empresa.com',
+        phone: '+55 11 98765-4322',
+        shareholding: '45%',
+        is_family_member: true,
+        is_external: false,
+        priority_order: 2,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      },
+      {
+        id: 'mock-3',
+        company_id: user?.company || 'demo',
+        name: 'Pedro Henrique Silva',
+        age: 32,
+        category: 'Segunda Geração',
+        role: 'Diretor de Tecnologia',
+        involvement: 'CTO',
+        status: 'Ativo',
+        email: 'pedro.silva@empresa.com',
+        phone: '+55 11 98765-4323',
+        shareholding: '10%',
+        is_family_member: true,
+        is_external: false,
+        priority_order: 3,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      },
+      {
+        id: 'mock-4',
+        company_id: user?.company || 'demo',
+        name: 'Roberto Almeida',
+        age: 62,
+        category: 'Investidores',
+        role: 'Investidor Estratégico',
+        involvement: 'Conselheiro',
+        status: 'Ativo',
+        email: 'roberto.almeida@investimentos.com',
+        phone: '+55 11 98765-4324',
+        shareholding: '15%',
+        is_family_member: false,
+        is_external: true,
+        priority_order: 4,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      },
+      {
+        id: 'mock-5',
+        company_id: user?.company || 'demo',
+        name: 'Ana Paula Costa',
+        age: 48,
+        category: 'Conselheiros',
+        role: 'Conselheira Independente',
+        involvement: 'Membro do Conselho',
+        status: 'Ativo',
+        email: 'ana.costa@consultoria.com',
+        phone: '+55 11 98765-4325',
+        shareholding: '0%',
+        is_family_member: false,
+        is_external: true,
+        priority_order: 5,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      },
+      {
+        id: 'mock-6',
+        company_id: user?.company || 'demo',
+        name: 'Juliana Silva',
+        age: 29,
+        category: 'Segunda Geração',
+        role: 'Gerente de Marketing',
+        involvement: 'CMO',
+        status: 'Ativo',
+        email: 'juliana.silva@empresa.com',
+        phone: '+55 11 98765-4326',
+        shareholding: '5%',
+        is_family_member: true,
+        is_external: false,
+        priority_order: 6,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      },
+      {
+        id: 'mock-7',
+        company_id: user?.company || 'demo',
+        name: 'Fernando Oliveira',
+        age: 45,
+        category: 'Executivos',
+        role: 'Diretor de Operações',
+        involvement: 'COO',
+        status: 'Ativo',
+        email: 'fernando.oliveira@empresa.com',
+        phone: '+55 11 98765-4327',
+        shareholding: '3%',
+        is_family_member: false,
+        is_external: false,
+        priority_order: 7,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: null,
+        updated_by: null,
+        user_id: null,
+        birth_date: null,
+        document: null,
+        address: null
+      }
+    ]
+  }
+
   // Buscar todos os membros da estrutura societária da empresa
   const fetchMembers = async () => {
     try {
@@ -75,6 +249,14 @@ export const useCorporateStructure = () => {
 
       if (!user?.company) {
         setMembers([])
+        setLoading(false)
+        return
+      }
+
+      // Verificar se é usuário demo e retornar dados fictícios
+      if (user.email?.includes('demo') || user.email === 'cliente@empresa.com' || 
+          user.email === 'parceiro@consultor.com' || user.email === 'admin@gov.com') {
+        setMembers(getMockMembers())
         setLoading(false)
         return
       }
