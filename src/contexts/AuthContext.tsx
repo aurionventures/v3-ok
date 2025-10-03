@@ -151,26 +151,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initializeAuth();
 
     // Listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         setUserWithPersistence(null);
       } else if (session?.user) {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
+        // Usar setTimeout para evitar deadlock ao chamar Supabase dentro do callback
+        setTimeout(async () => {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (roleData) {
-          const authUser: AuthUser = {
-            id: session.user.id,
-            email: session.user.email!,
-            name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
-            role: roleData.role,
-            company: session.user.user_metadata?.company,
-          };
-          setUserWithPersistence(authUser);
-        }
+          if (roleData) {
+            const authUser: AuthUser = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
+              role: roleData.role,
+              company: session.user.user_metadata?.company,
+            };
+            setUserWithPersistence(authUser);
+          }
+        }, 0);
       }
     });
 
