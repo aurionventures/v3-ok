@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,11 +13,25 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Verifica se há uma sessão ativa no Supabase
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          setUser(session.user);
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (roleData) {
+            const authUser = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
+              role: roleData.role,
+              company: session.user.user_metadata?.company,
+            };
+            setUser(authUser);
+          }
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);

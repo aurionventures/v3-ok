@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-// Extend Supabase User to include 'name' and 'company'
-import type { User as SupabaseUser } from "@supabase/supabase-js";
-export type AuthUser = SupabaseUser & { name?: string; company?: string };
-import { supabase } from "@/lib/supabase";
-import { 
-  saveUserToStorage, 
-  getUserFromStorage, 
-  removeUserFromStorage, 
-  type StoredUser 
-} from "@/utils/userStorage";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  company?: string;
+}
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -24,104 +24,78 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Função para converter StoredUser para AuthUser
-  const storedUserToAuthUser = (storedUser: StoredUser): AuthUser => {
-    return {
-      id: storedUser.id,
-      email: storedUser.email,
-      role: storedUser.role,
-      name: storedUser.name,
-      company: storedUser.company,
-      // Campos obrigatórios do SupabaseUser (com valores padrão)
-      aud: 'authenticated',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      app_metadata: {},
-      user_metadata: {},
-      identities: [],
-    } as AuthUser;
-  };
-
-  // Função para converter AuthUser para StoredUser (sem JWT)
-  const authUserToStoredUser = (authUser: AuthUser): StoredUser => {
-    return {
-      id: authUser.id,
-      email: authUser.email,
-      role: authUser.role,
-      name: authUser.name,
-      company: authUser.company,
-    };
-  };
-
-  // Função customizada para setUser que também salva no localStorage
   const setUserWithPersistence = (newUser: AuthUser | null) => {
     setUser(newUser);
-    
     if (newUser) {
-      // Salva dados do usuário no localStorage (sem JWT)
-      const storedUser = authUserToStoredUser(newUser);
-      saveUserToStorage(storedUser);
+      localStorage.setItem('authUser', JSON.stringify(newUser));
     } else {
-      // Remove dados do usuário do localStorage
-      removeUserFromStorage();
+      localStorage.removeItem('authUser');
     }
   };
 
-  const login = async (credentials: { email: string; password: string; role: string }): Promise<boolean> => {
+  const login = async (credentials: { email: string; password: string; role: string }) => {
     try {
-      // Credenciais de demonstração
-      const demoAccounts: Record<string, { password: string; role: string; name: string; company?: string }> = {
-        'cliente@empresa.com': { 
-          password: '123456', 
-          role: 'cliente', 
-          name: 'Cliente Demo',
-          company: 'Empresa Demo'
-        },
-        'admin@gov.com': { 
-          password: 'admin123', 
-          role: 'admin', 
-          name: 'Admin Demo'
-        },
-        'parceiro@consultor.com': { 
-          password: 'parceiro123', 
-          role: 'parceiro', 
-          name: 'Parceiro Demo',
-          company: 'Consultoria Demo'
-        }
-      };
-
-      const account = demoAccounts[credentials.email.toLowerCase()];
+      setLoading(true);
       
-      if (account && 
-          account.password === credentials.password && 
-          account.role === credentials.role) {
-        
-        // Criar objeto de usuário autenticado
-        const authUser: AuthUser = {
-          id: `demo-${account.role}-${Date.now()}`,
-          email: credentials.email,
-          role: account.role,
-          name: account.name,
-          company: account.company,
-          aud: 'authenticated',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          app_metadata: {},
-          user_metadata: {},
-          identities: [],
-        };
+      // Usar autenticação real do Supabase
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
 
-        setUserWithPersistence(authUser);
-        console.log('Login de demonstração bem-sucedido:', account.name);
-        return true;
+      if (signInError || !authData.user) {
+        toast({
+          title: 'Erro no login',
+          description: signInError?.message || 'Credenciais inválidas',
+          variant: 'destructive',
+        });
+        return false;
       }
 
-      console.log('Credenciais inválidas para demonstração');
-      return false;
+      // Buscar role do usuário na tabela user_roles
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      if (roleError || !roleData) {
+        console.error('Erro ao buscar role:', roleError);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível verificar permissões do usuário',
+          variant: 'destructive',
+        });
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      const authUser: AuthUser = {
+        id: authData.user.id,
+        email: authData.user.email!,
+        name: authData.user.user_metadata?.name || authData.user.email!.split('@')[0],
+        role: roleData.role,
+        company: authData.user.user_metadata?.company,
+      };
+      
+      setUserWithPersistence(authUser);
+      toast({
+        title: 'Login realizado',
+        description: `Bem-vindo, ${authUser.name}!`,
+      });
+      return true;
     } catch (error) {
-      console.error('Erro durante login:', error);
+      console.error('Erro no login:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao fazer login',
+        variant: 'destructive',
+      });
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,34 +108,73 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Inicializar usuário do localStorage na montagem do componente
+  // Inicializar usuário do localStorage e configurar listener do Supabase
   useEffect(() => {
-    const initializeUser = async () => {
+    const initializeAuth = async () => {
       try {
-        const storedUser = getUserFromStorage();
-        if (storedUser) {
-          const authUser = storedUserToAuthUser(storedUser);
-          setUser(authUser);
-          console.log('Usuário restaurado do localStorage:', authUser);
+        // Verificar sessão ativa no Supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // Buscar role do usuário
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (roleData) {
+            const authUser: AuthUser = {
+              id: session.user.id,
+              email: session.user.email!,
+              name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
+              role: roleData.role,
+              company: session.user.user_metadata?.company,
+            };
+            setUserWithPersistence(authUser);
+          }
+        } else {
+          // Tentar restaurar do localStorage se não houver sessão
+          const storedUser = localStorage.getItem('authUser');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser) as AuthUser;
+            setUser(parsedUser);
+          }
         }
       } catch (error) {
-        console.error('Erro ao restaurar usuário:', error);
+        console.error('Erro ao inicializar auth:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeUser();
-  }, []);
+    initializeAuth();
 
-  useEffect(() => {
-    // Escutar mudanças de sessão do Supabase (opcional)
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
-      // Não sobrescrever o usuário se já estiver definido
-      // Isso evita que o usuário seja perdido ao atualizar a página
-      console.log('Auth state change:', session?.user ? 'User logged in' : 'User logged out');
+    // Listener de mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUserWithPersistence(null);
+      } else if (session?.user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (roleData) {
+          const authUser: AuthUser = {
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
+            role: roleData.role,
+            company: session.user.user_metadata?.company,
+          };
+          setUserWithPersistence(authUser);
+        }
+      }
     });
-    return () => listener.subscription.unsubscribe();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
