@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { mockUsers } from "@/utils/mockUsers";
 
 export interface AuthUser {
   id: string;
@@ -39,45 +39,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
-      // Usar autenticação real do Supabase
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
-      });
+      // Buscar usuário mocado
+      const mockUser = mockUsers.find(u => 
+        u.email === credentials.email && 
+        u.password === credentials.password &&
+        u.role === credentials.role
+      );
 
-      if (signInError || !authData.user) {
+      if (!mockUser) {
         toast({
           title: 'Erro no login',
-          description: signInError?.message || 'Credenciais inválidas',
+          description: 'Credenciais inválidas',
           variant: 'destructive',
         });
-        return false;
-      }
-
-      // Buscar role do usuário na tabela user_roles
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .single();
-
-      if (roleError || !roleData) {
-        console.error('Erro ao buscar role:', roleError);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível verificar permissões do usuário',
-          variant: 'destructive',
-        });
-        await supabase.auth.signOut();
         return false;
       }
 
       const authUser: AuthUser = {
-        id: authData.user.id,
-        email: authData.user.email!,
-        name: authData.user.user_metadata?.name || authData.user.email!.split('@')[0],
-        role: roleData.role,
-        company: authData.user.user_metadata?.company,
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+        role: mockUser.role,
+        company: mockUser.company,
       };
       
       setUserWithPersistence(authUser);
@@ -101,45 +84,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
       setUserWithPersistence(null);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
   };
 
-  // Inicializar usuário do localStorage e configurar listener do Supabase
+  // Inicializar usuário do localStorage
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuth = () => {
       try {
-        // Verificar sessão ativa no Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          // Buscar role do usuário
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .single();
-
-          if (roleData) {
-            const authUser: AuthUser = {
-              id: session.user.id,
-              email: session.user.email!,
-              name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
-              role: roleData.role,
-              company: session.user.user_metadata?.company,
-            };
-            setUserWithPersistence(authUser);
-          }
-        } else {
-          // Tentar restaurar do localStorage se não houver sessão
-          const storedUser = localStorage.getItem('authUser');
-          if (storedUser) {
-            const parsedUser = JSON.parse(storedUser) as AuthUser;
-            setUser(parsedUser);
-          }
+        const storedUser = localStorage.getItem('authUser');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser) as AuthUser;
+          setUser(parsedUser);
         }
       } catch (error) {
         console.error('Erro ao inicializar auth:', error);
@@ -149,35 +107,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initializeAuth();
-
-    // Listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        setUserWithPersistence(null);
-      } else if (session?.user) {
-        // Usar setTimeout para evitar deadlock ao chamar Supabase dentro do callback
-        setTimeout(async () => {
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .single();
-
-          if (roleData) {
-            const authUser: AuthUser = {
-              id: session.user.id,
-              email: session.user.email!,
-              name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
-              role: roleData.role,
-              company: session.user.user_metadata?.company,
-            };
-            setUserWithPersistence(authUser);
-          }
-        }, 0);
-      }
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   return (
