@@ -1,4 +1,3 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 // Função para extrair valor de cookie pelo nome

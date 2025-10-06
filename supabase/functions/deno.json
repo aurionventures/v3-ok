@@ -2,5 +2,5 @@
   "compilerOptions": {
     "skipLibCheck": true
   },
-  "nodeModulesDir": "auto"
+  "nodeModulesDir": false
 }
