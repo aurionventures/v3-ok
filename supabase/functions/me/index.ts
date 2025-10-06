@@ -25,8 +25,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Não autenticado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
     const jwtSecret = Deno.env.get('JWT_SECRET')!;
-    // verify retorna payload se válido
-    const payload = await verify(token, jwtSecret, 'HS256');
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(jwtSecret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    const payload = await verify(token, key);
 
     // Monta objeto user a partir do payload, incluindo empresa
     const user = {

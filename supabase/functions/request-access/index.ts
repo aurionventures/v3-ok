@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   const isAllowedOrigin = allowedOrigins.includes(origin || '');
   
   const corsHeaders = {
-    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : 'null',
+    'Access-Control-Allow-Origin': isAllowedOrigin ? (origin || '*') : '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, x-client-info, apikey',
     'Access-Control-Allow-Credentials': 'true',
@@ -172,7 +172,8 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error(err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, ...securityHeaders, "Content-Type": "application/json" },
     });
