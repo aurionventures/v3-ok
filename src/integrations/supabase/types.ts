@@ -135,6 +135,86 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_transcripts: {
+        Row: {
+          created_by: string | null
+          id: string
+          interview_id: string
+          transcript_text: string
+          uploaded_at: string
+        }
+        Insert: {
+          created_by?: string | null
+          id?: string
+          interview_id: string
+          transcript_text: string
+          uploaded_at?: string
+        }
+        Update: {
+          created_by?: string | null
+          id?: string
+          interview_id?: string
+          transcript_text?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_transcripts_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: false
+            referencedRelation: "interviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interviews: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string | null
+          id: string
+          interview_date: string | null
+          name: string
+          notes: string | null
+          priority: string
+          role: string
+          scheduled_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          interview_date?: string | null
+          name: string
+          notes?: string | null
+          priority?: string
+          role: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          interview_date?: string | null
+          name?: string
+          notes?: string | null
+          priority?: string
+          role?: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

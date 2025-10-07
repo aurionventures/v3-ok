@@ -6,22 +6,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, CheckCircle2, Clock, AlertCircle, Plus, Upload, Mail, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar, CheckCircle2, Clock, AlertCircle, Plus, Upload, Mail, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-
-interface Interviewee {
-  id: string;
-  name: string;
-  role: string;
-  status: 'pending' | 'scheduled' | 'interviewed';
-  scheduledDate?: Date;
-  email?: string;
-  transcript?: string;
-  uploadDate?: Date;
-}
+import { useInterviews } from '@/hooks/useInterviews';
+import { useInterviewTranscripts } from '@/hooks/useInterviewTranscripts';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
 
 interface ScheduleData {
   intervieweeId: string;
@@ -42,10 +35,21 @@ const commonRoles = [
 ];
 
 export default function Interviews() {
-  const navigate = useNavigate();
-  const [interviewees, setInterviewees] = useState<Interviewee[]>([]);
+  const {
+    interviews,
+    loading,
+    createInterview,
+    updateInterview,
+    markAsInterviewed,
+    scheduleInterview: scheduleInterviewHook,
+    getStatusCounts,
+  } = useInterviews();
+
+  const { createTranscript, getAllTranscripts } = useInterviewTranscripts();
+
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState('');
+  const [newPriority, setNewPriority] = useState<'high' | 'medium' | 'low'>('medium');
   const [scheduleData, setScheduleData] = useState<ScheduleData>({
     intervieweeId: '',
     date: '',
@@ -54,91 +58,107 @@ export default function Interviews() {
   });
   const [transcript, setTranscript] = useState('');
   const [selectedIntervieweeForTranscript, setSelectedIntervieweeForTranscript] = useState('');
+  const [companyId, setCompanyId] = useState<string>('');
+  const [allTranscripts, setAllTranscripts] = useState<any[]>([]);
 
+  // Get user's company
   useEffect(() => {
-    const saved = localStorage.getItem('interviewees');
-    if (saved) {
-      setInterviewees(JSON.parse(saved).map((item: any) => ({
-        ...item,
-        scheduledDate: item.scheduledDate ? new Date(item.scheduledDate) : undefined,
-        uploadDate: item.uploadDate ? new Date(item.uploadDate) : undefined
-      })));
-    }
+    const fetchUserCompany = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('company')
+          .eq('id', user.id)
+          .single();
+
+        if (userData?.company) {
+          setCompanyId(userData.company);
+        }
+      }
+    };
+    fetchUserCompany();
   }, []);
 
+  // Load all transcripts
   useEffect(() => {
-    localStorage.setItem('interviewees', JSON.stringify(interviewees));
-  }, [interviewees]);
+    const loadTranscripts = async () => {
+      const data = await getAllTranscripts();
+      setAllTranscripts(data);
+    };
+    loadTranscripts();
+  }, [interviews]);
 
-  const createNewInterviewee = () => {
+  const createNewInterviewee = async () => {
     if (!newName.trim() || !newRole.trim()) {
       toast.error('Nome e cargo são obrigatórios');
       return;
     }
 
-    const newInterviewee: Interviewee = {
-      id: Date.now().toString(),
-      name: newName.trim(),
-      role: newRole.trim(),
-      status: 'pending'
-    };
+    if (!companyId) {
+      toast.error('Erro ao identificar empresa');
+      return;
+    }
 
-    setInterviewees(prev => [...prev, newInterviewee]);
-    setNewName('');
-    setNewRole('');
-    toast.success('Entrevistado adicionado com sucesso');
+    try {
+      await createInterview({
+        company_id: companyId,
+        name: newName.trim(),
+        role: newRole.trim(),
+        priority: newPriority,
+        status: 'pending',
+      });
+      setNewName('');
+      setNewRole('');
+      setNewPriority('medium');
+    } catch (error) {
+      console.error('Error creating interviewee:', error);
+    }
   };
 
-  const scheduleInterview = () => {
+  const scheduleInterview = async () => {
     if (!scheduleData.intervieweeId || !scheduleData.date || !scheduleData.time || !scheduleData.email) {
       toast.error('Todos os campos são obrigatórios');
       return;
     }
 
-    setInterviewees(prev => prev.map(interviewee => 
-      interviewee.id === scheduleData.intervieweeId 
-        ? { 
-            ...interviewee, 
-            status: 'scheduled', 
-            scheduledDate: new Date(`${scheduleData.date}T${scheduleData.time}`),
-            email: scheduleData.email 
-          }
-        : interviewee
-    ));
+    try {
+      const [hours, minutes] = scheduleData.time.split(':');
+      const scheduledDateTime = new Date(`${scheduleData.date}T${scheduleData.time}`);
+      scheduledDateTime.setHours(parseInt(hours), parseInt(minutes));
 
-    setScheduleData({ intervieweeId: '', date: '', time: '', email: '' });
-    toast.success('Entrevista agendada e convite enviado!');
+      await scheduleInterviewHook(scheduleData.intervieweeId, scheduledDateTime);
+
+      if (scheduleData.email) {
+        await updateInterview(scheduleData.intervieweeId, { email: scheduleData.email });
+      }
+
+      setScheduleData({ intervieweeId: '', date: '', time: '', email: '' });
+      toast.success('Entrevista agendada com sucesso!');
+    } catch (error) {
+      console.error('Error scheduling interview:', error);
+    }
   };
 
-  const handleTranscriptUpload = () => {
+  const handleTranscriptUpload = async () => {
     if (!selectedIntervieweeForTranscript || !transcript.trim()) {
       toast.error('Selecione um entrevistado e adicione a transcrição');
       return;
     }
 
-    setInterviewees(prev => prev.map(interviewee => 
-      interviewee.id === selectedIntervieweeForTranscript 
-        ? { 
-            ...interviewee, 
-            status: 'interviewed', 
-            transcript: transcript.trim(),
-            uploadDate: new Date()
-          }
-        : interviewee
-    ));
+    try {
+      await createTranscript(selectedIntervieweeForTranscript, transcript.trim());
+      await markAsInterviewed(selectedIntervieweeForTranscript);
+      setTranscript('');
+      setSelectedIntervieweeForTranscript('');
 
-    setTranscript('');
-    setSelectedIntervieweeForTranscript('');
-    toast.success('Transcrição salva com sucesso!');
-  };
-
-  const getStatusCounts = () => {
-    return {
-      interviewed: interviewees.filter(i => i.status === 'interviewed').length,
-      scheduled: interviewees.filter(i => i.status === 'scheduled').length,
-      pending: interviewees.filter(i => i.status === 'pending').length,
-      total: interviewees.length
-    };
+      // Reload transcripts
+      const data = await getAllTranscripts();
+      setAllTranscripts(data);
+      toast.success('Transcrição salva com sucesso!');
+    } catch (error) {
+      console.error('Error uploading transcript:', error);
+    }
   };
 
   const counts = getStatusCounts();
@@ -164,14 +184,14 @@ export default function Interviews() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-      
+
       <div className="flex-1 flex flex-col">
         <Header title={`Entrevistas (${counts.total} entrevistados)`} />
-        
+
         <main className="flex-1 overflow-auto">
           <div className="p-6">
             <div className="max-w-6xl mx-auto space-y-6">
-              
+
               {/* Nova Entrevista */}
               <Card>
                 <CardHeader>
@@ -181,7 +201,7 @@ export default function Interviews() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Nome do Entrevistado</label>
                       <Input
@@ -203,8 +223,21 @@ export default function Interviews() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Prioridade</label>
+                      <Select value={newPriority} onValueChange={(value: any) => setNewPriority(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione prioridade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="low">Baixa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="flex items-end">
-                      <Button onClick={createNewInterviewee} className="w-full">
+                      <Button onClick={createNewInterviewee} className="w-full" disabled={loading}>
                         <Plus className="h-4 w-4 mr-2" />
                         Criar Entrevista
                       </Button>
@@ -250,37 +283,49 @@ export default function Interviews() {
                     </Card>
                   </div>
 
-                  <div className="space-y-3">
-                    {interviewees.map(interviewee => (
-                      <Card key={interviewee.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {getStatusIcon(interviewee.status)}
-                              <div>
-                                <div className="font-medium">{interviewee.name}</div>
-                                <div className="text-sm text-muted-foreground">{interviewee.role}</div>
-                                {interviewee.scheduledDate && (
-                                  <div className="text-xs text-blue-600">
-                                    Agendada: {interviewee.scheduledDate.toLocaleDateString()} às {interviewee.scheduledDate.toLocaleTimeString()}
-                                  </div>
+                  {loading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                      <p className="text-muted-foreground mt-2">Carregando entrevistas...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {interviews.map(interviewee => (
+                        <Card key={interviewee.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                {getStatusIcon(interviewee.status)}
+                                <div>
+                                  <div className="font-medium">{interviewee.name}</div>
+                                  <div className="text-sm text-muted-foreground">{interviewee.role}</div>
+                                  {interviewee.scheduled_date && (
+                                    <div className="text-xs text-blue-600">
+                                      Agendada: {format(new Date(interviewee.scheduled_date), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}
+                                    </div>
+                                  )}
+                                  {interviewee.interview_date && (
+                                    <div className="text-xs text-green-600">
+                                      Realizada: {format(new Date(interviewee.interview_date), "dd/MM/yyyy", { locale: pt })}
+                                    </div>
+                                  )}
+                                  {interviewee.notes && (
+                                    <div className="text-xs text-muted-foreground italic mt-1">{interviewee.notes}</div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {getStatusBadge(interviewee.status)}
+                                {interviewee.priority === 'high' && (
+                                  <Badge variant="destructive">Prioridade Alta</Badge>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {getStatusBadge(interviewee.status)}
-                              {interviewee.transcript && (
-                                <Badge variant="outline">
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  Transcrição
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Tab Agendar */}
@@ -293,12 +338,12 @@ export default function Interviews() {
                       <div className="grid gap-4">
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Entrevistado</label>
-                          <Select value={scheduleData.intervieweeId} onValueChange={(value) => setScheduleData({...scheduleData, intervieweeId: value})}>
+                          <Select value={scheduleData.intervieweeId} onValueChange={(value) => setScheduleData({ ...scheduleData, intervieweeId: value })}>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione o entrevistado" />
                             </SelectTrigger>
                             <SelectContent>
-                              {interviewees.filter(i => i.status === 'pending').map(interviewee => (
+                              {interviews.filter(i => i.status === 'pending').map(interviewee => (
                                 <SelectItem key={interviewee.id} value={interviewee.id}>
                                   {interviewee.name} - {interviewee.role}
                                 </SelectItem>
@@ -312,7 +357,7 @@ export default function Interviews() {
                             <Input
                               type="date"
                               value={scheduleData.date}
-                              onChange={(e) => setScheduleData({...scheduleData, date: e.target.value})}
+                              onChange={(e) => setScheduleData({ ...scheduleData, date: e.target.value })}
                             />
                           </div>
                           <div className="space-y-2">
@@ -320,7 +365,7 @@ export default function Interviews() {
                             <Input
                               type="time"
                               value={scheduleData.time}
-                              onChange={(e) => setScheduleData({...scheduleData, time: e.target.value})}
+                              onChange={(e) => setScheduleData({ ...scheduleData, time: e.target.value })}
                             />
                           </div>
                         </div>
@@ -329,11 +374,11 @@ export default function Interviews() {
                           <Input
                             type="email"
                             value={scheduleData.email}
-                            onChange={(e) => setScheduleData({...scheduleData, email: e.target.value})}
+                            onChange={(e) => setScheduleData({ ...scheduleData, email: e.target.value })}
                             placeholder="email@exemplo.com"
                           />
                         </div>
-                        <Button onClick={scheduleInterview} className="w-full">
+                        <Button onClick={scheduleInterview} className="w-full" disabled={loading}>
                           <Mail className="h-4 w-4 mr-2" />
                           Agendar e Enviar Convite
                         </Button>
@@ -357,7 +402,7 @@ export default function Interviews() {
                               <SelectValue placeholder="Escolha o entrevistado" />
                             </SelectTrigger>
                             <SelectContent>
-                              {interviewees.map(interviewee => (
+                              {interviews.map(interviewee => (
                                 <SelectItem key={interviewee.id} value={interviewee.id}>
                                   {interviewee.name} - {interviewee.role}
                                 </SelectItem>
@@ -374,28 +419,26 @@ export default function Interviews() {
                             className="min-h-[200px]"
                           />
                         </div>
-                        <Button onClick={handleTranscriptUpload} className="w-full">
+                        <Button onClick={handleTranscriptUpload} className="w-full" disabled={loading}>
                           <Upload className="h-4 w-4 mr-2" />
                           Salvar Transcrição
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {/* Lista de Transcrições */}
                   <div className="space-y-3">
-                    {interviewees.filter(i => i.transcript).map(interviewee => (
-                      <Card key={interviewee.id}>
+                    {allTranscripts.map((item: any) => (
+                      <Card key={item.id}>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-3">
                             <div>
-                              <div className="font-medium">{interviewee.name}</div>
-                              <div className="text-sm text-muted-foreground">{interviewee.role}</div>
-                              {interviewee.uploadDate && (
-                                <div className="text-xs text-muted-foreground">
-                                  Enviado em: {interviewee.uploadDate.toLocaleDateString()}
-                                </div>
-                              )}
+                              <div className="font-medium">{item.interviews?.name}</div>
+                              <div className="text-sm text-muted-foreground">{item.interviews?.role}</div>
+                              <div className="text-xs text-muted-foreground">
+                                Enviado em: {format(new Date(item.uploaded_at), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}
+                              </div>
                             </div>
                             <Badge className="bg-green-500 text-white">
                               <FileText className="h-3 w-3 mr-1" />
@@ -403,7 +446,7 @@ export default function Interviews() {
                             </Badge>
                           </div>
                           <div className="text-sm text-muted-foreground bg-muted p-3 rounded max-h-32 overflow-y-auto">
-                            {interviewee.transcript}
+                            {item.transcript_text}
                           </div>
                         </CardContent>
                       </Card>
