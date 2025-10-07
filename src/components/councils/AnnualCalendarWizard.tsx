@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { Calendar as CalendarIcon, CheckCircle2, ChevronLeft, ChevronRight, Download, AlertCircle } from "lucide-react";
 import { format, addMonths, startOfMonth, endOfMonth, getDay } from "date-fns";
@@ -144,6 +145,36 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
     }
     return true;
   };
+
+  // Auto-generate preview when configuration is complete
+  useEffect(() => {
+    if (config.council && config.frequency && config.dayRule) {
+      if (config.dayRule === 'specific' && !config.specificDay) return;
+      
+      const dates: Date[] = [];
+      const startMonth = new Date().getMonth();
+      
+      let monthOffsets: number[] = [];
+      switch (config.frequency) {
+        case "monthly": monthOffsets = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; break;
+        case "bimonthly": monthOffsets = [0, 2, 4, 6, 8, 10]; break;
+        case "quarterly": monthOffsets = [0, 3, 6, 9]; break;
+        case "biannual": monthOffsets = [0, 6]; break;
+      }
+
+      monthOffsets.forEach((offset) => {
+        const targetMonth = startMonth + offset;
+        const targetYear = targetMonth >= 12 ? config.year + 1 : config.year;
+        const normalizedMonth = targetMonth % 12;
+        const date = calculateDateForRule(config.dayRule, normalizedMonth, targetYear);
+        if (date) dates.push(date);
+      });
+
+      const sortedDates = dates.sort((a, b) => a.getTime() - b.getTime());
+      setGeneratedDates(sortedDates);
+      setCurrentMonthOffset(0);
+    }
+  }, [config.frequency, config.dayRule, config.specificDay, config.year, config.council]);
 
   const generateDates = () => {
     if (!validateStep1() || !validateStep2()) return;
@@ -302,27 +333,53 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
           </div>
         ))}
         
-        {days.map((day, index) => (
-          <div
-            key={index}
-            className={cn(
-              "aspect-square flex items-center justify-center rounded-lg border text-sm font-medium transition-colors relative",
-              day === null && "border-transparent",
-              day !== null && !hasMeeting(day, targetMonth) && "border-border hover:bg-accent",
-              day !== null && hasMeeting(day, targetMonth) && "bg-blue-600 text-white border-blue-700 shadow-lg ring-2 ring-blue-400/50 cursor-pointer hover:bg-blue-700 font-bold"
-            )}
-            onClick={() => {
-              if (day && hasMeeting(day, targetMonth)) {
-                handleMeetingClick(day, targetMonth);
-              }
-            }}
-          >
-            {day}
-            {day !== null && hasMeeting(day, targetMonth) && (
-              <CalendarIcon className="absolute -top-1 -right-1 h-3 w-3 text-white bg-blue-700 rounded-full p-0.5" />
-            )}
-          </div>
-        ))}
+        <TooltipProvider>
+          {days.map((day, index) => {
+            const isMeeting = day !== null && hasMeeting(day, targetMonth);
+            
+            if (isMeeting) {
+              return (
+                <Tooltip key={index}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        "aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-all relative cursor-pointer",
+                        "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-700 shadow-lg ring-2 ring-blue-400/50",
+                        "hover:from-blue-600 hover:to-blue-700 font-bold animate-in fade-in zoom-in duration-300"
+                      )}
+                      onClick={() => handleMeetingClick(day, targetMonth)}
+                    >
+                      <span className="relative z-10">{day}</span>
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-green-500 border-0 flex items-center justify-center">
+                        <CheckCircle2 className="h-3 w-3 text-white" />
+                      </Badge>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <p className="font-semibold">{config.type}</p>
+                      <p className="text-xs">{config.time} • {config.modality}</p>
+                      <p className="text-xs text-muted-foreground">{config.council}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+            
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "aspect-square flex items-center justify-center rounded-lg border text-sm font-medium transition-colors relative",
+                  day === null && "border-transparent",
+                  day !== null && "border-border hover:bg-accent"
+                )}
+              >
+                {day}
+              </div>
+            );
+          })}
+        </TooltipProvider>
       </div>
     );
     } catch (error) {
@@ -444,36 +501,26 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
             </CardContent>
           </Card>
 
-          <Button onClick={generateDates} size="lg" className="w-full">
-            <CalendarIcon className="h-4 w-4 mr-2" />
-            Gerar Preview
-          </Button>
-
-          {generatedDates.length > 0 && (
-            <Card className="bg-primary/5 border-primary">
-              <CardHeader>
-                <CardTitle>Resumo do Calendário</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total de Reuniões:</span>
-                  <span className="font-bold">{generatedDates.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Primeira Reunião:</span>
-                  <span className="font-medium">{format(generatedDates[0], 'dd/MM/yyyy')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Última Reunião:</span>
-                  <span className="font-medium">{format(generatedDates[generatedDates.length - 1], 'dd/MM/yyyy')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Horário:</span>
-                  <span className="font-medium">{config.time}</span>
+{generatedDates.length > 0 && (
+            <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+              <CardContent className="flex items-center gap-4 p-4">
+                <CheckCircle2 className="h-8 w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-semibold text-blue-900 dark:text-blue-100">
+                    {generatedDates.length} reuniões geradas
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    {config.type} • {config.modality} • {config.time}
+                  </p>
                 </div>
               </CardContent>
             </Card>
           )}
+
+          <Button onClick={generateDates} size="lg" className="w-full" variant="outline">
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Regenerar Preview
+          </Button>
         </div>
 
         {/* COLUNA DIREITA - Preview */}
@@ -483,33 +530,69 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
               <CardTitle>Preview do Calendário</CardTitle>
             </CardHeader>
             <CardContent>
-              {generatedDates.length === 0 ? (
+{generatedDates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-96 text-center">
                   <CalendarIcon className="h-16 w-16 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
-                    Configure os parâmetros ao lado e clique em "Gerar Preview" para visualizar o calendário
+                    Configure os parâmetros ao lado para visualizar o calendário automaticamente
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-4">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentMonthOffset(currentMonthOffset - 1)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentMonthOffset(currentMonthOffset - 1)}
+                      disabled={currentMonthOffset <= 0}
+                      className="relative"
+                    >
                       <ChevronLeft className="h-4 w-4" />
+                      {currentMonthOffset > 0 && getMeetingsInMonth(currentMonthOffset - 1) > 0 && (
+                        <Badge className="absolute -top-2 -left-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                          {getMeetingsInMonth(currentMonthOffset - 1)}
+                        </Badge>
+                      )}
                     </Button>
                     <h3 className="font-semibold">
                       {format(addMonths(new Date(config.year, 0, 1), currentMonthOffset), 'MMMM yyyy', { locale: ptBR })}
                     </h3>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentMonthOffset(currentMonthOffset + 1)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentMonthOffset(currentMonthOffset + 1)}
+                      disabled={currentMonthOffset >= 11}
+                      className="relative"
+                    >
                       <ChevronRight className="h-4 w-4" />
+                      {currentMonthOffset < 11 && getMeetingsInMonth(currentMonthOffset + 1) > 0 && (
+                        <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                          {getMeetingsInMonth(currentMonthOffset + 1)}
+                        </Badge>
+                      )}
                     </Button>
                   </div>
                   
                   {renderCalendarGrid()}
                   
-                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-sm text-center">
-                      <strong>{getMeetingsInMonth(currentMonthOffset)}</strong> reuniões agendadas neste mês
-                    </p>
+                  <div className="mt-4 space-y-3">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-center text-blue-900 dark:text-blue-100">
+                        <strong>{getMeetingsInMonth(currentMonthOffset)}</strong> reuniões agendadas neste mês
+                      </p>
+                    </div>
+                    
+                    {/* Legenda de cores */}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground justify-center">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm" />
+                        <span>Reunião agendada</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-lg border border-border" />
+                        <span>Dia sem reunião</span>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
