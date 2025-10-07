@@ -229,11 +229,33 @@ export const useAnnualSchedule = () => {
     return allTasks.filter(task => task.status !== "Concluída");
   };
 
+  const addMultipleMeetings = (meetings: Omit<MeetingSchedule, 'id' | 'status' | 'agenda' | 'nextMeetingTopics'>[]) => {
+    if (!schedule) return;
+    
+    const newMeetings: MeetingSchedule[] = meetings.map((meeting, index) => ({
+      id: `${Date.now()}-${index}`,
+      ...meeting,
+      status: "Agendada",
+      agenda: [],
+      nextMeetingTopics: []
+    }));
+    
+    const updatedSchedule = {
+      ...schedule,
+      meetings: [...schedule.meetings, ...newMeetings].sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      )
+    };
+    
+    saveSchedule(updatedSchedule);
+  };
+
   return {
     schedule,
     loading,
     updateMeeting,
     addMeeting,
+    addMultipleMeetings,
     deleteMeeting,
     getNextMeeting,
     getMeetingsByStatus,

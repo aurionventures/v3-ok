@@ -25,6 +25,7 @@ const AnnualAgenda = () => {
     loading: scheduleLoading,
     updateMeeting,
     addMeeting,
+    addMultipleMeetings,
     deleteMeeting,
     getNextMeeting,
     getAgendaProgress,
