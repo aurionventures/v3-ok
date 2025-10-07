@@ -192,6 +192,7 @@ const AnnualAgenda = () => {
                 <AnnualCalendar 
                   meetings={schedule.meetings}
                   onMeetingClick={handleMeetingClick}
+                  onUpdateMeeting={updateMeeting}
                 />
               ) : (
                 <div className="text-center py-8">

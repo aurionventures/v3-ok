@@ -1,13 +1,16 @@
 import React, { useState } from "react";
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MeetingSchedule } from "@/types/annualSchedule";
+import { MeetingAgendaPopover } from "./MeetingAgendaPopover";
+import { differenceInDays } from "date-fns";
 
 interface AnnualCalendarProps {
   meetings: MeetingSchedule[];
   onMeetingClick: (meeting: MeetingSchedule) => void;
+  onUpdateMeeting: (meetingId: string, updates: Partial<MeetingSchedule>) => void;
 }
 
 const monthNames = [
@@ -32,11 +35,12 @@ const getStatusColor = (status: MeetingSchedule['status']) => {
   }
 };
 
-export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeetingClick }) => {
+export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeetingClick, onUpdateMeeting }) => {
   console.log("📅 AnnualCalendar rendered with meetings:", meetings?.length || 0);
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+  const [selectedMeeting, setSelectedMeeting] = useState<MeetingSchedule | null>(null);
 
   // Safety check for meetings prop
   const safeMeetings = meetings || [];
@@ -64,6 +68,20 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
       const meetingDate = new Date(meeting.date);
       return meetingDate.getMonth() === month && meetingDate.getFullYear() === year;
     });
+  };
+
+  const getDaysUntilMeeting = (meeting: MeetingSchedule) => {
+    const meetingDate = new Date(meeting.date);
+    return differenceInDays(meetingDate, new Date());
+  };
+
+  const needsAgenda = (meeting: MeetingSchedule) => {
+    return meeting.status === "Agendada" && (!meeting.agenda || meeting.agenda.length === 0);
+  };
+
+  const isDeadlineNear = (meeting: MeetingSchedule) => {
+    const days = getDaysUntilMeeting(meeting);
+    return days >= 3 && days < 15 && needsAgenda(meeting);
   };
 
   const renderCalendarMonth = () => {
@@ -96,19 +114,31 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
           </div>
           <div className="space-y-1">
             {meetingsForDay.map(meeting => (
-              <div
+              <MeetingAgendaPopover
                 key={meeting.id}
-                onClick={() => onMeetingClick(meeting)}
-                className="text-xs p-1 rounded cursor-pointer hover:opacity-80 transition-opacity"
-                style={{ backgroundColor: getStatusColor(meeting.status).includes('blue') ? '#dbeafe' : 
-                         getStatusColor(meeting.status).includes('yellow') ? '#fef3c7' :
-                         getStatusColor(meeting.status).includes('orange') ? '#fed7aa' :
-                         getStatusColor(meeting.status).includes('purple') ? '#e9d5ff' :
-                         getStatusColor(meeting.status).includes('green') ? '#dcfce7' : '#f3f4f6' }}
+                meeting={meeting}
+                onUpdate={onUpdateMeeting}
+                onOpenFullDetails={() => onMeetingClick(meeting)}
               >
-                <div className="font-medium truncate">{meeting.council}</div>
-                <div className="text-gray-600">{meeting.time}</div>
-              </div>
+                <div
+                  className="text-xs p-1 rounded cursor-pointer hover:opacity-80 transition-opacity relative"
+                  style={{ backgroundColor: getStatusColor(meeting.status).includes('blue') ? '#dbeafe' : 
+                           getStatusColor(meeting.status).includes('yellow') ? '#fef3c7' :
+                           getStatusColor(meeting.status).includes('orange') ? '#fed7aa' :
+                           getStatusColor(meeting.status).includes('purple') ? '#e9d5ff' :
+                           getStatusColor(meeting.status).includes('green') ? '#dcfce7' : '#f3f4f6' }}
+                >
+                  <div className="font-medium truncate">{meeting.council}</div>
+                  <div className="text-gray-600">{meeting.time}</div>
+                  {needsAgenda(meeting) && (
+                    <div className="absolute -top-1 -right-1">
+                      <Badge variant="destructive" className="h-4 px-1 text-[10px]">
+                        {isDeadlineNear(meeting) ? "⚠️" : "📋"}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </MeetingAgendaPopover>
             ))}
           </div>
         </div>
