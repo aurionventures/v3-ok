@@ -322,7 +322,7 @@ export function AppSidebar() {
           ) : (
             menuPhases.map((phase, phaseIndex) => (
               <SidebarGroup key={phase.phase}>
-                <SidebarGroupLabel className={cn("flex items-center gap-2", phase.color)}>
+                <SidebarGroupLabel className={cn("flex items-center gap-2 text-sm font-semibold", phase.color)}>
                   <phase.icon className="h-4 w-4" />
                   {!collapsed && phase.phase}
                 </SidebarGroupLabel>
@@ -338,7 +338,7 @@ export function AppSidebar() {
                           <SidebarMenuButton asChild isActive={isActive}>
                             <Link to={item.href} className="flex items-center justify-between w-full">
                               <div className="flex items-center gap-2">
-                                <item.icon className="h-5 w-5" />
+                                <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
                                 {!collapsed && <span className="flex-1">{item.name}</span>}
                               </div>
                               {!collapsed && (
