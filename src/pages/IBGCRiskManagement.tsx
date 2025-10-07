@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import RiskMatrix from "@/components/RiskMatrix";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from "recharts";
+import { RiskDetailsDialog } from "@/components/risks/RiskDetailsDialog";
+import { RiskEditDialog } from "@/components/risks/RiskEditDialog";
 
 // IBGC Risk Categories
 // Import shared risk data
@@ -95,6 +97,9 @@ const IBGCRiskManagement = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [mitigationComments, setMitigationComments] = useState<{[key: number]: string}>({});
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentRisk, setCurrentRisk] = useState<IBGCRisk | null>(null);
 
   const form = useForm<z.infer<typeof riskFormSchema>>({
     resolver: zodResolver(riskFormSchema),
@@ -133,6 +138,24 @@ const IBGCRiskManagement = () => {
       case "mitigated": return <Badge className="bg-green-100 text-green-800">Mitigado</Badge>;
       default: return <Badge variant="outline">Ativo</Badge>;
     }
+  };
+
+  const handleViewRisk = (risk: IBGCRisk) => {
+    setCurrentRisk(risk);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleEditRisk = (risk: IBGCRisk) => {
+    setCurrentRisk(risk);
+    setEditDialogOpen(true);
+    setDetailsDialogOpen(false);
+  };
+
+  const handleSaveRisk = (data: any) => {
+    console.log("Saving risk:", data);
+    toast.success("Risco atualizado com sucesso!");
+    setEditDialogOpen(false);
+    setCurrentRisk(null);
   };
 
   const handleEnhanceWithAI = async (riskId: number) => {
@@ -328,11 +351,15 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setSelectedRisk(risk.id)}
+                                  onClick={() => handleViewRisk(risk)}
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button variant="outline" size="sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleEditRisk(risk)}
+                                >
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -730,6 +757,22 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
           </Card>
         </div>
       </div>
+
+      {/* Risk Details Dialog */}
+      <RiskDetailsDialog
+        risk={currentRisk}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        onEdit={() => currentRisk && handleEditRisk(currentRisk)}
+      />
+
+      {/* Risk Edit Dialog */}
+      <RiskEditDialog
+        risk={currentRisk}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={handleSaveRisk}
+      />
     </div>
   );
 };
