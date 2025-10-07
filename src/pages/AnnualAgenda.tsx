@@ -237,9 +237,7 @@ const AnnualAgenda = () => {
               <AnnualCalendarWizard
                 onClose={() => setIsWizardOpen(false)}
                 onComplete={(meetings) => {
-                  meetings.forEach((meeting) => {
-                    addMeeting(meeting);
-                  });
+                  addMultipleMeetings(meetings);
                 }}
               />
             </DialogContent>
