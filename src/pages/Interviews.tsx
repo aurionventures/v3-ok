@@ -64,16 +64,25 @@ export default function Interviews() {
   // Get user's company
   useEffect(() => {
     const fetchUserCompany = async () => {
+      console.log('🔍 [DEBUG] Fetching company ID...');
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔍 [DEBUG] Current user:', user?.id);
+      
       if (user) {
-        const { data: userData } = await supabase
+        const { data: userData, error } = await supabase
           .from('users')
           .select('company')
           .eq('id', user.id)
           .single();
 
+        console.log('🔍 [DEBUG] User data from DB:', userData);
+        console.log('🔍 [DEBUG] Error (if any):', error);
+
         if (userData?.company) {
           setCompanyId(userData.company);
+          console.log('✅ [DEBUG] Company ID set:', userData.company);
+        } else {
+          console.warn('⚠️ [DEBUG] No company found for user');
         }
       }
     };
@@ -90,29 +99,38 @@ export default function Interviews() {
   }, [interviews]);
 
   const createNewInterviewee = async () => {
+    console.log('🔍 [DEBUG] Creating new interviewee...');
+    console.log('🔍 [DEBUG] Form data:', { name: newName, role: newRole, priority: newPriority });
+    console.log('🔍 [DEBUG] Company ID:', companyId);
+    
     if (!newName.trim() || !newRole.trim()) {
       toast.error('Nome e cargo são obrigatórios');
+      console.error('❌ [DEBUG] Missing required fields');
       return;
     }
 
     if (!companyId) {
       toast.error('Erro ao identificar empresa');
+      console.error('❌ [DEBUG] No company ID available');
       return;
     }
 
     try {
-      await createInterview({
+      const result = await createInterview({
         company_id: companyId,
         name: newName.trim(),
         role: newRole.trim(),
         priority: newPriority,
         status: 'pending',
       });
+      console.log('✅ [DEBUG] Interview created:', result);
       setNewName('');
       setNewRole('');
       setNewPriority('medium');
+      toast.success('Entrevistado criado com sucesso!');
     } catch (error) {
-      console.error('Error creating interviewee:', error);
+      console.error('❌ [DEBUG] Error creating interviewee:', error);
+      toast.error('Erro ao criar entrevistado');
     }
   };
 
@@ -141,23 +159,34 @@ export default function Interviews() {
   };
 
   const handleTranscriptUpload = async () => {
+    console.log('🔍 [DEBUG] Uploading transcript...');
+    console.log('🔍 [DEBUG] Selected interviewee ID:', selectedIntervieweeForTranscript);
+    console.log('🔍 [DEBUG] Transcript length:', transcript.trim().length);
+    
     if (!selectedIntervieweeForTranscript || !transcript.trim()) {
       toast.error('Selecione um entrevistado e adicione a transcrição');
+      console.error('❌ [DEBUG] Missing interviewee or transcript');
       return;
     }
 
     try {
-      await createTranscript(selectedIntervieweeForTranscript, transcript.trim());
+      const transcriptResult = await createTranscript(selectedIntervieweeForTranscript, transcript.trim());
+      console.log('✅ [DEBUG] Transcript created:', transcriptResult);
+      
       await markAsInterviewed(selectedIntervieweeForTranscript);
+      console.log('✅ [DEBUG] Interview marked as interviewed');
+      
       setTranscript('');
       setSelectedIntervieweeForTranscript('');
 
       // Reload transcripts
       const data = await getAllTranscripts();
+      console.log('✅ [DEBUG] Transcripts reloaded:', data.length);
       setAllTranscripts(data);
       toast.success('Transcrição salva com sucesso!');
     } catch (error) {
-      console.error('Error uploading transcript:', error);
+      console.error('❌ [DEBUG] Error uploading transcript:', error);
+      toast.error('Erro ao salvar transcrição');
     }
   };
 
