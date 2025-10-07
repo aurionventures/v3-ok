@@ -170,7 +170,7 @@ const Dashboard = () => {
               icon={<AlertTriangle className="h-5 w-5" />}
             />
             <MetricCard
-              title="Familiares Cadastrados"
+              title="Membros Cadastrados"
               value="12"
               description="3 gerações mapeadas"
               icon={<Users className="h-5 w-5" />}
