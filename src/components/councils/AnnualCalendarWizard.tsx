@@ -283,15 +283,16 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
   };
 
   const renderCalendarGrid = () => {
-    const targetMonth = addMonths(new Date(config.year, 0, 1), currentMonthOffset);
-    const firstDay = startOfMonth(targetMonth);
-    const lastDay = endOfMonth(targetMonth);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = getDay(firstDay);
-    
-    const days: (number | null)[] = [];
-    for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
-    for (let day = 1; day <= daysInMonth; day++) days.push(day);
+    try {
+      const targetMonth = addMonths(new Date(config.year, 0, 1), currentMonthOffset);
+      const firstDay = startOfMonth(targetMonth);
+      const lastDay = endOfMonth(targetMonth);
+      const daysInMonth = lastDay.getDate();
+      const startingDayOfWeek = getDay(firstDay);
+      
+      const days: (number | null)[] = [];
+      for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
+      for (let day = 1; day <= daysInMonth; day++) days.push(day);
     
     return (
       <div className="grid grid-cols-7 gap-2">
@@ -321,7 +322,20 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
         ))}
       </div>
     );
+    } catch (error) {
+      console.error("Erro ao renderizar calendário:", error);
+      return (
+        <div className="p-4 text-center text-destructive">
+          Erro ao carregar calendário. Verifique a configuração.
+        </div>
+      );
+    }
   };
+
+  // Proteção contra erro de renderização
+  if (!config) {
+    return <div className="p-4">Carregando configuração...</div>;
+  }
 
   return (
     <>
@@ -515,40 +529,42 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
       </div>
 
       {/* Dialog de Detalhes */}
-      <Dialog open={!!selectedDateDetails} onOpenChange={() => setSelectedDateDetails(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Detalhes da Reunião</DialogTitle>
-            <DialogDescription>
-              {selectedDateDetails && format(selectedDateDetails, 'EEEE, dd \'de\' MMMM \'de\' yyyy', { locale: ptBR })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Conselho</Label>
-              <p className="font-medium">{config.council}</p>
-            </div>
-            <div>
-              <Label>Tipo</Label>
-              <Badge>{config.type}</Badge>
-            </div>
-            <div>
-              <Label>Horário</Label>
-              <p className="font-medium">{config.time}</p>
-            </div>
-            <div>
-              <Label>Modalidade</Label>
-              <Badge variant="outline">{config.modality}</Badge>
-            </div>
-            {config.location && (
+      {selectedDateDetails && (
+        <Dialog open={!!selectedDateDetails} onOpenChange={() => setSelectedDateDetails(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Detalhes da Reunião</DialogTitle>
+              <DialogDescription>
+                {format(selectedDateDetails, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
               <div>
-                <Label>Local</Label>
-                <p className="text-sm text-muted-foreground">{config.location}</p>
+                <Label>Conselho</Label>
+                <p className="font-medium">{config.council || 'Não definido'}</p>
               </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+              <div>
+                <Label>Tipo</Label>
+                <Badge>{config.type}</Badge>
+              </div>
+              <div>
+                <Label>Horário</Label>
+                <p className="font-medium">{config.time}</p>
+              </div>
+              <div>
+                <Label>Modalidade</Label>
+                <Badge variant="outline">{config.modality}</Badge>
+              </div>
+              {config.location && (
+                <div>
+                  <Label>Local</Label>
+                  <p className="text-sm text-muted-foreground">{config.location}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
