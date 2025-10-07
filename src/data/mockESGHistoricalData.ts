@@ -132,7 +132,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
       },
       pillarScores: {
         environmental: {
-          title: "🌱 Ambiental",
+          title: "Ambiental",
           score: 3.1,
           maxScore: 6,
           percentage: 51.7,
@@ -146,7 +146,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
           }
         },
         social: {
-          title: "👥 Social",
+          title: "Social",
           score: 3.8,
           maxScore: 6,
           percentage: 63.3,
@@ -160,7 +160,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
           }
         },
         governance: {
-          title: "⚖️ Governança",
+          title: "Governança",
           score: 3.4,
           maxScore: 6,
           percentage: 56.7,
@@ -174,7 +174,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
           }
         },
         strategy: {
-          title: "🎯 Estratégia",
+          title: "Estratégia",
           score: 3.2,
           maxScore: 6,
           percentage: 53.3,
@@ -232,7 +232,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
       },
       pillarScores: {
         environmental: {
-          title: "🌱 Ambiental",
+          title: "Ambiental",
           score: 3.8,
           maxScore: 6,
           percentage: 63.3,
@@ -246,7 +246,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
           }
         },
         social: {
-          title: "👥 Social",
+          title: "Social",
           score: 4.3,
           maxScore: 6,
           percentage: 71.7,
@@ -260,7 +260,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
           }
         },
         governance: {
-          title: "⚖️ Governança",
+          title: "Governança",
           score: 4.0,
           maxScore: 6,
           percentage: 66.7,
@@ -274,7 +274,7 @@ export const mockESGAssessments: MockESGAssessment[] = [
           }
         },
         strategy: {
-          title: "🎯 Estratégia",
+          title: "Estratégia",
           score: 4.2,
           maxScore: 6,
           percentage: 70.0,
