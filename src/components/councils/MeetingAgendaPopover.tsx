@@ -102,7 +102,7 @@ export function MeetingAgendaPopover({
       <PopoverTrigger asChild>
         {children}
       </PopoverTrigger>
-      <PopoverContent className="w-[600px] max-h-[80vh] overflow-y-auto pointer-events-auto" align="start">
+      <PopoverContent className="w-[600px] max-h-[80vh] overflow-y-auto pointer-events-auto" align="center" side="bottom">
         <div className="space-y-4">
           {/* Header */}
           <div className="space-y-2">
