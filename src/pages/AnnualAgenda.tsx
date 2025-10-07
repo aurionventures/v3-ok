@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, TrendingUp, Clock, CheckCircle2, Users, CalendarDays } from "lucide-react";
+import { Calendar, TrendingUp, Clock, CheckCircle2, Users, CalendarDays, Settings } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAnnualSchedule } from "@/hooks/useAnnualSchedule";
 import { AnnualCalendar } from "@/components/councils/AnnualCalendar";
 import { MeetingFlowManager } from "@/components/councils/MeetingFlowManager";
+import AnnualCalendarWizard from "@/components/councils/AnnualCalendarWizard";
 import { MeetingSchedule } from "@/types/annualSchedule";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,6 +18,7 @@ const AnnualAgenda = () => {
   const navigate = useNavigate();
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingSchedule | null>(null);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   const {
     schedule,
@@ -157,6 +159,14 @@ const AnnualAgenda = () => {
               Ir para Conselhos
             </Button>
             <Button 
+              onClick={() => setIsWizardOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Configurar Calendário Anual
+            </Button>
+            <Button 
               onClick={() => {
                 setSelectedMeeting(null);
                 setIsMeetingModalOpen(true);
@@ -213,6 +223,26 @@ const AnnualAgenda = () => {
               </DialogContent>
             </Dialog>
           )}
+
+          {/* Calendar Wizard Modal */}
+          <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Configurador de Calendário Anual</DialogTitle>
+                <DialogDescription>
+                  Crie automaticamente o calendário de reuniões para o ano todo
+                </DialogDescription>
+              </DialogHeader>
+              <AnnualCalendarWizard
+                onClose={() => setIsWizardOpen(false)}
+                onComplete={(meetings) => {
+                  meetings.forEach((meeting) => {
+                    addMeeting(meeting);
+                  });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

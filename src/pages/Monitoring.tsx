@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Clock, Shield, Leaf, Activity, ExternalLink } from "lucide-react";
+import { Clock, Shield, Leaf, Activity, ExternalLink, Users, Scale, Target } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +109,7 @@ const Monitoring = () => {
                       </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <Card>
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3">
@@ -117,7 +117,10 @@ const Monitoring = () => {
                               <Leaf className="h-5 w-5 text-green-600" />
                             </div>
                             <div>
-                              <h4 className="font-medium">Ambiental</h4>
+                              <h4 className="font-medium flex items-center gap-1">
+                                <Leaf className="h-4 w-4" />
+                                Ambiental
+                              </h4>
                               <p className="text-2xl font-bold text-green-600">85%</p>
                               <p className="text-xs text-muted-foreground">Score atual</p>
                             </div>
@@ -129,10 +132,13 @@ const Monitoring = () => {
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-blue-100">
-                              <Activity className="h-5 w-5 text-blue-600" />
+                              <Users className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                              <h4 className="font-medium">Social</h4>
+                              <h4 className="font-medium flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                Social
+                              </h4>
                               <p className="text-2xl font-bold text-blue-600">78%</p>
                               <p className="text-xs text-muted-foreground">Score atual</p>
                             </div>
@@ -144,11 +150,32 @@ const Monitoring = () => {
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-purple-100">
-                              <Shield className="h-5 w-5 text-purple-600" />
+                              <Scale className="h-5 w-5 text-purple-600" />
                             </div>
                             <div>
-                              <h4 className="font-medium">Governança</h4>
+                              <h4 className="font-medium flex items-center gap-1">
+                                <Scale className="h-4 w-4" />
+                                Governança
+                              </h4>
                               <p className="text-2xl font-bold text-purple-600">92%</p>
+                              <p className="text-xs text-muted-foreground">Score atual</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-orange-100">
+                              <Target className="h-5 w-5 text-orange-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium flex items-center gap-1">
+                                <Target className="h-4 w-4" />
+                                Estratégia
+                              </h4>
+                              <p className="text-2xl font-bold text-orange-600">80%</p>
                               <p className="text-xs text-muted-foreground">Score atual</p>
                             </div>
                           </div>

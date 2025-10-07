@@ -133,12 +133,6 @@ const Sidebar = () => {
           moduleId: null
         },
         {
-          icon: <Settings className="h-5 w-5" />,
-          href: "/settings",
-          name: "Configurações",
-          moduleId: "settings"
-        },
-        {
           icon: <Bot className="h-5 w-5" />,
           href: "/ai-agents",
           name: "Agentes de IA",
@@ -409,6 +403,25 @@ const Sidebar = () => {
             </div>
           )}
         </div>
+      </div>
+      
+      {/* Configurações no rodapé */}
+      <div className="border-t border-legacy-600 p-3">
+        <Link 
+          to="/settings" 
+          className={cn(
+            "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
+            pathname === "/settings"
+              ? "bg-legacy-600 text-white" 
+              : "text-white hover:bg-legacy-600"
+          )} 
+          title={!open ? "Configurações" : undefined}
+        >
+          <div className="h-4 w-4 flex items-center justify-center">
+            <Settings className="h-5 w-5" />
+          </div>
+          {open && <span className="ml-2">Configurações</span>}
+        </Link>
       </div>
       
       <Button variant="outline" size="icon" onClick={toggleSidebar} className="m-2">

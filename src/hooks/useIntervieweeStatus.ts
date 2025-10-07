@@ -12,14 +12,21 @@ export interface IntervieweeStatus {
 }
 
 const initialInterviewees: IntervieweeStatus[] = [
-  { id: '1', name: 'Fundador/CEO', role: 'Liderança Executiva', priority: 'high', status: 'pending' },
-  { id: '2', name: 'Membro da Família', role: 'Família Empresária', priority: 'high', status: 'pending' },
+  { 
+    id: '1', 
+    name: 'João Silva', 
+    role: 'Membro', 
+    priority: 'high', 
+    status: 'interviewed',
+    lastInterviewDate: new Date('2025-09-15'),
+    notes: 'Entrevista realizada com sucesso. Discutidos temas de governança corporativa e sucessão familiar.'
+  },
+  { id: '2', name: 'Fundador/CEO', role: 'Liderança Executiva', priority: 'high', status: 'pending' },
   { id: '3', name: 'Conselheiro', role: 'Conselho de Administração', priority: 'high', status: 'pending' },
   { id: '4', name: 'Diretor Financeiro', role: 'Alta Gestão', priority: 'medium', status: 'pending' },
   { id: '5', name: 'Sócio/Acionista', role: 'Sociedade', priority: 'medium', status: 'pending' },
   { id: '6', name: 'Herdeiro', role: 'Sucessão', priority: 'high', status: 'pending' },
-  { id: '7', name: 'Diretor de RH', role: 'Gestão', priority: 'medium', status: 'pending' },
-  { id: '8', name: 'Conselheiro Familiar', role: 'Família Empresária', priority: 'medium', status: 'pending' }
+  { id: '7', name: 'Diretor de RH', role: 'Gestão', priority: 'medium', status: 'pending' }
 ];
 
 export const useIntervieweeStatus = () => {

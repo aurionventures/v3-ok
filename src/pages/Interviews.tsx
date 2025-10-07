@@ -32,7 +32,7 @@ interface ScheduleData {
 
 const commonRoles = [
   'Fundador/CEO',
-  'Membro da Família',
+  'Membro',
   'Conselheiro',
   'Diretor Financeiro',
   'Sócio/Acionista',

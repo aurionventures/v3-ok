@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Leaf, BarChart3, Users, Search, Eye, ChevronRight, Download, FileText, Edit, Target, TrendingUp, Calendar, Activity, Shield, Scale } from "lucide-react";
+import { Leaf, BarChart3, Users, Search, Eye, ChevronRight, Download, FileText, Edit, Target, TrendingUp, Calendar, Activity, Shield, Scale, AlertTriangle, MinusCircle, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -635,22 +635,31 @@ const ESG = () => {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-4">
-                            {esgMaturityData && generateESGRecommendations(esgMaturityData).slice(0, 4).map((rec, index) => (
-                              <div key={index} className="border-l-4 border-primary pl-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant={rec.priority === 'Alta' ? 'destructive' : rec.priority === 'Média' ? 'default' : 'secondary'}>
-                                    {rec.priority}
-                                  </Badge>
-                                  <span className="text-sm font-medium">{rec.pillar}</span>
+                            {esgMaturityData && generateESGRecommendations(esgMaturityData).slice(0, 4).map((rec, index) => {
+                              const getPriorityIcon = () => {
+                                if (rec.priority === 'Alta') return <AlertTriangle className="h-4 w-4 text-red-500" />;
+                                if (rec.priority === 'Média') return <MinusCircle className="h-4 w-4 text-yellow-500" />;
+                                return <CheckCircle className="h-4 w-4 text-green-500" />;
+                              };
+                              
+                              return (
+                                <div key={index} className="border-l-4 border-primary pl-4">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    {getPriorityIcon()}
+                                    <Badge variant={rec.priority === 'Alta' ? 'destructive' : rec.priority === 'Média' ? 'default' : 'secondary'}>
+                                      {rec.priority}
+                                    </Badge>
+                                    <span className="text-sm font-medium">{rec.pillar}</span>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{rec.action}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-xs">Atual: {rec.currentScore.toFixed(1)}</span>
+                                    <Progress value={(rec.currentScore / 6) * 100} className="h-1 flex-1" />
+                                    <span className="text-xs">Meta: {rec.targetScore}</span>
+                                  </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground">{rec.action}</p>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <span className="text-xs">Atual: {rec.currentScore.toFixed(1)}</span>
-                                  <Progress value={(rec.currentScore / 6) * 100} className="h-1 flex-1" />
-                                  <span className="text-xs">Meta: {rec.targetScore}</span>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                             {!esgMaturityData && (
                               <div className="text-center py-8">
                                 <p className="text-muted-foreground mb-4">

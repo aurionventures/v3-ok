@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,7 +23,8 @@ import {
   Clock,
   AlertTriangle,
   Loader2,
-  BarChart3
+  BarChart3,
+  FileEdit
 } from 'lucide-react';
 import FileUpload from '@/components/FileUpload';
 import { useToast } from "@/components/ui/use-toast";
@@ -135,6 +136,9 @@ const Documents = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewDocument, setViewDocument] = useState<UploadedDocument | null>(null);
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const [divergencesModalOpen, setDivergencesModalOpen] = useState(false);
+  const [correctionsModalOpen, setCorrectionsModalOpen] = useState(false);
+  const [selectedIssueDoc, setSelectedIssueDoc] = useState<UploadedDocument | null>(null);
 
   // Load documents from localStorage on mount
   useEffect(() => {
@@ -505,9 +509,37 @@ const Documents = () => {
                           .slice(0, 5)
                           .map((doc) => (
                             <div key={doc.id} className="p-3 border-l-4 border-red-400 bg-red-50">
-                              <div className="font-medium text-sm">{doc.name}</div>
-                              <div className="text-xs text-gray-600 mt-1">
-                                {doc.aiAnalysis?.issues[0]}
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">{doc.name}</div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {doc.aiAnalysis?.issues[0]}
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 ml-4">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedIssueDoc(doc);
+                                      setDivergencesModalOpen(true);
+                                    }}
+                                  >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Ver Divergências
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedIssueDoc(doc);
+                                      setCorrectionsModalOpen(true);
+                                    }}
+                                  >
+                                    <FileEdit className="h-3 w-3 mr-1" />
+                                    Sugerir Correções
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -594,6 +626,151 @@ const Documents = () => {
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Divergences Modal */}
+        <Dialog open={divergencesModalOpen} onOpenChange={setDivergencesModalOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+                Divergências Encontradas - {selectedIssueDoc?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Análise comparativa entre documentos oficiais e informações das entrevistas
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Divergências Identificadas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 border-l-4 border-red-500 bg-red-50">
+                      <div className="font-medium text-sm mb-2">Estrutura Societária</div>
+                      <div className="text-xs space-y-1">
+                        <p><strong>Documento:</strong> Capital social de R$ 10.000.000</p>
+                        <p><strong>Entrevista:</strong> Mencionado R$ 8.500.000 pelo CFO</p>
+                        <p className="text-red-700 mt-2"><strong>Impacto:</strong> Possível desatualização documental</p>
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-yellow-500 bg-yellow-50">
+                      <div className="font-medium text-sm mb-2">Composição Acionária</div>
+                      <div className="text-xs space-y-1">
+                        <p><strong>Documento:</strong> 3 sócios principais</p>
+                        <p><strong>Entrevista:</strong> Mencionado 4 sócios ativos</p>
+                        <p className="text-yellow-700 mt-2"><strong>Impacto:</strong> Verificar entrada de novo sócio</p>
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-orange-500 bg-orange-50">
+                      <div className="font-medium text-sm mb-2">Conselho de Administração</div>
+                      <div className="text-xs space-y-1">
+                        <p><strong>Documento:</strong> 5 membros definidos</p>
+                        <p><strong>Entrevista:</strong> Mencionado plano de ampliar para 7</p>
+                        <p className="text-orange-700 mt-2"><strong>Impacto:</strong> Atualização futura necessária</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setDivergencesModalOpen(false)}>
+                  Fechar
+                </Button>
+                <Button onClick={() => {
+                  setDivergencesModalOpen(false);
+                  setCorrectionsModalOpen(true);
+                }}>
+                  <FileEdit className="h-4 w-4 mr-2" />
+                  Ver Correções Sugeridas
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Corrections Modal */}
+        <Dialog open={correctionsModalOpen} onOpenChange={setCorrectionsModalOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileEdit className="h-5 w-5 text-blue-600" />
+                Correções Sugeridas - {selectedIssueDoc?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Recomendações de correções baseadas na análise de IA
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Ações Recomendadas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm mb-1">1. Atualizar Capital Social</div>
+                          <p className="text-xs text-gray-700">
+                            Revisar e atualizar o valor do capital social no estatuto social para R$ 10.000.000 conforme documentação mais recente
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant="outline" className="text-xs">Prioridade: Alta</Badge>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-blue-600 ml-2 flex-shrink-0" />
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm mb-1">2. Verificar Novo Sócio</div>
+                          <p className="text-xs text-gray-700">
+                            Solicitar documentação comprobatória da entrada do quarto sócio e atualizar acordo de acionistas
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant="outline" className="text-xs">Prioridade: Alta</Badge>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-blue-600 ml-2 flex-shrink-0" />
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-green-500 bg-green-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm mb-1">3. Planejar Expansão do Conselho</div>
+                          <p className="text-xs text-gray-700">
+                            Preparar minuta de alteração do estatuto para acomodar expansão do conselho para 7 membros
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant="outline" className="text-xs">Prioridade: Média</Badge>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-green-600 ml-2 flex-shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setCorrectionsModalOpen(false)}>
+                  Fechar
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Ações exportadas",
+                    description: "As correções sugeridas foram exportadas para sua lista de tarefas",
+                  });
+                  setCorrectionsModalOpen(false);
+                }}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Ações
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

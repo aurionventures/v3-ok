@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { History, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { History, Trash2, TrendingUp, TrendingDown, Minus, Leaf, Users, Shield, Target } from 'lucide-react';
 import { ESGAssessmentHistory } from '@/types/esgMaturity';
 import { loadESGAssessmentHistory } from '@/utils/esgMaturityCalculator';
 import { toast } from '@/hooks/use-toast';
@@ -37,6 +37,21 @@ const ESGHistoryModal: React.FC<ESGHistoryModalProps> = ({ onSelectAssessment })
     if (current > previous) return <TrendingUp className="h-4 w-4 text-green-500" />;
     if (current < previous) return <TrendingDown className="h-4 w-4 text-red-500" />;
     return <Minus className="h-4 w-4 text-gray-500" />;
+  };
+
+  const getPillarIcon = (pillarKey: string) => {
+    switch (pillarKey) {
+      case 'environmental':
+        return <Leaf className="h-4 w-4 text-green-600" />;
+      case 'social':
+        return <Users className="h-4 w-4 text-blue-600" />;
+      case 'governance':
+        return <Shield className="h-4 w-4 text-purple-600" />;
+      case 'strategy':
+        return <Target className="h-4 w-4 text-orange-600" />;
+      default:
+        return null;
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -118,6 +133,9 @@ const ESGHistoryModal: React.FC<ESGHistoryModalProps> = ({ onSelectAssessment })
                         const previousPillar = previousAssessment?.result.pillarScores[key as keyof typeof assessment.result.pillarScores];
                         return (
                           <div key={key} className="text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                              {getPillarIcon(key)}
+                            </div>
                             <div className="text-lg font-semibold flex items-center justify-center gap-1">
                               {pillar.score.toFixed(1)}
                               {previousPillar && getTrendIcon(pillar.score, previousPillar.score)}
