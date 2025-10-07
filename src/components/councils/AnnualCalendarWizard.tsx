@@ -306,10 +306,10 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
           <div
             key={index}
             className={cn(
-              "aspect-square flex items-center justify-center rounded-lg border text-sm font-medium transition-colors",
+              "aspect-square flex items-center justify-center rounded-lg border text-sm font-medium transition-colors relative",
               day === null && "border-transparent",
               day !== null && !hasMeeting(day, targetMonth) && "border-border hover:bg-accent",
-              day !== null && hasMeeting(day, targetMonth) && "bg-primary text-primary-foreground border-primary shadow-sm cursor-pointer hover:bg-primary/90"
+              day !== null && hasMeeting(day, targetMonth) && "bg-blue-600 text-white border-blue-700 shadow-lg ring-2 ring-blue-400/50 cursor-pointer hover:bg-blue-700 font-bold"
             )}
             onClick={() => {
               if (day && hasMeeting(day, targetMonth)) {
@@ -318,6 +318,9 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
             }}
           >
             {day}
+            {day !== null && hasMeeting(day, targetMonth) && (
+              <CalendarIcon className="absolute -top-1 -right-1 h-3 w-3 text-white bg-blue-700 rounded-full p-0.5" />
+            )}
           </div>
         ))}
       </div>
