@@ -2,7 +2,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
-import AuthGuard from "@/components/AuthGuard";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -85,13 +84,12 @@ const BancaLayout = ({ children }: { children: React.ReactNode }) => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <AuthGuard>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen">
-            <main>
-              <Routes>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <div className="min-h-screen">
+          <main>
+            <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/empresas" element={<EmpresasLanding />} />
@@ -602,7 +600,6 @@ const App = () => (
         </div>
         <GovernanceAssistant />
       </BrowserRouter>
-      </AuthGuard>
     </AuthProvider>
   </QueryClientProvider>
 );
