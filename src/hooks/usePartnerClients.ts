@@ -67,7 +67,45 @@ export function usePartnerClients(partnerId: string) {
         };
       });
 
-      setClients(clientsWithMaturity);
+      // Se não houver clientes reais, usar dados mocados para demonstração
+      if (clientsWithMaturity.length === 0) {
+        const mockClients: PartnerClient[] = [
+          {
+            id: 'mock-1',
+            email: 'contato@techsolutions.com.br',
+            name: 'TechSolutions Ltda',
+            role: 'cliente',
+            sector: 'Tecnologia',
+            created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+            maturityScore: 78,
+            lastAssessment: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: 'mock-2',
+            email: 'governanca@agrofamily.com',
+            name: 'AgroFamily Investimentos',
+            role: 'cliente',
+            sector: 'Agronegócio',
+            created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            maturityScore: 54,
+            lastAssessment: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: 'mock-3',
+            email: 'ti@construtoranova.com.br',
+            name: 'Construtora Nova Era S.A.',
+            role: 'cliente',
+            sector: 'Construção Civil',
+            created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+            maturityScore: 42,
+            lastAssessment: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          },
+        ];
+        setClients(mockClients);
+        console.log('🎭 [DEMO MODE] Usando 3 clientes mocados para demonstração');
+      } else {
+        setClients(clientsWithMaturity);
+      }
     } catch (err: any) {
       console.error('Erro ao buscar clientes do parceiro:', err);
       setError(err.message || 'Erro ao carregar clientes');

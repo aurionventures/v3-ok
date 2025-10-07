@@ -47,7 +47,14 @@ export default function BancaDashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Dashboard do Parceiro</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold">Dashboard do Parceiro</h1>
+            {clients.length > 0 && clients[0].id.startsWith('mock-') && (
+              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
+                🎭 Modo Demonstração
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Bem-vindo, <span className="font-semibold">{user?.name}</span>
           </p>

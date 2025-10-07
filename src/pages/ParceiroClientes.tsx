@@ -64,7 +64,14 @@ export const ParceiroClientes = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Gestão de Clientes</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">Gestão de Clientes</h1>
+              {clients.length > 0 && clients[0].id.startsWith('mock-') && (
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
+                  🎭 Modo Demonstração
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Gerencie sua carteira de clientes e acompanhe o progresso em governança
             </p>
