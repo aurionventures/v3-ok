@@ -12,7 +12,7 @@ import { mockHistoricalAssessments, getHistoricalTrend } from "@/data/mockHistor
 import ExecutiveReport from "@/components/ExecutiveReport";
 
 const DataInput = () => {
-  const handleIBGCStart = () => {
+  const handleGovernanceStart = () => {
     window.location.href = '/maturity-quiz';
   };
 
@@ -35,9 +35,9 @@ const DataInput = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Maturidade IBGC" />
+        <Header title="Maturidade de Governança" />
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Maturidade IBGC Section */}
+          {/* Maturidade de Governança Section */}
           <Card className="mb-6">
             <CardContent className="p-6">
               <div className="text-center">
@@ -45,14 +45,14 @@ const DataInput = () => {
                   <BarChart3 className="h-16 w-16 text-legacy-500" />
                 </div>
                 <h2 className="text-2xl font-semibold text-legacy-500 mb-4">
-                  Avaliação de Maturidade IBGC
+                  Avaliação de Maturidade de Governança
                 </h2>
                 <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Avalie a maturidade da governança corporativa da sua organização com base nas diretrizes do Instituto Brasileiro de Governança Corporativa (IBGC). Esta avaliação fornece insights valiosos sobre o nível de maturidade dos processos de governança.
+                  Avalie a maturidade da governança corporativa da sua organização com base em diretrizes de boas práticas de governança corporativa. Esta avaliação fornece insights valiosos sobre o nível de maturidade dos processos de governança.
                 </p>
-                <Button onClick={handleIBGCStart} size="lg" className="w-full md:w-auto px-8">
+                <Button onClick={handleGovernanceStart} size="lg" className="w-full md:w-auto px-8">
                   <BarChart3 className="h-5 w-5 mr-2" />
-                  Iniciar Avaliação IBGC
+                  Iniciar Avaliação de Governança
                 </Button>
               </div>
             </CardContent>

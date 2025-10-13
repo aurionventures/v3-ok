@@ -49,7 +49,7 @@ const initialMembers: BoardMember[] = [
       independence: true,
       valuesAlignment: true
     },
-    recommendations: ['Certificação IBGC atualizada'],
+    recommendations: ['Certificação em Governança Corporativa atualizada'],
     lastEvaluation: new Date(2025, 0, 25)
   },
   {
@@ -67,7 +67,7 @@ const initialMembers: BoardMember[] = [
       independence: true,
       valuesAlignment: true
     },
-    recommendations: ['Experiência em conselhos', 'Certificação IBGC', 'Curso de governança corporativa'],
+    recommendations: ['Experiência em conselhos', 'Certificação em Governança Corporativa', 'Curso de governança corporativa'],
     lastEvaluation: new Date(2025, 0, 18)
   }
 ];
@@ -184,7 +184,7 @@ const BoardMembersPage = () => {
       suggestions.push('Experiência em conselhos de outras empresas');
     }
     if (!member.requirements.education) {
-      suggestions.push('Certificação IBGC ou equivalente');
+      suggestions.push('Certificação em Governança Corporativa ou equivalente');
     }
     if (!member.requirements.technicalSkills) {
       suggestions.push('Especialização em áreas críticas (finanças, estratégia, ESG)');

@@ -142,7 +142,7 @@ const DiagnosticModal: React.FC<DiagnosticModalProps> = ({ children }) => {
     {
       icon: <Gauge className="h-5 w-5 text-primary" />,
       title: "Diagnóstico Completo",
-      description: "Análise de 5 dimensões de governança baseada no IBGC"
+      description: "Análise de 5 dimensões de governança baseada em melhores práticas"
     },
     {
       icon: <Clock className="h-5 w-5 text-accent" />,

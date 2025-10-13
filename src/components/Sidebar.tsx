@@ -161,7 +161,7 @@ const Sidebar = () => {
         {
           icon: <BarChart3 className="h-5 w-5" />,
           href: "/data-input",
-          name: "Maturidade IBGC",
+          name: "Maturidade de Governança",
           moduleId: "maturity",
           priority: true
         },
@@ -264,9 +264,9 @@ const Sidebar = () => {
       items: [
         {
           icon: <Shield className="h-5 w-5" />,
-          href: "/ibgc-risk-management",
+          href: "/governance-risk-management",
           name: "Riscos",
-          moduleId: "ibgc-risks"
+          moduleId: "governance-risks"
         },
         {
           icon: <Leaf className="h-5 w-5" />,

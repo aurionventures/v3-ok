@@ -353,8 +353,8 @@ const initialModules: ModuleProgress[] = [
   },
   // MONITORAMENTO + OTIMIZAÇÃO
   {
-    id: 'ibgc-risk-management',
-    name: 'Gestão de Riscos IBGC',
+    id: 'governance-risks',
+    name: 'Gestão de Riscos de Governança',
     description: 'Identificação e gestão de riscos sistêmicos',
     completionPercentage: 55,
     isCompleted: false,

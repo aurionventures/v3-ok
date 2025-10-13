@@ -12,7 +12,7 @@ import ActivityList from "@/components/ActivityList";
 import RiskMatrix from "@/components/RiskMatrix";
 
 // Import shared risk data
-import { ibgcRisks } from "@/data/riskData";
+import { governanceRisks } from "@/data/riskData";
 
 // Convert activities to ActivityList format
 const convertToActivityFormat = (logs: any[]) => {
@@ -76,7 +76,7 @@ const Monitoring = () => {
                         <CardTitle className="text-base">Matriz de Riscos - Resumo</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <RiskMatrix risks={ibgcRisks.slice(0, 4)} />
+                        <RiskMatrix risks={governanceRisks.slice(0, 4)} />
                         <div className="mt-4 grid grid-cols-2 gap-4">
                           <div className="text-center">
                             <div className="text-2xl font-bold text-destructive">2</div>

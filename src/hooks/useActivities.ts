@@ -11,13 +11,13 @@ interface LogEntry {
 }
 
 export const useActivities = () => {
-  // Sample log data for IBGC maturity assessments
+  // Sample log data for Governance maturity assessments
   const [activityLogs, setActivityLogs] = useState<LogEntry[]>([
     {
       id: "1",
       user: "Admin",
       userInitials: "A",
-      action: "Avaliação de Maturidade IBGC",
+      action: "Avaliação de Maturidade de Governança",
       timestamp: new Date(2024, 4, 15, 14, 30),
       details: "Avaliação completa da maturidade em governança corporativa"
     },
@@ -25,9 +25,9 @@ export const useActivities = () => {
       id: "2",
       user: "Maria Silva",
       userInitials: "MS",
-      action: "Quiz IBGC Completado",
+      action: "Quiz de Governança Completado",
       timestamp: new Date(2024, 4, 10, 9, 45),
-      details: "Finalizada avaliação de maturidade IBGC com score 85%"
+      details: "Finalizada avaliação de maturidade de governança com score 85%"
     },
     {
       id: "3",

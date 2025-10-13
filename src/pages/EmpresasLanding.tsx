@@ -17,7 +17,7 @@ const EmpresasLanding = () => {
         type: "publica",
         challenge: "Expansão internacional e integração de marcas",
         result: "94%",
-        metrics: "aderência ao Código IBGC",
+        metrics: "aderência a boas práticas de governança",
         improvements: ["Melhor acesso a capital internacional", "Transparência ESG"],
         icon: Palette
       },
@@ -27,7 +27,7 @@ const EmpresasLanding = () => {
         type: "publica", 
         challenge: "Reconstruir confiança após crises reputacionais",
         result: "100%",
-        metrics: "aderência ao Código IBGC",
+        metrics: "aderência a boas práticas de governança",
         improvements: ["Reconquista da confiança global", "Fortalecimento compliance"],
         icon: Factory
       },
@@ -130,7 +130,7 @@ const EmpresasLanding = () => {
     {
       icon: Shield,
       title: "Compliance Automatizada",
-      description: "Atenda automaticamente às exigências do IBGC, CVM e ESG"
+      description: "Atenda automaticamente às exigências de governança, CVM e ESG"
     },
     {
       icon: BarChart,
@@ -181,7 +181,7 @@ const EmpresasLanding = () => {
             
             <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto">
               Plataforma completa para empresas que querem implementar governança corporativa 
-              de classe mundial, seguindo as melhores práticas do IBGC e padrões ESG.
+              de classe mundial, seguindo as melhores práticas de governança corporativa e padrões ESG.
             </p>
 
             {/* CTAs */}

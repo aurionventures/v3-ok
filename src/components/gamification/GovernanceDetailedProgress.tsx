@@ -74,7 +74,7 @@ export const GovernanceDetailedProgress = () => {
       'subsystems': '/subsystems',
       'legacy': '/legacy',
       // MONITORAMENTO
-      'ibgc-risk-management': '/ibgc-risk-management',
+      'governance-risks': '/governance-risk-management',
       'esg': '/esg',
       'activities': '/activities',
       // CONFIGURAÇÃO

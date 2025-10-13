@@ -1,4 +1,4 @@
-import { IBGCRisk, RISK_CATEGORIES } from "@/data/riskData";
+import { GovernanceRisk, RISK_CATEGORIES } from "@/data/riskData";
 
 export interface RiskStats {
   totalRisks: number;
@@ -21,7 +21,7 @@ export interface RiskTrend {
   mitigated: number;
 }
 
-export const calculateRiskStats = (risks: IBGCRisk[]): RiskStats => {
+export const calculateRiskStats = (risks: GovernanceRisk[]): RiskStats => {
   const totalRisks = risks.length;
   const criticalRisks = risks.filter(risk => (risk.impact * risk.probability) >= 12).length;
   const mitigationPlans = risks.filter(risk => risk.status === "mitigated" || risk.controls.length > 0).length;
@@ -35,7 +35,7 @@ export const calculateRiskStats = (risks: IBGCRisk[]): RiskStats => {
   };
 };
 
-export const calculateRiskCategoryStats = (risks: IBGCRisk[]): RiskCategoryStats[] => {
+export const calculateRiskCategoryStats = (risks: GovernanceRisk[]): RiskCategoryStats[] => {
   return RISK_CATEGORIES.map(category => {
     const categoryRisks = risks.filter(risk => risk.category === category.id);
     const criticalCategoryRisks = categoryRisks.filter(risk => (risk.impact * risk.probability) >= 12);

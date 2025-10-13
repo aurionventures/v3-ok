@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { HistoricalAssessment } from "@/data/mockHistoricalData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 import { TrendingUp, TrendingDown, Target, CheckCircle2, AlertCircle, Calendar, User, Building2, FileText, Download } from "lucide-react";
-import { generateIGBCPDFReport } from "@/components/IGBCPDFReport";
+import { generateGovernancePDFReport } from "@/components/GovernancePDFReport";
 import { useToast } from "@/hooks/use-toast";
 
 interface ExecutiveReportProps {
@@ -44,7 +44,7 @@ const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ assessment, isLatest 
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      await generateIGBCPDFReport(assessment);
+      await generateGovernancePDFReport(assessment);
       toast({
         title: "PDF gerado!",
         description: "PDF gerado e baixado com sucesso!",
@@ -67,7 +67,7 @@ const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ assessment, isLatest 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Relatório Executivo</h1>
-          <p className="text-muted-foreground">Avaliação de Maturidade IBGC - {assessment.period}</p>
+          <p className="text-muted-foreground">Avaliação de Maturidade de Governança - {assessment.period}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button

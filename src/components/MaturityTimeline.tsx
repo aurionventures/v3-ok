@@ -49,7 +49,7 @@ const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-legacy-500">
-            Linha do Tempo - Evolução da Maturidade IBGC
+            Linha do Tempo - Evolução da Maturidade de Governança
           </h2>
           <div className="flex items-center gap-2 text-green-600">
             <TrendingUp className="h-5 w-5" />

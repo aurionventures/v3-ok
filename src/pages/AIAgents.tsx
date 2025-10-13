@@ -66,10 +66,10 @@ const agentsData = [
   {
     id: 3,
     name: "Inteligência Estratégica",
-    description: "Inteligência estratégica unificada para monitoramento e otimização contínua. Consolida análise de riscos IBGC, métricas ESG, maturidade e inteligência competitiva.",
+    description: "Inteligência estratégica unificada para monitoramento e otimização contínua. Consolida análise de riscos de governança, métricas ESG, maturidade e inteligência competitiva.",
     icon: <Brain className="h-6 w-6" />,
     color: "#ef4444",
-    integrations: ["Riscos IBGC", "ESG", "Maturidade", "Atividades", "Alertas"],
+    integrations: ["Riscos de Governança", "ESG", "Maturidade", "Atividades", "Alertas"],
     status: "active",
     type: "intelligence",
     capabilities: [
@@ -98,7 +98,7 @@ const availableModules = [
   { value: "legado", label: "Legado" },
   { value: "sucessao", label: "Sucessão" },
   { value: "desenvolvimento", label: "Desenvolvimento" },
-  { value: "riscos-ibgc", label: "Riscos IBGC" },
+  { value: "riscos-governanca", label: "Riscos de Governança" },
   { value: "esg", label: "ESG" },
   { value: "maturidade", label: "Maturidade" },
   { value: "atividades", label: "Atividades" },

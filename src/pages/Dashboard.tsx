@@ -64,12 +64,12 @@ const alerts = [
 ];
 
 // Risk data imported from shared source
-import { ibgcRisks } from "@/data/riskData";
+import { governanceRisks } from "@/data/riskData";
 import { calculateRiskStats, calculateRiskCategoryStats, generateRiskTrends } from "@/utils/riskCalculator";
 
 // Calculate real-time risk statistics
-const riskSummary = calculateRiskStats(ibgcRisks);
-const riskCategories = calculateRiskCategoryStats(ibgcRisks);
+const riskSummary = calculateRiskStats(governanceRisks);
+const riskCategories = calculateRiskCategoryStats(governanceRisks);
 const riskTrends = generateRiskTrends();
 
 const Dashboard = () => {
@@ -78,19 +78,19 @@ const Dashboard = () => {
   const governanceProgress = useGovernanceProgress();
   
   // Load latest assessments
-  const [latestIGBCAssessment, setLatestIGBCAssessment] = React.useState<any>(null);
+  const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
   const [latestESGAssessment, setLatestESGAssessment] = React.useState<any>(null);
 
   React.useEffect(() => {
-    // Load latest IGBC assessment
-    const igbcAssessment = getCurrentMaturityAssessment();
-    if (igbcAssessment) {
-      setLatestIGBCAssessment(igbcAssessment);
+    // Load latest Governance assessment
+    const governanceAssessment = getCurrentMaturityAssessment();
+    if (governanceAssessment) {
+      setLatestGovernanceAssessment(governanceAssessment);
     } else {
       // Use latest mock data as fallback
       const latestMock = mockHistoricalAssessments[mockHistoricalAssessments.length - 1];
       if (latestMock) {
-        setLatestIGBCAssessment({
+        setLatestGovernanceAssessment({
           result: latestMock.result,
           timestamp: latestMock.date
         });
@@ -196,7 +196,7 @@ const Dashboard = () => {
                   variant="outline"
                   size="sm"
                   className="text-red-600 border-red-600 hover:bg-red-50"
-                  onClick={() => navigateTo("/ibgc-risk-management")}
+                  onClick={() => navigateTo("/governance-risk-management")}
                 >
                   Ver Matriz Completa
                 </Button>
@@ -323,13 +323,13 @@ const Dashboard = () => {
 
           {/* Row 3: Maturity Assessments (2 columns) */}
           <div className="grid grid-cols-2 gap-4">
-            {/* IGBC Maturity Assessment */}
+            {/* Governance Maturity Assessment */}
             <Card className="overflow-hidden">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-blue-600" />
-                    <CardTitle className="text-lg">Maturidade IGBC</CardTitle>
+                    <CardTitle className="text-lg">Maturidade de Governança</CardTitle>
                   </div>
                   <Button
                     variant="outline"
@@ -342,32 +342,32 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="h-[calc(100%-4rem)]">
-                {latestIGBCAssessment ? (
+                {latestGovernanceAssessment ? (
                   <div className="space-y-3 h-full">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
-                        {latestIGBCAssessment.result.pontuacao_total.toFixed(1)}/5.0
+                        {latestGovernanceAssessment.result.pontuacao_total.toFixed(1)}/5.0
                       </div>
                       <p className="text-sm text-blue-700 font-medium">
-                        {latestIGBCAssessment.result.estagio || 'Avaliação IGBC'}
+                        {latestGovernanceAssessment.result.estagio || 'Avaliação de Governança'}
                       </p>
                       <p className="text-xs text-blue-600 mt-1">
-                        Última avaliação: {new Date(latestIGBCAssessment.timestamp).toLocaleDateString()}
+                        Última avaliação: {new Date(latestGovernanceAssessment.timestamp).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex-1 h-[calc(100%-5rem)]">
-                      <MaturityRadarChart data={convertStoredDataToRadarData(latestIGBCAssessment)} />
+                      <MaturityRadarChart data={convertStoredDataToRadarData(latestGovernanceAssessment)} />
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 h-full flex flex-col justify-center">
                     <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-6">Nenhuma avaliação IGBC realizada</p>
+                    <p className="text-gray-500 mb-6">Nenhuma avaliação de governança realizada</p>
                     <Button
                       onClick={() => navigateTo("/maturity")}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      Iniciar Avaliação IGBC
+                      Iniciar Avaliação de Governança
                     </Button>
                   </div>
                 )}

@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-import { IBGCRisk } from "@/data/riskData";
+import { GovernanceRisk } from "@/data/riskData";
 
 interface RiskMatrixProps {
-  risks: IBGCRisk[];
+  risks: GovernanceRisk[];
 }
 
 const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks }) => {

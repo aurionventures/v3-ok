@@ -88,7 +88,7 @@ const GuidedNavigation = ({ isOpen, onClose }: GuidedNavigationProps) => {
       icon: <AlertCircle className="h-5 w-5" />,
       color: "text-red-500",
       bgColor: "bg-red-500/10",
-      modules: ["ibgc-risk-management", "esg", "activities"],
+      modules: ["governance-risks", "esg", "activities"],
       priority: overallPercentage >= 80,
       aiAgent: "Strategic Intelligence"
     }
@@ -127,7 +127,7 @@ const GuidedNavigation = ({ isOpen, onClose }: GuidedNavigationProps) => {
       "subsystems": "/subsystems",
       "legacy": "/legacy",
       // MONITORAMENTO
-      "ibgc-risk-management": "/ibgc-risk-management",
+      "governance-risks": "/governance-risk-management",
       "esg": "/esg",
       "activities": "/monitoring",
       // CONFIGURAÇÃO

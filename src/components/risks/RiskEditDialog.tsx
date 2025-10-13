@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IBGCRisk, RISK_CATEGORIES } from "@/data/riskData";
+import { GovernanceRisk, RISK_CATEGORIES } from "@/data/riskData";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,7 +25,7 @@ const riskFormSchema = z.object({
 type RiskFormValues = z.infer<typeof riskFormSchema>;
 
 interface RiskEditDialogProps {
-  risk: IBGCRisk | null;
+  risk: GovernanceRisk | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: RiskFormValues) => void;

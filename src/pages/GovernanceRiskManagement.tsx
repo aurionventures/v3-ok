@@ -37,9 +37,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cel
 import { RiskDetailsDialog } from "@/components/risks/RiskDetailsDialog";
 import { RiskEditDialog } from "@/components/risks/RiskEditDialog";
 
-// IBGC Risk Categories
+// Governance Risk Categories
 // Import shared risk data
-import { RISK_CATEGORIES, ibgcRisks, IBGCRisk, RiskCategory } from "@/data/riskData";
+import { RISK_CATEGORIES, governanceRisks, GovernanceRisk, RiskCategory } from "@/data/riskData";
 import { getRiskLevel, getRiskColor } from "@/utils/riskCalculator";
 
 // Mitigation Plans
@@ -91,7 +91,7 @@ const riskTrend = [
   { month: "Abr", critical: 2, high: 5, medium: 8, low: 12 }
 ];
 
-const IBGCRiskManagement = () => {
+const GovernanceRiskManagement = () => {
   const [selectedRisk, setSelectedRisk] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -99,7 +99,7 @@ const IBGCRiskManagement = () => {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentRisk, setCurrentRisk] = useState<IBGCRisk | null>(null);
+  const [currentRisk, setCurrentRisk] = useState<GovernanceRisk | null>(null);
 
   const form = useForm<z.infer<typeof riskFormSchema>>({
     resolver: zodResolver(riskFormSchema),
@@ -140,12 +140,12 @@ const IBGCRiskManagement = () => {
     }
   };
 
-  const handleViewRisk = (risk: IBGCRisk) => {
+  const handleViewRisk = (risk: GovernanceRisk) => {
     setCurrentRisk(risk);
     setDetailsDialogOpen(true);
   };
 
-  const handleEditRisk = (risk: IBGCRisk) => {
+  const handleEditRisk = (risk: GovernanceRisk) => {
     setCurrentRisk(risk);
     setEditDialogOpen(true);
     setDetailsDialogOpen(false);
@@ -162,7 +162,7 @@ const IBGCRiskManagement = () => {
     setIsEnhancing(true);
     
     try {
-      const risk = ibgcRisks.find(r => r.id === riskId);
+      const risk = governanceRisks.find(r => r.id === riskId);
       const plan = mitigationPlans.find(p => p.riskId === riskId);
       const comments = mitigationComments[riskId] || "";
       
@@ -183,7 +183,7 @@ const IBGCRiskManagement = () => {
         
         Comentários adicionais: ${comments || 'Nenhum comentário'}
         
-        Forneça sugestões detalhadas para enriquecer o plano de mitigação seguindo as melhores práticas de gestão de riscos IBGC.
+        Forneça sugestões detalhadas para enriquecer o plano de mitigação seguindo as melhores práticas de gestão de riscos de governança.
       `;
 
       // Simular resposta da IA
@@ -214,7 +214,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
     }
   };
 
-  const filteredRisks = ibgcRisks.filter(risk => {
+  const filteredRisks = governanceRisks.filter(risk => {
     const matchesSearch = risk.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          risk.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || risk.category === categoryFilter;
@@ -225,13 +225,13 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
     <div className="h-screen flex w-full">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Gestão de Riscos IBGC" />
+        <Header title="Gestão de Riscos de Governança" />
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-6 w-6 text-primary" />
-                Sistema de Gestão de Riscos IBGC
+                Sistema de Gestão de Riscos de Governança
               </CardTitle>
               <CardDescription>
                 Gestão estruturada de riscos baseada nas diretrizes do Instituto Brasileiro de Governança Corporativa
@@ -274,7 +274,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     {RISK_CATEGORIES.map(category => {
                       const Icon = category.icon;
-                      const categoryRisks = ibgcRisks.filter(r => r.category === category.id);
+                      const categoryRisks = governanceRisks.filter(r => r.category === category.id);
                       const criticalCount = categoryRisks.filter(r => getRiskLevel(r.impact, r.probability).level === "Crítico").length;
                       
                       return (
@@ -379,7 +379,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          {ibgcRisks.map(risk => (
+                          {governanceRisks.map(risk => (
                             <Button
                               key={risk.id}
                               variant={selectedRisk === risk.id ? "default" : "outline"}
@@ -404,7 +404,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                           </CardHeader>
                           <CardContent>
                             {(() => {
-                              const risk = ibgcRisks.find(r => r.id === selectedRisk);
+                              const risk = governanceRisks.find(r => r.id === selectedRisk);
                               const plan = mitigationPlans.find(p => p.riskId === selectedRisk);
                               
                               return (
@@ -506,7 +506,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                     <CardHeader>
                       <CardTitle>Nova Avaliação de Risco</CardTitle>
                       <CardDescription>
-                        Adicione um novo risco seguindo a metodologia IBGC
+                        Adicione um novo risco seguindo as melhores práticas de governança
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -532,7 +532,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                               name="category"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Categoria IBGC</FormLabel>
+                                  <FormLabel>Categoria de Risco</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                       <SelectTrigger>
@@ -710,7 +710,7 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                             <Pie
                               data={RISK_CATEGORIES.map(cat => ({
                                 name: cat.name,
-                                value: ibgcRisks.filter(r => r.category === cat.id).length,
+                                value: governanceRisks.filter(r => r.category === cat.id).length,
                                 fill: cat.color
                               }))}
                               cx="50%"
@@ -777,4 +777,4 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
   );
 };
 
-export default IBGCRiskManagement;
+export default GovernanceRiskManagement;

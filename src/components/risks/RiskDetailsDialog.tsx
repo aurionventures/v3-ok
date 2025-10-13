@@ -1,11 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { IBGCRisk } from "@/data/riskData";
+import { GovernanceRisk } from "@/data/riskData";
 import { Shield, AlertTriangle, Clock, User, Edit } from "lucide-react";
 
 interface RiskDetailsDialogProps {
-  risk: IBGCRisk | null;
+  risk: GovernanceRisk | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;

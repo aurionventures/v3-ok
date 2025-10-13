@@ -18,7 +18,7 @@ export const ChecklistProgressCard = ({ progress }: ChecklistProgressCardProps) 
             Checklist de Documentos de Governança
           </h1>
           <p className="text-muted-foreground">
-            Identifique quais documentos sua empresa já possui baseado nas boas práticas do IBGC
+            Identifique quais documentos sua empresa já possui baseado em boas práticas de governança corporativa
           </p>
         </div>
         <Badge variant={completionPercentage >= 80 ? "default" : "secondary"} className="text-sm">

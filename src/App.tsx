@@ -30,7 +30,7 @@ import GovernanceAssistant from "./components/GovernanceAssistant";
 import PeopleDevelopment from "./pages/PeopleDevelopment";
 import Subsystems from "./pages/Subsystems";
 import Legacy from "./pages/Legacy";
-import IBGCRiskManagement from "./pages/IBGCRiskManagement";
+import GovernanceRiskManagement from "./pages/GovernanceRiskManagement";
 import Admin from "./pages/Admin";
 import AdminFinances from "./pages/AdminFinances";
 import AdminAgentConfig from "./pages/AdminAgentConfig";
@@ -42,7 +42,7 @@ import MaturityQuiz from "./pages/MaturityQuiz";
 import StandaloneQuiz from "./pages/StandaloneQuiz";
 import Investors from "./pages/Investors";
 import Onboarding from "./pages/Onboarding";
-import IGBCHistory from "./pages/IGBCHistory";
+import GovernanceHistory from "./pages/GovernanceHistory";
 import ESGHistory from "./pages/ESGHistory";
 import DocumentChecklist from "./pages/DocumentChecklist";
 import Interviews from "./pages/Interviews";
@@ -240,10 +240,10 @@ const App = () => (
             } 
           />
           <Route 
-            path="/ibgc-risk-management" 
+            path="/governance-risk-management" 
             element={
               <ProtectedRoute >
-                <IBGCRiskManagement />
+                <GovernanceRiskManagement />
               </ProtectedRoute>
             } 
           />
@@ -312,10 +312,10 @@ const App = () => (
             } 
           />
           <Route 
-            path="/igbc-history" 
+            path="/governance-history" 
             element={
               <ProtectedRoute >
-                <IGBCHistory />
+                <GovernanceHistory />
               </ProtectedRoute>
             } 
           />

@@ -220,9 +220,9 @@ export function TopMenu() {
       items: [
         {
           icon: Shield,
-          href: "/ibgc-risk-management",
-          name: "Gestão de Riscos IBGC",
-          moduleId: "ibgc-risks"
+          href: "/governance-risk-management",
+          name: "Gestão de Riscos de Governança",
+          moduleId: "governance-risks"
         },
         {
           icon: Leaf,
@@ -246,7 +246,7 @@ export function TopMenu() {
         {
           icon: BarChart3,
           href: "/data-input",
-          name: "Maturidade IBGC",
+          name: "Maturidade de Governança",
           moduleId: "maturity",
           priority: true
         },

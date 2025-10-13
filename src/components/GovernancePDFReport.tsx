@@ -352,10 +352,10 @@ const IGBCPDFDocument: React.FC<IGBCPDFReportProps> = ({ assessment }) => {
   );
 };
 
-export const generateIGBCPDFReport = async (assessment: HistoricalAssessment) => {
+export const generateGovernancePDFReport = async (assessment: HistoricalAssessment) => {
   try {
     const blob = await pdf(<IGBCPDFDocument assessment={assessment} />).toBlob();
-    const fileName = `diagnostico-maturidade-ibgc-${assessment.companyData.nome.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `diagnostico-maturidade-governanca-${assessment.companyData.nome.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
     saveAs(blob, fileName);
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);

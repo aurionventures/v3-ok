@@ -8,7 +8,7 @@ export interface RiskCategory {
   description: string;
 }
 
-export interface IBGCRisk {
+export interface GovernanceRisk {
   id: number;
   category: string;
   title: string;
@@ -31,7 +31,7 @@ export const RISK_CATEGORIES: RiskCategory[] = [
   { id: "compliance", name: "Conformidade", icon: Shield, color: "#22c55e", description: "Riscos regulatórios e de compliance" }
 ];
 
-export const ibgcRisks: IBGCRisk[] = [
+export const governanceRisks: GovernanceRisk[] = [
   {
     id: 1,
     category: "strategic",
