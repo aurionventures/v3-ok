@@ -17,6 +17,9 @@ import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import PDIManagement from '@/components/PDIManagement';
+import { CriteriaManager } from '@/components/CriteriaManager';
+import { CustomCriterion, CriteriaProgress } from '@/types/criteria';
+import { criteriaByCategory } from '@/data/criteriaData';
 
 // Unified Person interface
 interface Person {
@@ -30,6 +33,8 @@ interface Person {
   readinessScore: number;
   status: 'ready' | 'developing' | 'not_ready' | 'eligible' | 'under_review' | 'not_eligible';
   requirements: Record<string, boolean>;
+  customCriteria?: CustomCriterion[];
+  criteriaProgress?: CriteriaProgress;
   developmentPlan: string[];
   lastEvaluation: Date;
   priority?: 'high' | 'medium' | 'low';
@@ -118,7 +123,8 @@ const PeopleManagementPage = () => {
     targetRole: '',
     age: '',
     department: '',
-    requirements: {} as Record<string, boolean>
+    requirements: {} as Record<string, boolean>,
+    customCriteria: [] as CustomCriterion[]
   });
 
   // Calculations
@@ -208,6 +214,21 @@ const PeopleManagementPage = () => {
     const score = calculateReadinessScore(newPerson.requirements, newPerson.category);
     const status = getStatus(score, newPerson.category);
     
+    // Calculate criteria progress
+    const standardCriteria = criteriaByCategory[newPerson.category] || [];
+    const standardCompleted = Object.values(newPerson.requirements).filter(Boolean).length;
+    const customCompleted = newPerson.customCriteria.filter(c => c.completed).length;
+    const totalCriteria = standardCriteria.length + newPerson.customCriteria.length;
+    const totalCompleted = standardCompleted + customCompleted;
+    
+    const criteriaProgress: CriteriaProgress = {
+      total: totalCriteria,
+      completed: totalCompleted,
+      percentage: totalCriteria > 0 ? Math.round((totalCompleted / totalCriteria) * 100) : 0,
+      standardCompleted,
+      customCompleted
+    };
+    
     const person: Person = {
       id: Date.now().toString(),
       name: newPerson.name,
@@ -219,6 +240,8 @@ const PeopleManagementPage = () => {
       readinessScore: score,
       status,
       requirements: newPerson.requirements,
+      customCriteria: newPerson.customCriteria.length > 0 ? newPerson.customCriteria : undefined,
+      criteriaProgress,
       developmentPlan: [],
       lastEvaluation: new Date(),
       priority: 'medium'
@@ -232,7 +255,8 @@ const PeopleManagementPage = () => {
       targetRole: '',
       age: '',
       department: '',
-      requirements: {}
+      requirements: {},
+      customCriteria: []
     });
     setIsAddDialogOpen(false);
     toast.success('Pessoa adicionada com sucesso');
@@ -283,83 +307,132 @@ const PeopleManagementPage = () => {
                     Adicionar Pessoa
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Adicionar Nova Pessoa</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="name">Nome Completo</Label>
-                        <Input
-                          id="name"
-                          value={newPerson.name}
-                          onChange={(e) => setNewPerson({...newPerson, name: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="category">Categoria</Label>
-                        <Select onValueChange={(value: any) => setNewPerson({...newPerson, category: value, requirements: {}})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a categoria" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="heir">Herdeiro/Sucessor</SelectItem>
-                            <SelectItem value="board_member">Conselheiro</SelectItem>
-                            <SelectItem value="key_position">Cargo-Chave</SelectItem>
-                            <SelectItem value="development">Desenvolvimento</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="currentRole">Cargo Atual</Label>
-                        <Input
-                          id="currentRole"
-                          value={newPerson.currentRole}
-                          onChange={(e) => setNewPerson({...newPerson, currentRole: e.target.value})}
-                        />
-                      </div>
-                      {!['board_member'].includes(newPerson.category) && (
+                    {/* Basic Information Section */}
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                        Dados Básicos
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="targetRole">Cargo Alvo</Label>
+                          <Label htmlFor="name">Nome Completo *</Label>
                           <Input
-                            id="targetRole"
-                            value={newPerson.targetRole}
-                            onChange={(e) => setNewPerson({...newPerson, targetRole: e.target.value})}
+                            id="name"
+                            placeholder="Digite o nome completo"
+                            value={newPerson.name}
+                            onChange={(e) => setNewPerson({...newPerson, name: e.target.value})}
                           />
                         </div>
-                      )}
+                        <div>
+                          <Label htmlFor="category">Categoria *</Label>
+                          <Select onValueChange={(value: any) => setNewPerson({...newPerson, category: value, requirements: {}, customCriteria: []})}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a categoria" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="heir">Herdeiro/Sucessor</SelectItem>
+                              <SelectItem value="board_member">Conselheiro</SelectItem>
+                              <SelectItem value="key_position">Cargo-Chave</SelectItem>
+                              <SelectItem value="development">Desenvolvimento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="currentRole">Cargo Atual *</Label>
+                          <Input
+                            id="currentRole"
+                            placeholder="Cargo atual"
+                            value={newPerson.currentRole}
+                            onChange={(e) => setNewPerson({...newPerson, currentRole: e.target.value})}
+                          />
+                        </div>
+                        {!['board_member'].includes(newPerson.category) && (
+                          <div>
+                            <Label htmlFor="targetRole">Cargo Alvo</Label>
+                            <Input
+                              id="targetRole"
+                              placeholder="Cargo desejado"
+                              value={newPerson.targetRole}
+                              onChange={(e) => setNewPerson({...newPerson, targetRole: e.target.value})}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="age">Idade</Label>
+                          <Input
+                            id="age"
+                            type="number"
+                            placeholder="Idade"
+                            value={newPerson.age}
+                            onChange={(e) => setNewPerson({...newPerson, age: e.target.value})}
+                          />
+                        </div>
+                        {['key_position', 'development'].includes(newPerson.category) && (
+                          <div>
+                            <Label htmlFor="department">Departamento</Label>
+                            <Input
+                              id="department"
+                              placeholder="Departamento"
+                              value={newPerson.department}
+                              onChange={(e) => setNewPerson({...newPerson, department: e.target.value})}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Requirements based on category */}
-                    {newPerson.category && (
-                      <div className="space-y-4">
-                        <Label>Critérios de Avaliação</Label>
-                        {requirementCategories[newPerson.category as keyof typeof requirementCategories]?.map((req) => (
-                          <div key={req.key} className="flex items-center space-x-3 p-3 border rounded-lg">
-                            <input
-                              type="checkbox"
-                              checked={newPerson.requirements[req.key] || false}
-                              onChange={(e) => setNewPerson({
-                                ...newPerson,
-                                requirements: {
-                                  ...newPerson.requirements,
-                                  [req.key]: e.target.checked
-                                }
-                              })}
-                              className="h-4 w-4"
-                            />
-                            <req.icon className="h-4 w-4" />
-                            <div>
-                              <div className="font-medium">{req.label}</div>
-                              <div className="text-sm text-muted-foreground">Peso: {(req.weight * 100).toFixed(0)}%</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    {/* Criteria Management Section */}
+                    {newPerson.category && criteriaByCategory[newPerson.category] && (
+                      <CriteriaManager
+                        categoryKey={newPerson.category}
+                        standardCriteria={criteriaByCategory[newPerson.category]}
+                        selectedStandardCriteria={newPerson.requirements}
+                        customCriteria={newPerson.customCriteria}
+                        onStandardChange={(key, value) => {
+                          setNewPerson({
+                            ...newPerson,
+                            requirements: {
+                              ...newPerson.requirements,
+                              [key]: value
+                            }
+                          });
+                        }}
+                        onCustomAdd={(criterion) => {
+                          const newCriterion: CustomCriterion = {
+                            ...criterion,
+                            id: Date.now().toString(),
+                            createdAt: new Date()
+                          };
+                          setNewPerson({
+                            ...newPerson,
+                            customCriteria: [...newPerson.customCriteria, newCriterion]
+                          });
+                        }}
+                        onCustomUpdate={(id, updates) => {
+                          setNewPerson({
+                            ...newPerson,
+                            customCriteria: newPerson.customCriteria.map(c =>
+                              c.id === id ? { ...c, ...updates } : c
+                            )
+                          });
+                        }}
+                        onCustomRemove={(id) => {
+                          setNewPerson({
+                            ...newPerson,
+                            customCriteria: newPerson.customCriteria.filter(c => c.id !== id)
+                          });
+                        }}
+                      />
                     )}
 
                     <div className="flex justify-end gap-2">
