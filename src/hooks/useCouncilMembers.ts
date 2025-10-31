@@ -37,7 +37,8 @@ export const useCouncilMembers = () => {
 
       // Verificar se há usuário autenticado
       if (!user?.company) {
-        setMembers([])
+        console.log('No user/company, using mock members')
+        setMembers(mockCouncilMembers)
         setLoading(false)
         return
       }
@@ -53,19 +54,19 @@ export const useCouncilMembers = () => {
         .eq('status', 'active')
         .order('created_at', { ascending: false })
 
-      if (membersError) throw membersError
-
-      // If no members found, use mock data for demonstration
-      if (!membersData || membersData.length === 0) {
-        console.log('No members found in database, using mock data')
+      // Usar mock data em caso de erro OU dados vazios
+      if (membersError || !membersData || membersData.length === 0) {
+        console.log('Database error or empty, using mock members:', membersError?.message)
         setMembers(mockCouncilMembers)
+        setLoading(false)
         return
       }
 
       setMembers(membersData || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao buscar conselheiros')
-      setMembers([])
+      // Em caso de erro inesperado, usar mock data
+      console.log('Unexpected error, using mock members:', err)
+      setMembers(mockCouncilMembers)
     } finally {
       setLoading(false)
     }

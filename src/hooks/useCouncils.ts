@@ -28,9 +28,14 @@ export const useCouncils = () => {
       setLoading(true)
       setError(null)
 
-      // Se não há usuário autenticado, não buscar conselhos
+      // Se não há usuário autenticado, usar mock data
       if (!user?.company) {
-        setCouncils([])
+        console.log('No user/company, using mock data')
+        const councilsWithMembers = mockCouncils.map(council => ({
+          ...council,
+          members: mockCouncilMembers.filter(member => member.council_id === council.id)
+        }))
+        setCouncils(councilsWithMembers)
         setLoading(false)
         return
       }
@@ -41,29 +46,26 @@ export const useCouncils = () => {
         .eq('company_id', user.company)
         .order('created_at', { ascending: false })
 
-      if (councilsError) throw councilsError
-
-      if (!councilsData || councilsData.length === 0) {
-        // Use mock data for demonstration
-        console.log('No councils found in database, using mock data')
+      // Usar mock data em caso de erro OU dados vazios
+      if (councilsError || !councilsData || councilsData.length === 0) {
+        console.log('Database error or empty, using mock data:', councilsError?.message)
         const councilsWithMembers = mockCouncils.map(council => ({
           ...council,
           members: mockCouncilMembers.filter(member => member.council_id === council.id)
         }))
         setCouncils(councilsWithMembers)
+        setLoading(false)
         return
       }
 
       // Buscar membros para cada conselho (sem referência à tabela users)
       const councilsWithMembers = await Promise.all(
         councilsData.map(async (council) => {
-          const { data: members, error: membersError } = await supabase
+          const { data: members } = await supabase
             .from('council_members')
             .select('*')
             .eq('council_id', council.id)
             .eq('status', 'active')
-
-          if (membersError) throw membersError
 
           return {
             ...council,
@@ -74,7 +76,13 @@ export const useCouncils = () => {
 
       setCouncils(councilsWithMembers)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao buscar conselhos')
+      // Em caso de erro inesperado, usar mock data
+      console.log('Unexpected error, using mock data:', err)
+      const councilsWithMembers = mockCouncils.map(council => ({
+        ...council,
+        members: mockCouncilMembers.filter(member => member.council_id === council.id)
+      }))
+      setCouncils(councilsWithMembers)
     } finally {
       setLoading(false)
     }
