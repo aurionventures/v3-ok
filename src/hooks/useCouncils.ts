@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { mockCouncils, mockCouncilMembers } from '@/data/mockCouncilsData'
 
 type Council = Database['public']['Tables']['councils']['Row']
 type CouncilMember = Database['public']['Tables']['council_members']['Row']
@@ -43,7 +44,13 @@ export const useCouncils = () => {
       if (councilsError) throw councilsError
 
       if (!councilsData || councilsData.length === 0) {
-        setCouncils([])
+        // Use mock data for demonstration
+        console.log('No councils found in database, using mock data')
+        const councilsWithMembers = mockCouncils.map(council => ({
+          ...council,
+          members: mockCouncilMembers.filter(member => member.council_id === council.id)
+        }))
+        setCouncils(councilsWithMembers)
         return
       }
 

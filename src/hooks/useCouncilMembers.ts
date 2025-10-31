@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Database } from '../types/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { mockCouncilMembers } from '@/data/mockCouncilsData'
 
 type CouncilMember = Database['public']['Tables']['council_members']['Row']
 type Council = Database['public']['Tables']['councils']['Row']
@@ -53,6 +54,13 @@ export const useCouncilMembers = () => {
         .order('created_at', { ascending: false })
 
       if (membersError) throw membersError
+
+      // If no members found, use mock data for demonstration
+      if (!membersData || membersData.length === 0) {
+        console.log('No members found in database, using mock data')
+        setMembers(mockCouncilMembers)
+        return
+      }
 
       setMembers(membersData || [])
     } catch (err) {
