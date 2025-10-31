@@ -60,15 +60,15 @@ const ESGPillarChart: React.FC<ESGPillarChartProps> = ({ pillarScores }) => {
   };
 
   return (
-    <div className="h-64">
+    <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
           margin={{
-            top: 5,
-            right: 10,
-            left: 0,
-            bottom: 5,
+            top: 10,
+            right: 15,
+            left: -5,
+            bottom: 10,
           }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

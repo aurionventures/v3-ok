@@ -69,18 +69,18 @@ const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
 
   return (
     <TooltipProvider>
-      <div className="w-full">
-        <div className="h-64 w-full">
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="h-full w-full max-w-md">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart 
               cx="50%" 
               cy="50%" 
-              outerRadius="65%" 
+              outerRadius="55%" 
               data={data.map(item => ({
                 ...item,
                 name: formatAxisLabel(item.name)
               }))}
-              margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+              margin={{ top: 15, right: 25, bottom: 15, left: 25 }}
             >
               <PolarGrid stroke="#e2e8f0" strokeWidth={1} />
               <PolarAngleAxis 

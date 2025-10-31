@@ -280,7 +280,7 @@ const Dashboard = () => {
           {/* Avaliações de Maturidade */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Governance Maturity Assessment */}
-            <Card className="h-[400px]">
+            <Card className="h-[500px]">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -296,7 +296,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 h-[calc(100%-4rem)]">
+              <CardContent className="p-6 h-[calc(100%-5rem)]">
                 {latestGovernanceAssessment ? (
                   <div className="space-y-3 h-full">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
@@ -310,7 +310,7 @@ const Dashboard = () => {
                         Última avaliação: {new Date(latestGovernanceAssessment.timestamp).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex-1 h-[calc(100%-5rem)]">
+                    <div className="flex-1 h-[calc(100%-6rem)]">
                       <MaturityRadarChart data={convertStoredDataToRadarData(latestGovernanceAssessment)} />
                     </div>
                   </div>
@@ -330,7 +330,7 @@ const Dashboard = () => {
             </Card>
 
             {/* ESG Maturity Assessment */}
-            <Card className="h-[400px]">
+            <Card className="h-[500px]">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -346,7 +346,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 h-[calc(100%-4rem)]">
+              <CardContent className="p-6 h-[calc(100%-5rem)]">
                 {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
                   <div className="space-y-3 h-full">
                     <div className="text-center p-3 bg-green-50 rounded-lg">
@@ -360,7 +360,7 @@ const Dashboard = () => {
                         Última avaliação: {latestESGAssessment.completedAt ? new Date(latestESGAssessment.completedAt).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>
-                    <div className="flex-1 h-[calc(100%-5rem)]">
+                    <div className="flex-1 h-[calc(100%-6rem)]">
                       {latestESGAssessment.pillarScores ? (
                         <ESGPillarChart pillarScores={latestESGAssessment.pillarScores} />
                       ) : (
