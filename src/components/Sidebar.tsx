@@ -293,9 +293,9 @@ const Sidebar = () => {
                   className={cn(
                     "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
                     pathname === item.href || (item.href === "/admin/companies" && pathname.startsWith("/admin/companies"))
-                      ? "bg-legacy-600 text-white" 
+                      ? "bg-accent text-accent-foreground" 
                       : "text-white hover:bg-legacy-600"
-                  )} 
+                  )}
                   title={!open ? item.name : undefined}
                 >
                   {item.icon}
@@ -331,9 +331,9 @@ const Sidebar = () => {
                           className={cn(
                             "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors group relative", 
                             isActive
-                              ? "bg-legacy-600 text-white" 
+                              ? "bg-accent text-accent-foreground" 
                               : "text-white hover:bg-legacy-600"
-                          )} 
+                          )}
                           title={!open ? item.name : undefined}
                         >
                           <div className="flex items-center gap-1.5 flex-1">
@@ -360,9 +360,9 @@ const Sidebar = () => {
           className={cn(
             "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
             pathname === "/settings"
-              ? "bg-legacy-600 text-white" 
+              ? "bg-accent text-accent-foreground" 
               : "text-white hover:bg-legacy-600"
-          )} 
+          )}
           title={!open ? "Configurações" : undefined}
         >
           <div className="h-4 w-4 flex items-center justify-center">

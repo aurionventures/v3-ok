@@ -91,10 +91,10 @@ export function BancaSidebar() {
             return (
               <Link key={item.href} to={item.href}>
                 <Button
-                  variant={isActive ? 'secondary' : 'ghost'}
+                  variant="ghost"
                   className={cn(
                     'w-full justify-start h-auto p-3',
-                    isActive && 'bg-secondary'
+                    isActive && 'bg-accent text-accent-foreground'
                   )}
                 >
                   <Icon className="mr-3 h-4 w-4" />
@@ -123,8 +123,11 @@ export function BancaSidebar() {
             return (
               <Link key={item.href} to={item.href}>
                 <Button
-                  variant={isActive ? 'secondary' : 'ghost'}
-                  className="w-full justify-start"
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start",
+                    isActive && "bg-accent text-accent-foreground"
+                  )}
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   {item.title}
