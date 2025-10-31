@@ -204,11 +204,6 @@ const CapTable = () => {
                       </div>
                       <Progress value={15} className="mt-1" />
                     </div>
-                    
-                    <div className="pt-4 border-t">
-                      <div className="text-lg font-semibold">Valor Total Avaliado</div>
-                      <div className="text-2xl font-bold text-legacy-500">R$ 5.000.000</div>
-                    </div>
                   </CardContent>
                 </Card>
               </div>
