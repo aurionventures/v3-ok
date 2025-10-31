@@ -117,8 +117,7 @@ const Sidebar = () => {
           icon: <Users className="h-5 w-5" />,
           href: "/shareholder-structure",
           name: "Estrutura Societária",
-          moduleId: "shareholder-structure",
-          priority: true
+          moduleId: "shareholder-structure"
         },
         {
           icon: <PieChart className="h-5 w-5" />,
@@ -129,9 +128,20 @@ const Sidebar = () => {
         {
           icon: <BarChart3 className="h-5 w-5" />,
           href: "/data-input",
-          name: "Maturidade de Governança",
-          moduleId: "maturity",
-          priority: true
+          name: "Avaliação Governança",
+          moduleId: "maturity"
+        },
+        {
+          icon: <CheckCircle className="h-5 w-5" />,
+          href: "/maturity",
+          name: "Resultados Governança",
+          moduleId: "maturity-results"
+        },
+        {
+          icon: <Clock className="h-5 w-5" />,
+          href: "/governance-history",
+          name: "Histórico Governança",
+          moduleId: "governance-history"
         },
         {
           icon: <Leaf className="h-5 w-5" />,

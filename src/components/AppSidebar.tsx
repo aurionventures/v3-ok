@@ -82,29 +82,65 @@ export function AppSidebar() {
       ]
     },
     {
-      phase: "Fundação",
-      icon: Users,
+      phase: "PARAMETRIZAÇÃO",
+      icon: Zap,
       color: "text-green-400",
       items: [
         {
           icon: Users,
           href: "/shareholder-structure",
           name: "Estrutura Societária",
-          moduleId: "shareholder-structure",
-          priority: true
-        },
-        {
-          icon: FileText,
-          href: "/document-management",
-          name: "Gestão de Documentos",
-          moduleId: "document-management",
-          priority: true
+          moduleId: "shareholder-structure"
         },
         {
           icon: PieChart,
           href: "/cap-table",
           name: "Cap Table",
           moduleId: "cap-table"
+        },
+        {
+          icon: BarChart3,
+          href: "/data-input",
+          name: "Avaliação Governança",
+          moduleId: "maturity"
+        },
+        {
+          icon: CheckCircle,
+          href: "/maturity",
+          name: "Resultados Governança",
+          moduleId: "maturity-results"
+        },
+        {
+          icon: Clock,
+          href: "/governance-history",
+          name: "Histórico Governança",
+          moduleId: "governance-history"
+        },
+        {
+          icon: Leaf,
+          href: "/dados-esg",
+          name: "Maturidade ESG",
+          moduleId: "esg"
+        },
+        {
+          icon: BookText,
+          href: "/legacy",
+          name: "Legado",
+          moduleId: null
+        }
+      ]
+    },
+    {
+      phase: "Fundação",
+      icon: Users,
+      color: "text-green-400",
+      items: [
+        {
+          icon: FileText,
+          href: "/document-management",
+          name: "Gestão de Documentos",
+          moduleId: "document-management",
+          priority: true
         }
       ]
     },
@@ -184,13 +220,7 @@ export function AppSidebar() {
           name: "Gestão de Pessoas & Governança",
           moduleId: "people-management",
           priority: true
-        },
-        {
-          icon: BookText,
-          href: "/legacy",
-          name: "Legado",
-          moduleId: null
-        },
+        }
       ]
     },
     {
@@ -223,19 +253,6 @@ export function AppSidebar() {
       icon: Zap,
       color: "text-yellow-400",
       items: [
-        {
-          icon: BarChart3,
-          href: "/data-input",
-          name: "Maturidade de Governança",
-          moduleId: "maturity",
-          priority: true
-        },
-        {
-          icon: Leaf,
-          href: "/dados-esg",
-          name: "Maturidade ESG",
-          moduleId: "esg"
-        },
         {
           icon: Bot,
           href: "/ai-agents",
