@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart as RechartsPieChart, Cell, ResponsiveContainer } from "recharts";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 // Mock data for demonstration
 const mockShareholders = [
@@ -88,11 +88,18 @@ const mockCompanies = [
 
 const chartColors = ["#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444"];
 
-const chartData = mockShareholders.map((shareholder, index) => ({
-  name: shareholder.name,
-  value: shareholder.percentage,
-  fill: chartColors[index % chartColors.length]
-}));
+const simplifiedChartData = [
+  {
+    name: "Controle Familiar",
+    value: 85,
+    fill: "#10B981"
+  },
+  {
+    name: "Investidores Externos",
+    value: 15,
+    fill: "#F59E0B"
+  }
+];
 
 
 const CapTable = () => {
@@ -159,11 +166,19 @@ const CapTable = () => {
                           <ChartTooltip 
                             content={<ChartTooltipContent />}
                           />
-                          <RechartsPieChart data={chartData}>
-                            {chartData.map((entry, index) => (
+                          <Pie
+                            data={simplifiedChartData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, value }) => `${name}: ${value}%`}
+                            outerRadius={100}
+                            dataKey="value"
+                          >
+                            {simplifiedChartData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.fill} />
                             ))}
-                          </RechartsPieChart>
+                          </Pie>
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     </ChartContainer>
