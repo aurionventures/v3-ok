@@ -179,8 +179,106 @@ const Dashboard = () => {
             />
           </div>
 
+          {/* Gestão de Riscos - Seção Compacta */}
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-red-600" />
+                  <CardTitle className="text-lg">Gestão de Riscos</CardTitle>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateTo("/governance-risk-management")}
+                >
+                  Ver Matriz Completa
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Resumo Executivo */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Resumo Executivo</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
+                      <div className="text-3xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
+                      <div className="text-xs text-blue-600 font-medium mt-1">Total de Riscos</div>
+                    </div>
+                    <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg">
+                      <div className="text-3xl font-bold text-red-600">{riskSummary.criticalRisks}</div>
+                      <div className="text-xs text-red-600 font-medium mt-1">Críticos</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg">
+                      <div className="text-3xl font-bold text-green-600">{riskSummary.mitigationPlans}</div>
+                      <div className="text-xs text-green-600 font-medium mt-1">Com Mitigação</div>
+                    </div>
+                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg">
+                      <div className="text-3xl font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
+                      <div className="text-xs text-yellow-600 font-medium mt-1">Sem Mitigação</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Matriz Visual Compacta */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Matriz de Riscos</h3>
+                  <div className="bg-muted rounded-lg p-4">
+                    <div className="grid grid-cols-5 gap-1 mb-3">
+                      {[5, 4, 3, 2, 1].map((impact) => (
+                        <div key={impact} className="grid grid-rows-3 gap-1">
+                          {[3, 2, 1].map((probability) => {
+                            const score = impact * probability;
+                            let bgColor = "bg-green-200 dark:bg-green-900";
+                            if (score >= 12) bgColor = "bg-red-300 dark:bg-red-900";
+                            else if (score >= 6) bgColor = "bg-yellow-200 dark:bg-yellow-900";
+                            return (
+                              <div
+                                key={`${impact}-${probability}`}
+                                className={`${bgColor} rounded h-10 flex items-center justify-center font-medium text-sm`}
+                              >
+                                {score}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Baixo Impacto</span>
+                      <span>Alto Impacto</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Categorias de Risco */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Categorias</h3>
+                  <div className="space-y-3">
+                    {riskCategories.map((category) => {
+                      const IconComponent = category.icon;
+                      return (
+                        <div key={category.category} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4" style={{ color: category.color }} />
+                            <span className="text-sm font-medium">{category.category}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span>Críticos: <strong className="text-foreground">{category.criticalCount}</strong></span>
+                            <span>Total: <strong className="text-foreground">{category.count}</strong></span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Avaliações de Maturidade */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Governance Maturity Assessment */}
             <Card className="h-[400px]">
               <CardHeader className="pb-3">
@@ -287,104 +385,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Gestão de Riscos - Seção Compacta */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-red-600" />
-                  <CardTitle className="text-lg">Gestão de Riscos</CardTitle>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateTo("/governance-risk-management")}
-                >
-                  Ver Matriz Completa
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Resumo Executivo */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Resumo Executivo</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
-                      <div className="text-3xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
-                      <div className="text-xs text-blue-600 font-medium mt-1">Total de Riscos</div>
-                    </div>
-                    <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg">
-                      <div className="text-3xl font-bold text-red-600">{riskSummary.criticalRisks}</div>
-                      <div className="text-xs text-red-600 font-medium mt-1">Críticos</div>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg">
-                      <div className="text-3xl font-bold text-green-600">{riskSummary.mitigationPlans}</div>
-                      <div className="text-xs text-green-600 font-medium mt-1">Com Mitigação</div>
-                    </div>
-                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg">
-                      <div className="text-3xl font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
-                      <div className="text-xs text-yellow-600 font-medium mt-1">Sem Mitigação</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Matriz Visual Compacta */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Matriz de Riscos</h3>
-                  <div className="bg-muted rounded-lg p-4">
-                    <div className="grid grid-cols-5 gap-1 mb-3">
-                      {[5, 4, 3, 2, 1].map((impact) => (
-                        <div key={impact} className="grid grid-rows-3 gap-1">
-                          {[3, 2, 1].map((probability) => {
-                            const score = impact * probability;
-                            let bgColor = "bg-green-200 dark:bg-green-900";
-                            if (score >= 12) bgColor = "bg-red-300 dark:bg-red-900";
-                            else if (score >= 6) bgColor = "bg-yellow-200 dark:bg-yellow-900";
-                            return (
-                              <div
-                                key={`${impact}-${probability}`}
-                                className={`${bgColor} rounded h-10 flex items-center justify-center font-medium text-sm`}
-                              >
-                                {score}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Baixo Impacto</span>
-                      <span>Alto Impacto</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Categorias de Risco */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Categorias</h3>
-                  <div className="space-y-3">
-                    {riskCategories.map((category) => {
-                      const IconComponent = category.icon;
-                      return (
-                        <div key={category.category} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <IconComponent className="h-4 w-4" style={{ color: category.color }} />
-                            <span className="text-sm font-medium">{category.category}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <span>Críticos: <strong className="text-foreground">{category.criticalCount}</strong></span>
-                            <span>Total: <strong className="text-foreground">{category.count}</strong></span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
