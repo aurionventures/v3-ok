@@ -9,7 +9,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import LoginAdmin from "./components/auth/LoginAdmin"; 
-import Start from "./pages/Start";
 import Dashboard from "./pages/Dashboard";
 import ShareholderStructure from "./pages/ShareholderStructure";
 import Councils from "./pages/Councils";
@@ -104,15 +103,7 @@ const App = () => (
           
           {/* Cliente Routes */}
           <Route 
-            path="/start" 
-            element={
-              <ProtectedRoute >
-                <Start />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/dashboard" 
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />

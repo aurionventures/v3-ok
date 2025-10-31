@@ -120,13 +120,6 @@ const Sidebar = () => {
       color: "text-blue-400",
       items: [
         {
-          icon: <Play className="h-5 w-5" />,
-          href: "/start",
-          name: "Comece Aqui",
-          moduleId: null,
-          priority: true
-        },
-        {
           icon: <LayoutDashboard className="h-5 w-5" />,
           href: "/dashboard",
           name: "Dashboard",

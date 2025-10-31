@@ -81,13 +81,6 @@ export function TopMenu() {
       color: "text-blue-400",
       items: [
         {
-          icon: Play,
-          href: "/start",
-          name: "Comece Aqui",
-          moduleId: null,
-          priority: true
-        },
-        {
           icon: LayoutDashboard,
           href: "/dashboard",
           name: "Dashboard",
