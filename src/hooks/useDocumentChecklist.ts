@@ -78,6 +78,12 @@ export const useDocumentChecklist = () => {
     setChecklist(newChecklist);
   };
 
+  const handleStatusChange = (categoryIndex: number, itemIndex: number, status: "not-applicable" | "not-have" | "not-sent" | null) => {
+    const newChecklist = [...checklist];
+    newChecklist[categoryIndex].items[itemIndex].status = status;
+    setChecklist(newChecklist);
+  };
+
   const getCategoryProgress = (category: ChecklistCategory) => {
     const categoryProgress = category.items.filter(item => item.checked).length;
     const categoryTotal = category.items.length;
@@ -102,6 +108,7 @@ export const useDocumentChecklist = () => {
     checklist,
     calculateProgress,
     handleItemCheck,
+    handleStatusChange,
     getCategoryProgress,
     getAISuggestions
   };

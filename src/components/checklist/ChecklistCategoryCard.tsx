@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ChecklistCategory, CategoryProgress } from "@/types/documentChecklist";
+import { ChecklistCategory, CategoryProgress, DocumentStatus } from "@/types/documentChecklist";
 import { ChecklistItem } from "./ChecklistItem";
 
 interface ChecklistCategoryCardProps {
@@ -9,6 +9,7 @@ interface ChecklistCategoryCardProps {
   categoryIndex: number;
   progress: CategoryProgress;
   onItemCheck: (categoryIndex: number, itemIndex: number, checked: boolean) => void;
+  onStatusChange: (categoryIndex: number, itemIndex: number, status: DocumentStatus) => void;
   onUploadRedirect: (categoryName: string, itemName: string) => void;
 }
 
@@ -16,7 +17,8 @@ export const ChecklistCategoryCard = ({
   category, 
   categoryIndex, 
   progress, 
-  onItemCheck, 
+  onItemCheck,
+  onStatusChange,
   onUploadRedirect 
 }: ChecklistCategoryCardProps) => {
   const CategoryIcon = category.icon;
@@ -51,6 +53,7 @@ export const ChecklistCategoryCard = ({
             item={item}
             categoryName={category.name}
             onCheck={(checked) => onItemCheck(categoryIndex, itemIndex, checked)}
+            onStatusChange={(status) => onStatusChange(categoryIndex, itemIndex, status)}
             onUploadRedirect={onUploadRedirect}
           />
         ))}

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useDocumentChecklist } from "@/hooks/useDocumentChecklist";
+import { DocumentStatus } from "@/types/documentChecklist";
 import { ChecklistProgressCard } from "@/components/checklist/ChecklistProgressCard";
 import { AISuggestionsCard } from "@/components/checklist/AISuggestionsCard";
 import { ChecklistCategoryCard } from "@/components/checklist/ChecklistCategoryCard";
@@ -13,7 +14,8 @@ export default function DocumentChecklist() {
   const { 
     checklist, 
     calculateProgress, 
-    handleItemCheck, 
+    handleItemCheck,
+    handleStatusChange,
     getCategoryProgress, 
     getAISuggestions 
   } = useDocumentChecklist();
@@ -25,6 +27,21 @@ export default function DocumentChecklist() {
     if (checked) {
       toast.success("Documento marcado como existente.");
     }
+  };
+
+  const handleItemStatusChange = (
+    categoryIndex: number, 
+    itemIndex: number, 
+    status: DocumentStatus
+  ) => {
+    handleStatusChange(categoryIndex, itemIndex, status);
+    
+    const statusLabels: Record<string, string> = {
+      "not-sent": "Não enviou",
+      "not-have": "Não tem",
+      "not-applicable": "Não se aplica",
+    };
+    toast.success(`Status atualizado: ${statusLabels[status as string]}`);
   };
 
   const handleUploadRedirect = (categoryName: string, itemName: string) => {
@@ -59,6 +76,7 @@ export default function DocumentChecklist() {
                   categoryIndex={categoryIndex}
                   progress={getCategoryProgress(category)}
                   onItemCheck={handleItemChecked}
+                  onStatusChange={handleItemStatusChange}
                   onUploadRedirect={handleUploadRedirect}
                 />
               ))}
