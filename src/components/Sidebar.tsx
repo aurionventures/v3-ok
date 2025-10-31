@@ -330,16 +330,7 @@ const Sidebar = () => {
                             <div className="h-4 w-4 flex items-center justify-center">
                               {item.icon}
                             </div>
-                            {open && (
-                              <>
-                                <span className="flex-1 text-xs">{item.name}</span>
-                                {item.priority && !isActive && (
-                                  <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1 py-0">
-                                    !
-                                  </Badge>
-                                )}
-                              </>
-                            )}
+                            {open && <span className="flex-1 text-xs">{item.name}</span>}
                           </div>
                         </Link>
                       );

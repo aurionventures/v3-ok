@@ -280,11 +280,6 @@ export function TopMenu() {
                     <item.icon className="h-4 w-4" />
                     {item.name}
                   </div>
-                  {item.priority && !isActive && (
-                    <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                      !
-                    </Badge>
-                  )}
                 </Link>
               );
             })}
@@ -352,11 +347,6 @@ export function TopMenu() {
                                 <item.icon className="h-4 w-4" />
                                 {item.name}
                               </div>
-                              {item.priority && !isActive && (
-                                <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                                  !
-                                </Badge>
-                              )}
                             </Link>
                           );
                         })}

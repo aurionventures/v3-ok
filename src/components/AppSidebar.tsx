@@ -299,15 +299,10 @@ export function AppSidebar() {
                         <SidebarMenuItem key={item.href}>
                           <SidebarMenuButton asChild isActive={isActive}>
                             <Link to={item.href} className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
-                                {!collapsed && <span className="flex-1">{item.name}</span>}
-                              </div>
-                              {!collapsed && item.priority && !isActive && (
-                                <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                                  !
-                                </Badge>
-                              )}
+                  <div className="flex items-center gap-2">
+                    <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
+                    {!collapsed && <span className="flex-1">{item.name}</span>}
+                  </div>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
