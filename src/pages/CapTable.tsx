@@ -264,29 +264,6 @@ const CapTable = () => {
             </div>
           </div>
 
-          {/* Company Selection */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Empresa Selecionada
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                <SelectTrigger className="max-w-md">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockCompanies.map(company => (
-                    <SelectItem key={company.id} value={company.id.toString()}>
-                      {company.name} - {company.segment}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
 
           {/* Main Content Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
