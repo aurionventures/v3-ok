@@ -9,8 +9,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useGovernanceProgress } from "@/hooks/useGovernanceProgress";
-import GuidedNavigation from "@/components/GuidedNavigation";
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +24,6 @@ import {
 
 export function AppSidebar() {
   const { pathname } = useLocation();
-  const [showGuidedNav, setShowGuidedNav] = useState(false);
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
@@ -55,28 +52,6 @@ export function AppSidebar() {
       name: "Configurações"
     }
   ];
-  
-  const { modules } = useGovernanceProgress();
-  
-  // Get module progress by ID
-  const getModuleProgress = (moduleId: string) => {
-    return modules.find(m => m.id === moduleId);
-  };
-
-  // Get status badge for menu item
-  const getStatusBadge = (moduleId: string) => {
-    const module = getModuleProgress(moduleId);
-    if (!module) return null;
-
-    if (module.isCompleted) {
-      return <CheckCircle className="h-3 w-3 text-green-400" />;
-    } else if (module.completionPercentage >= 70) {
-      return <Clock className="h-3 w-3 text-yellow-400" />;
-    } else if (module.urgency === 'high') {
-      return <AlertCircle className="h-3 w-3 text-red-400" />;
-    }
-    return null;
-  };
 
   // Company menu items organized by phases
   const menuPhases = [
@@ -283,17 +258,6 @@ export function AppSidebar() {
                 className="h-8 w-auto brightness-0 invert"
               />
             </Link>
-            {!isAdminRoute && !collapsed && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowGuidedNav(true)}
-                className="text-sidebar-foreground hover:bg-sidebar-accent p-1"
-                title="Navegação Guiada"
-              >
-                <Map className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         </SidebarHeader>
 
@@ -330,8 +294,6 @@ export function AppSidebar() {
                   <SidebarMenu>
                     {phase.items.map(item => {
                       const isActive = pathname === item.href;
-                      const statusBadge = getStatusBadge(item.moduleId);
-                      const module = getModuleProgress(item.moduleId);
                       
                       return (
                         <SidebarMenuItem key={item.href}>
@@ -341,20 +303,10 @@ export function AppSidebar() {
                                 <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
                                 {!collapsed && <span className="flex-1">{item.name}</span>}
                               </div>
-                              {!collapsed && (
-                                <div className="flex items-center gap-1">
-                                  {item.priority && !isActive && (
-                                    <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                                      !
-                                    </Badge>
-                                  )}
-                                  {statusBadge}
-                                  {module && module.completionPercentage > 0 && module.completionPercentage < 100 && (
-                                    <span className="text-xs text-sidebar-foreground/60">
-                                      {module.completionPercentage}%
-                                    </span>
-                                  )}
-                                </div>
+                              {!collapsed && item.priority && !isActive && (
+                                <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
+                                  !
+                                </Badge>
                               )}
                             </Link>
                           </SidebarMenuButton>
@@ -368,11 +320,6 @@ export function AppSidebar() {
           )}
         </SidebarContent>
       </Sidebar>
-      
-      <GuidedNavigation 
-        isOpen={showGuidedNav} 
-        onClose={() => setShowGuidedNav(false)} 
-      />
     </>
   );
 }

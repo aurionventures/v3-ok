@@ -41,14 +41,11 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useGovernanceProgress } from "@/hooks/useGovernanceProgress";
-import GuidedNavigation from "@/components/GuidedNavigation";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(!isMobile);
-  const [showGuidedNav, setShowGuidedNav] = useState(false);
   
   const isAdminRoute = pathname.startsWith("/admin");
   
@@ -89,28 +86,6 @@ const Sidebar = () => {
       name: "Configurações"
     }
   ];
-  
-  const { modules } = useGovernanceProgress();
-  
-  // Get module progress by ID
-  const getModuleProgress = (moduleId: string) => {
-    return modules.find(m => m.id === moduleId);
-  };
-
-  // Get status badge for menu item
-  const getStatusBadge = (moduleId: string) => {
-    const module = getModuleProgress(moduleId);
-    if (!module) return null;
-
-    if (module.isCompleted) {
-      return <CheckCircle className="h-3 w-3 text-green-400" />;
-    } else if (module.completionPercentage >= 70) {
-      return <Clock className="h-3 w-3 text-yellow-400" />;
-    } else if (module.urgency === 'high') {
-      return <AlertCircle className="h-3 w-3 text-red-400" />;
-    }
-    return null;
-  };
 
   // Company menu items organized by phases
   const menuPhases = [
@@ -293,17 +268,6 @@ const Sidebar = () => {
               className="h-8 w-auto brightness-0 invert"
             />
           </Link>
-          {!isAdminRoute && open && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowGuidedNav(true)}
-              className="text-white hover:bg-legacy-600 p-1"
-              title="Navegação Guiada"
-            >
-              <Map className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </div>
 
@@ -349,8 +313,6 @@ const Sidebar = () => {
                   <div className="space-y-0.5">
                     {phase.items.map(item => {
                       const isActive = pathname === item.href;
-                      const statusBadge = getStatusBadge(item.moduleId);
-                      const module = getModuleProgress(item.moduleId);
                       
                       return (
                         <Link 
@@ -371,19 +333,11 @@ const Sidebar = () => {
                             {open && (
                               <>
                                 <span className="flex-1 text-xs">{item.name}</span>
-                                <div className="flex items-center gap-1">
-                                  {item.priority && !isActive && (
-                                    <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1 py-0">
-                                      !
-                                    </Badge>
-                                  )}
-                                  {statusBadge}
-                                  {module && module.completionPercentage > 0 && module.completionPercentage < 100 && (
-                                    <span className="text-xs text-white/60">
-                                      {module.completionPercentage}%
-                                    </span>
-                                  )}
-                                </div>
+                                {item.priority && !isActive && (
+                                  <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1 py-0">
+                                    !
+                                  </Badge>
+                                )}
                               </>
                             )}
                           </div>
@@ -420,11 +374,6 @@ const Sidebar = () => {
       <Button variant="outline" size="icon" onClick={toggleSidebar} className="m-2">
         {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
       </Button>
-      
-      <GuidedNavigation 
-        isOpen={showGuidedNav} 
-        onClose={() => setShowGuidedNav(false)} 
-      />
     </aside>
   );
 };

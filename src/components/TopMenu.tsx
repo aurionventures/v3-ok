@@ -9,8 +9,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useGovernanceProgress } from "@/hooks/useGovernanceProgress";
-import GuidedNavigation from "@/components/GuidedNavigation";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -22,7 +20,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function TopMenu() {
   const { pathname } = useLocation();
-  const [showGuidedNav, setShowGuidedNav] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const isAdminRoute = pathname.startsWith("/admin");
@@ -50,28 +47,6 @@ export function TopMenu() {
       name: "Configurações"
     }
   ];
-  
-  const { modules } = useGovernanceProgress();
-  
-  // Get module progress by ID
-  const getModuleProgress = (moduleId: string) => {
-    return modules.find(m => m.id === moduleId);
-  };
-
-  // Get status badge for menu item
-  const getStatusBadge = (moduleId: string) => {
-    const module = getModuleProgress(moduleId);
-    if (!module) return null;
-
-    if (module.isCompleted) {
-      return <CheckCircle className="h-3 w-3 text-green-400" />;
-    } else if (module.completionPercentage >= 70) {
-      return <Clock className="h-3 w-3 text-yellow-400" />;
-    } else if (module.urgency === 'high') {
-      return <AlertCircle className="h-3 w-3 text-red-400" />;
-    }
-    return null;
-  };
 
   // Company menu items organized by phases
   const menuPhases = [
@@ -290,8 +265,6 @@ export function TopMenu() {
             </h3>
             {phase.items.map(item => {
               const isActive = pathname === item.href;
-              const statusBadge = getStatusBadge(item.moduleId);
-              const module = getModuleProgress(item.moduleId);
               
               return (
                 <Link 
@@ -307,19 +280,11 @@ export function TopMenu() {
                     <item.icon className="h-4 w-4" />
                     {item.name}
                   </div>
-                  <div className="flex items-center gap-1">
-                    {item.priority && !isActive && (
-                      <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                        !
-                      </Badge>
-                    )}
-                    {statusBadge}
-                    {module && module.completionPercentage > 0 && module.completionPercentage < 100 && (
-                      <span className="text-xs text-muted-foreground">
-                        {module.completionPercentage}%
-                      </span>
-                    )}
-                  </div>
+                  {item.priority && !isActive && (
+                    <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
+                      !
+                    </Badge>
+                  )}
                 </Link>
               );
             })}
@@ -373,8 +338,6 @@ export function TopMenu() {
                       <div className="grid w-64 gap-2 p-4">
                         {phase.items.map(item => {
                           const isActive = pathname === item.href;
-                          const statusBadge = getStatusBadge(item.moduleId);
-                          const module = getModuleProgress(item.moduleId);
                           
                           return (
                             <Link 
@@ -389,19 +352,11 @@ export function TopMenu() {
                                 <item.icon className="h-4 w-4" />
                                 {item.name}
                               </div>
-                              <div className="flex items-center gap-1">
-                                {item.priority && !isActive && (
-                                  <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                                    !
-                                  </Badge>
-                                )}
-                                {statusBadge}
-                                {module && module.completionPercentage > 0 && module.completionPercentage < 100 && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {module.completionPercentage}%
-                                  </span>
-                                )}
-                              </div>
+                              {item.priority && !isActive && (
+                                <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
+                                  !
+                                </Badge>
+                              )}
                             </Link>
                           );
                         })}
@@ -415,18 +370,6 @@ export function TopMenu() {
 
           {/* Right side buttons */}
           <div className="flex items-center gap-2">
-            {!isAdminRoute && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowGuidedNav(true)}
-                className="hidden lg:flex"
-                title="Navegação Guiada"
-              >
-                <Map className="h-4 w-4" />
-              </Button>
-            )}
-            
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -443,16 +386,6 @@ export function TopMenu() {
                       className="h-8 w-auto"
                     />
                   </Link>
-                  {!isAdminRoute && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowGuidedNav(true)}
-                      title="Navegação Guiada"
-                    >
-                      <Map className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
                 <MobileMenu />
               </SheetContent>
@@ -460,11 +393,6 @@ export function TopMenu() {
           </div>
         </div>
       </header>
-      
-      <GuidedNavigation 
-        isOpen={showGuidedNav} 
-        onClose={() => setShowGuidedNav(false)} 
-      />
     </>
   );
 }
