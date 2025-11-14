@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FamilyNetworkGraph from "@/components/FamilyNetworkGraph";
-import { GovernanceDashboard } from "@/components/GovernanceDashboard";
+
 import { CorporateStructureForm } from "@/components/CorporateStructureForm";
 import {
   Table,
@@ -202,9 +202,6 @@ const ShareholderStructure = () => {
                   </Button>
                 </div>
               </div>
-
-              {/* Dashboard de Governança */}
-              <GovernanceDashboard members={members} />
 
               <Tabs defaultValue="table" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
