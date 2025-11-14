@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,7 +27,8 @@ const CapTable = () => {
   const { user } = useAuth();
   const companyId = user?.company || "";
   const companyName = user?.name || "Empresa";
-  const { shareholders, isLoading, metrics } = useCapTable(companyId);
+  const [useMockData, setUseMockData] = useState(true);
+  const { shareholders, isLoading, metrics } = useCapTable(companyId, useMockData);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");

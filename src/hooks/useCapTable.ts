@@ -32,14 +32,19 @@ export interface ShareholderData {
   updated_at: string;
 }
 
-export const useCapTable = (companyId: string) => {
+export const useCapTable = (companyId: string, useMockData = false) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Buscar apenas SÓCIOS (filtro por governance_category)
   const { data: shareholders, isLoading, error } = useQuery({
-    queryKey: ["shareholders", companyId],
+    queryKey: ["shareholders", companyId, useMockData],
     queryFn: async () => {
+      if (useMockData) {
+        const { mockShareholders } = await import("@/data/mockCapTableData");
+        return mockShareholders as ShareholderData[];
+      }
+      
       if (!companyId) return [];
       
       const { data, error } = await supabase
@@ -53,7 +58,7 @@ export const useCapTable = (companyId: string) => {
       if (error) throw error;
       return (data || []) as ShareholderData[];
     },
-    enabled: !!companyId,
+    enabled: !!companyId || useMockData,
   });
 
   // Calcular métricas do Cap Table
