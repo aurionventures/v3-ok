@@ -14,12 +14,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { Download, Users, Building, TrendingUp, AlertTriangle, Eye, Edit, Search, Calculator, FileText, Filter } from "lucide-react";
+import { Download, Users, Building, TrendingUp, Eye, Edit, Search, Calculator, FileText, Filter } from "lucide-react";
 
 const chartColors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
@@ -27,7 +26,7 @@ const CapTable = () => {
   const { user } = useAuth();
   const companyId = user?.company || "";
   const companyName = user?.name || "Empresa";
-  const [useMockData, setUseMockData] = useState(false);
+  const useMockData = true; // Sempre usar dados de exemplo
   const { shareholders, isLoading, metrics } = useCapTable(companyId, useMockData);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,27 +71,10 @@ const CapTable = () => {
               <p className="text-muted-foreground">Estrutura de capital e participações</p>
             </div>
             
-            <div className="flex items-center gap-3">
-              <Label htmlFor="mock-toggle" className="text-sm">
-                {useMockData ? "📊 Dados de Exemplo" : "✅ Dados Reais"}
-              </Label>
-              <Switch
-                id="mock-toggle"
-                checked={useMockData}
-                onCheckedChange={setUseMockData}
-              />
-            </div>
+            <Badge variant="secondary" className="text-sm py-2 px-4">
+              📊 Dados de Exemplo
+            </Badge>
           </div>
-
-          {!useMockData && metrics.totalPercentage !== 100 && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                A soma das participações está em {metrics.totalPercentage.toFixed(2)}%. 
-                O ideal é que totalize exatamente 100%.
-              </AlertDescription>
-            </Alert>
-          )}
 
           <Tabs defaultValue="overview" className="space-y-6">
               <TabsList><TabsTrigger value="overview">Visão Geral</TabsTrigger><TabsTrigger value="table">Tabela Detalhada</TabsTrigger></TabsList>
