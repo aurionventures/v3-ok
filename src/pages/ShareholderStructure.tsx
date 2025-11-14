@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Users, Search, UserPlus, Eye, Pencil, Trash2, Network, Loader2, Download, FileSpreadsheet } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -51,6 +52,7 @@ import { getQualificationName } from "@/data/governanceStandards";
 
 
 const ShareholderStructure = () => {
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [showDetailsMember, setShowDetailsMember] = useState<any>(null);
@@ -73,6 +75,17 @@ const ShareholderStructure = () => {
     updateMember, 
     removeMember 
   } = useCorporateStructure();
+
+  // Detectar parâmetro 'edit' na URL e abrir edição automaticamente
+  useEffect(() => {
+    const editMemberId = searchParams.get('edit');
+    if (editMemberId && members.length > 0 && !isEditingMember) {
+      const memberToEdit = members.find(m => m.id === editMemberId);
+      if (memberToEdit) {
+        handleEditMember(memberToEdit);
+      }
+    }
+  }, [searchParams, members, isEditingMember]);
 
   // Filtros locais para busca
   const filteredMembers = members.filter(
