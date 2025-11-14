@@ -411,46 +411,6 @@ export function CorporateStructureForm({ formData, onChange }: CorporateStructur
                 </Label>
               </div>
 
-              {selectedCategory === "board" && (
-                <>
-                  <div className="flex items-center space-x-2 col-span-2">
-                    <Checkbox
-                      id="independent"
-                      checked={formData.is_independent || false}
-                      onCheckedChange={(checked) =>
-                        onChange({ ...formData, is_independent: checked as boolean })
-                      }
-                    />
-                    <Label htmlFor="independent" className="cursor-pointer">
-                      Conselheiro Independente
-                    </Label>
-                  </div>
-
-                  <div className="space-y-2 col-span-2">
-                    <Label>Comitês</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {COMMITTEES.map((committee) => (
-                        <div key={committee.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={committee.value}
-                            checked={formData.committees?.includes(committee.value) || false}
-                            onCheckedChange={(checked) => {
-                              const current = formData.committees || [];
-                              const updated = checked
-                                ? [...current, committee.value]
-                                : current.filter((c) => c !== committee.value);
-                              onChange({ ...formData, committees: updated });
-                            }}
-                          />
-                          <Label htmlFor={committee.value} className="text-sm cursor-pointer">
-                            {committee.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
           </CardContent>
         </Card>
