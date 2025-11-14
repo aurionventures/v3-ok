@@ -105,25 +105,6 @@ export function GovernanceDashboard({ members }: GovernanceDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Ownership Concentration */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Concentração de Capital</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Família:</span>
-              <span className="font-bold">{metrics.familyOwnership}%</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Externos:</span>
-              <span className="font-bold">{metrics.externalOwnership}%</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

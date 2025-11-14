@@ -70,10 +70,6 @@ const CapTable = () => {
                 <h1 className="text-3xl font-bold">Cap Table</h1>
                 <p className="text-muted-foreground">Estrutura de capital e participações societárias</p>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsSimulatorOpen(true)}><Calculator className="h-4 w-4 mr-2" />Simulador</Button>
-                <Button onClick={() => setIsExportDialogOpen(true)}><Download className="h-4 w-4 mr-2" />Exportar</Button>
-              </div>
             </div>
 
             <Tabs defaultValue="overview" className="space-y-6">
@@ -93,9 +89,6 @@ const CapTable = () => {
                       </div>
                       <div><div className="flex justify-between text-sm mb-2"><span className="font-medium">Participação Familiar</span><span className="font-bold text-primary">{metrics.familyControl.toFixed(2)}%</span></div><Progress value={metrics.familyControl} className="h-3" /></div>
                       <div><div className="flex justify-between text-sm mb-2"><span className="font-medium">Investidores Externos</span><span className="font-bold text-orange-600">{metrics.externalInvestors.toFixed(2)}%</span></div><Progress value={metrics.externalInvestors} className="h-3" /></div>
-                      <Separator />
-                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg"><span className="font-medium">Total Distribuído</span><Badge variant={metrics.totalPercentage === 100 ? "default" : "destructive"}>{metrics.totalPercentage.toFixed(2)}%</Badge></div>
-                      <Alert className={metrics.rfbCompliance ? "border-green-200 bg-green-50" : "border-yellow-200 bg-yellow-50"}><AlertTriangle className={`h-4 w-4 ${metrics.rfbCompliance ? "text-green-600" : "text-yellow-600"}`} /><AlertDescription className={metrics.rfbCompliance ? "text-green-800" : "text-yellow-800"}>{metrics.rfbCompliance ? "✅ Todos os sócios têm qualificação RFB" : "⚠️ Alguns sócios precisam de qualificação RFB"}</AlertDescription></Alert>
                       {shareholders.length > 0 && <><Separator /><div className="border-t pt-4"><div className="text-sm font-medium mb-3">Distribuição por Qualificação RFB</div>{Object.entries(shareholders.reduce((acc, s) => { const code = s.official_qualification_code || "Não definido"; acc[code] = (acc[code] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([code, count]) => <div key={code} className="flex justify-between items-center py-2 text-sm"><span className="text-muted-foreground">{code !== "Não definido" ? `${code} - ${getQualificationName(code)}` : code}</span><Badge variant="outline">{count}</Badge></div>)}</div></>}
                     </CardContent>
                   </Card>
