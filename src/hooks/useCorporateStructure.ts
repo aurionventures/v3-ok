@@ -33,21 +33,52 @@ const setSupabaseAuth = async (token: string) => {
 export type CorporateStructureMember = Database['public']['Tables']['corporate_structure_members']['Row']
 
 export interface CorporateStructureFormData {
+  // Personal Data
   name: string
+  document?: string
   birth_date?: string
   age?: number
-  category: string
-  role: string
-  involvement?: string
-  status?: string
   email?: string
   phone?: string
-  document?: string
-  address?: any
+  
+  // Governance Classification (new RFB/DREI standards)
+  governance_category?: string
+  governance_subcategory?: string
+  official_qualification_code?: string
+  specific_role?: string
+  
+  // Legacy fields (for backward compatibility)
+  category?: string
+  role?: string
+  involvement?: string
+  
+  // Corporate/Shareholding Data
+  shareholding?: string // Legacy field
+  shareholding_percentage?: number
+  shareholding_class?: string
+  investment_entry_date?: string
+  investment_type?: string
+  
+  // Governance Term/Mandate
+  term_start_date?: string
+  term_end_date?: string
+  term_is_indefinite?: boolean
+  
+  // Governance Roles
+  committees?: string[]
+  is_independent?: boolean
   is_family_member?: boolean
+  generation?: string
+  
+  // Status
+  status?: string
+  status_reason?: string
+  priority?: number
+  priority_order?: number // Legacy field
+  
+  // Other
+  address?: any
   is_external?: boolean
-  priority_order?: number
-  shareholding?: string
 }
 
 export type CorporateStructureInsertData = Database['public']['Tables']['corporate_structure_members']['Insert']

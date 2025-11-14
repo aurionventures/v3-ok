@@ -1,13 +1,16 @@
 
 import React, { useState } from "react";
-import { Users, Search, UserPlus, Eye, Pencil, Trash2, Network, Loader2 } from "lucide-react";
+import { Users, Search, UserPlus, Eye, Pencil, Trash2, Network, Loader2, Download, FileSpreadsheet } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FamilyNetworkGraph from "@/components/FamilyNetworkGraph";
+import { GovernanceDashboard } from "@/components/GovernanceDashboard";
+import { CorporateStructureForm } from "@/components/CorporateStructureForm";
 import {
   Table,
   TableBody,
@@ -40,9 +43,11 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
-import { useCorporateStructure } from "@/hooks/useCorporateStructure";
+import { useCorporateStructure, type CorporateStructureFormData } from "@/hooks/useCorporateStructure";
+import { getQualificationName } from "@/data/governanceStandards";
 
 
 const ShareholderStructure = () => {
@@ -53,15 +58,10 @@ const ShareholderStructure = () => {
   const [isEditingMember, setIsEditingMember] = useState(false);
   const [editingData, setEditingData] = useState<any>(null);
   
-  // Estado do formulário
-  const [formData, setFormData] = useState({
+  // Estado do formulário (novo padrão Junta Comercial)
+  const [formData, setFormData] = useState<Partial<CorporateStructureFormData>>({
     name: "",
-    age: "",
-    category: "",
-    role: "",
-    involvement: "",
-    status: "",
-    shareholding: ""
+    status: "Ativo",
   });
   
   // Hook para gerenciar estrutura societária
@@ -202,6 +202,9 @@ const ShareholderStructure = () => {
                   </Button>
                 </div>
               </div>
+
+              {/* Dashboard de Governança */}
+              <GovernanceDashboard members={members} />
 
               <Tabs defaultValue="table" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -346,119 +349,22 @@ const ShareholderStructure = () => {
           // Limpar formulário quando fechar
           setFormData({
             name: "",
-            age: "",
-            category: "",
-            role: "",
-            involvement: "",
-            status: "",
-            shareholding: ""
+            status: "Ativo",
           });
         }
       }}>
         <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
-            <DialogTitle>Adicionar Membro</DialogTitle>
+            <DialogTitle>Adicionar Membro - Padrão Junta Comercial</DialogTitle>
             <DialogDescription>
-              Preencha os dados do novo membro da estrutura societária
+              Preencha os dados seguindo os padrões RFB/DREI da Junta Comercial
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Nome Completo
-                </label>
-                <Input 
-                  id="name" 
-                  placeholder="Nome completo" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="age" className="text-sm font-medium">
-                  Idade
-                </label>
-                <Input 
-                  id="age" 
-                  type="number" 
-                  placeholder="Idade" 
-                  value={formData.age}
-                  onChange={(e) => setFormData({...formData, age: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="generation" className="text-sm font-medium">
-                  Categoria
-                </label>
-                <select 
-                  id="generation" 
-                  className="w-full p-2 border rounded-md"
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                >
-                  <option value="">Selecione...</option>
-                  <option value="Fundadores">Fundadores</option>
-                  <option value="Segunda Geração">Segunda Geração</option>
-                  <option value="Investidores">Investidores</option>
-                  <option value="Conselheiros">Conselheiros</option>
-                  <option value="Executivos">Executivos</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="role" className="text-sm font-medium">
-                  Cargo/Função
-                </label>
-                <Input 
-                  id="role" 
-                  placeholder="Ex: CEO, Diretor, Investidor, etc." 
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="involvement" className="text-sm font-medium">
-                  Envolvimento
-                </label>
-                <Input 
-                  id="involvement" 
-                  placeholder="Ex: CEO, Conselheiro, etc." 
-                  value={formData.involvement}
-                  onChange={(e) => setFormData({...formData, involvement: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="status" className="text-sm font-medium">
-                  Status
-                </label>
-                <select 
-                  id="status" 
-                  className="w-full p-2 border rounded-md"
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                >
-                  <option value="">Selecione...</option>
-                  <option value="Ativo">Ativo</option>
-                  <option value="Afastado">Afastado</option>
-                  <option value="Inativo">Inativo</option>
-                </select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="shareholding" className="text-sm font-medium">
-                Participação Societária
-              </label>
-              <Input 
-                id="shareholding" 
-                placeholder="Ex: 25%" 
-                value={formData.shareholding}
-                onChange={(e) => setFormData({...formData, shareholding: e.target.value})}
-              />
-            </div>
+          <div className="max-h-[70vh] overflow-y-auto px-1">
+            <CorporateStructureForm 
+              formData={formData}
+              onChange={setFormData}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingMember(false)}>
@@ -476,28 +382,12 @@ const ShareholderStructure = () => {
                   return;
                 }
                 
-                // Preparar dados para envio
-                const memberData = {
-                  name: formData.name,
-                  age: formData.age ? parseInt(formData.age) : undefined,
-                  category: formData.category,
-                  role: formData.role,
-                  involvement: formData.involvement || undefined,
-                  status: (formData.status as "Ativo" | "Inativo" | "Afastado") || "Ativo",
-                  shareholding: formData.shareholding || undefined
-                };
-                
-                await addMember(memberData);
+                await addMember(formData);
                 
                 // Limpar formulário
                 setFormData({
                   name: "",
-                  age: "",
-                  category: "",
-                  role: "",
-                  involvement: "",
-                  status: "",
-                  shareholding: ""
+                  status: "Ativo",
                 });
                 
                 toast({

@@ -52,6 +52,99 @@ export type Database = {
           },
         ]
       }
+      corporate_structure_members: {
+        Row: {
+          birth_date: string | null
+          committees: string[] | null
+          company_id: string
+          created_at: string | null
+          document: string | null
+          email: string | null
+          generation: string | null
+          governance_category: string
+          governance_subcategory: string | null
+          id: string
+          investment_entry_date: string | null
+          investment_type: string | null
+          is_family_member: boolean | null
+          is_independent: boolean | null
+          name: string
+          official_qualification_code: string | null
+          phone: string | null
+          priority: number | null
+          shareholding_class: string | null
+          shareholding_percentage: number | null
+          specific_role: string | null
+          status: string
+          status_reason: string | null
+          term_end_date: string | null
+          term_is_indefinite: boolean | null
+          term_start_date: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          committees?: string[] | null
+          company_id: string
+          created_at?: string | null
+          document?: string | null
+          email?: string | null
+          generation?: string | null
+          governance_category: string
+          governance_subcategory?: string | null
+          id?: string
+          investment_entry_date?: string | null
+          investment_type?: string | null
+          is_family_member?: boolean | null
+          is_independent?: boolean | null
+          name: string
+          official_qualification_code?: string | null
+          phone?: string | null
+          priority?: number | null
+          shareholding_class?: string | null
+          shareholding_percentage?: number | null
+          specific_role?: string | null
+          status?: string
+          status_reason?: string | null
+          term_end_date?: string | null
+          term_is_indefinite?: boolean | null
+          term_start_date?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          committees?: string[] | null
+          company_id?: string
+          created_at?: string | null
+          document?: string | null
+          email?: string | null
+          generation?: string | null
+          governance_category?: string
+          governance_subcategory?: string | null
+          id?: string
+          investment_entry_date?: string | null
+          investment_type?: string | null
+          is_family_member?: boolean | null
+          is_independent?: boolean | null
+          name?: string
+          official_qualification_code?: string | null
+          phone?: string | null
+          priority?: number | null
+          shareholding_class?: string | null
+          shareholding_percentage?: number | null
+          specific_role?: string | null
+          status?: string
+          status_reason?: string | null
+          term_end_date?: string | null
+          term_is_indefinite?: boolean | null
+          term_start_date?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       council_members: {
         Row: {
           council_id: string
