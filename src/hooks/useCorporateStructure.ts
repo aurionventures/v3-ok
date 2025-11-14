@@ -402,6 +402,17 @@ export const useCorporateStructure = () => {
         throw new Error('Usuário não autenticado ou sem empresa associada')
       }
 
+      // Validate Cap Table if adding shareholder
+      const isShareholder = memberData.governance_category?.toLowerCase().includes('sócio') || 
+                           memberData.governance_category?.toLowerCase().includes('acionista');
+      
+      if (isShareholder && memberData.shareholding_percentage) {
+        const validation = validateCapTableTotal(memberData.shareholding_percentage);
+        if (!validation.isValid) {
+          throw new Error(validation.message);
+        }
+      }
+
       // Garantir que o Supabase está autenticado
       await ensureAuth()
 

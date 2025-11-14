@@ -27,7 +27,7 @@ const CapTable = () => {
   const { user } = useAuth();
   const companyId = user?.company || "";
   const companyName = user?.name || "Empresa";
-  const [useMockData, setUseMockData] = useState(true);
+  const [useMockData, setUseMockData] = useState(false);
   const { shareholders, isLoading, metrics } = useCapTable(companyId, useMockData);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,15 +66,35 @@ const CapTable = () => {
       <div className="flex-1">
         <Header />
         <main className="p-8">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold">Cap Table</h1>
-                <p className="text-muted-foreground">Estrutura de capital e participações societárias</p>
-              </div>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold">Cap Table</h1>
+              <p className="text-muted-foreground">Estrutura de capital e participações</p>
             </div>
+            
+            <div className="flex items-center gap-3">
+              <Label htmlFor="mock-toggle" className="text-sm">
+                {useMockData ? "📊 Dados de Exemplo" : "✅ Dados Reais"}
+              </Label>
+              <Switch
+                id="mock-toggle"
+                checked={useMockData}
+                onCheckedChange={setUseMockData}
+              />
+            </div>
+          </div>
 
-            <Tabs defaultValue="overview" className="space-y-6">
+          {!useMockData && metrics.totalPercentage !== 100 && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                A soma das participações está em {metrics.totalPercentage.toFixed(2)}%. 
+                O ideal é que totalize exatamente 100%.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Tabs defaultValue="overview" className="space-y-6">
               <TabsList><TabsTrigger value="overview">Visão Geral</TabsTrigger><TabsTrigger value="table">Tabela Detalhada</TabsTrigger></TabsList>
               <TabsContent value="overview" className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -110,7 +130,6 @@ const CapTable = () => {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
         </main>
       </div>
       <JuntaComercialExport isOpen={isExportDialogOpen} onClose={() => setIsExportDialogOpen(false)} shareholders={shareholders} companyName={companyName} />
