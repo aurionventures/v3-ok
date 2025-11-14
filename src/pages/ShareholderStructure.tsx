@@ -382,7 +382,17 @@ const ShareholderStructure = () => {
                   return;
                 }
                 
-                await addMember(formData);
+                // Validate required fields
+                if (!formData.name || !formData.governance_category) {
+                  toast({
+                    title: "Campos obrigatórios",
+                    description: "Nome e Categoria de Governança são obrigatórios",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                await addMember(formData as any);
                 
                 // Limpar formulário
                 setFormData({
