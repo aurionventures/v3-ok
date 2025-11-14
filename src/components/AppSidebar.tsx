@@ -93,12 +93,6 @@ export function AppSidebar() {
           moduleId: "shareholder-structure"
         },
         {
-          icon: PieChart,
-          href: "/cap-table",
-          name: "Cap Table",
-          moduleId: "cap-table"
-        },
-        {
           icon: BarChart3,
           href: "/data-input",
           name: "Avaliação Governança",
