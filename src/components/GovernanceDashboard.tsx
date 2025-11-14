@@ -5,8 +5,8 @@ import { useMemo } from "react";
 
 interface CorporateMember {
   id: string;
-  name: string;
-  governance_category: string;
+  name?: string;
+  governance_category?: string;
   governance_subcategory?: string;
   official_qualification_code?: string;
   specific_role?: string;
@@ -15,7 +15,7 @@ interface CorporateMember {
   is_family_member?: boolean;
   generation?: string;
   term_end_date?: string;
-  status: string;
+  status?: string;
 }
 
 interface GovernanceDashboardProps {
