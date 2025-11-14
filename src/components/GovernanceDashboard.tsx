@@ -86,25 +86,6 @@ export function GovernanceDashboard({ members }: GovernanceDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Board Composition */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Conselheiros</CardTitle>
-          <Shield className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{metrics.boardMembers}</div>
-          <div className="flex gap-2 mt-1">
-            <Badge variant="outline" className="text-xs">
-              {metrics.independentDirectors} independentes
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {metrics.executiveDirectors} executivos
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-
     </div>
   );
 }
