@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { useCapTable } from "@/hooks/useCapTable";
 import { useAuth } from "@/contexts/AuthContext";
 import { getQualificationName } from "@/data/governanceStandards";
@@ -61,10 +61,6 @@ const CapTable = () => {
     const dilutionFactor = (100 - newPercentage) / 100;
     return shareholders.map(s => ({ name: s.name, current: s.shareholding_percentage || 0, afterDilution: (s.shareholding_percentage || 0) * dilutionFactor, change: (s.shareholding_percentage || 0) * (dilutionFactor - 1) }));
   }, [shareholders, newInvestorPercentage]);
-
-  const handleEditShareholder = (shareholderId: string) => {
-    navigate(`/estrutura-societaria?edit=${shareholderId}`);
-  };
 
   const viewingShareholder = shareholders.find(s => s.id === viewingShareholderId);
 
