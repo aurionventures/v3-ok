@@ -65,15 +65,9 @@ const CapTable = () => {
       <div className="flex-1">
         <Header />
         <main className="p-8">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold">Cap Table</h1>
-              <p className="text-muted-foreground">Estrutura de capital e participações</p>
-            </div>
-            
-            <Badge variant="secondary" className="text-sm py-2 px-4">
-              📊 Dados de Exemplo
-            </Badge>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Cap Table</h1>
+            <p className="text-muted-foreground">Estrutura de capital e participações</p>
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
