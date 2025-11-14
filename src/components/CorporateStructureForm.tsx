@@ -23,16 +23,34 @@ import {
   getRequiredFields,
 } from "@/data/governanceStandards";
 import type { CorporateStructureFormData } from "@/hooks/useCorporateStructure";
+import { useCorporateStructure } from "@/hooks/useCorporateStructure";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Info } from "lucide-react";
 
 interface CorporateStructureFormProps {
   formData: Partial<CorporateStructureFormData>;
   onChange: (data: Partial<CorporateStructureFormData>) => void;
+  editingMemberId?: string;
 }
 
-export function CorporateStructureForm({ formData, onChange }: CorporateStructureFormProps) {
+export function CorporateStructureForm({ formData, onChange, editingMemberId }: CorporateStructureFormProps) {
   const [selectedCategory, setSelectedCategory] = useState(formData.governance_category || "");
   const [selectedSubcategory, setSelectedSubcategory] = useState(formData.governance_subcategory || "");
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
+  const { members } = useCorporateStructure();
+
+  // Calculate current total and available percentage
+  const currentTotal = members
+    .filter(m => m.id !== editingMemberId && m.status === 'Ativo')
+    .filter(m => 
+      m.governance_category?.toLowerCase().includes('sócio') || 
+      m.governance_category?.toLowerCase().includes('acionista')
+    )
+    .reduce((sum, m) => sum + (m.shareholding_percentage || 0), 0);
+
+  const availablePercentage = 100 - currentTotal;
+  const newTotal = currentTotal + (formData.shareholding_percentage || 0);
+  const isOverLimit = newTotal > 100;
 
   useEffect(() => {
     if (selectedCategory) {
@@ -235,7 +253,7 @@ export function CorporateStructureForm({ formData, onChange }: CorporateStructur
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 col-span-2">
                 <Label htmlFor="percentage">
                   Participação (%) <span className="text-destructive">*</span>
                 </Label>
@@ -250,7 +268,36 @@ export function CorporateStructureForm({ formData, onChange }: CorporateStructur
                     onChange({ ...formData, shareholding_percentage: parseFloat(e.target.value) })
                   }
                   placeholder="0.00"
+                  className={isOverLimit ? "border-destructive" : ""}
                 />
+                
+                {/* Cap Table Info */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                  <Info className="h-4 w-4" />
+                  <span>
+                    Total atual: {currentTotal.toFixed(2)}% | Disponível: {availablePercentage.toFixed(2)}%
+                  </span>
+                </div>
+
+                {/* Validation Alert */}
+                {isOverLimit && formData.shareholding_percentage && (
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      A soma das participações ({newTotal.toFixed(2)}%) não pode ultrapassar 100%. 
+                      Disponível: {availablePercentage.toFixed(2)}%
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {!isOverLimit && formData.shareholding_percentage && newTotal === 100 && (
+                  <Alert className="mt-2 border-green-500 bg-green-50 dark:bg-green-950">
+                    <Info className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-600">
+                      ✅ Perfeito! A soma das participações totalizará exatamente 100%.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
               <div className="space-y-2">
