@@ -46,7 +46,7 @@ export const useCapTable = (companyId: string) => {
         .from("corporate_structure_members")
         .select("*")
         .eq("company_id", companyId)
-        .or("governance_category.eq.Acionistas/Sócios,governance_category.eq.Sócios")
+        .or("governance_category.ilike.%Sócio%,governance_category.ilike.%Acionista%")
         .eq("status", "Ativo")
         .order("shareholding_percentage", { ascending: false });
 
