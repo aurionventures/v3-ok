@@ -54,6 +54,7 @@ import PeopleManagement from "./pages/PeopleManagement";
 import AnnualAgenda from "./pages/AnnualAgenda";
 import Reunioes from "./pages/Reunioes";
 import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
+import GuestAccess from "./pages/GuestAccess";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -99,6 +100,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/diagnostic-quiz" element={<StandaloneQuiz />} />
           <Route path="/standalone-quiz" element={<StandaloneQuiz />} />
+          <Route path="/guest/:token" element={<GuestAccess />} />
           <Route path="/generate-company-token" element={<GenerateCompanyToken />} />
           <Route path="/generate-admin-token" element={<GenerateAdminToken />} />
           <Route path="/generate-partner-token" element={<GeneratePartnerToken />} />

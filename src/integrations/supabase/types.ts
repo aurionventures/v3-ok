@@ -228,6 +228,56 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_tokens: {
+        Row: {
+          access_count: number | null
+          can_upload: boolean | null
+          can_view_materials: boolean | null
+          created_at: string | null
+          created_by: string | null
+          expires_at: string
+          id: string
+          last_accessed_at: string | null
+          meeting_participant_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          access_count?: number | null
+          can_upload?: boolean | null
+          can_view_materials?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          last_accessed_at?: string | null
+          meeting_participant_id: string
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          access_count?: number | null
+          can_upload?: boolean | null
+          can_view_materials?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          meeting_participant_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_tokens_meeting_participant_id_fkey"
+            columns: ["meeting_participant_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_transcripts: {
         Row: {
           created_by: string | null
@@ -380,6 +430,108 @@ export type Database = {
           },
         ]
       }
+      meeting_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          meeting_id: string
+          meeting_item_id: string | null
+          name: string
+          tags: Json | null
+          uploaded_by_guest_token: string | null
+          uploaded_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          meeting_id: string
+          meeting_item_id?: string | null
+          name: string
+          tags?: Json | null
+          uploaded_by_guest_token?: string | null
+          uploaded_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          meeting_id?: string
+          meeting_item_id?: string | null
+          name?: string
+          tags?: Json | null
+          uploaded_by_guest_token?: string | null
+          uploaded_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_documents_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_documents_meeting_item_id_fkey"
+            columns: ["meeting_item_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_item_visibility: {
+        Row: {
+          can_comment: boolean | null
+          can_view: boolean | null
+          created_at: string | null
+          id: string
+          meeting_item_id: string
+          meeting_participant_id: string
+        }
+        Insert: {
+          can_comment?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          meeting_item_id: string
+          meeting_participant_id: string
+        }
+        Update: {
+          can_comment?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          meeting_item_id?: string
+          meeting_participant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_item_visibility_meeting_item_id_fkey"
+            columns: ["meeting_item_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_item_visibility_meeting_participant_id_fkey"
+            columns: ["meeting_participant_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_items: {
         Row: {
           created_at: string
@@ -432,6 +584,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "meeting_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_participants: {
+        Row: {
+          can_upload: boolean | null
+          can_view_materials: boolean | null
+          created_at: string | null
+          external_email: string | null
+          external_name: string | null
+          external_phone: string | null
+          id: string
+          invited_by: string | null
+          meeting_id: string
+          role: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          can_upload?: boolean | null
+          can_view_materials?: boolean | null
+          created_at?: string | null
+          external_email?: string | null
+          external_name?: string | null
+          external_phone?: string | null
+          id?: string
+          invited_by?: string | null
+          meeting_id: string
+          role: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          can_upload?: boolean | null
+          can_view_materials?: boolean | null
+          created_at?: string | null
+          external_email?: string | null
+          external_name?: string | null
+          external_phone?: string | null
+          id?: string
+          invited_by?: string | null
+          meeting_id?: string
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
