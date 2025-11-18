@@ -479,7 +479,8 @@ const Councils = () => {
 
   const handleUpdateMeetingStatus = async (meetingId: string, newStatus: 'Agendada' | 'Realizada' | 'Cancelada') => {
     try {
-      await updateMeeting(meetingId, { status: newStatus });
+      const statusMap = { 'Agendada': 'AGENDADA', 'Realizada': 'CONCLUIDA', 'Cancelada': 'CANCELADA' } as const;
+      await updateMeeting(meetingId, { status: statusMap[newStatus] });
       
       toast({
         title: "Status atualizado",
