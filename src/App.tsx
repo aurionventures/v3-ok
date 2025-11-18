@@ -56,6 +56,8 @@ import Reunioes from "./pages/Reunioes";
 import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
 import GuestAccess from "./pages/GuestAccess";
 import NotificationSettings from "./pages/NotificationSettings";
+import AuditLogs from "./pages/AuditLogs";
+import SecurityDashboard from "./pages/SecurityDashboard";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -593,6 +595,22 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <AIAgents />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/auditoria" 
+            element={
+              <ProtectedRoute >
+                <AuditLogs />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/seguranca" 
+            element={
+              <ProtectedRoute >
+                <SecurityDashboard />
               </ProtectedRoute>
             } 
           />
