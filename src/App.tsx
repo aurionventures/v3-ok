@@ -52,6 +52,8 @@ import KeyPositions from "./pages/KeyPositions";
 import BoardMembers from "./pages/BoardMembers";
 import PeopleManagement from "./pages/PeopleManagement";
 import AnnualAgenda from "./pages/AnnualAgenda";
+import Reunioes from "./pages/Reunioes";
+import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
