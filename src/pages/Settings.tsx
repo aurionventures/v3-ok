@@ -195,6 +195,15 @@ const Settings = () => {
                 
                 <TabsContent value="notifications">
                   <div className="space-y-6">
+                    <div className="mb-6 p-4 bg-muted rounded-lg">
+                      <p className="text-sm mb-3">Configure suas preferências detalhadas de notificação.</p>
+                      <Button 
+                        onClick={() => window.location.href = '/configuracoes/notificacoes'}
+                        variant="default"
+                      >
+                        Configurar Notificações
+                      </Button>
+                    </div>
                     <div>
                       <h3 className="text-lg font-medium mb-4">Preferências de Notificações</h3>
                       <div className="space-y-4">

@@ -192,6 +192,50 @@ export type Database = {
           },
         ]
       }
+      council_reminder_config: {
+        Row: {
+          council_id: string
+          created_at: string | null
+          id: string
+          remind_12h: boolean | null
+          remind_1h: boolean | null
+          remind_24h: boolean | null
+          remind_30d: boolean | null
+          remind_7d: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          council_id: string
+          created_at?: string | null
+          id?: string
+          remind_12h?: boolean | null
+          remind_1h?: boolean | null
+          remind_24h?: boolean | null
+          remind_30d?: boolean | null
+          remind_7d?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          council_id?: string
+          created_at?: string | null
+          id?: string
+          remind_12h?: boolean | null
+          remind_1h?: boolean | null
+          remind_24h?: boolean | null
+          remind_30d?: boolean | null
+          remind_7d?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "council_reminder_config_council_id_fkey"
+            columns: ["council_id"]
+            isOneToOne: true
+            referencedRelation: "councils"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       councils: {
         Row: {
           company_id: string
@@ -714,6 +758,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          channel: string
+          context: Json | null
+          created_at: string | null
+          error_message: string | null
+          external_email: string | null
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          retry_count: number | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          context?: Json | null
+          created_at?: string | null
+          error_message?: string | null
+          external_email?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          retry_count?: number | null
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          context?: Json | null
+          created_at?: string | null
+          error_message?: string | null
+          external_email?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          retry_count?: number | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_enabled: boolean | null
+          id: string
+          in_app_enabled: boolean | null
+          notify_meeting_reminders: boolean | null
+          notify_overdue_actions: boolean | null
+          notify_pending_actions: boolean | null
+          sms_enabled: boolean | null
+          sms_number: string | null
+          updated_at: string | null
+          user_id: string
+          whatsapp_enabled: boolean | null
+          whatsapp_number: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          notify_meeting_reminders?: boolean | null
+          notify_overdue_actions?: boolean | null
+          notify_pending_actions?: boolean | null
+          sms_enabled?: boolean | null
+          sms_number?: string | null
+          updated_at?: string | null
+          user_id: string
+          whatsapp_enabled?: boolean | null
+          whatsapp_number?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          notify_meeting_reminders?: boolean | null
+          notify_overdue_actions?: boolean | null
+          notify_pending_actions?: boolean | null
+          sms_enabled?: boolean | null
+          sms_number?: string | null
+          updated_at?: string | null
+          user_id?: string
+          whatsapp_enabled?: boolean | null
+          whatsapp_number?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

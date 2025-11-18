@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.guest-access]
 verify_jwt = false
+
+[functions.governance-reminders]
+verify_jwt = false
+
+[functions.governance-pendencias-notifier]
+verify_jwt = false
