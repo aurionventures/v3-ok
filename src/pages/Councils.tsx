@@ -10,6 +10,7 @@ import { useCouncils } from "@/hooks/useCouncils";
 import {useCouncilMembers } from "@/hooks/useCouncilMembers";
 import { useMeetings } from "@/hooks/useMeetings";
 import { useDocuments } from "@/hooks/useDocuments";
+import CouncilReminderConfig from "@/components/councils/CouncilReminderConfig";
 import {
   Tabs,
   TabsContent,
@@ -1203,9 +1204,12 @@ const Councils = () => {
                       </Select>
                     </div>
 
-                    {/* Upload de Documentos - só aparece se um conselho estiver selecionado */}
+                        {/* Upload de Documentos - só aparece se um conselho estiver selecionado */}
                     {selectedCouncilId && (
                       <>
+                        {/* Configuração de Lembretes */}
+                        <CouncilReminderConfig councilId={selectedCouncilId} />
+
                         <div className="bg-white p-6 rounded-lg border">
                           <CouncilDocumentUpload
                             councilId={selectedCouncilId}

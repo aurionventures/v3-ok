@@ -55,6 +55,7 @@ import AnnualAgenda from "./pages/AnnualAgenda";
 import Reunioes from "./pages/Reunioes";
 import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
 import GuestAccess from "./pages/GuestAccess";
+import NotificationSettings from "./pages/NotificationSettings";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -255,6 +256,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <Settings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/configuracoes/notificacoes" 
+            element={
+              <ProtectedRoute >
+                <NotificationSettings />
               </ProtectedRoute>
             } 
           />
