@@ -21,14 +21,16 @@ export interface MeetingUpdateData {
   date?: string
   time?: string
   type?: 'Ordinária' | 'Extraordinária'
-  status?: 'Agendada' | 'Realizada' | 'Cancelada'
+  status?: 'AGENDADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA'
   location?: string
-  agenda?: string
-  minutes?: string
+  modalidade?: 'Presencial' | 'Online' | 'Híbrida'
+  attendees?: string[]
+  minutes_full?: string
+  minutes_summary?: string
 }
 
 export const useMeetings = () => {
-  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [meetings, setMeetings] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
@@ -45,14 +47,11 @@ export const useMeetings = () => {
         return
       }
 
-      // Buscar reuniões através dos conselhos da empresa
+      // Buscar reuniões através da company_id
       const { data: meetingsData, error: meetingsError } = await supabase
         .from('meetings')
-        .select(`
-          *,
-          councils!inner(company_id)
-        `)
-        .eq('councils.company_id', user.company)
+        .select('*')
+        .eq('company_id', user.company)
         .order('date', { ascending: false })
 
       if (meetingsError) throw meetingsError
@@ -95,9 +94,8 @@ export const useMeetings = () => {
           date: meetingData.date,
           time: meetingData.time,
           type: meetingData.type,
-          status: 'Agendada',
+          status: 'AGENDADA',
           location: meetingData.location || null,
-          agenda: meetingData.agenda || null
         })
         .select()
         .single()
@@ -121,26 +119,11 @@ export const useMeetings = () => {
         throw new Error('Usuário não autenticado ou sem empresa associada')
       }
 
-      // Verificar se a reunião pertence a um conselho da empresa do usuário
-      const { data: meeting, error: meetingError } = await supabase
-        .from('meetings')
-        .select(`
-          id,
-          council_id,
-          councils!inner(company_id)
-        `)
-        .eq('id', meetingId)
-        .eq('councils.company_id', user.company)
-        .single()
-
-      if (meetingError || !meeting) {
-        throw new Error('Reunião não encontrada ou sem permissão')
-      }
-
       const { data: updatedMeeting, error: updateError } = await supabase
         .from('meetings')
         .update(updates)
         .eq('id', meetingId)
+        .eq('company_id', user.company)
         .select()
         .single()
 
@@ -163,26 +146,11 @@ export const useMeetings = () => {
         throw new Error('Usuário não autenticado ou sem empresa associada')
       }
 
-      // Verificar se a reunião pertence a um conselho da empresa do usuário
-      const { data: meeting, error: meetingError } = await supabase
-        .from('meetings')
-        .select(`
-          id,
-          council_id,
-          councils!inner(company_id)
-        `)
-        .eq('id', meetingId)
-        .eq('councils.company_id', user.company)
-        .single()
-
-      if (meetingError || !meeting) {
-        throw new Error('Reunião não encontrada ou sem permissão')
-      }
-
       const { error: deleteError } = await supabase
         .from('meetings')
         .delete()
         .eq('id', meetingId)
+        .eq('company_id', user.company)
 
       if (deleteError) throw deleteError
 
