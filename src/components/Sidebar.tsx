@@ -76,6 +76,16 @@ const Sidebar = () => {
       name: "Empresas"
     },
     {
+      icon: <Shield className="h-5 w-5" />,
+      href: "/seguranca",
+      name: "Segurança"
+    },
+    {
+      icon: <FileText className="h-5 w-5" />,
+      href: "/auditoria",
+      name: "Auditoria"
+    },
+    {
       icon: <DollarSign className="h-5 w-5" />,
       href: "/admin/finances",
       name: "Finanças"
