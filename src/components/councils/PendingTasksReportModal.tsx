@@ -57,8 +57,8 @@ export const PendingTasksReportModal = ({
 }: PendingTasksReportModalProps) => {
   const { toast } = useToast();
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
-  const [selectedOrganType, setSelectedOrganType] = useState<'conselho' | 'comite' | 'comissao' | ''>('');
-  const [selectedOrganId, setSelectedOrganId] = useState<string>('');
+  const [selectedOrganType, setSelectedOrganType] = useState<'conselho' | 'comite' | 'comissao' | 'all'>('all');
+  const [selectedOrganId, setSelectedOrganId] = useState<string>('all');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Buscar todos os órgãos de governança
@@ -120,8 +120,8 @@ export const PendingTasksReportModal = ({
       const priorityMatch = selectedPriorities.length === 0 || 
         selectedPriorities.includes(task.priority);
       
-      // Se nenhum órgão foi selecionado, mostrar todas as tarefas
-      if (!selectedOrganId) {
+      // Se "all" foi selecionado ou nenhum órgão específico, mostrar todas as tarefas
+      if (!selectedOrganId || selectedOrganId === 'all') {
         return priorityMatch;
       }
       
@@ -160,7 +160,7 @@ export const PendingTasksReportModal = ({
   const handleExportPDF = async () => {
     setIsGenerating(true);
     try {
-      const selectedOrgan = allOrgans.find(o => o.id === selectedOrganId);
+      const selectedOrgan = selectedOrganId !== 'all' ? allOrgans.find(o => o.id === selectedOrganId) : null;
       
       // Organizar filtros para o PDF
       const organsByTypeSelected = {
@@ -326,15 +326,15 @@ export const PendingTasksReportModal = ({
               <Select 
                 value={selectedOrganType} 
                 onValueChange={(value) => {
-                  setSelectedOrganType(value as 'conselho' | 'comite' | 'comissao' | '');
-                  setSelectedOrganId(''); // Resetar órgão ao mudar tipo
+                  setSelectedOrganType(value as 'conselho' | 'comite' | 'comissao' | 'all');
+                  setSelectedOrganId('all'); // Resetar órgão ao mudar tipo
                 }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione o tipo de órgão" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                   <SelectItem value="conselho">
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-blue-500" />
@@ -358,7 +358,7 @@ export const PendingTasksReportModal = ({
             </div>
 
             {/* Filtro de Órgão Específico (condicional) */}
-            {selectedOrganType && (
+            {selectedOrganType !== 'all' && (
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2">
                   {getOrganTypeIcon(selectedOrganType)}
@@ -372,7 +372,7 @@ export const PendingTasksReportModal = ({
                     <SelectValue placeholder={`Selecione o ${getOrganTypeLabel(selectedOrganType).toLowerCase()}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
+                    <SelectItem value="all">
                       Todos os {getOrganTypeLabelPlural(selectedOrganType)}
                     </SelectItem>
                     {organsByType[
@@ -542,7 +542,7 @@ export const PendingTasksReportModal = ({
             <Badge variant="secondary" className="text-sm px-3 py-1">
               {filteredTasks.length} {filteredTasks.length === 1 ? 'tarefa' : 'tarefas'}
             </Badge>
-            {selectedOrganId && (
+            {selectedOrganId !== 'all' && (
               <Badge variant="outline" className="text-sm px-3 py-1 flex items-center gap-1">
                 {getOrganTypeIcon(selectedOrganType)}
                 {allOrgans.find(o => o.id === selectedOrganId)?.name}
