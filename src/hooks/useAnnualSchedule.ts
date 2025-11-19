@@ -82,7 +82,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       date: date.toISOString().split('T')[0],
       time: "14:00",
       type: "Ordinária",
-      status: month < 3 ? "Realizada" : month < 5 ? "Pauta Definida" : "Agendada",
+      status: month < 3 ? "ATA Gerada" : month < 5 ? "Pauta Definida" : "Agendada",
       modalidade: "Presencial",
       location: "Sala Executiva - Matriz",
       agenda: [],
@@ -210,6 +210,36 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         generatedBy: "Secretário Executivo"
       };
       
+      // Adicionar recording e minutes para reuniões realizadas
+      meeting.recording = {
+        type: "video",
+        url: `#gravacao-conselho-${month + 1}-2025.mp4`,
+        uploadedAt: new Date(year, month, date.getDate() + 1, 16, 30).toISOString()
+      };
+      
+      meeting.minutes = {
+        full: `ATA INTEGRAL DA ${month + 1}ª REUNIÃO ORDINÁRIA DO CONSELHO DE ADMINISTRAÇÃO\n\n` +
+              `Data: ${date.toLocaleDateString('pt-BR')}\n` +
+              `Horário: 14:00 às 16:30\n` +
+              `Local: Sala Executiva - Matriz\n\n` +
+              `PRESENTES:\n` +
+              `- Carlos Alberto Silva (Presidente)\n` +
+              `- Maria Santos Costa (Vice-Presidente)\n` +
+              `- Roberto Oliveira (Conselheiro Independente)\n` +
+              `- Ana Paula Ferreira (Conselheira)\n\n` +
+              `ORDEM DO DIA:\n` +
+              `1. Aprovação da Ata Anterior\n` +
+              `2. Análise de Resultados Financeiros\n` +
+              `3. ${meeting.agenda?.[2]?.title || 'Assuntos Gerais'}\n\n` +
+              `DELIBERAÇÕES:\n` +
+              (meeting.ata?.decisions || []).map((d: string, i: number) => `${i + 1}. ${d}`).join('\n') + '\n\n' +
+              `OBSERVAÇÕES: Reunião conduzida sem ressalvas. Todos os itens foram deliberados conforme pauta.\n\n` +
+              `São Paulo, ${date.toLocaleDateString('pt-BR')}\n` +
+              `Carlos Alberto Silva - Presidente do Conselho`,
+        summary: meeting.ata?.summary || '',
+        generatedAt: meeting.ata?.generatedAt || new Date().toISOString()
+      };
+      
       meeting.notifications_sent = true;
     }
   }
@@ -225,7 +255,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       date: date.toISOString().split('T')[0],
       time: "10:00",
       type: "Ordinária",
-      status: month < 2 ? "ATA Gerada" : month < 4 ? "Realizada" : "Agendada",
+      status: month < 3 ? "ATA Gerada" : month < 4 ? "Realizada" : "Agendada",
       modalidade: "Online",
       location: "Microsoft Teams",
       agenda: [],
@@ -294,17 +324,46 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         }
       ];
       
-      if (month < 2) {
+      if (month < 3) {
         meeting.ata = {
           id: `ata-comite-${month + 1}`,
-          summary: `Reunião Comitê Auditoria ${month + 1}/2025. Mapa riscos: 8 alta criticidade. Aprovado R$ 300k em controles.`,
+          summary: `Reunião Comitê Auditoria ${month + 1}/2025. Mapa riscos: ${8 + month} alta criticidade. Aprovado R$ ${300 + month * 50}k em controles.`,
           decisions: [
             "Aprovação mapa de riscos",
-            "3 novos controles",
-            "Investimento R$ 300k"
+            `${3 + month} novos controles`,
+            `Investimento R$ ${300 + month * 50}k`
           ],
           generatedAt: new Date(year, month, date.getDate() + 1).toISOString(),
           generatedBy: "Coordenadora"
+        };
+        
+        // Adicionar recording e minutes para reuniões realizadas
+        meeting.recording = {
+          type: "audio",
+          url: `#gravacao-comite-${month + 1}-2025.mp3`,
+          uploadedAt: new Date(year, month, date.getDate() + 1, 12, 15).toISOString()
+        };
+        
+        meeting.minutes = {
+          full: `ATA DA ${month + 1}ª REUNIÃO DO COMITÊ DE AUDITORIA\n\n` +
+                `Data: ${date.toLocaleDateString('pt-BR')}\n` +
+                `Horário: 10:00 às 12:00\n` +
+                `Local: Microsoft Teams (Online)\n\n` +
+                `PRESENTES:\n` +
+                `- Dr. Ricardo Mendes (Coordenador)\n` +
+                `- Dra. Patrícia Lima (Membro)\n` +
+                `- João Carlos Neves (Membro Independente)\n\n` +
+                `PAUTA:\n` +
+                `1. Análise de Controles Internos\n` +
+                `2. Revisão de Riscos Identificados\n` +
+                `3. Conformidade Regulatória\n\n` +
+                `DECISÕES:\n` +
+                meeting.ata.decisions.map((d: string, i: number) => `${i + 1}. ${d}`).join('\n') + '\n\n' +
+                `OBSERVAÇÕES: Identificados ${8 + month} riscos de alta criticidade com plano de mitigação aprovado.\n\n` +
+                `São Paulo, ${date.toLocaleDateString('pt-BR')}\n` +
+                `Dr. Ricardo Mendes - Coordenador`,
+          summary: meeting.ata.summary,
+          generatedAt: meeting.ata.generatedAt
         };
       }
       
@@ -323,7 +382,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       date: date.toISOString().split('T')[0],
       time: "15:00",
       type: month % 3 === 0 ? "Extraordinária" : "Ordinária",
-      status: month < 3 ? "Docs Enviados" : "Agendada",
+      status: month < 3 ? "ATA Gerada" : "Agendada",
       modalidade: "Híbrida",
       location: "Sala 201 / Zoom",
       agenda: [],
@@ -379,6 +438,44 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
           url: "#"
         }
       ];
+      
+      // Adicionar ata, recording e minutes para reuniões realizadas
+      meeting.ata = {
+        id: `ata-comissao-${month + 1}`,
+        summary: `Reunião Comissão de Ética ${month + 1}/2025. Analisados ${4 + month} casos de conduta. ${Math.floor(Math.random() * 3)} casos arquivados, ${1 + Math.floor(Math.random() * 2)} em investigação. Recomendações de treinamento aprovadas.`,
+        decisions: [
+          `${4 + month} casos analisados`,
+          "Arquivamento de casos resolvidos",
+          "Recomendações de treinamento em ética"
+        ],
+        generatedAt: new Date(year, month, date.getDate() + 2).toISOString(),
+        generatedBy: "Coordenador da Comissão"
+      };
+      
+      meeting.recording = {
+        type: "transcript",
+        url: `#transcricao-comissao-${month + 1}-2025.txt`,
+        uploadedAt: new Date(year, month, date.getDate() + 1, 17, 0).toISOString()
+      };
+      
+      meeting.minutes = {
+        full: `ATA CONFIDENCIAL DA ${month + 1}ª REUNIÃO DA COMISSÃO DE ÉTICA\n\n` +
+              `Data: ${date.toLocaleDateString('pt-BR')}\n` +
+              `Horário: 15:00 às 17:00\n` +
+              `Local: Sala 201 / Zoom (Híbrido)\n\n` +
+              `PRESENTES:\n` +
+              `- Roberto Alves (Coordenador)\n` +
+              `- Beatriz Lima (Membro)\n` +
+              `- Daniela Ferreira (Membro)\n\n` +
+              `CASOS ANALISADOS: ${4 + month}\n\n` +
+              `DECISÕES:\n` +
+              meeting.ata.decisions.map((d: string, i: number) => `${i + 1}. ${d}`).join('\n') + '\n\n' +
+              `OBSERVAÇÕES: Casos tratados sob sigilo conforme política de privacidade. Campanhas de conscientização serão realizadas.\n\n` +
+              `São Paulo, ${date.toLocaleDateString('pt-BR')}\n` +
+              `Roberto Alves - Coordenador da Comissão de Ética`,
+        summary: meeting.ata.summary,
+        generatedAt: meeting.ata.generatedAt
+      };
       
       meeting.notifications_sent = true;
     }
