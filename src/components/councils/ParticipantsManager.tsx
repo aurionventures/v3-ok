@@ -339,29 +339,71 @@ export default function ParticipantsManager({
         </div>
       )}
 
-      {/* Link de Demonstração */}
-      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm font-medium text-blue-900 mb-2">
-          🔗 Link de Demonstração (sempre funcional)
+      {/* Links de Demonstração */}
+      <div className="mt-4 space-y-3">
+        <p className="text-sm font-semibold text-foreground mb-2">
+          🔗 Links de Demonstração
         </p>
-        <p className="text-xs text-blue-700 mb-3">
-          Use este link para testar o acesso de convidados. Funciona sem necessidade de criar convidado.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const demoLink = `${window.location.origin}/guest-access/demo-guest-token-123`;
-            navigator.clipboard.writeText(demoLink);
-            toast.success('Link de demonstração copiado!', {
-              description: 'Abra este link em qualquer navegador para ver a página do convidado.'
-            });
-          }}
-          className="w-full"
-        >
-          <Copy className="h-4 w-4 mr-2" />
-          Copiar Link de Demonstração
-        </Button>
+        
+        {/* Link 1: Convidado COM upload */}
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <p className="text-sm font-medium text-green-900">
+                Pedro Berto - Consultor de Compliance
+              </p>
+              <p className="text-xs text-green-700 mt-1">
+                ✅ Pode fazer upload de documentos
+              </p>
+            </div>
+            <Badge variant="default" className="bg-green-600">COM Upload</Badge>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const demoLink = `${window.location.origin}/guest-access/demo-guest-token-123`;
+              navigator.clipboard.writeText(demoLink);
+              toast.success('Link copiado!', {
+                description: 'Pedro Berto - Pode visualizar e fazer upload de documentos.'
+              });
+            }}
+            className="w-full mt-2"
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copiar Link (COM Upload)
+          </Button>
+        </div>
+
+        {/* Link 2: Convidado SEM upload */}
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <p className="text-sm font-medium text-blue-900">
+                Ana Paula Rodrigues - Auditoria
+              </p>
+              <p className="text-xs text-blue-700 mt-1">
+                👁️ Apenas visualização de materiais
+              </p>
+            </div>
+            <Badge variant="secondary">SEM Upload</Badge>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const demoLink = `${window.location.origin}/guest-access/demo-guest-token-456`;
+              navigator.clipboard.writeText(demoLink);
+              toast.success('Link copiado!', {
+                description: 'Ana Paula - Pode apenas visualizar materiais.'
+              });
+            }}
+            className="w-full mt-2"
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copiar Link (SEM Upload)
+          </Button>
+        </div>
       </div>
     </div>
   );
