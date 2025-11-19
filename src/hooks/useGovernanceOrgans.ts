@@ -61,14 +61,17 @@ export const useGovernanceOrgans = (type?: OrganType) => {
 
       const { data, error: fetchError } = await query;
 
-      if (fetchError) throw fetchError;
-
-      // Se não há dados no banco, usar mockados
-      if (!data || data.length === 0) {
+      // Se há erro OU não há dados, usar mockados
+      if (fetchError || !data || data.length === 0) {
+        console.log('📊 Carregando dados mockados de governança...');
         const mockData = getMockGovernanceData(user.company);
         const filteredOrgans = type 
           ? mockData.organs.filter(o => o.organ_type === type)
           : mockData.organs;
+        
+        console.log(`✅ ${filteredOrgans.length} órgãos mockados carregados para tipo: ${type || 'todos'}`);
+        console.log('👥 Membros por órgão:', filteredOrgans.map(o => `${o.name}: ${o.members?.length || 0} membros`));
+        
         setOrgans(filteredOrgans);
         setLoading(false);
         return;
@@ -104,8 +107,20 @@ export const useGovernanceOrgans = (type?: OrganType) => {
 
       setOrgans(processedData);
     } catch (err) {
+      console.error('❌ Erro ao buscar órgãos:', err);
       setError(err instanceof Error ? err.message : 'Erro ao buscar órgãos');
-      setOrgans([]);
+      
+      // Usar dados mockados como fallback
+      if (user?.company) {
+        console.log('🔄 Usando dados mockados como fallback após erro...');
+        const mockData = getMockGovernanceData(user.company);
+        const filteredOrgans = type 
+          ? mockData.organs.filter(o => o.organ_type === type)
+          : mockData.organs;
+        setOrgans(filteredOrgans);
+      } else {
+        setOrgans([]);
+      }
     } finally {
       setLoading(false);
     }
