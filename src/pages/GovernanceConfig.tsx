@@ -28,7 +28,23 @@ const GovernanceConfig = () => {
     hierarchy_level: 1
   });
 
-  const { organs, loading, createOrgan, deleteOrgan, updateAccessConfig } = useGovernanceOrgans(activeTab);
+  const { organs, loading, createOrgan, deleteOrgan, updateAccessConfig, createMockData } = useGovernanceOrgans(activeTab);
+
+  const handleCreateMockData = async () => {
+    try {
+      await createMockData();
+      toast({
+        title: "Dados criados",
+        description: "Dados de exemplo criados com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao criar dados de exemplo",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleCreate = async () => {
     try {
@@ -145,7 +161,17 @@ const GovernanceConfig = () => {
               {(['conselho', 'comite', 'comissao'] as OrganType[]).map((type) => (
                 <TabsContent key={type} value={type} className="space-y-4">
                   {/* Create Button */}
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    {organs.length === 0 && !loading && (
+                      <Button 
+                        variant="outline" 
+                        onClick={handleCreateMockData}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Criar Dados de Exemplo
+                      </Button>
+                    )}
                     <Dialog open={isCreateDialogOpen && activeTab === type} onOpenChange={setIsCreateDialogOpen}>
                       <DialogTrigger asChild>
                         <Button className="flex items-center gap-2">

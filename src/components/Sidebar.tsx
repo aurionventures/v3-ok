@@ -218,12 +218,6 @@ const Sidebar = () => {
           moduleId: "governance-config"
         },
         {
-          icon: <Shield className="h-5 w-5" />,
-          href: "/councils",
-          name: "Conselhos",
-          moduleId: "councils"
-        },
-        {
           icon: <Send className="h-5 w-5" />,
           href: "/submit-projects",
           name: "Submeter Projetos",
