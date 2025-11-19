@@ -30,6 +30,9 @@ export interface MeetingSchedule {
     generatedAt: string;
   };
   tasks?: Task[];
+  meeting_tasks?: MeetingTask[];
+  meeting_documents?: MeetingDocument[];
+  ata?: MeetingATA;
   nextMeetingTopics?: string[];
   attendees?: string[];
   location?: string;
@@ -75,6 +78,30 @@ export interface Task {
   priority: "Baixa" | "Média" | "Alta";
   category: string;
   createdAt: string;
+}
+
+export interface MeetingTask {
+  id: string;
+  title: string;
+  responsible: string;
+  deadline: string;
+  status: "Pendente" | "Em Andamento" | "Concluída";
+}
+
+export interface MeetingDocument {
+  id: string;
+  name: string;
+  type: string;
+  uploadDate: string;
+  url: string;
+}
+
+export interface MeetingATA {
+  id: string;
+  summary: string;
+  decisions: string[];
+  generatedAt: string;
+  generatedBy: string;
 }
 
 export interface CouncilDocument {
