@@ -141,42 +141,45 @@ const AnnualAgenda = () => {
         return;
       }
 
-      // Criar reunião no banco de dados
-      const newMeeting = await createMeeting({
+      // Gerar ID mockado para modo demo
+      const meetingId = crypto.randomUUID();
+
+      // Buscar nome do órgão
+      const councilName = councils.find(c => c.id === meetingForm.council_id)?.name || 
+                          organs.find(o => o.id === meetingForm.council_id)?.name || 
+                          "Órgão";
+      
+      // Criar objeto de reunião para localStorage
+      const newMeetingData = {
+        id: meetingId,
+        council: councilName,
         council_id: meetingForm.council_id,
+        organ_type: (meetingForm.organ_type || 'conselho') as 'conselho' | 'comite' | 'comissao',
         title: meetingForm.title,
         date: meetingForm.date,
         time: meetingForm.time,
         type: meetingForm.type as 'Ordinária' | 'Extraordinária',
-        location: meetingForm.location || undefined
-      });
-
-      // Adicionar também ao localStorage (para sincronizar com a agenda anual)
-      const councilName = councils.find(c => c.id === meetingForm.council_id)?.name || "Conselho";
-      
-      addMeeting({
-        council: councilName,
-        date: meetingForm.date,
-        time: meetingForm.time,
-        type: meetingForm.type as 'Ordinária' | 'Extraordinária',
-        status: "Agendada",
+        status: "Agendada" as const,
         modalidade: meetingForm.modalidade as 'Presencial' | 'Online' | 'Híbrida',
         location: meetingForm.location,
         agenda: [],
         nextMeetingTopics: [],
         participants: meetingParticipants
-      });
+      };
+      
+      // Adicionar ao localStorage
+      addMeeting(newMeetingData);
 
       toast({
-        title: "Reunião criada",
-        description: "A nova reunião foi agendada com sucesso na Agenda Anual.",
+        title: "✅ Reunião criada!",
+        description: "A nova reunião foi agendada com sucesso.",
       });
 
       // Enviar convites para membros internos
       const members = meetingParticipants.filter(p => p.role === 'MEMBRO');
       if (members.length > 0) {
         await sendMeetingInvites(
-          newMeeting.id,
+          meetingId,
           meetingForm.title,
           meetingForm.date,
           meetingForm.time,
@@ -205,24 +208,21 @@ const AnnualAgenda = () => {
       
       if (meetingParticipants.length > 0) {
         toast({
-          title: "✅ Reunião criada!",
-          description: `${meetingParticipants.length} participante(s) notificado(s)`,
+          title: `📧 ${meetingParticipants.length} participante(s) notificado(s)`,
         });
       }
 
-      // Salvar título antes de limpar o formulário
+      // Salvar título antes de limpar
       const meetingTitle = meetingForm.title;
 
-      // Fechar modal e limpar formulário
+      // Fechar modal e limpar
       setIsNewMeetingModalOpen(false);
       resetMeetingForm();
       
-      // Mostrar Quick Actions se a reunião foi criada com sucesso
-      if (newMeeting?.id) {
-        setCreatedMeetingId(newMeeting.id);
-        setCreatedMeetingTitle(meetingTitle);
-        setShowQuickActions(true);
-      }
+      // Mostrar Quick Actions
+      setCreatedMeetingId(meetingId);
+      setCreatedMeetingTitle(meetingTitle);
+      setShowQuickActions(true);
 
     } catch (error) {
       console.error('Erro ao criar reunião:', error);
