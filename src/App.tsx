@@ -174,6 +174,7 @@ const App = () => (
           </ProtectedRoute>
         } 
       />
+      <Route path="/councils" element={<Navigate to="/governance-config" replace />} />
           <Route 
             path="/submit-projects" 
             element={
