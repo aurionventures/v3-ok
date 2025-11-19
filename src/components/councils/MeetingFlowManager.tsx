@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { MeetingSchedule, AgendaItem, Task, CouncilDocument } from "@/types/annualSchedule";
+import { MeetingRealizationChecker } from "./MeetingRealizationChecker";
 
 interface MeetingFlowManagerProps {
   meeting: MeetingSchedule;
@@ -149,13 +150,6 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
     }, 3000);
   };
 
-  const handleMarkAsRealized = () => {
-    onUpdateMeeting({ status: "Realizada" });
-    toast({
-      title: "Reunião realizada",
-      description: "Reunião marcada como realizada",
-    });
-  };
 
   const handleUploadRecording = () => {
     // Simulate file upload
@@ -356,45 +350,11 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           </CardContent>
         </Card>
 
-        {/* Meeting Realization */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Realização da Reunião
-              {getStepStatus(meeting, "meeting") === "completed" && (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {meeting.status === "Realizada" || meeting.status === "ATA Gerada" ? (
-                <div className="text-center py-4">
-                  <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-green-700 font-medium">Reunião realizada</p>
-                  <p className="text-sm text-gray-600">
-                    Modalidade: {meeting.modalidade}
-                  </p>
-                </div>
-              ) : isPastMeeting ? (
-                <div className="text-center py-4">
-                  <AlertCircle className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-                  <p className="text-gray-700 mb-4">Marcar reunião como realizada?</p>
-                  <Button onClick={handleMarkAsRealized}>
-                    Marcar como Realizada
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  <Clock className="h-8 w-8 mx-auto mb-2" />
-                  <p>Aguardando realização da reunião</p>
-                  <p className="text-sm">{daysUntilMeeting} dias restantes</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Meeting Realization with ATA Support */}
+        <MeetingRealizationChecker 
+          meeting={meeting}
+          onUpdateMeeting={onUpdateMeeting}
+        />
 
         {/* Recording Upload */}
         <Card>
@@ -438,53 +398,6 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
         </Card>
       </div>
 
-      {/* AI Minutes Generation */}
-      {meeting.recording && !meeting.minutes && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              Geração de ATAs por IA
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="text-center">
-                <Sparkles className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-gray-700 mb-4">
-                  Gerar ATAs automáticas baseadas na gravação da reunião
-                </p>
-                <Button 
-                  onClick={handleGenerateMinutes}
-                  disabled={isGeneratingMinutes}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  {isGeneratingMinutes ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Gerando ATAs...
-                    </>
-                  ) : (
-                    <>
-                      <Bot className="h-4 w-4 mr-2" />
-                      Gerar ATAs
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              {isGeneratingMinutes && (
-                <div className="space-y-2">
-                  <Progress value={33} className="h-2" />
-                  <p className="text-sm text-center text-gray-600">
-                    Processando gravação e gerando documentação...
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Generated Minutes */}
       {meeting.minutes && (
