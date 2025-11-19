@@ -132,34 +132,6 @@ export const SecretariatDashboard = ({
         </CardContent>
       </Card>
 
-      {/* Ações Rápidas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5 text-blue-500" />
-            Ações Rápidas
-          </CardTitle>
-          <CardDescription>Acesse as funcionalidades principais</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={onOpenConvocations}>
-            <Send className="h-5 w-5" />
-            Enviar Convocações
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={onOpenMaterials}>
-            <Upload className="h-5 w-5" />
-            Upload de Materiais
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2">
-            <UserCheck className="h-5 w-5" />
-            Confirmar Presenças
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2">
-            <CalendarPlus className="h-5 w-5" />
-            Agendar Nova Reunião
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Modal de Geração de Relatório */}
       <PendingTasksReportModal
