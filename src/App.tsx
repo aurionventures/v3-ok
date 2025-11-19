@@ -59,6 +59,7 @@ import GuestAccess from "./pages/GuestAccess";
 import NotificationSettings from "./pages/NotificationSettings";
 import AuditLogs from "./pages/AuditLogs";
 import SecurityDashboard from "./pages/SecurityDashboard";
+import SecretariatPanel from "./pages/SecretariatPanel";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -176,12 +177,20 @@ const App = () => (
       />
       <Route path="/councils" element={<Navigate to="/governance-config" replace />} />
           <Route 
+            path="/secretariat" 
+            element={
+              <ProtectedRoute >
+                <SecretariatPanel />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/submit-projects" 
             element={
               <ProtectedRoute >
                 <SubmitProjects />
               </ProtectedRoute>
-            } 
+            }
           />
           <Route 
             path="/rituals" 

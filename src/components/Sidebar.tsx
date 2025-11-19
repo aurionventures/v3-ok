@@ -36,7 +36,8 @@ import {
   User, 
   Send, 
   FolderOpen,
-  TrendingUp
+  TrendingUp,
+  Briefcase
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -209,6 +210,13 @@ const Sidebar = () => {
           href: "/annual-agenda",
           name: "Agenda Anual",
           moduleId: "annual-agenda",
+          priority: true
+        },
+        {
+          icon: <Briefcase className="h-5 w-5" />,
+          href: "/secretariat",
+          name: "Secretariado",
+          moduleId: "secretariat",
           priority: true
         },
         {
