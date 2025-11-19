@@ -253,9 +253,21 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
                             {new Date(meeting.date).getDate()}/{monthIndex + 1} - {meeting.time}
                           </div>
                         </div>
-                        <Badge variant="outline" className={getStatusColor(meeting.status)}>
-                          {meeting.type}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[10px]",
+                              meeting.status === "Realizada" || meeting.status === "ATA Gerada"
+                                ? "bg-purple-100 text-purple-800 border-purple-300"
+                                : "bg-blue-100 text-blue-800 border-blue-300"
+                            )}
+                          >
+                            {meeting.status === "Realizada" || meeting.status === "ATA Gerada"
+                              ? "Realizada"
+                              : "Agendada"}
+                          </Badge>
+                        </div>
                       </div>
                     ))
                   )}

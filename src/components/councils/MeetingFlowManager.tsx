@@ -36,7 +36,12 @@ const getStepStatus = (meeting: MeetingSchedule, step: string) => {
 };
 
 const getProgressPercentage = (meeting: MeetingSchedule) => {
-  const steps = ["agenda", "documents", "meeting", "recording", "minutes"];
+  // Se ATA foi gerada, reunião está 100% completa
+  if (meeting.status === "ATA Gerada" || meeting.minutes) {
+    return 100;
+  }
+  
+  const steps = ["agenda", "documents", "meeting", "recording"];
   const completedSteps = steps.filter(step => getStepStatus(meeting, step) === "completed").length;
   return Math.round((completedSteps / steps.length) * 100);
 };
@@ -450,104 +455,6 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           </CardContent>
         </Card>
 
-        {/* Meeting Realization with ATA Support */}
-        <MeetingRealizationChecker 
-          meeting={meeting}
-          onUpdateMeeting={onUpdateMeeting}
-        />
-
-        {/* Seção de Geração de ATA com IA */}
-        {meeting.status === "Realizada" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-purple-500" />
-                Geração de ATA com IA
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {(() => {
-                const validation = isMeetingReadyForATA(meeting);
-                
-                if (!validation.ready) {
-                  return (
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="font-medium text-amber-900 text-sm">
-                            Preencha todos os requisitos para gerar a ATA
-                          </p>
-                          <ul className="mt-2 space-y-1 text-sm text-amber-700">
-                            {validation.missing.map((item, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        disabled
-                      >
-                        <Bot className="h-4 w-4 mr-2" />
-                        Gerar ATA com IA
-                        <Badge variant="secondary" className="ml-2">
-                          {validation.missing.length} pendência{validation.missing.length > 1 ? 's' : ''}
-                        </Badge>
-                      </Button>
-                    </div>
-                  );
-                }
-                
-                // Reunião pronta para gerar ATA
-                return (
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="font-medium text-green-900 text-sm">
-                          ✅ Reunião completa! Pronta para gerar ATA
-                        </p>
-                        <p className="text-xs text-green-700 mt-1">
-                          Todos os requisitos foram atendidos
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <Button
-                      onClick={handleGenerateATA}
-                      disabled={isGeneratingMinutes || meeting.minutes !== undefined}
-                      className="w-full bg-purple-600 hover:bg-purple-700"
-                    >
-                      {isGeneratingMinutes ? (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-                          Gerando ATA...
-                        </>
-                      ) : meeting.minutes ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                          ATA Gerada
-                        </>
-                      ) : (
-                        <>
-                          <Bot className="h-4 w-4 mr-2" />
-                          Gerar ATA com IA
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                );
-              })()}
-            </CardContent>
-          </Card>
-        )}
-
         {/* Recording Upload */}
         <Card>
           <CardHeader>
@@ -727,6 +634,161 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           </CardContent>
         </Card>
       </div>
+
+      {/* Participantes da Reunião */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-500" />
+            Participantes da Reunião
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {meeting.participants && meeting.participants.length > 0 ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {meeting.participants.length} {meeting.participants.length === 1 ? 'participante' : 'participantes'}
+                  {' '}• {meeting.confirmed_participants || 0} confirmado{(meeting.confirmed_participants || 0) !== 1 ? 's' : ''}
+                </p>
+                
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {meeting.participants.map((participant, index) => (
+                    <div 
+                      key={participant.id || index}
+                      className="flex items-center justify-between p-3 border rounded-lg bg-blue-50/30 hover:bg-blue-50 transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                          {(participant.name || participant.external_name || 'M')
+                            .charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">
+                            {participant.name || participant.external_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {participant.email || participant.external_email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={participant.confirmed ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {participant.role}
+                        </Badge>
+                        {participant.confirmed && (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Nenhum participante alocado</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Meeting Realization with ATA Support */}
+      <MeetingRealizationChecker 
+        meeting={meeting}
+        onUpdateMeeting={onUpdateMeeting}
+      />
+
+      {/* Seção de Geração de ATA com IA */}
+      {meeting.status === "Realizada" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-purple-500" />
+              Geração de ATA com IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(() => {
+              const validation = isMeetingReadyForATA(meeting);
+              
+              if (!validation.ready) {
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-amber-900 text-sm">
+                          Preencha todos os requisitos para gerar a ATA
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-amber-700">
+                          {validation.missing.map((item, idx) => (
+                            <li key={idx} className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled
+                    >
+                      <Bot className="h-4 w-4 mr-2" />
+                      Gerar ATA com IA
+                      <Badge variant="secondary" className="ml-2">
+                        {validation.missing.length} pendência{validation.missing.length > 1 ? 's' : ''}
+                      </Badge>
+                    </Button>
+                  </div>
+                );
+              }
+              
+              // Reunião pronta para gerar ATA
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-medium text-green-900 text-sm">
+                        ✅ Reunião completa! Pronta para gerar ATA
+                      </p>
+                      <p className="text-xs text-green-700 mt-1">
+                        Todos os requisitos foram atendidos
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    onClick={handleGenerateATA}
+                    disabled={isGeneratingMinutes}
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  >
+                    {isGeneratingMinutes ? (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2 animate-spin" />
+                        Gerando ATA com IA...
+                      </>
+                    ) : (
+                      <>
+                        <Bot className="h-4 w-4 mr-2" />
+                        Gerar ATA com IA
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

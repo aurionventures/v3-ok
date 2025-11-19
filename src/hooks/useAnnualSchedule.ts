@@ -136,6 +136,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       ];
       
       meeting.confirmed_participants = meeting.participants?.length || 0;
+      console.log(`✅ Reunião ${meeting.id}: ${meeting.participants?.length || 0} participantes`);
       
       meeting.meeting_tasks = [
         {
@@ -266,6 +267,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       ];
       
       meeting.confirmed_participants = meeting.participants?.length || 0;
+      console.log(`✅ Reunião ${meeting.id}: ${meeting.participants?.length || 0} participantes`);
       
       meeting.meeting_tasks = [
         {
@@ -351,6 +353,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       ];
       
       meeting.confirmed_participants = meeting.participants?.length || 0;
+      console.log(`✅ Reunião ${meeting.id}: ${meeting.participants?.length || 0} participantes`);
       
       meeting.meeting_tasks = [
         {
