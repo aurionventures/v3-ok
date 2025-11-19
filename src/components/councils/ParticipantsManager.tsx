@@ -338,6 +338,31 @@ export default function ParticipantsManager({
           </div>
         </div>
       )}
+
+      {/* Link de Demonstração */}
+      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm font-medium text-blue-900 mb-2">
+          🔗 Link de Demonstração (sempre funcional)
+        </p>
+        <p className="text-xs text-blue-700 mb-3">
+          Use este link para testar o acesso de convidados. Funciona sem necessidade de criar convidado.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const demoLink = `${window.location.origin}/guest-access/demo-guest-token-123`;
+            navigator.clipboard.writeText(demoLink);
+            toast.success('Link de demonstração copiado!', {
+              description: 'Abra este link em qualquer navegador para ver a página do convidado.'
+            });
+          }}
+          className="w-full"
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          Copiar Link de Demonstração
+        </Button>
+      </div>
     </div>
   );
 }
