@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 interface MeetingData {
   participant: {
+    participant_id: string;
     name: string;
     email: string;
     role: string;
@@ -24,6 +25,18 @@ interface MeetingData {
       name: string;
       type: string;
     };
+    participants?: Array<{
+      id: string;
+      name?: string;
+      email?: string;
+      external_name?: string;
+      external_email?: string;
+      role: string;
+      confirmed: boolean;
+      can_upload: boolean;
+      can_view_materials: boolean;
+      can_comment: boolean;
+    }>;
   };
   permissions: {
     can_upload: boolean;
@@ -56,41 +69,205 @@ export default function GuestAccess() {
   const [data, setData] = useState<MeetingData | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Função para inicializar dados de demonstração
+  // Função para inicializar dados de demonstração completos
   const initializeDemoData = () => {
     const existingTokens = localStorage.getItem('guest_tokens');
     
     if (!existingTokens || Object.keys(JSON.parse(existingTokens)).length === 0) {
-      console.log('🔧 Inicializando tokens de demonstração...');
+      console.log('🔧 Inicializando demonstração completa...');
       
-      const demoToken = 'demo-guest-token-123';
-      const scheduleData = JSON.parse(localStorage.getItem('annual_council_schedule') || '{}');
-      const meetings = scheduleData.meetings || [];
-      const demoMeeting = meetings[0];
-      
-      if (demoMeeting) {
-        const demoTokenData = {
-          [demoToken]: {
-            participant_id: 'demo-participant-1',
-            meeting_id: demoMeeting.id,
-            name: 'Pedro Berto (Demo)',
-            email: 'pedro@berto.com',
-            permissions: {
-              can_upload: true,
-              can_view_materials: true,
-              can_comment: true
-            },
-            created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-            access_count: 0,
-            last_accessed_at: null
+      // 1. CRIAR REUNIÃO MOCKADA COMPLETA
+      const demoMeetingId = 'demo-meeting-comissao-etica-2025';
+      const demoMeeting = {
+        id: demoMeetingId,
+        council: 'Comissão de Ética',
+        organ_type: 'comissao',
+        council_id: 'comissao-etica-001',
+        type: 'Ordinária',
+        date: '2025-02-15',
+        time: '10:00',
+        location: 'Sala de Reuniões - 3º Andar',
+        modalidade: 'Presencial',
+        status: 'Pauta Definida',
+        agenda: [
+          {
+            id: 'agenda-1',
+            title: 'Abertura e Verificação de Quórum',
+            description: 'Abertura formal da reunião e confirmação da presença dos membros.',
+            order: 1,
+            type: 'Deliberação',
+            presenter: 'Roberto Alves',
+            duration: 10,
+            keyPoints: ['Verificação de presença', 'Confirmação de quórum']
+          },
+          {
+            id: 'agenda-2',
+            title: 'Análise de Caso: Conduta em Negociação Comercial',
+            description: 'Revisão e análise de denúncia anônima sobre possível conflito de interesses em negociação com fornecedor.',
+            order: 2,
+            type: 'Deliberação',
+            presenter: 'Beatriz Lima',
+            duration: 45,
+            keyPoints: ['Revisão da denúncia', 'Análise de evidências', 'Deliberação sobre medidas']
+          },
+          {
+            id: 'agenda-3',
+            title: 'Atualização do Código de Ética',
+            description: 'Discussão sobre propostas de atualização do Código de Ética Corporativa, incluindo novas diretrizes sobre uso de redes sociais.',
+            order: 3,
+            type: 'Deliberação',
+            presenter: 'Daniela Ferreira',
+            duration: 30,
+            keyPoints: ['Propostas de atualização', 'Diretrizes sobre redes sociais', 'Votação']
+          },
+          {
+            id: 'agenda-4',
+            title: 'Programa de Treinamento em Ética',
+            description: 'Apresentação do novo programa de treinamento obrigatório em ética empresarial para todos os colaboradores.',
+            order: 4,
+            type: 'Informativo',
+            presenter: 'Pedro Berto',
+            duration: 20,
+            keyPoints: ['Estrutura do programa', 'Cronograma de implementação', 'Recursos necessários']
+          },
+          {
+            id: 'agenda-5',
+            title: 'Assuntos Gerais e Encerramento',
+            description: 'Espaço para outros assuntos relevantes e encerramento da reunião.',
+            order: 5,
+            type: 'Informativo',
+            presenter: 'Roberto Alves',
+            duration: 15,
+            keyPoints: ['Próxima reunião', 'Pendências']
           }
-        };
-        
-        localStorage.setItem('guest_tokens', JSON.stringify(demoTokenData));
-        console.log('✅ Token de demonstração criado:', demoToken);
-        console.log('📋 Link de demonstração:', `${window.location.origin}/guest-access/${demoToken}`);
-      }
+        ],
+        participants: [
+          // MEMBROS OFICIAIS (5)
+          {
+            id: 'member-1',
+            name: 'Roberto Alves',
+            email: 'roberto.alves@empresa.com',
+            role: 'MEMBRO',
+            confirmed: true,
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          {
+            id: 'member-2',
+            name: 'Beatriz Lima',
+            email: 'beatriz.lima@empresa.com',
+            role: 'MEMBRO',
+            confirmed: true,
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          {
+            id: 'member-3',
+            name: 'Daniela Ferreira',
+            email: 'daniela.ferreira@empresa.com',
+            role: 'MEMBRO',
+            confirmed: true,
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          {
+            id: 'member-4',
+            name: 'Carlos Eduardo Santos',
+            email: 'carlos.santos@empresa.com',
+            role: 'MEMBRO',
+            confirmed: true,
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          {
+            id: 'member-5',
+            name: 'Marina Costa',
+            email: 'marina.costa@empresa.com',
+            role: 'MEMBRO',
+            confirmed: true,
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          // CONVIDADOS (2)
+          {
+            id: 'guest-1-pedro',
+            external_name: 'Pedro Berto',
+            external_email: 'pedro.berto@consultoria.com',
+            role: 'CONVIDADO',
+            confirmed: true,
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          {
+            id: 'guest-2-ana',
+            external_name: 'Ana Paula Rodrigues',
+            external_email: 'ana.rodrigues@auditoria.com',
+            role: 'CONVIDADO',
+            confirmed: true,
+            can_upload: false,
+            can_view_materials: true,
+            can_comment: false
+          }
+        ],
+        confirmed_participants: 7
+      };
+
+      // 2. SALVAR REUNIÃO NO LOCALSTORAGE
+      const scheduleData = {
+        year: 2025,
+        meetings: [demoMeeting]
+      };
+      localStorage.setItem('annual_council_schedule', JSON.stringify(scheduleData));
+      console.log('✅ Reunião de demonstração criada:', demoMeeting.council);
+
+      // 3. CRIAR TOKENS PARA OS 2 CONVIDADOS
+      const demoTokens = {
+        // TOKEN 1: Pedro Berto (PODE fazer upload)
+        'demo-guest-token-123': {
+          participant_id: 'guest-1-pedro',
+          meeting_id: demoMeetingId,
+          name: 'Pedro Berto',
+          email: 'pedro.berto@consultoria.com',
+          permissions: {
+            can_upload: true,
+            can_view_materials: true,
+            can_comment: true
+          },
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          access_count: 0,
+          last_accessed_at: null
+        },
+        // TOKEN 2: Ana Paula (NÃO pode fazer upload)
+        'demo-guest-token-456': {
+          participant_id: 'guest-2-ana',
+          meeting_id: demoMeetingId,
+          name: 'Ana Paula Rodrigues',
+          email: 'ana.rodrigues@auditoria.com',
+          permissions: {
+            can_upload: false,
+            can_view_materials: true,
+            can_comment: false
+          },
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          access_count: 0,
+          last_accessed_at: null
+        }
+      };
+
+      localStorage.setItem('guest_tokens', JSON.stringify(demoTokens));
+      console.log('✅ Tokens de demonstração criados:');
+      console.log('  👤 Pedro Berto (pode fazer upload):', `${window.location.origin}/guest-access/demo-guest-token-123`);
+      console.log('  👤 Ana Paula (apenas visualização):', `${window.location.origin}/guest-access/demo-guest-token-456`);
+    } else {
+      console.log('ℹ️ Tokens já existentes:', Object.keys(JSON.parse(existingTokens)));
     }
   };
 
@@ -151,6 +328,7 @@ export default function GuestAccess() {
       
       const mockData: MeetingData = {
         participant: {
+          participant_id: tokenData.participant_id,
           name: tokenData.name,
           email: tokenData.email,
           role: "Convidado Externo"
@@ -166,7 +344,8 @@ export default function GuestAccess() {
           council: {
             name: meeting.council,
             type: meeting.type
-          }
+          },
+          participants: meeting.participants || []
         },
         permissions: tokenData.permissions,
         visible_items: meeting.agenda?.length > 0 ? meeting.agenda : [
@@ -359,8 +538,60 @@ export default function GuestAccess() {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Upload Section - Destacada */}
-              {data.permissions.can_upload && (
+              {/* Lista de Participantes */}
+              {data.meeting.participants && data.meeting.participants.length > 0 && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Participantes da Reunião ({data.meeting.participants.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {data.meeting.participants.map((participant: any) => {
+                        const isCurrentGuest = participant.id === data.participant.participant_id || 
+                                              participant.external_email === data.participant.email;
+                        const displayName = participant.name || participant.external_name;
+                        const displayEmail = participant.email || participant.external_email;
+                        const isMember = participant.role === 'MEMBRO';
+                        
+                        return (
+                          <div 
+                            key={participant.id}
+                            className={`flex items-center justify-between p-3 rounded-lg ${
+                              isCurrentGuest ? 'bg-primary/10 border-2 border-primary' : 'bg-muted/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                                isCurrentGuest ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                              }`}>
+                                {displayName?.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-medium">
+                                  {displayName}
+                                  {isCurrentGuest && (
+                                    <span className="ml-2 text-xs font-semibold text-primary">(Você)</span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-muted-foreground">{displayEmail}</p>
+                              </div>
+                            </div>
+                            <Badge variant={isMember ? "default" : "secondary"}>
+                              {isMember ? 'Membro Oficial' : 'Convidado'}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Upload de Documentos ou Mensagem de Restrição */}
+              {data.permissions.can_upload ? (
                 <Card className="border-2 border-blue-500 bg-blue-50/50 shadow-md">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-blue-900">
@@ -398,6 +629,20 @@ export default function GuestAccess() {
                           </>
                         )}
                       </label>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="mb-6 border-muted">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium text-sm">Permissão de Upload Não Concedida</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Você pode visualizar os materiais da reunião, mas não tem permissão para fazer upload de documentos.
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
