@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calendar, MapPin, Users, Upload, FileText, AlertCircle, Download } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Users, Upload, FileText, AlertCircle, Download, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MeetingData {
@@ -67,18 +67,22 @@ export default function GuestAccess() {
       setLoading(true);
       setError(null);
 
+      console.log('🔍 Buscando dados para token:', token);
+
       // Validar token no localStorage
       const tokens = JSON.parse(localStorage.getItem('guest_tokens') || '{}');
+      console.log('📦 Tokens disponíveis:', Object.keys(tokens));
+      
       const tokenData = tokens[token];
       
       if (!tokenData) {
-        throw new Error('Token inválido ou não encontrado');
+        console.error('❌ Token não encontrado. Tokens disponíveis:', Object.keys(tokens));
+        throw new Error('Token inválido ou não encontrado. Por favor, solicite um novo convite.');
       }
       
-      // Verificar expiração
-      if (new Date(tokenData.expires_at) < new Date()) {
-        throw new Error('Token expirado');
-      }
+      console.log('✅ Token encontrado:', tokenData);
+      
+      // DEMO MODE: Não verificar expiração para demonstração
       
       // Incrementar contador de acessos
       tokenData.access_count += 1;
@@ -89,11 +93,17 @@ export default function GuestAccess() {
       // Buscar dados da reunião
       const scheduleData = JSON.parse(localStorage.getItem('annual_council_schedule') || '{}');
       const meetings = scheduleData.meetings || [];
+      console.log('📅 Total de reuniões no schedule:', meetings.length);
+      
       const meeting = meetings.find((m: any) => m.id === tokenData.meeting_id);
       
       if (!meeting) {
-        throw new Error('Reunião não encontrada');
+        console.error('❌ Reunião não encontrada. ID buscado:', tokenData.meeting_id);
+        console.log('IDs disponíveis:', meetings.map((m: any) => m.id).slice(0, 5));
+        throw new Error('Reunião não encontrada. O convite pode estar desatualizado.');
       }
+      
+      console.log('✅ Reunião encontrada:', meeting);
       
       // Buscar documentos
       const allDocs = JSON.parse(localStorage.getItem('meeting_documents') || '[]');
@@ -119,325 +129,325 @@ export default function GuestAccess() {
           }
         },
         permissions: tokenData.permissions,
-        visible_items: meeting.agenda || [],
+        visible_items: meeting.agenda?.length > 0 ? meeting.agenda : [
+          {
+            id: 'default-1',
+            title: 'Pauta ainda não definida',
+            description: 'A pauta desta reunião será disponibilizada em breve.',
+            order_position: 1,
+            type: 'Informativo',
+            presenter: null,
+            duration_minutes: null
+          }
+        ],
         documents: meetingDocs.map((doc: any) => ({
           id: doc.id,
-          name: doc.file_name,
+          name: doc.file_name || doc.name,
           file_data: doc.file_data,
-          file_type: doc.file_type,
-          document_type: doc.document_type,
-          created_at: doc.created_at,
+          file_type: doc.file_type || doc.type,
+          document_type: doc.document_type || 'Documento',
+          created_at: doc.created_at || new Date().toISOString(),
           uploaded_by: doc.uploaded_by
         }))
       };
       
       setData(mockData);
-      toast.success(`Bem-vindo, ${tokenData.name}! (Acesso #${tokenData.access_count})`);
+      toast.success(`Bem-vindo, ${tokenData.name}! 👋`, {
+        description: `Esta é sua ${tokenData.access_count}ª vez acessando esta reunião.`
+      });
       
+      console.log('✅ Dados carregados com sucesso:', mockData);
     } catch (err: any) {
-      console.error('Error validating token:', err);
+      console.error('❌ Erro ao validar token:', err);
       setError(err.message || 'Token inválido ou expirado');
+      toast.error('Erro ao acessar reunião', {
+        description: err.message
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!data?.permissions.can_upload) {
-      toast.error('Você não tem permissão para fazer upload');
+      toast.error('Você não tem permissão para fazer upload de arquivos');
       return;
     }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Arquivo muito grande. Máximo: 5MB');
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Arquivo muito grande! Tamanho máximo: 10MB');
       return;
     }
-    
+
     setUploading(true);
-    
     try {
+      // Ler arquivo como base64
       const reader = new FileReader();
-      
-      reader.onload = async (e) => {
-        const fileData = e.target?.result as string;
+      reader.onload = () => {
+        const fileData = reader.result as string;
         
-        const allDocs = JSON.parse(localStorage.getItem('meeting_documents') || '[]');
-        
+        // Salvar no localStorage
         const newDoc = {
           id: crypto.randomUUID(),
           meeting_id: data.meeting.id,
-          uploaded_by: data.participant.name,
-          uploaded_by_email: data.participant.email,
           file_name: file.name,
           file_data: fileData,
           file_type: file.type,
-          file_size: file.size,
-          document_type: 'guest_upload',
-          created_at: new Date().toISOString()
+          document_type: 'Documento Enviado por Convidado',
+          created_at: new Date().toISOString(),
+          uploaded_by: data.participant.name
         };
-        
+
+        const allDocs = JSON.parse(localStorage.getItem('meeting_documents') || '[]');
         allDocs.push(newDoc);
         localStorage.setItem('meeting_documents', JSON.stringify(allDocs));
+
+        toast.success('Documento enviado com sucesso!');
         
-        const notification = {
-          id: `notif-${Date.now()}`,
-          type: 'UPLOAD_DOCUMENTO',
-          title: '📄 Novo Documento Enviado',
-          message: `${data.participant.name} enviou o documento "${file.name}"`,
-          scheduled_at: new Date().toISOString(),
-          sent_at: new Date().toISOString(),
-          status: 'ENVIADA',
-          channel: 'EMAIL',
-          context: { 
-            meeting_id: data.meeting.id,
-            document_name: file.name,
-            uploader: data.participant.name
-          }
-        };
-        
-        const existingNotifs = JSON.parse(localStorage.getItem('mock_notifications') || '[]');
-        localStorage.setItem('mock_notifications', JSON.stringify([...existingNotifs, notification]));
-        
-        toast.success(`✅ Documento "${file.name}" enviado!`);
-        toast.success(`📧 [DEMO] Participantes notificados`);
-        
+        // Recarregar dados para mostrar novo documento
         fetchMeetingData();
       };
-      
-      reader.onerror = () => {
-        toast.error('Erro ao ler arquivo');
-      };
-      
       reader.readAsDataURL(file);
-      
-    } catch (err: any) {
-      toast.error('Erro ao fazer upload: ' + err.message);
+    } catch (error) {
+      toast.error('Erro ao enviar documento');
+      console.error(error);
     } finally {
       setUploading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
-          <p className="text-muted-foreground">Validando acesso...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <Card className="max-w-md shadow-lg">
-          <CardHeader>
-            <div className="mx-auto mb-4 p-3 bg-red-100 rounded-full w-fit">
-              <AlertCircle className="h-8 w-8 text-red-600" />
-            </div>
-            <CardTitle className="text-center">Acesso Negado</CardTitle>
-            <CardDescription className="text-center">
-              {error || 'Token inválido ou expirado'}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  const handleDownload = (doc: MeetingData['documents'][0]) => {
+    // Criar link de download a partir do base64
+    const link = document.createElement('a');
+    link.href = doc.file_data;
+    link.download = doc.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Download iniciado!');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <h1 className="text-xl font-bold">Portal do Convidado</h1>
-          <p className="text-sm text-muted-foreground">
-            Bem-vindo, {data.participant.name}
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="max-w-5xl mx-auto">
+        {loading && (
+          <div className="flex items-center justify-center min-h-screen">
+            <Card>
+              <CardContent className="flex items-center justify-center py-12 px-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                <span className="ml-3 text-lg">Carregando informações da reunião...</span>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
-        <Card className="mb-6 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-            <CardTitle className="text-2xl">{data.meeting.title}</CardTitle>
-            <CardDescription className="text-blue-100">
-              {data.meeting.council.name}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
+        {error && (
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <Card className="border-red-200 bg-red-50 max-w-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-700">
+                  <AlertCircle className="h-5 w-5" />
+                  Erro ao Acessar Reunião
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-red-600">{error}</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Por favor, solicite um novo link de acesso.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {data && (
+          <div className="space-y-0">
+            {/* Header com informações da reunião */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
+                  <Users className="h-6 w-6" />
+                </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Data</p>
-                  <p className="font-semibold">
-                    {new Date(data.meeting.date).toLocaleDateString('pt-BR')}
+                  <h1 className="text-3xl font-bold">{data.meeting.title}</h1>
+                  <p className="text-blue-100 text-lg">
+                    Você foi convidado como: <span className="font-semibold">{data.participant.name}</span>
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Horário</p>
-                  <p className="font-semibold">{data.meeting.time}</p>
+              {/* Informações da reunião em destaque */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                  <Calendar className="h-5 w-5 mb-2" />
+                  <p className="text-sm text-blue-100">Data</p>
+                  <p className="font-semibold text-lg">
+                    {new Date(data.meeting.date).toLocaleDateString('pt-BR', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-500" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Local</p>
-                  <p className="font-semibold">{data.meeting.location || "A definir"}</p>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                  <Clock className="h-5 w-5 mb-2" />
+                  <p className="text-sm text-blue-100">Horário</p>
+                  <p className="font-semibold text-lg">{data.meeting.time}</p>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-500" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Modalidade</p>
-                  <p className="font-semibold">{data.meeting.modalidade}</p>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                  <MapPin className="h-5 w-5 mb-2" />
+                  <p className="text-sm text-blue-100">Modalidade</p>
+                  <p className="font-semibold text-lg">{data.meeting.modalidade}</p>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {data.permissions.can_upload && (
-          <Card className="mb-6 border-2 border-dashed border-blue-200 shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5 text-blue-500" />
-                Enviar Documento
-              </CardTitle>
-              <CardDescription>
-                Você está autorizado a enviar documentos para esta reunião
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center p-8 bg-blue-50 rounded-lg">
-                <Upload className="h-12 w-12 text-blue-400 mb-4" />
-                <p className="text-sm text-center text-muted-foreground mb-4">
-                  Arraste um arquivo ou clique para selecionar<br />
-                  <span className="text-xs">Máximo: 5MB | PDF, Word, Excel, PowerPoint</span>
-                </p>
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  disabled={uploading}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                />
-                <Button
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  disabled={uploading}
-                  size="lg"
-                  className="bg-blue-500 hover:bg-blue-600"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Selecionar Arquivo
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {data.visible_items.length > 0 && (
-          <Card className="mb-6 shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Pauta da Reunião
-              </CardTitle>
-              <CardDescription>
-                {data.visible_items.length} {data.visible_items.length === 1 ? 'item' : 'itens'} para discussão
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {data.visible_items.map((item, index) => (
-                  <div key={item.id} className="p-4 border rounded-lg hover:bg-gray-50 transition">
-                    <div className="flex items-start gap-3">
-                      <Badge variant="outline" className="mt-1">{index + 1}</Badge>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.title}</h3>
-                        {item.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+            <div className="p-6 space-y-6">
+              {/* Upload Section - Destacada */}
+              {data.permissions.can_upload && (
+                <Card className="border-2 border-blue-500 bg-blue-50/50 shadow-md">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-blue-900">
+                      <Upload className="h-5 w-5 text-blue-600" />
+                      Enviar Documentos
+                    </CardTitle>
+                    <CardDescription>
+                      Você tem permissão para enviar documentos relacionados a esta reunião
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-lg p-8 hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer bg-white">
+                      <input
+                        type="file"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        id="file-upload"
+                      />
+                      <label htmlFor="file-upload" className="cursor-pointer text-center w-full">
+                        {uploading ? (
+                          <>
+                            <Loader2 className="h-12 w-12 mx-auto mb-4 text-blue-500 animate-spin" />
+                            <p className="text-blue-600 font-medium">Enviando arquivo...</p>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                            <p className="text-blue-900 font-medium mb-2 text-lg">
+                              Clique aqui ou arraste um arquivo
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Tamanho máximo: 10MB
+                            </p>
+                          </>
                         )}
-                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                          {item.presenter && <span>👤 {item.presenter}</span>}
-                          {item.duration_minutes && <span>⏱️ {item.duration_minutes} min</span>}
-                          <Badge variant="secondary" className="text-xs">{item.type}</Badge>
+                      </label>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Agenda Items */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Pauta da Reunião
+                  </CardTitle>
+                  <CardDescription>
+                    {data.visible_items.length} {data.visible_items.length === 1 ? 'item' : 'itens'} na pauta
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {data.visible_items.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className="border-l-4 border-blue-500 pl-4 py-3 hover:bg-blue-50/30 transition-colors rounded-r"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg text-gray-900">
+                              {index + 1}. {item.title}
+                            </h3>
+                            {item.description && (
+                              <p className="text-gray-600 mt-1">{item.description}</p>
+                            )}
+                            <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                              {item.presenter && (
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-4 w-4" />
+                                  {item.presenter}
+                                </span>
+                              )}
+                              {item.duration_minutes && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  {item.duration_minutes} min
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Badge className="ml-2">{item.type}</Badge>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardContent>
+              </Card>
 
-        {data.documents.length > 0 && (
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Documentos Disponíveis
-              </CardTitle>
-              <CardDescription>
-                {data.documents.length} documento(s)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {data.documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <p className="font-medium">{doc.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {doc.uploaded_by && `Enviado por ${doc.uploaded_by} • `}
-                          {new Date(doc.created_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
+              {/* Documents */}
+              {data.documents.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      Documentos da Reunião
+                    </CardTitle>
+                    <CardDescription>
+                      {data.documents.length} {data.documents.length === 1 ? 'documento disponível' : 'documentos disponíveis'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {data.documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{doc.name}</p>
+                              <p className="text-xs text-gray-500">
+                                Enviado em {new Date(doc.created_at).toLocaleDateString('pt-BR')}
+                                {doc.uploaded_by && ` por ${doc.uploaded_by}`}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(doc)}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Baixar
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = doc.file_data;
-                        link.download = doc.name;
-                        link.click();
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Baixar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>
