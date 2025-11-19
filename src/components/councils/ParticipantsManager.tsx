@@ -85,17 +85,42 @@ export default function ParticipantsManager({
       return;
     }
 
+    // Gerar token único e Magic Link
+    const token = crypto.randomUUID();
+    const participantId = crypto.randomUUID();
+    const magicLink = `${window.location.origin}/guest-access/${token}`;
+
     const guest: MeetingParticipant = {
-      id: crypto.randomUUID(),
+      id: participantId,
       external_name: newGuest.name,
       external_email: newGuest.email,
       role: 'CONVIDADO',
       can_upload: newGuest.can_upload,
       can_view_materials: newGuest.can_view_materials,
       can_comment: newGuest.can_comment,
-      guest_token: crypto.randomUUID(),
+      guest_token: token,
+      guest_link: magicLink,
       confirmed: false,
     };
+
+    // Salvar token no localStorage
+    const tokens = JSON.parse(localStorage.getItem('guest_tokens') || '{}');
+    tokens[token] = {
+      participant_id: participantId,
+      meeting_id: meetingId,
+      name: newGuest.name,
+      email: newGuest.email,
+      permissions: {
+        can_upload: newGuest.can_upload,
+        can_view_materials: newGuest.can_view_materials,
+        can_comment: newGuest.can_comment
+      },
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      access_count: 0,
+      last_accessed_at: null
+    };
+    localStorage.setItem('guest_tokens', JSON.stringify(tokens));
 
     const updated = [...localParticipants, guest];
     setLocalParticipants(updated);
@@ -109,7 +134,7 @@ export default function ParticipantsManager({
       can_comment: false,
     });
 
-    toast.success('Convidado adicionado');
+    toast.success('🔗 Convidado adicionado! Magic Link gerado.');
   };
 
   const removeParticipant = (id: string) => {
@@ -126,10 +151,13 @@ export default function ParticipantsManager({
     onUpdate(updated);
   };
 
-  const copyGuestLink = (token: string) => {
-    const link = `${window.location.origin}/guest-access?token=${token}`;
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyGuestLink = (link: string, id: string) => {
     navigator.clipboard.writeText(link);
-    toast.success('Link copiado para a área de transferência');
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+    toast.success('🔗 Magic Link copiado!');
   };
 
   const members = localParticipants.filter(p => p.role === 'MEMBRO');
@@ -259,16 +287,30 @@ export default function ParticipantsManager({
                         {guest.can_view_materials && <Badge variant="secondary" className="text-xs">Visualizar</Badge>}
                         {guest.can_comment && <Badge variant="secondary" className="text-xs">Comentar</Badge>}
                       </div>
-                      {guest.guest_token && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyGuestLink(guest.guest_token!)}
-                          className="mt-2"
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          Copiar Link de Acesso
-                        </Button>
+                      {guest.guest_link && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyGuestLink(guest.guest_link!, guest.id)}
+                            className="mt-2"
+                          >
+                            {copiedId === guest.id ? (
+                              <>
+                                <CheckCircle2 className="h-3 w-3 mr-1 text-green-500" />
+                                Copiado!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3 w-3 mr-1" />
+                                Copiar Magic Link
+                              </>
+                            )}
+                          </Button>
+                          <Badge variant="outline" className="text-xs mt-2">
+                            🔗 Link Ativo
+                          </Badge>
+                        </>
                       )}
                     </div>
                     <Button

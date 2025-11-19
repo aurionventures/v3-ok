@@ -73,7 +73,7 @@ const AnnualAgenda = () => {
 
   const { councils, loading: councilsLoading } = useCouncils();
   const { createMeeting, loading: creatingMeeting } = useMeetings();
-  const { sendMeetingInvites } = useMeetingNotifications();
+  const { sendMeetingInvites, sendGuestInviteWithMagicLink } = useMeetingNotifications();
   
   // Filters
   const { filters, setFilters, filteredMeetings } = useCalendarFilters(schedule?.meetings || []);
@@ -172,19 +172,41 @@ const AnnualAgenda = () => {
         description: "A nova reunião foi agendada com sucesso na Agenda Anual.",
       });
 
-      // Enviar notificações aos participantes
-      if (meetingParticipants.length > 0) {
+      // Enviar convites para membros internos
+      const members = meetingParticipants.filter(p => p.role === 'MEMBRO');
+      if (members.length > 0) {
         await sendMeetingInvites(
           newMeeting.id,
           meetingForm.title,
           meetingForm.date,
           meetingForm.time,
-          meetingParticipants
+          members
         );
-        
+      }
+      
+      // Enviar Magic Links para convidados
+      const guests = meetingParticipants.filter(p => p.role === 'CONVIDADO');
+      for (const guest of guests) {
+        if (guest.guest_link) {
+          await sendGuestInviteWithMagicLink(
+            guest.external_name!,
+            guest.external_email!,
+            guest.guest_link,
+            meetingForm.title,
+            meetingForm.date,
+            meetingForm.time,
+            {
+              can_upload: guest.can_upload || false,
+              can_view_materials: guest.can_view_materials || true
+            }
+          );
+        }
+      }
+      
+      if (meetingParticipants.length > 0) {
         toast({
-          title: "📧 Notificações enviadas",
-          description: `[DEMO] ${meetingParticipants.length} participante(s) notificado(s)`,
+          title: "✅ Reunião criada!",
+          description: `${meetingParticipants.length} participante(s) notificado(s)`,
         });
       }
 

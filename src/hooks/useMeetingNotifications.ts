@@ -119,10 +119,54 @@ export const useMeetingNotifications = () => {
     return true;
   };
 
+  const sendGuestInviteWithMagicLink = async (
+    guestName: string,
+    guestEmail: string,
+    magicLink: string,
+    meetingTitle: string,
+    meetingDate: string,
+    meetingTime: string,
+    permissions: { can_upload: boolean; can_view_materials: boolean }
+  ): Promise<boolean> => {
+    console.log('📧 [DEMO] Enviando Magic Link:', {
+      to: guestEmail,
+      link: magicLink,
+      meeting: meetingTitle
+    });
+    
+    const notification = {
+      id: `notif-${Date.now()}-${Math.random()}`,
+      external_email: guestEmail,
+      type: 'MAGIC_LINK_CONVIDADO',
+      title: '🔗 Acesso à Reunião',
+      message: `Olá ${guestName},\n\nVocê foi convidado para a reunião "${meetingTitle}" em ${meetingDate} às ${meetingTime}.\n\n` +
+               `Use o link abaixo para acessar a pauta e documentos:\n${magicLink}\n\n` +
+               `Permissões concedidas:\n` +
+               `- ${permissions.can_upload ? '✅' : '❌'} Fazer upload de documentos\n` +
+               `- ${permissions.can_view_materials ? '✅' : '❌'} Visualizar materiais`,
+      scheduled_at: new Date().toISOString(),
+      sent_at: new Date().toISOString(),
+      status: 'ENVIADA',
+      channel: 'EMAIL',
+      read_at: null,
+      context: { 
+        magic_link: magicLink,
+        permissions
+      }
+    };
+    
+    const existing = JSON.parse(localStorage.getItem('mock_notifications') || '[]');
+    localStorage.setItem('mock_notifications', JSON.stringify([...existing, notification]));
+    
+    toast.success(`📧 [DEMO] Magic Link enviado para ${guestEmail}`);
+    return true;
+  };
+
   return { 
     sendMeetingInvites, 
     sendMeetingUpdateNotifications,
     sendDocumentUploadNotification,
-    sendATAGeneratedNotification
+    sendATAGeneratedNotification,
+    sendGuestInviteWithMagicLink
   };
 };

@@ -44,15 +44,20 @@ export interface MeetingSchedule {
 
 export interface MeetingParticipant {
   id: string;
-  user_id?: string;  // Se for membro interno
-  external_name?: string;  // Se for convidado externo
+  user_id?: string;
+  external_name?: string;
   external_email?: string;
+  external_phone?: string;
   role: 'MEMBRO' | 'CONVIDADO' | 'OBSERVADOR';
   can_upload: boolean;
   can_view_materials: boolean;
   can_comment: boolean;
-  guest_token?: string;  // Token de acesso para convidados
+  guest_token?: string;
+  guest_link?: string;
   confirmed: boolean;
+  name?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface AgendaItem {
