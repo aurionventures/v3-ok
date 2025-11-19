@@ -212,6 +212,12 @@ const Sidebar = () => {
           priority: true
         },
         {
+          icon: <Settings className="h-5 w-5" />,
+          href: "/governance-config",
+          name: "Config. Governança",
+          moduleId: "governance-config"
+        },
+        {
           icon: <Shield className="h-5 w-5" />,
           href: "/councils",
           name: "Conselhos",

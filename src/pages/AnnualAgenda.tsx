@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { OrganSelector } from "@/components/governance/OrganSelector";
+import { Building2, Users, UserCog } from "lucide-react";
 
 const AnnualAgenda = () => {
   const { toast } = useToast();
@@ -26,6 +28,7 @@ const AnnualAgenda = () => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isNewMeetingModalOpen, setIsNewMeetingModalOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({
+    organ_type: "" as 'conselho' | 'comite' | 'comissao' | "",
     council_id: "",
     title: "",
     date: "",
@@ -105,6 +108,7 @@ const AnnualAgenda = () => {
       // Fechar modal e limpar formulário
       setIsNewMeetingModalOpen(false);
       setMeetingForm({
+        organ_type: "",
         council_id: "",
         title: "",
         date: "",

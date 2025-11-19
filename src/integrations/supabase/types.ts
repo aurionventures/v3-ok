@@ -325,33 +325,42 @@ export type Database = {
       }
       councils: {
         Row: {
+          access_config: Json | null
           company_id: string
           created_at: string
           description: string | null
+          hierarchy_level: number | null
           id: string
           name: string
+          organ_type: string | null
           quorum: number
           status: string
           type: string
           updated_at: string
         }
         Insert: {
+          access_config?: Json | null
           company_id: string
           created_at?: string
           description?: string | null
+          hierarchy_level?: number | null
           id?: string
           name: string
+          organ_type?: string | null
           quorum?: number
           status?: string
           type?: string
           updated_at?: string
         }
         Update: {
+          access_config?: Json | null
           company_id?: string
           created_at?: string
           description?: string | null
+          hierarchy_level?: number | null
           id?: string
           name?: string
+          organ_type?: string | null
           quorum?: number
           status?: string
           type?: string
@@ -733,6 +742,8 @@ export type Database = {
           id: string
           invited_by: string | null
           meeting_id: string
+          participant_type: string | null
+          permissions: Json | null
           role: string
           updated_at: string | null
           user_id: string | null
@@ -747,6 +758,8 @@ export type Database = {
           id?: string
           invited_by?: string | null
           meeting_id: string
+          participant_type?: string | null
+          permissions?: Json | null
           role: string
           updated_at?: string | null
           user_id?: string | null
@@ -761,6 +774,8 @@ export type Database = {
           id?: string
           invited_by?: string | null
           meeting_id?: string
+          participant_type?: string | null
+          permissions?: Json | null
           role?: string
           updated_at?: string | null
           user_id?: string | null
