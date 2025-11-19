@@ -232,6 +232,135 @@ const AnnualAgenda = () => {
             </Button>
           </div>
 
+          {/* Barra de Filtros */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Filter className="h-4 w-4" />
+                <h3 className="font-semibold">Filtrar Reuniões</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Filtro: Tipo de Órgão */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Tipo de Órgão</Label>
+                  <Select 
+                    value={filters.organType} 
+                    onValueChange={(value) => setFilters({...filters, organType: value, organId: 'all'})}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <span className="flex items-center gap-2">
+                          📊 Todos os Tipos
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="conselho">
+                        <span className="flex items-center gap-2">
+                          <Building2 className="h-3 w-3" /> Conselhos
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="comite">
+                        <span className="flex items-center gap-2">
+                          <Users className="h-3 w-3" /> Comitês
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="comissao">
+                        <span className="flex items-center gap-2">
+                          <UserCog className="h-3 w-3" /> Comissões
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filtro: Órgão Específico */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Órgão Específico</Label>
+                  <Select 
+                    value={filters.organId}
+                    onValueChange={(value) => setFilters({...filters, organId: value})}
+                    disabled={filters.organType === 'all'}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {organs.map(organ => (
+                        <SelectItem key={organ.id} value={organ.id}>
+                          {organ.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filtro: Status */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <Select 
+                    value={filters.status}
+                    onValueChange={(value) => setFilters({...filters, status: value})}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Status</SelectItem>
+                      <SelectItem value="Agendada">📅 Agendada</SelectItem>
+                      <SelectItem value="Pauta Definida">📋 Pauta Definida</SelectItem>
+                      <SelectItem value="Docs Enviados">📤 Docs Enviados</SelectItem>
+                      <SelectItem value="Realizada">✅ Realizada</SelectItem>
+                      <SelectItem value="ATA Gerada">📄 ATA Gerada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filtro: Tipo de Reunião */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Tipo de Reunião</Label>
+                  <Select 
+                    value={filters.meetingType}
+                    onValueChange={(value) => setFilters({...filters, meetingType: value})}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Tipos</SelectItem>
+                      <SelectItem value="Ordinária">⚖️ Ordinária</SelectItem>
+                      <SelectItem value="Extraordinária">⚡ Extraordinária</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Badge de Resultados */}
+              <div className="mt-4 flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  {filteredMeetings.length} reuniões encontradas
+                </Badge>
+                {(filters.organType !== 'all' || filters.status !== 'all' || filters.meetingType !== 'all') && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setFilters({
+                      organType: 'all',
+                      organId: 'all',
+                      status: 'all',
+                      meetingType: 'all'
+                    })}
+                    className="h-7 text-xs"
+                  >
+                    Limpar Filtros
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Annual Calendar */}
           <Card>
             <CardHeader>
@@ -243,9 +372,10 @@ const AnnualAgenda = () => {
             <CardContent>
               {schedule && schedule.meetings ? (
                 <AnnualCalendar 
-                  meetings={schedule.meetings}
+                  meetings={filteredMeetings}
                   onMeetingClick={handleMeetingClick}
                   onUpdateMeeting={updateMeeting}
+                  onDateClick={handleDateClick}
                 />
               ) : (
                 <div className="text-center py-8">
