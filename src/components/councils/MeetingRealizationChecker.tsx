@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CheckCircle, Clock, Users, FileText } from "lucide-react";
+import { CheckCircle, Clock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MeetingSchedule } from "@/types/annualSchedule";
 import MeetingATAViewer from "./MeetingATAViewer";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface MeetingRealizationCheckerProps {
@@ -22,39 +21,24 @@ export function MeetingRealizationChecker({
   onUpdateMeeting 
 }: MeetingRealizationCheckerProps) {
   const [isRealized, setIsRealized] = useState(meeting.status === "Realizada" || meeting.status === "ATA Gerada");
-  const [presentAttendees, setPresentAttendees] = useState(meeting.attendees || []);
+  const [confirmRealization, setConfirmRealization] = useState(false);
   const [observations, setObservations] = useState("");
   const [showATADialog, setShowATADialog] = useState(false);
   const [isGeneratingATA, setIsGeneratingATA] = useState(false);
 
   const handleMarkAsRealized = () => {
-    const now = new Date().toISOString();
+    if (!confirmRealization) {
+      toast.error("Por favor, confirme que a reunião foi realizada");
+      return;
+    }
     
     onUpdateMeeting({
       status: "Realizada",
-      attendees: presentAttendees
     });
 
     setIsRealized(true);
+    toast.success("Reunião marcada como realizada");
   };
-
-  const handleAttendeeToggle = (attendee: string, isPresent: boolean) => {
-    if (isPresent) {
-      setPresentAttendees(prev => [...prev.filter(a => a !== attendee), attendee]);
-    } else {
-      setPresentAttendees(prev => prev.filter(a => a !== attendee));
-    }
-  };
-
-  // Lista exemplo de participantes (pode vir de props ou estado global)
-  const allPossibleAttendees = [
-    "João Silva - Presidente",
-    "Maria Santos - Vice-Presidente", 
-    "Carlos Oliveira - Diretor Financeiro",
-    "Ana Costa - Diretora Operacional",
-    "Roberto Lima - Conselheiro Independente",
-    "Fernanda Souza - Conselheira Externa"
-  ];
 
   const isPastMeeting = new Date(meeting.date) < new Date();
 
@@ -97,50 +81,29 @@ export function MeetingRealizationChecker({
               </Label>
             </div>
 
-            {/* Attendees Selection */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Participantes Presentes
-              </Label>
-              <div className="grid grid-cols-1 gap-2">
-                {allPossibleAttendees.map(attendee => (
-                  <div key={attendee} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`attendee-${attendee}`}
-                      checked={presentAttendees.includes(attendee)}
-                      onCheckedChange={(checked) => 
-                        handleAttendeeToggle(attendee, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={`attendee-${attendee}`} className="text-sm">
-                      {attendee}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Separator />
 
             {/* Observations */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Observações sobre a Reunião (Opcional)
+              <Label htmlFor="observations" className="text-sm font-medium">
+                Observações sobre a Reunião
               </Label>
               <Textarea
+                id="observations"
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
-                placeholder="Observações gerais sobre como foi a reunião, pontos importantes, etc."
-                rows={3}
+                placeholder="Adicione observações sobre a realização desta reunião..."
+                className="min-h-[100px]"
               />
             </div>
 
             <Button 
               onClick={handleMarkAsRealized}
-              disabled={presentAttendees.length === 0}
               className="w-full"
+              disabled={!confirmRealization}
             >
-              Confirmar Realização da Reunião
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Confirmar Realização
             </Button>
           </div>
         )}
@@ -148,43 +111,12 @@ export function MeetingRealizationChecker({
         {/* Meeting Already Realized */}
         {isRealized && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">Reunião confirmada como realizada</span>
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-semibold">Reunião Realizada</span>
+              </div>
             </div>
-
-            <Separator />
-
-            {/* Present Attendees */}
-            {presentAttendees.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Participantes Presentes ({presentAttendees.length})
-                </Label>
-                <div className="grid grid-cols-1 gap-1">
-                  {presentAttendees.map(attendee => (
-                    <div key={attendee} className="text-sm text-muted-foreground flex items-center gap-2">
-                      <CheckCircle className="h-3 w-3 text-green-500" />
-                      {attendee}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Observations */}
-            {observations && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Observações
-                </Label>
-                <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-                  {observations}
-                </div>
-              </div>
-            )}
 
             {/* ATA Section - Only for Realized Meetings */}
             <Separator />
@@ -245,32 +177,22 @@ export function MeetingRealizationChecker({
             onGenerateATA={async () => {
               setIsGeneratingATA(true);
               try {
-                const { data, error } = await supabase.functions.invoke('generate-meeting-ata', {
-                  body: {
-                    meetingId: meeting.id,
-                    council: meeting.council,
-                    date: meeting.date,
-                    time: meeting.time,
-                    type: meeting.type,
-                    modalidade: meeting.modalidade,
-                    agenda: meeting.agenda || [],
-                    participants: meeting.participants || [],
-                    meeting_tasks: meeting.meeting_tasks || [],
-                    nextMeetingTopics: meeting.nextMeetingTopics || []
-                  }
-                });
-
-                if (error) throw error;
-
+                // Simulate ATA generation (demo mode)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const now = new Date().toISOString();
                 onUpdateMeeting({
-                  ata: data,
-                  status: "ATA Gerada"
+                  status: "ATA Gerada",
+                  minutes: {
+                    full: "Ata completa da reunião gerada por IA...",
+                    summary: "Resumo executivo da reunião...",
+                    generatedAt: now,
+                  },
                 });
 
-                toast.success('ATA gerada com sucesso!');
+                toast.success("ATA gerada com sucesso!");
               } catch (error) {
-                console.error('Erro ao gerar ATA:', error);
-                toast.error('Erro ao gerar ATA. Tente novamente.');
+                toast.error("Erro ao gerar ATA");
               } finally {
                 setIsGeneratingATA(false);
               }

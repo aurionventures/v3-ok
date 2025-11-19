@@ -35,12 +35,33 @@ export default function ParticipantsManager({
   });
 
   useEffect(() => {
-    // Simular carregamento de membros alocados
-    if (localParticipants.length === 0 && councilId) {
-      const mockMembers: MeetingParticipant[] = [
+    // Carregar membros automaticamente quando councilId muda
+    const loadOrganMembers = () => {
+      if (!councilId) return;
+
+      // Dados mockados de membros alocados ao órgão
+      const mockOrganMembers: MeetingParticipant[] = [
         {
           id: crypto.randomUUID(),
-          user_id: 'user-1',
+          external_name: 'João Silva',
+          role: 'MEMBRO',
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          external_name: 'Maria Santos',
+          role: 'MEMBRO',
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: false,
+        },
+        {
+          id: crypto.randomUUID(),
+          external_name: 'Carlos Oliveira',
           role: 'MEMBRO',
           can_upload: true,
           can_view_materials: true,
@@ -48,9 +69,14 @@ export default function ParticipantsManager({
           confirmed: false,
         },
       ];
-      setLocalParticipants(mockMembers);
-      onUpdate(mockMembers);
-    }
+
+      setLocalParticipants(mockOrganMembers);
+      onUpdate(mockOrganMembers);
+      
+      toast.success(`${mockOrganMembers.length} membros carregados automaticamente`);
+    };
+
+    loadOrganMembers();
   }, [councilId]);
 
   const addGuest = () => {
