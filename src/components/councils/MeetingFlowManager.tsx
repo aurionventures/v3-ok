@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { MeetingSchedule, AgendaItem, Task, CouncilDocument } from "@/types/annualSchedule";
 import { MeetingRealizationChecker } from "./MeetingRealizationChecker";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MeetingFlowManagerProps {
   meeting: MeetingSchedule;
@@ -45,6 +46,42 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
   const [newTask, setNewTask] = useState<Partial<Task>>({});
   const [isGeneratingMinutes, setIsGeneratingMinutes] = useState(false);
   const [nextMeetingTopics, setNextMeetingTopics] = useState(meeting.nextMeetingTopics?.join('\n') || '');
+
+  // Função para verificar se reunião está completa para gerar ATA
+  const isMeetingReadyForATA = (meeting: MeetingSchedule): { ready: boolean; missing: string[] } => {
+    const missing: string[] = [];
+    
+    // 1. Status deve ser "Realizada"
+    if (meeting.status !== "Realizada" && meeting.status !== "ATA Gerada") {
+      missing.push("Status da reunião deve ser 'Realizada'");
+    }
+    
+    // 2. Pauta definida
+    if (!meeting.agenda || meeting.agenda.length === 0) {
+      missing.push("Pauta da reunião");
+    }
+    
+    // 3. Documentos prévios enviados
+    if (!meeting.preMeetingDocs || meeting.preMeetingDocs.length === 0) {
+      missing.push("Documentos prévios");
+    }
+    
+    // 4. Gravação da reunião
+    if (!meeting.recording) {
+      missing.push("Gravação da reunião");
+    }
+    
+    // 5. Pelo menos 1 participante confirmado
+    const confirmedCount = meeting.participants?.filter(p => p.confirmed).length || 0;
+    if (confirmedCount === 0) {
+      missing.push("Participantes confirmados");
+    }
+    
+    return { 
+      ready: missing.length === 0, 
+      missing 
+    };
+  };
 
   const handleAddAgendaItem = () => {
     if (!newAgendaItem.title || !newAgendaItem.presenter) {
@@ -124,30 +161,93 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
     });
   };
 
-  const handleGenerateMinutes = async () => {
+  const handleGenerateATA = async () => {
     setIsGeneratingMinutes(true);
     
-    // Simulate AI processing
-    setTimeout(() => {
-      const minutes = {
-        full: `ATA INTEGRAL DA REUNIÃO\n\n${meeting.council}\nData: ${new Date(meeting.date).toLocaleDateString('pt-BR')}\nHorário: ${meeting.time}\n\nPresentes:\n- José Silva (Presidente)\n- Maria Silva (Conselheira)\n- Roberto Mendes (Conselheiro Externo)\n\nPauta Discutida:\n${meeting.agenda?.map(item => `- ${item.title}: ${item.description}`).join('\n') || 'Pauta não definida'}\n\nDeliberações:\n- Todas as propostas foram aprovadas por unanimidade\n- Definidos próximos passos para implementação\n\nTarefas Definidas:\n${meeting.tasks?.map(task => `- ${task.title} (${task.assignee})`).join('\n') || 'Nenhuma tarefa definida'}\n\nReunião encerrada às ${meeting.time}.`,
-        summary: `RESUMO EXECUTIVO - ${meeting.council}\n\nData: ${new Date(meeting.date).toLocaleDateString('pt-BR')}\n\nPrincipais Deliberações:\n- Aprovação das propostas apresentadas\n- Definição de cronograma de implementação\n- Aprovação do orçamento para próximo trimestre\n\nPróximos Passos:\n- Implementação das decisões aprovadas\n- Acompanhamento das métricas definidas\n\nPróxima Reunião: A ser definida`,
-        generatedAt: new Date().toISOString(),
-      };
-
-      onUpdateMeeting({ 
-        minutes,
-        status: "ATA Gerada",
-        nextMeetingTopics: nextMeetingTopics.split('\n').filter(topic => topic.trim())
+    try {
+      console.log('🤖 Gerando ATA com IA para reunião:', meeting.id);
+      
+      // Chamar edge function
+      const { data, error } = await supabase.functions.invoke('generate-meeting-ata', {
+        body: {
+          meetingId: meeting.id,
+          council: meeting.council,
+          date: meeting.date,
+          time: meeting.time,
+          type: meeting.type,
+          modalidade: meeting.modalidade,
+          agenda: meeting.agenda || [],
+          participants: meeting.participants || [],
+          meeting_tasks: meeting.meeting_tasks || [],
+          nextMeetingTopics: meeting.nextMeetingTopics || []
+        }
       });
       
-      setIsGeneratingMinutes(false);
+      if (error) {
+        console.error('❌ Erro ao gerar ATA:', error);
+        
+        // Verificar se é erro de rate limit
+        if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+          toast({
+            title: "⏱️ Limite de requisições atingido",
+            description: "Por favor, aguarde alguns instantes e tente novamente.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erro ao gerar ATA",
+            description: error.message || "Tente novamente mais tarde",
+            variant: "destructive"
+          });
+        }
+        return;
+      }
+      
+      if (!data) {
+        toast({
+          title: "Erro",
+          description: "Nenhuma resposta recebida da IA",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('✅ ATA gerada com sucesso:', data);
+      
+      // Atualizar reunião com ATA gerada
+      const ataData = {
+        full: data.summary,
+        summary: data.summary,
+        generatedAt: new Date().toISOString()
+      };
+      
+      onUpdateMeeting({ 
+        minutes: ataData,
+        status: "ATA Gerada",
+        ata: {
+          id: `ata-${meeting.id}`,
+          summary: data.summary,
+          decisions: data.decisions || [],
+          generatedAt: new Date().toISOString(),
+          generatedBy: 'IA - Lovable AI'
+        }
+      });
       
       toast({
-        title: "ATAs geradas",
-        description: "ATAs integral e otimizada foram geradas com sucesso",
+        title: "🎉 ATA Gerada com Sucesso!",
+        description: "A ATA foi gerada pela IA e está disponível para visualização",
       });
-    }, 3000);
+      
+    } catch (err: any) {
+      console.error('❌ Erro ao chamar edge function:', err);
+      toast({
+        title: "Erro ao gerar ATA",
+        description: err.message || "Erro desconhecido",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingMinutes(false);
+    }
   };
 
 
@@ -355,6 +455,98 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           meeting={meeting}
           onUpdateMeeting={onUpdateMeeting}
         />
+
+        {/* Seção de Geração de ATA com IA */}
+        {meeting.status === "Realizada" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-purple-500" />
+                Geração de ATA com IA
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(() => {
+                const validation = isMeetingReadyForATA(meeting);
+                
+                if (!validation.ready) {
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-amber-900 text-sm">
+                            Preencha todos os requisitos para gerar a ATA
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-amber-700">
+                            {validation.missing.map((item, idx) => (
+                              <li key={idx} className="flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled
+                      >
+                        <Bot className="h-4 w-4 mr-2" />
+                        Gerar ATA com IA
+                        <Badge variant="secondary" className="ml-2">
+                          {validation.missing.length} pendência{validation.missing.length > 1 ? 's' : ''}
+                        </Badge>
+                      </Button>
+                    </div>
+                  );
+                }
+                
+                // Reunião pronta para gerar ATA
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-green-900 text-sm">
+                          ✅ Reunião completa! Pronta para gerar ATA
+                        </p>
+                        <p className="text-xs text-green-700 mt-1">
+                          Todos os requisitos foram atendidos
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={handleGenerateATA}
+                      disabled={isGeneratingMinutes || meeting.minutes !== undefined}
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                    >
+                      {isGeneratingMinutes ? (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+                          Gerando ATA...
+                        </>
+                      ) : meeting.minutes ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          ATA Gerada
+                        </>
+                      ) : (
+                        <>
+                          <Bot className="h-4 w-4 mr-2" />
+                          Gerar ATA com IA
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recording Upload */}
         <Card>
