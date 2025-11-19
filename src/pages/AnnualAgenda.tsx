@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, TrendingUp, Clock, CheckCircle2, Users, CalendarDays, Settings } from "lucide-react";
+import { Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import { AnnualCalendar } from "@/components/councils/AnnualCalendar";
 import { MeetingFlowManager } from "@/components/councils/MeetingFlowManager";
 import AnnualCalendarWizard from "@/components/councils/AnnualCalendarWizard";
 import { MeetingSchedule } from "@/types/annualSchedule";
-import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMeetings } from "@/hooks/useMeetings";
 import { useCouncils } from "@/hooks/useCouncils";
@@ -21,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 const AnnualAgenda = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingSchedule | null>(null);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
@@ -235,14 +233,6 @@ const AnnualAgenda = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 mb-6">
-            <Button 
-              onClick={() => navigate('/councils')}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Users className="h-4 w-4" />
-              Ir para Conselhos
-            </Button>
             <Button 
               onClick={() => setIsWizardOpen(true)}
               variant="outline"
