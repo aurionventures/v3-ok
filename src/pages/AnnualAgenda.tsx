@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings } from "lucide-react";
+import { Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings, Filter } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,10 @@ import { OrganSelector } from "@/components/governance/OrganSelector";
 import { Building2, Users, UserCog } from "lucide-react";
 import { QuickActionsCard } from "@/components/councils/QuickActionsCard";
 import { QuickAddGuestModal } from "@/components/councils/QuickAddGuestModal";
+import { useCalendarFilters } from "@/hooks/useCalendarFilters";
+import { useGovernanceOrgans } from "@/hooks/useGovernanceOrgans";
+import MeetingQuickConfigModal from "@/components/councils/MeetingQuickConfigModal";
+import { format } from "date-fns";
 
 const AnnualAgenda = () => {
   const { toast } = useToast();
@@ -33,6 +37,8 @@ const AnnualAgenda = () => {
   const [createdMeetingId, setCreatedMeetingId] = useState<string | null>(null);
   const [createdMeetingTitle, setCreatedMeetingTitle] = useState<string>("");
   const [isQuickAddGuestModalOpen, setIsQuickAddGuestModalOpen] = useState(false);
+  const [isQuickConfigModalOpen, setIsQuickConfigModalOpen] = useState(false);
+  const [selectedMeetingForConfig, setSelectedMeetingForConfig] = useState<MeetingSchedule | null>(null);
   const [meetingForm, setMeetingForm] = useState({
     organ_type: "" as 'conselho' | 'comite' | 'comissao' | "",
     council_id: "",
@@ -59,14 +65,45 @@ const AnnualAgenda = () => {
 
   const { councils, loading: councilsLoading } = useCouncils();
   const { createMeeting, loading: creatingMeeting } = useMeetings();
+  
+  // Filters
+  const { filters, setFilters, filteredMeetings } = useCalendarFilters(schedule?.meetings || []);
+  const { organs } = useGovernanceOrgans(filters.organType !== 'all' ? (filters.organType as any) : undefined);
 
   // Debug log
   console.log("📅 AnnualAgenda component - schedule:", schedule);
   console.log("📅 AnnualAgenda component - loading:", scheduleLoading);
+  console.log("🔍 Filtered meetings:", filteredMeetings.length);
 
   const handleMeetingClick = (meeting: MeetingSchedule) => {
     setSelectedMeeting(meeting);
     setIsMeetingModalOpen(true);
+  };
+
+  const handleDateClick = (date: Date, meeting?: MeetingSchedule) => {
+    if (meeting) {
+      // Abrir modal de configuração rápida
+      setSelectedMeetingForConfig(meeting);
+      setIsQuickConfigModalOpen(true);
+    } else {
+      // Abrir modal de nova reunião com data pré-preenchida
+      setMeetingForm({
+        ...meetingForm,
+        date: format(date, 'yyyy-MM-dd')
+      });
+      setIsNewMeetingModalOpen(true);
+    }
+  };
+
+  const handleSaveQuickConfig = async (updates: Partial<MeetingSchedule>) => {
+    if (selectedMeetingForConfig) {
+      await updateMeeting(selectedMeetingForConfig.id, updates);
+      toast({
+        title: "Reunião Atualizada",
+        description: "Configurações salvas com sucesso!"
+      });
+      setIsQuickConfigModalOpen(false);
+    }
   };
 
   const handleCreateMeeting = async () => {

@@ -1,16 +1,20 @@
 import React, { useState } from "react";
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, AlertCircle } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, AlertCircle, CheckCircle2, FileText, FileCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MeetingSchedule } from "@/types/annualSchedule";
 import { MeetingAgendaPopover } from "./MeetingAgendaPopover";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface AnnualCalendarProps {
   meetings: MeetingSchedule[];
   onMeetingClick: (meeting: MeetingSchedule) => void;
   onUpdateMeeting: (meetingId: string, updates: Partial<MeetingSchedule>) => void;
+  onDateClick?: (date: Date, meeting?: MeetingSchedule) => void;
 }
 
 const monthNames = [
@@ -35,7 +39,48 @@ const getStatusColor = (status: MeetingSchedule['status']) => {
   }
 };
 
-export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeetingClick, onUpdateMeeting }) => {
+const getOrganTypeColor = (organType?: string) => {
+  switch (organType) {
+    case 'conselho':
+      return 'bg-blue-500 text-white';
+    case 'comite':
+      return 'bg-green-500 text-white';
+    case 'comissao':
+      return 'bg-yellow-500 text-white';
+    default:
+      return 'bg-gray-500 text-white';
+  }
+};
+
+const getOrganTypeLabel = (organType?: string) => {
+  switch (organType) {
+    case 'conselho':
+      return 'Conselho';
+    case 'comite':
+      return 'Comitê';
+    case 'comissao':
+      return 'Comissão';
+    default:
+      return '';
+  }
+};
+
+const getStatusIcon = (status: MeetingSchedule['status']) => {
+  switch (status) {
+    case 'Agendada':
+      return <Calendar className="h-3 w-3" />;
+    case 'Pauta Definida':
+      return <FileText className="h-3 w-3" />;
+    case 'Realizada':
+      return <CheckCircle2 className="h-3 w-3" />;
+    case 'ATA Gerada':
+      return <FileCheck className="h-3 w-3" />;
+    default:
+      return null;
+  }
+};
+
+export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeetingClick, onUpdateMeeting, onDateClick }) => {
   console.log("📅 AnnualCalendar rendered with meetings:", meetings?.length || 0);
   
   const [currentDate, setCurrentDate] = useState(new Date());

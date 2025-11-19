@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, CheckCircle2, ChevronLeft, ChevronRight, Download, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, CheckCircle2, ChevronLeft, ChevronRight, Download, AlertCircle, Building2, Users, UserCog } from "lucide-react";
 import { format, addMonths, startOfMonth, endOfMonth, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useGovernanceOrgans } from "@/hooks/useGovernanceOrgans";
+import { downloadICS } from "@/utils/calendarExporter";
 
 interface WizardProps {
   onClose: () => void;
@@ -21,6 +23,8 @@ interface WizardProps {
 export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProps) {
   const [config, setConfig] = useState({
     year: new Date().getFullYear(),
+    organType: "" as "conselho" | "comite" | "comissao" | "",
+    organId: "",
     council: "",
     type: "Ordinária" as "Ordinária" | "Extraordinária",
     frequency: "",
@@ -30,6 +34,8 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
     modality: "Presencial" as "Presencial" | "Online" | "Híbrida",
     location: "",
   });
+
+  const { organs } = useGovernanceOrgans(config.organType || undefined);
 
   const [generatedDates, setGeneratedDates] = useState<Date[]>([]);
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
