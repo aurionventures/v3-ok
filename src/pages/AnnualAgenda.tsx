@@ -29,6 +29,10 @@ import { useCalendarFilters } from "@/hooks/useCalendarFilters";
 import { useGovernanceOrgans } from "@/hooks/useGovernanceOrgans";
 import MeetingQuickConfigModal from "@/components/councils/MeetingQuickConfigModal";
 import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ParticipantsManager from "@/components/councils/ParticipantsManager";
+import { MeetingParticipant } from "@/types/annualSchedule";
+import { useMeetingNotifications } from "@/hooks/useMeetingNotifications";
 
 const AnnualAgenda = () => {
   const { toast } = useToast();
@@ -52,6 +56,7 @@ const AnnualAgenda = () => {
     location: "",
     modalidade: "Presencial"
   });
+  const [meetingParticipants, setMeetingParticipants] = useState<MeetingParticipant[]>([]);
 
   const {
     schedule,
@@ -68,6 +73,7 @@ const AnnualAgenda = () => {
 
   const { councils, loading: councilsLoading } = useCouncils();
   const { createMeeting, loading: creatingMeeting } = useMeetings();
+  const { sendMeetingInvites } = useMeetingNotifications();
   
   // Filters
   const { filters, setFilters, filteredMeetings } = useCalendarFilters(schedule?.meetings || []);
