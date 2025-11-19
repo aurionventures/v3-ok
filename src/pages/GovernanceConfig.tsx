@@ -30,6 +30,39 @@ const GovernanceConfig = () => {
 
   const { organs, loading, createOrgan, deleteOrgan, updateAccessConfig } = useGovernanceOrgans(activeTab);
 
+  const createMockData = async () => {
+    const mockOrgans = [
+      // 3 Conselhos
+      { name: 'Conselho de Administração', type: 'administrativo', organ_type: 'conselho' as OrganType, description: 'Conselho responsável pela gestão estratégica e administrativa da empresa', quorum: 3, hierarchy_level: 1 },
+      { name: 'Conselho Fiscal', type: 'fiscal', organ_type: 'conselho' as OrganType, description: 'Conselho responsável pela fiscalização contábil e financeira', quorum: 3, hierarchy_level: 1 },
+      { name: 'Conselho Consultivo', type: 'consultivo', organ_type: 'conselho' as OrganType, description: 'Conselho consultivo de especialistas externos para orientação estratégica', quorum: 5, hierarchy_level: 1 },
+      // 3 Comitês
+      { name: 'Comitê de Auditoria', type: 'auditoria', organ_type: 'comite' as OrganType, description: 'Comitê responsável por supervisionar processos de auditoria interna e externa', quorum: 3, hierarchy_level: 2 },
+      { name: 'Comitê de Estratégia', type: 'estrategia', organ_type: 'comite' as OrganType, description: 'Comitê para definição e acompanhamento do planejamento estratégico', quorum: 4, hierarchy_level: 2 },
+      { name: 'Comitê de Riscos', type: 'outros', organ_type: 'comite' as OrganType, description: 'Comitê para gestão e mitigação de riscos corporativos', quorum: 3, hierarchy_level: 2 },
+      // 3 Comissões
+      { name: 'Comissão de Ética', type: 'outros', organ_type: 'comissao' as OrganType, description: 'Comissão temporária para análise de questões éticas e compliance', quorum: 3, hierarchy_level: 3 },
+      { name: 'Comissão de Inovação', type: 'outros', organ_type: 'comissao' as OrganType, description: 'Comissão para avaliar e aprovar projetos de inovação', quorum: 4, hierarchy_level: 3 },
+      { name: 'Comissão de Sustentabilidade', type: 'outros', organ_type: 'comissao' as OrganType, description: 'Comissão para iniciativas ESG e sustentabilidade corporativa', quorum: 3, hierarchy_level: 3 }
+    ];
+
+    try {
+      for (const organ of mockOrgans) {
+        await createOrgan(organ);
+      }
+      toast({
+        title: "Dados de exemplo criados",
+        description: "9 órgãos de governança foram criados com sucesso (3 conselhos, 3 comitês, 3 comissões).",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar todos os dados de exemplo.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreate = async () => {
     try {
       await createOrgan({
@@ -117,11 +150,18 @@ const GovernanceConfig = () => {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
-            <div>
-              <h1 className="text-3xl font-bold">Configuração de Governança</h1>
-              <p className="text-muted-foreground mt-2">
-                Gerencie conselhos, comitês e comissões da sua empresa
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">Configuração de Governança</h1>
+                <p className="text-muted-foreground mt-2">
+                  Gerencie conselhos, comitês e comissões da sua empresa
+                </p>
+              </div>
+              {organs.length === 0 && !loading && (
+                <Button onClick={createMockData} variant="outline">
+                  Criar Dados de Exemplo
+                </Button>
+              )}
             </div>
 
             {/* Tabs */}
