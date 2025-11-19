@@ -70,16 +70,16 @@ export function MeetingRealizationChecker({
         {/* Realization Check */}
         {!isRealized && isPastMeeting && (
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="meeting-realized"
-                checked={false}
-                onCheckedChange={() => {}}
-              />
-              <Label htmlFor="meeting-realized" className="text-sm font-medium">
-                Confirmar que a reunião foi realizada
-              </Label>
-            </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="meeting-realized"
+                  checked={confirmRealization}
+                  onCheckedChange={(checked) => setConfirmRealization(checked as boolean)}
+                />
+                <Label htmlFor="meeting-realized" className="text-sm font-medium">
+                  Confirmar que a reunião foi realizada
+                </Label>
+              </div>
 
             <Separator />
 

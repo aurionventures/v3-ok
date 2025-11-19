@@ -35,11 +35,11 @@ const getStepStatus = (meeting: MeetingSchedule, step: string) => {
   }
 };
 
-const getProgressPercentage = (meeting: MeetingSchedule) => {
-  // Se ATA foi gerada, reunião está 100% completa
-  if (meeting.status === "ATA Gerada" || meeting.minutes) {
-    return 100;
-  }
+  const getProgressPercentage = (meeting: MeetingSchedule) => {
+    // Se ATA foi gerada OU reunião está realizada, está 100% completa
+    if (meeting.status === "ATA Gerada" || meeting.status === "Realizada" || meeting.minutes) {
+      return 100;
+    }
   
   const steps = ["agenda", "documents", "meeting", "recording"];
   const completedSteps = steps.filter(step => getStepStatus(meeting, step) === "completed").length;
@@ -703,8 +703,7 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
         onUpdateMeeting={onUpdateMeeting}
       />
 
-      {/* Seção de Geração de ATA com IA */}
-      {meeting.status === "Realizada" && (
+        {/* Seção de Geração de ATA com IA - Sempre Visível */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -786,9 +785,8 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
                 </div>
               );
             })()}
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
     </div>
   );
 };
