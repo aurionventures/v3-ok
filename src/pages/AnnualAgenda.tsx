@@ -115,6 +115,20 @@ const AnnualAgenda = () => {
     }
   };
 
+  const resetMeetingForm = () => {
+    setMeetingForm({
+      organ_type: "",
+      council_id: "",
+      title: "",
+      date: "",
+      time: "",
+      type: "",
+      location: "",
+      modalidade: "Presencial"
+    });
+    setMeetingParticipants([]);
+  };
+
   const handleCreateMeeting = async () => {
     try {
       // Validação
@@ -149,7 +163,8 @@ const AnnualAgenda = () => {
         modalidade: meetingForm.modalidade as 'Presencial' | 'Online' | 'Híbrida',
         location: meetingForm.location,
         agenda: [],
-        nextMeetingTopics: []
+        nextMeetingTopics: [],
+        participants: meetingParticipants
       });
 
       toast({
@@ -157,11 +172,28 @@ const AnnualAgenda = () => {
         description: "A nova reunião foi agendada com sucesso na Agenda Anual.",
       });
 
+      // Enviar notificações aos participantes
+      if (meetingParticipants.length > 0) {
+        await sendMeetingInvites(
+          newMeeting.id,
+          meetingForm.title,
+          meetingForm.date,
+          meetingForm.time,
+          meetingParticipants
+        );
+        
+        toast({
+          title: "📧 Notificações enviadas",
+          description: `[DEMO] ${meetingParticipants.length} participante(s) notificado(s)`,
+        });
+      }
+
       // Salvar título antes de limpar o formulário
       const meetingTitle = meetingForm.title;
 
       // Fechar modal e limpar formulário
       setIsNewMeetingModalOpen(false);
+      resetMeetingForm();
       
       // Mostrar Quick Actions se a reunião foi criada com sucesso
       if (newMeeting?.id) {
@@ -169,17 +201,6 @@ const AnnualAgenda = () => {
         setCreatedMeetingTitle(meetingTitle);
         setShowQuickActions(true);
       }
-      
-      setMeetingForm({
-        organ_type: "",
-        council_id: "",
-        title: "",
-        date: "",
-        time: "",
-        type: "",
-        location: "",
-        modalidade: "Presencial"
-      });
 
     } catch (error) {
       console.error('Erro ao criar reunião:', error);
@@ -525,8 +546,14 @@ const AnnualAgenda = () => {
           />
 
           {/* New Meeting Modal */}
-          <Dialog open={isNewMeetingModalOpen} onOpenChange={setIsNewMeetingModalOpen}>
-            <DialogContent className="max-w-2xl">
+          <Dialog 
+            open={isNewMeetingModalOpen} 
+            onOpenChange={(open) => {
+              setIsNewMeetingModalOpen(open);
+              if (!open) resetMeetingForm();
+            }}
+          >
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nova Reunião</DialogTitle>
                 <DialogDescription>
@@ -534,136 +561,176 @@ const AnnualAgenda = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="grid gap-4 py-4">
-                {/* Tipo de Órgão */}
-                <div className="grid gap-2">
-                  <Label htmlFor="organ_type">Tipo de Órgão *</Label>
-                  <Select
-                    value={meetingForm.organ_type}
-                    onValueChange={(value: 'conselho' | 'comite' | 'comissao' | '') => {
-                      setMeetingForm(prev => ({ ...prev, organ_type: value, council_id: "" }));
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de órgão" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="conselho">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-blue-500" />
-                          Conselho
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="comite">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-green-500" />
-                          Comitê
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="comissao">
-                        <div className="flex items-center gap-2">
-                          <UserCog className="h-4 w-4 text-amber-500" />
-                          Comissão
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <Tabs defaultValue="informacoes" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="informacoes">
+                    Informações
+                  </TabsTrigger>
+                  <TabsTrigger value="participantes">
+                    <div className="flex items-center gap-2">
+                      Participantes
+                      {meetingParticipants.length > 0 && (
+                        <Badge variant="secondary" className="ml-1">
+                          {meetingParticipants.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </TabsTrigger>
+                </TabsList>
 
-                {/* Órgão Específico */}
-                {meetingForm.organ_type && (
+                {/* ABA 1: INFORMAÇÕES */}
+                <TabsContent value="informacoes" className="space-y-4 mt-4">
+                  {/* Tipo de Órgão */}
                   <div className="grid gap-2">
-                    <Label htmlFor="council_id">Órgão *</Label>
-                    <OrganSelector
-                      value={meetingForm.council_id}
-                      onValueChange={(id) => setMeetingForm(prev => ({ ...prev, council_id: id }))}
+                    <Label htmlFor="organ_type">Tipo de Órgão *</Label>
+                    <Select
+                      value={meetingForm.organ_type}
+                      onValueChange={(value: 'conselho' | 'comite' | 'comissao' | '') => {
+                        setMeetingForm(prev => ({ ...prev, organ_type: value, council_id: "" }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo de órgão" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="conselho">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-blue-500" />
+                            Conselho
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="comite">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-green-500" />
+                            Comitê
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="comissao">
+                          <div className="flex items-center gap-2">
+                            <UserCog className="h-4 w-4 text-amber-500" />
+                            Comissão
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Órgão Específico */}
+                  {meetingForm.organ_type && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="council_id">Órgão *</Label>
+                      <OrganSelector
+                        value={meetingForm.council_id}
+                        onValueChange={(id) => setMeetingForm(prev => ({ ...prev, council_id: id }))}
+                        organType={meetingForm.organ_type}
+                        placeholder={`Selecione o ${meetingForm.organ_type}`}
+                      />
+                    </div>
+                  )}
+
+                  {/* Título */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">Título da Reunião *</Label>
+                    <Input
+                      id="title"
+                      value={meetingForm.title}
+                      onChange={(e) => setMeetingForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Ex: Reunião Ordinária de Janeiro"
+                    />
+                  </div>
+
+                  {/* Data e Hora */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="date">Data *</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={meetingForm.date}
+                        onChange={(e) => setMeetingForm(prev => ({ ...prev, date: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="time">Hora *</Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={meetingForm.time}
+                        onChange={(e) => setMeetingForm(prev => ({ ...prev, time: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tipo e Modalidade */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="type">Tipo *</Label>
+                      <Select
+                        value={meetingForm.type}
+                        onValueChange={(value) => setMeetingForm(prev => ({ ...prev, type: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ordinária">Ordinária</SelectItem>
+                          <SelectItem value="Extraordinária">Extraordinária</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="modalidade">Modalidade</Label>
+                      <Select
+                        value={meetingForm.modalidade}
+                        onValueChange={(value) => setMeetingForm(prev => ({ ...prev, modalidade: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a modalidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Presencial">Presencial</SelectItem>
+                          <SelectItem value="Online">Online</SelectItem>
+                          <SelectItem value="Híbrida">Híbrida</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Local */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="location">Local</Label>
+                    <Input
+                      id="location"
+                      value={meetingForm.location}
+                      onChange={(e) => setMeetingForm(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Ex: Sala de Reuniões - 3º Andar"
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* ABA 2: PARTICIPANTES */}
+                <TabsContent value="participantes" className="mt-4">
+                  {!meetingForm.council_id ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="font-medium">Selecione um órgão primeiro</p>
+                      <p className="text-sm mt-1">
+                        Vá para a aba "Informações" e selecione o tipo de órgão e o órgão específico
+                      </p>
+                    </div>
+                  ) : (
+                    <ParticipantsManager
+                      meetingId="new-meeting"
+                      councilId={meetingForm.council_id}
                       organType={meetingForm.organ_type}
-                      placeholder={`Selecione o ${meetingForm.organ_type}`}
+                      participants={meetingParticipants}
+                      onUpdate={setMeetingParticipants}
                     />
-                  </div>
-                )}
+                  )}
+                </TabsContent>
+              </Tabs>
 
-                {/* Título */}
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Título da Reunião *</Label>
-                  <Input
-                    id="title"
-                    value={meetingForm.title}
-                    onChange={(e) => setMeetingForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Ex: Reunião Ordinária de Janeiro"
-                  />
-                </div>
-
-                {/* Data e Hora */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Data *</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={meetingForm.date}
-                      onChange={(e) => setMeetingForm(prev => ({ ...prev, date: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="time">Hora *</Label>
-                    <Input
-                      id="time"
-                      type="time"
-                      value={meetingForm.time}
-                      onChange={(e) => setMeetingForm(prev => ({ ...prev, time: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                {/* Tipo e Modalidade */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="type">Tipo *</Label>
-                    <Select
-                      value={meetingForm.type}
-                      onValueChange={(value) => setMeetingForm(prev => ({ ...prev, type: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Ordinária">Ordinária</SelectItem>
-                        <SelectItem value="Extraordinária">Extraordinária</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="modalidade">Modalidade</Label>
-                    <Select
-                      value={meetingForm.modalidade}
-                      onValueChange={(value) => setMeetingForm(prev => ({ ...prev, modalidade: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a modalidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Presencial">Presencial</SelectItem>
-                        <SelectItem value="Online">Online</SelectItem>
-                        <SelectItem value="Híbrida">Híbrida</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Local */}
-                <div className="grid gap-2">
-                  <Label htmlFor="location">Local</Label>
-                  <Input
-                    id="location"
-                    value={meetingForm.location}
-                    onChange={(e) => setMeetingForm(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="Ex: Sala de Reuniões - 3º Andar"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-4 border-t mt-4">
                 <Button variant="outline" onClick={() => setIsNewMeetingModalOpen(false)}>
                   Cancelar
                 </Button>
