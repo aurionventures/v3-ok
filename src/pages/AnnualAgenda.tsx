@@ -20,6 +20,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { OrganSelector } from "@/components/governance/OrganSelector";
 import { Building2, Users, UserCog } from "lucide-react";
+import { QuickActionsCard } from "@/components/councils/QuickActionsCard";
+import { QuickAddGuestModal } from "@/components/councils/QuickAddGuestModal";
 
 const AnnualAgenda = () => {
   const { toast } = useToast();
@@ -27,6 +29,10 @@ const AnnualAgenda = () => {
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isNewMeetingModalOpen, setIsNewMeetingModalOpen] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [createdMeetingId, setCreatedMeetingId] = useState<string | null>(null);
+  const [createdMeetingTitle, setCreatedMeetingTitle] = useState<string>("");
+  const [isQuickAddGuestModalOpen, setIsQuickAddGuestModalOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({
     organ_type: "" as 'conselho' | 'comite' | 'comissao' | "",
     council_id: "",
@@ -76,7 +82,7 @@ const AnnualAgenda = () => {
       }
 
       // Criar reunião no banco de dados
-      await createMeeting({
+      const newMeeting = await createMeeting({
         council_id: meetingForm.council_id,
         title: meetingForm.title,
         date: meetingForm.date,
@@ -105,8 +111,19 @@ const AnnualAgenda = () => {
         description: "A nova reunião foi agendada com sucesso na Agenda Anual.",
       });
 
+      // Salvar título antes de limpar o formulário
+      const meetingTitle = meetingForm.title;
+
       // Fechar modal e limpar formulário
       setIsNewMeetingModalOpen(false);
+      
+      // Mostrar Quick Actions se a reunião foi criada com sucesso
+      if (newMeeting?.id) {
+        setCreatedMeetingId(newMeeting.id);
+        setCreatedMeetingTitle(meetingTitle);
+        setShowQuickActions(true);
+      }
+      
       setMeetingForm({
         organ_type: "",
         council_id: "",
@@ -318,6 +335,28 @@ const AnnualAgenda = () => {
               />
             </DialogContent>
           </Dialog>
+
+          {/* Quick Actions Card */}
+          {showQuickActions && createdMeetingId && (
+            <QuickActionsCard
+              meetingId={createdMeetingId}
+              meetingTitle={createdMeetingTitle}
+              onAddGuest={() => setIsQuickAddGuestModalOpen(true)}
+              onClose={() => {
+                setShowQuickActions(false);
+                setCreatedMeetingId(null);
+                setCreatedMeetingTitle("");
+              }}
+            />
+          )}
+
+          {/* Quick Add Guest Modal */}
+          <QuickAddGuestModal
+            open={isQuickAddGuestModalOpen}
+            onOpenChange={setIsQuickAddGuestModalOpen}
+            meetingId={createdMeetingId || ""}
+            meetingTitle={createdMeetingTitle}
+          />
         </div>
       </div>
     </div>
