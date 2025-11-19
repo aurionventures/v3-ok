@@ -187,6 +187,13 @@ export function TopMenu() {
       color: "text-red-400",
       items: [
         {
+          icon: Send,
+          href: "/notifications-center",
+          name: "Central de Notificações",
+          moduleId: "notifications-center",
+          priority: true
+        },
+        {
           icon: Shield,
           href: "/governance-risk-management",
           name: "Gestão de Riscos de Governança",

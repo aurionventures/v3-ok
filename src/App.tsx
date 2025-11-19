@@ -57,6 +57,7 @@ import Reunioes from "./pages/Reunioes";
 import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
 import GuestAccess from "./pages/GuestAccess";
 import NotificationSettings from "./pages/NotificationSettings";
+import NotificationsCenter from "./pages/NotificationsCenter";
 import AuditLogs from "./pages/AuditLogs";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import SecretariatPanel from "./pages/SecretariatPanel";
@@ -277,6 +278,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <NotificationSettings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/notifications-center" 
+            element={
+              <ProtectedRoute >
+                <NotificationsCenter />
               </ProtectedRoute>
             } 
           />
