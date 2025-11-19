@@ -491,19 +491,7 @@ const SubmitProjects = () => {
                                 >
                                   Ver Detalhes
                                 </Button>
-                                {!project.aiAnalysis && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleAnalyzeWithAI(project.id)}
-                                    disabled={isAnalyzing}
-                                    className="flex items-center gap-1"
-                                  >
-                                    <Bot className="h-3 w-3" />
-                                    {isAnalyzing ? "Analisando..." : "Analisar IA"}
-                                  </Button>
-                                )}
-                                {project.aiAnalysis && project.status !== "Enriquecido pela IA" && (
+                                {project.status !== "Enriquecido pela IA" && (
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -512,10 +500,10 @@ const SubmitProjects = () => {
                                     className="flex items-center gap-1"
                                   >
                                     <Sparkles className="h-3 w-3" />
-                                    {isEnriching ? "Enriquecendo..." : "Enriquecer"}
+                                    {isEnriching ? "Enriquecendo..." : "Enriquecer com IA"}
                                   </Button>
                                 )}
-                                {project.aiAnalysis && project.status !== "Submetido para Votação" && (
+                                {project.status !== "Submetido para Votação" && (
                                   <Button
                                     size="sm"
                                     onClick={() => handleSubmitForVoting(project.id)}
