@@ -56,7 +56,47 @@ export default function GuestAccess() {
   const [data, setData] = useState<MeetingData | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // Função para inicializar dados de demonstração
+  const initializeDemoData = () => {
+    const existingTokens = localStorage.getItem('guest_tokens');
+    
+    if (!existingTokens || Object.keys(JSON.parse(existingTokens)).length === 0) {
+      console.log('🔧 Inicializando tokens de demonstração...');
+      
+      const demoToken = 'demo-guest-token-123';
+      const scheduleData = JSON.parse(localStorage.getItem('annual_council_schedule') || '{}');
+      const meetings = scheduleData.meetings || [];
+      const demoMeeting = meetings[0];
+      
+      if (demoMeeting) {
+        const demoTokenData = {
+          [demoToken]: {
+            participant_id: 'demo-participant-1',
+            meeting_id: demoMeeting.id,
+            name: 'Pedro Berto (Demo)',
+            email: 'pedro@berto.com',
+            permissions: {
+              can_upload: true,
+              can_view_materials: true,
+              can_comment: true
+            },
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            access_count: 0,
+            last_accessed_at: null
+          }
+        };
+        
+        localStorage.setItem('guest_tokens', JSON.stringify(demoTokenData));
+        console.log('✅ Token de demonstração criado:', demoToken);
+        console.log('📋 Link de demonstração:', `${window.location.origin}/guest-access/${demoToken}`);
+      }
+    }
+  };
+
   useEffect(() => {
+    initializeDemoData();
+    
     if (token) {
       fetchMeetingData();
     }
@@ -152,9 +192,12 @@ export default function GuestAccess() {
       };
       
       setData(mockData);
-      toast.success(`Bem-vindo, ${tokenData.name}! 👋`, {
-        description: `Esta é sua ${tokenData.access_count}ª vez acessando esta reunião.`
-      });
+    toast.success(`Bem-vindo, ${tokenData.name}! 👋`, {
+      description: `Esta é uma demonstração de acesso de convidado. Você pode ${
+        tokenData.permissions.can_upload ? 'visualizar materiais e fazer upload de documentos' : 'visualizar materiais da reunião'
+      }.`,
+      duration: 5000
+    });
       
       console.log('✅ Dados carregados com sucesso:', mockData);
     } catch (err: any) {
@@ -254,10 +297,19 @@ export default function GuestAccess() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-red-600">{error}</p>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-red-600 mb-4">{error}</p>
+                <p className="text-sm text-gray-600 mb-4">
                   Por favor, solicite um novo link de acesso.
                 </p>
+                <Button
+                  onClick={() => {
+                    initializeDemoData();
+                    window.location.href = `${window.location.origin}/guest-access/demo-guest-token-123`;
+                  }}
+                  className="w-full"
+                >
+                  Usar Link de Demonstração
+                </Button>
               </CardContent>
             </Card>
           </div>
