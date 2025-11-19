@@ -13,6 +13,7 @@ import { format, addMonths, startOfMonth, endOfMonth, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useGovernanceOrgans } from "@/hooks/useGovernanceOrgans";
+import { useGovernanceMembers } from "@/hooks/useGovernanceMembers";
 import { downloadICS } from "@/utils/calendarExporter";
 
 interface WizardProps {
@@ -36,12 +37,14 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
   });
 
   const { organs } = useGovernanceOrgans(config.organType || undefined);
+  const { members } = useGovernanceMembers();
   
   const isFormValid = config.organType && config.organId && config.frequency && config.dayRule && config.time;
 
   const [generatedDates, setGeneratedDates] = useState<Date[]>([]);
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
   const [selectedDateDetails, setSelectedDateDetails] = useState<Date | null>(null);
+  const [organMembers, setOrganMembers] = useState<any[]>([]);
 
   const frequencyOptions = [
     { value: "monthly", label: "Mensal (12 reuniões/ano)", meetings: 12 },
@@ -276,23 +279,68 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
     toast.success("Calendário baixado!", { description: `Arquivo .ics com ${generatedDates.length} eventos. Importe no Google Calendar ou Outlook.` });
   };
 
+  // Filtrar membros quando organId mudar
+  useEffect(() => {
+    if (config.organId && members.length > 0) {
+      const filtered = members.filter(member => 
+        member.allocations?.some(alloc => alloc.council_id === config.organId)
+      ).map(member => {
+        const allocation = member.allocations?.find(a => a.council_id === config.organId);
+        return {
+          id: member.id,
+          name: member.name,
+          role: allocation?.role || member.role,
+          email: member.email,
+          phone: member.phone
+        };
+      });
+      
+      setOrganMembers(filtered);
+      if (filtered.length > 0) {
+        console.log(`👥 ${filtered.length} membros alocados ao órgão selecionado`);
+      }
+    } else {
+      setOrganMembers([]);
+    }
+  }, [config.organId, members]);
+
   const handleCreateCalendar = () => {
     if (generatedDates.length === 0) {
       toast.error("Nenhuma data gerada", { description: "Gere o preview primeiro" });
       return;
     }
 
+    const selectedOrgan = organs.find(o => o.id === config.organId);
+
     const meetings = generatedDates.map((date) => ({
-      council: config.council,
+      council: selectedOrgan?.name || config.council,
+      council_id: config.organId,
+      organ_type: config.organType,
       date: format(date, 'yyyy-MM-dd'),
       time: config.time,
       type: config.type,
+      status: "Agendada" as const,
       modalidade: config.modality,
-      location: config.location
+      location: config.location || "Sala de Reuniões",
+      agenda: [],
+      nextMeetingTopics: [],
+      participants: organMembers.map(member => ({
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        phone: member.phone,
+        role: 'MEMBRO' as const,
+        confirmed: false,
+        can_upload: true,
+        can_view_materials: true,
+        can_comment: true,
+      })),
+      confirmed_participants: 0,
+      notifications_sent: false
     }));
     
     onComplete(meetings);
-    toast.success("Calendário criado!", { description: `${generatedDates.length} reuniões foram adicionadas à Agenda Anual ${config.year}` });
+    toast.success(`🗓️ ${generatedDates.length} reuniões criadas com ${organMembers.length} participantes cada!`);
     onClose();
   };
 
@@ -668,15 +716,64 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
             </CardContent>
           </Card>
 
+          {/* Seção de Membros Alocados */}
+          {config.organId && organMembers.length > 0 && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  Participantes das Reuniões
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {organMembers.length} {organMembers.length === 1 ? 'membro alocado' : 'membros alocados'} 
+                  {' '}a este órgão participarão automaticamente de todas as reuniões geradas
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {organMembers.map((member, index) => (
+                    <div 
+                      key={member.id}
+                      className="flex items-center justify-between p-3 border rounded-lg bg-blue-50/50 hover:bg-blue-50 transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold text-sm">
+                          {member.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{member.name}</p>
+                          <p className="text-xs text-muted-foreground">{member.role}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        Membro #{index + 1}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+                
+                {organMembers.length > 0 && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs text-green-700 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Todos os membros serão adicionados automaticamente como participantes oficiais
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {generatedDates.length > 0 && (
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleDownloadAllICS} className="flex-1">
                 <Download className="h-4 w-4 mr-2" />
                 Baixar .ics
               </Button>
-              <Button onClick={handleCreateCalendar} className="flex-1">
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Criar Calendário
+              <Button onClick={handleCreateCalendar} size="lg" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <CheckCircle2 className="h-5 w-5 mr-2" />
+                Criar {generatedDates.length} Reuniões
+                {organMembers.length > 0 && ` com ${organMembers.length} Participantes`}
               </Button>
             </div>
           )}
