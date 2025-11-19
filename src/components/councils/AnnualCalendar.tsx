@@ -149,16 +149,36 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
     // Add cells for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const meetingsForDay = getMeetingsForDate(date);
+      const dayMeetings = getMeetingsForDate(date);
       const isToday = date.toDateString() === new Date().toDateString();
+      const hasMeetings = dayMeetings.length > 0;
 
       days.push(
-        <div key={day} className={`p-2 min-h-[100px] border border-gray-100 ${isToday ? 'bg-blue-50' : ''}`}>
-          <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
+        <div 
+          key={day} 
+          className={cn(
+            "p-2 min-h-[100px] border border-gray-100 transition-colors cursor-pointer",
+            isToday && "bg-blue-50",
+            hasMeetings && !isToday && "bg-blue-900/10 hover:bg-blue-900/20"
+          )}
+          onClick={() => {
+            if (dayMeetings.length > 0) {
+              onMeetingClick(dayMeetings[0]);
+            } else {
+              onDateClick?.(date);
+            }
+          }}
+        >
+          <div className={cn(
+            "text-sm font-medium mb-1",
+            isToday && "text-blue-600",
+            hasMeetings && !isToday && "text-blue-900 font-bold",
+            !hasMeetings && !isToday && "text-gray-900"
+          )}>
             {day}
           </div>
           <div className="space-y-1">
-            {meetingsForDay.map(meeting => (
+            {dayMeetings.map(meeting => (
               <MeetingAgendaPopover
                 key={meeting.id}
                 meeting={meeting}
