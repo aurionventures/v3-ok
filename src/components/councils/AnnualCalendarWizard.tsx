@@ -417,18 +417,79 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
                 <Label>Ano do Calendário</Label>
                 <Input type="number" value={config.year} onChange={(e) => setConfig({ ...config, year: parseInt(e.target.value) })} />
               </div>
+              {/* Seleção de Tipo de Órgão */}
               <div>
-                <Label>Conselho</Label>
-                <Select value={config.council} onValueChange={(value) => setConfig({ ...config, council: value })}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o conselho" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Conselho de Administração">Conselho de Administração</SelectItem>
-                    <SelectItem value="Conselho Fiscal">Conselho Fiscal</SelectItem>
-                    <SelectItem value="Conselho Consultivo">Conselho Consultivo</SelectItem>
-                    <SelectItem value="Comitê de Auditoria">Comitê de Auditoria</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Tipo de Órgão *</Label>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant={config.organType === 'conselho' ? 'default' : 'outline'}
+                    onClick={() => setConfig({...config, organType: 'conselho', organId: '', council: ''})}
+                    className="h-20 flex flex-col gap-2"
+                  >
+                    <Building2 className="h-6 w-6" />
+                    <span className="text-xs">Conselho</span>
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant={config.organType === 'comite' ? 'default' : 'outline'}
+                    onClick={() => setConfig({...config, organType: 'comite', organId: '', council: ''})}
+                    className="h-20 flex flex-col gap-2"
+                  >
+                    <Users className="h-6 w-6" />
+                    <span className="text-xs">Comitê</span>
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant={config.organType === 'comissao' ? 'default' : 'outline'}
+                    onClick={() => setConfig({...config, organType: 'comissao', organId: '', council: ''})}
+                    className="h-20 flex flex-col gap-2"
+                  >
+                    <UserCog className="h-6 w-6" />
+                    <span className="text-xs">Comissão</span>
+                  </Button>
+                </div>
               </div>
+
+              {/* Dropdown Dinâmico de Órgão Específico */}
+              {config.organType && (
+                <div>
+                  <Label>
+                    {config.organType === 'conselho' ? 'Conselho' : 
+                     config.organType === 'comite' ? 'Comitê' : 'Comissão'} *
+                  </Label>
+                  <Select 
+                    value={config.organId} 
+                    onValueChange={(value) => {
+                      const selectedOrgan = organs.find(o => o.id === value);
+                      setConfig({
+                        ...config, 
+                        organId: value,
+                        council: selectedOrgan?.name || ''
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder={`Selecione o ${config.organType}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organs.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          Nenhum {config.organType} cadastrado
+                        </SelectItem>
+                      ) : (
+                        organs.map(organ => (
+                          <SelectItem key={organ.id} value={organ.id}>
+                            {organ.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label>Tipo de Reunião Padrão</Label>
                 <Select value={config.type} onValueChange={(value: any) => setConfig({ ...config, type: value })}>
