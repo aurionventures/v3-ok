@@ -12,7 +12,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, Clock, CheckCircle2, FileDown, Filter } from "lucide-react";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  AlertCircle, 
+  Clock, 
+  CheckCircle2, 
+  FileDown, 
+  Filter,
+  Building2,
+  Users,
+  UserCog,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +57,8 @@ export const PendingTasksReportModal = ({
 }: PendingTasksReportModalProps) => {
   const { toast } = useToast();
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
-  const [selectedOrgans, setSelectedOrgans] = useState<string[]>([]);
+  const [selectedOrganType, setSelectedOrganType] = useState<'conselho' | 'comite' | 'comissao' | ''>('');
+  const [selectedOrganId, setSelectedOrganId] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Buscar todos os órgãos de governança
@@ -102,11 +119,19 @@ export const PendingTasksReportModal = ({
     return enrichedTasks.filter((task) => {
       const priorityMatch = selectedPriorities.length === 0 || 
         selectedPriorities.includes(task.priority);
-      const organMatch = selectedOrgans.length === 0 || 
-        selectedOrgans.includes(task.organ);
+      
+      // Se nenhum órgão foi selecionado, mostrar todas as tarefas
+      if (!selectedOrganId) {
+        return priorityMatch;
+      }
+      
+      // Encontrar o órgão selecionado para comparar com o nome
+      const selectedOrgan = allOrgans.find(o => o.id === selectedOrganId);
+      const organMatch = selectedOrgan ? task.organ === selectedOrgan.name : true;
+      
       return priorityMatch && organMatch;
     });
-  }, [enrichedTasks, selectedPriorities, selectedOrgans]);
+  }, [enrichedTasks, selectedPriorities, selectedOrganId, allOrgans]);
 
   // Calcular resumo
   const summary = useMemo(() => {
@@ -131,52 +156,23 @@ export const PendingTasksReportModal = ({
     );
   };
 
-  const handleToggleOrgan = (organName: string) => {
-    setSelectedOrgans(prev =>
-      prev.includes(organName)
-        ? prev.filter(o => o !== organName)
-        : [...prev, organName]
-    );
-  };
-
-  const handleSelectAllOrgansOfType = (type: 'conselho' | 'comite' | 'comissao') => {
-    const organsOfType = organsByType[
-      type === 'conselho' ? 'conselhos' : 
-      type === 'comite' ? 'comites' : 
-      'comissoes'
-    ].map(o => o.name);
-
-    const allSelected = organsOfType.every(name => selectedOrgans.includes(name));
-
-    if (allSelected) {
-      // Desselecionar todos deste tipo
-      setSelectedOrgans(prev => prev.filter(name => !organsOfType.includes(name)));
-    } else {
-      // Selecionar todos deste tipo
-      setSelectedOrgans(prev => [...new Set([...prev, ...organsOfType])]);
-    }
-  };
 
   const handleExportPDF = async () => {
     setIsGenerating(true);
     try {
-      // Preparar dados com filtros organizados por tipo
+      const selectedOrgan = allOrgans.find(o => o.id === selectedOrganId);
+      
+      // Organizar filtros para o PDF
       const organsByTypeSelected = {
-        conselhos: selectedOrgans.filter(name => 
-          organsByType.conselhos.some(o => o.name === name)
-        ),
-        comites: selectedOrgans.filter(name => 
-          organsByType.comites.some(o => o.name === name)
-        ),
-        comissoes: selectedOrgans.filter(name => 
-          organsByType.comissoes.some(o => o.name === name)
-        ),
+        conselhos: selectedOrgan?.organ_type === 'conselho' ? [selectedOrgan.name] : [],
+        comites: selectedOrgan?.organ_type === 'comite' ? [selectedOrgan.name] : [],
+        comissoes: selectedOrgan?.organ_type === 'comissao' ? [selectedOrgan.name] : [],
       };
 
       await generatePendingTasksReportPDF({
         filters: {
           priorities: selectedPriorities,
-          organs: selectedOrgans,
+          organs: selectedOrgan ? [selectedOrgan.name] : [],
           organsByType: organsByTypeSelected,
         },
         tasks: filteredTasks,
@@ -198,6 +194,19 @@ export const PendingTasksReportModal = ({
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const getOrganTypeIcon = (type: string) => {
+    switch (type) {
+      case 'conselho':
+        return <Building2 className="h-4 w-4 text-blue-500" />;
+      case 'comite':
+        return <Users className="h-4 w-4 text-green-500" />;
+      case 'comissao':
+        return <UserCog className="h-4 w-4 text-amber-500" />;
+      default:
+        return null;
     }
   };
 
@@ -237,6 +246,15 @@ export const PendingTasksReportModal = ({
       case 'conselho': return 'Conselho';
       case 'comite': return 'Comitê';
       case 'comissao': return 'Comissão';
+      default: return organType;
+    }
+  };
+
+  const getOrganTypeLabelPlural = (organType: string) => {
+    switch (organType) {
+      case 'conselho': return 'conselhos';
+      case 'comite': return 'comitês';
+      case 'comissao': return 'comissões';
       default: return organType;
     }
   };
@@ -300,132 +318,79 @@ export const PendingTasksReportModal = ({
 
             <Separator />
 
-            {/* CONSELHOS */}
+            {/* Filtro de Tipo de Órgão */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  Conselhos
-                </Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSelectAllOrgansOfType('conselho')}
-                  className="h-7 text-xs"
-                >
-                  {organsByType.conselhos.every(o => selectedOrgans.includes(o.name))
-                    ? 'Desmarcar Todos'
-                    : 'Selecionar Todos'}
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {organsByType.conselhos.map((organ) => (
-                  <div
-                    key={organ.id}
-                    className={`flex items-center space-x-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                      selectedOrgans.includes(organ.name)
-                        ? "border-blue-500 bg-blue-50 shadow-sm"
-                        : "border-gray-200 hover:border-blue-200 hover:bg-blue-50/30"
-                    }`}
-                    onClick={() => handleToggleOrgan(organ.name)}
-                  >
-                    <Checkbox
-                      checked={selectedOrgans.includes(organ.name)}
-                      onCheckedChange={() => handleToggleOrgan(organ.name)}
-                    />
-                    <Label className="cursor-pointer flex-1 text-sm">
-                      {organ.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              <Label className="text-sm font-semibold">
+                Tipo de Órgão
+              </Label>
+              <Select 
+                value={selectedOrganType} 
+                onValueChange={(value) => {
+                  setSelectedOrganType(value as 'conselho' | 'comite' | 'comissao' | '');
+                  setSelectedOrganId(''); // Resetar órgão ao mudar tipo
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o tipo de órgão" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="conselho">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-blue-500" />
+                      Conselho
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="comite">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-green-500" />
+                      Comitê
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="comissao">
+                    <div className="flex items-center gap-2">
+                      <UserCog className="h-4 w-4 text-amber-500" />
+                      Comissão
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <Separator />
-
-            {/* COMITÊS */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            {/* Filtro de Órgão Específico (condicional) */}
+            {selectedOrganType && (
+              <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  Comitês
+                  {getOrganTypeIcon(selectedOrganType)}
+                  Órgão Específico
                 </Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSelectAllOrgansOfType('comite')}
-                  className="h-7 text-xs"
+                <Select 
+                  value={selectedOrganId} 
+                  onValueChange={setSelectedOrganId}
                 >
-                  {organsByType.comites.every(o => selectedOrgans.includes(o.name))
-                    ? 'Desmarcar Todos'
-                    : 'Selecionar Todos'}
-                </Button>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={`Selecione o ${getOrganTypeLabel(selectedOrganType).toLowerCase()}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      Todos os {getOrganTypeLabelPlural(selectedOrganType)}
+                    </SelectItem>
+                    {organsByType[
+                      selectedOrganType === 'conselho' ? 'conselhos' : 
+                      selectedOrganType === 'comite' ? 'comites' : 
+                      'comissoes'
+                    ].map((organ) => (
+                      <SelectItem key={organ.id} value={organ.id}>
+                        <div className="flex items-center gap-2">
+                          {getOrganTypeIcon(selectedOrganType)}
+                          {organ.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {organsByType.comites.map((organ) => (
-                  <div
-                    key={organ.id}
-                    className={`flex items-center space-x-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                      selectedOrgans.includes(organ.name)
-                        ? "border-green-500 bg-green-50 shadow-sm"
-                        : "border-gray-200 hover:border-green-200 hover:bg-green-50/30"
-                    }`}
-                    onClick={() => handleToggleOrgan(organ.name)}
-                  >
-                    <Checkbox
-                      checked={selectedOrgans.includes(organ.name)}
-                      onCheckedChange={() => handleToggleOrgan(organ.name)}
-                    />
-                    <Label className="cursor-pointer flex-1 text-sm">
-                      {organ.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* COMISSÕES */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  Comissões
-                </Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSelectAllOrgansOfType('comissao')}
-                  className="h-7 text-xs"
-                >
-                  {organsByType.comissoes.every(o => selectedOrgans.includes(o.name))
-                    ? 'Desmarcar Todos'
-                    : 'Selecionar Todos'}
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {organsByType.comissoes.map((organ) => (
-                  <div
-                    key={organ.id}
-                    className={`flex items-center space-x-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                      selectedOrgans.includes(organ.name)
-                        ? "border-yellow-500 bg-yellow-50 shadow-sm"
-                        : "border-gray-200 hover:border-yellow-200 hover:bg-yellow-50/30"
-                    }`}
-                    onClick={() => handleToggleOrgan(organ.name)}
-                  >
-                    <Checkbox
-                      checked={selectedOrgans.includes(organ.name)}
-                      onCheckedChange={() => handleToggleOrgan(organ.name)}
-                    />
-                    <Label className="cursor-pointer flex-1 text-sm">
-                      {organ.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
 
             <Separator />
 
@@ -577,9 +542,10 @@ export const PendingTasksReportModal = ({
             <Badge variant="secondary" className="text-sm px-3 py-1">
               {filteredTasks.length} {filteredTasks.length === 1 ? 'tarefa' : 'tarefas'}
             </Badge>
-            {selectedOrgans.length > 0 && (
-              <Badge variant="outline" className="text-sm px-3 py-1">
-                {selectedOrgans.length} {selectedOrgans.length === 1 ? 'órgão' : 'órgãos'}
+            {selectedOrganId && (
+              <Badge variant="outline" className="text-sm px-3 py-1 flex items-center gap-1">
+                {getOrganTypeIcon(selectedOrganType)}
+                {allOrgans.find(o => o.id === selectedOrganId)?.name}
               </Badge>
             )}
           </div>
