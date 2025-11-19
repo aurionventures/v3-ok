@@ -28,6 +28,11 @@ const generateMockParticipants = (organType: string, councilName: string) => {
       { name: 'Dr. Ricardo Mendes', role: 'Coordenador', email: 'ricardo.mendes@empresa.com' },
       { name: 'Dra. Patrícia Lima', role: 'Membro', email: 'patricia.lima@empresa.com' },
       { name: 'João Carlos Neves', role: 'Membro Independente', email: 'joao.neves@empresa.com' }
+    ],
+    'Comissão de Ética': [
+      { name: 'Roberto Alves', role: 'Coordenador', email: 'roberto.alves@empresa.com' },
+      { name: 'Beatriz Lima', role: 'Membro', email: 'beatriz.lima@empresa.com' },
+      { name: 'Daniela Ferreira', role: 'Membro', email: 'daniela.ferreira@empresa.com' }
     ]
   };
 
@@ -130,43 +135,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         }
       ];
       
-      meeting.participants = [
-        {
-          id: `p-conselho-${month + 1}-1`,
-          user_id: "user-001",
-          external_name: "João Silva",
-          external_email: "joao.silva@empresa.com",
-          role: "MEMBRO",
-          can_upload: true,
-          can_view_materials: true,
-          can_comment: true,
-          confirmed: true
-        },
-        {
-          id: `p-conselho-${month + 1}-2`,
-          user_id: "user-002",
-          external_name: "Maria Santos",
-          external_email: "maria.santos@empresa.com",
-          role: "MEMBRO",
-          can_upload: true,
-          can_view_materials: true,
-          can_comment: true,
-          confirmed: true
-        },
-        {
-          id: `p-conselho-${month + 1}-3`,
-          user_id: "user-003",
-          external_name: "Pedro Costa",
-          external_email: "pedro.costa@empresa.com",
-          role: "MEMBRO",
-          can_upload: true,
-          can_view_materials: true,
-          can_comment: true,
-          confirmed: true
-        }
-      ];
-      
-      meeting.confirmed_participants = 3;
+      meeting.confirmed_participants = meeting.participants?.length || 0;
       
       meeting.meeting_tasks = [
         {
@@ -296,32 +265,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         }
       ];
       
-      meeting.participants = [
-        {
-          id: `p-comite-${month + 1}-1`,
-          user_id: "user-004",
-          external_name: "Ana Paula Oliveira",
-          external_email: "ana.oliveira@empresa.com",
-          role: "MEMBRO",
-          can_upload: true,
-          can_view_materials: true,
-          can_comment: true,
-          confirmed: true
-        },
-        {
-          id: `p-comite-${month + 1}-2`,
-          user_id: "user-005",
-          external_name: "Carlos Ferreira",
-          external_email: "carlos.ferreira@empresa.com",
-          role: "MEMBRO",
-          can_upload: true,
-          can_view_materials: true,
-          can_comment: true,
-          confirmed: true
-        }
-      ];
-      
-      meeting.confirmed_participants = 2;
+      meeting.confirmed_participants = meeting.participants?.length || 0;
       
       meeting.meeting_tasks = [
         {
@@ -406,21 +350,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         }
       ];
       
-      meeting.participants = [
-        {
-          id: `p-comissao-${month + 1}-1`,
-          user_id: "user-007",
-          external_name: "Beatriz Lima",
-          external_email: "beatriz.lima@empresa.com",
-          role: "MEMBRO",
-          can_upload: true,
-          can_view_materials: true,
-          can_comment: true,
-          confirmed: true
-        }
-      ];
-      
-      meeting.confirmed_participants = 1;
+      meeting.confirmed_participants = meeting.participants?.length || 0;
       
       meeting.meeting_tasks = [
         {
@@ -476,11 +406,16 @@ export const useAnnualSchedule = () => {
       if (stored) {
         const parsedSchedule = JSON.parse(stored);
         
-        // Check if we have the full 36 meetings with enriched data
+        // Check if we have the full 36 meetings with enriched data and valid participants
+        const hasInvalidMeetings = parsedSchedule.meetings?.some(
+          (m: MeetingSchedule) => !m.participants || m.participants.length === 0
+        );
+        
         if (parsedSchedule.meetings?.length !== 36 || 
             parsedSchedule.year !== 2025 ||
-            !parsedSchedule.meetings[0]?.agenda?.length) {
-          console.log("⚠️ Outdated schedule detected, regenerating...");
+            !parsedSchedule.meetings[0]?.agenda?.length ||
+            hasInvalidMeetings) {
+          console.log("⚠️ Outdated schedule detected (missing participants or incomplete data), regenerating...");
           localStorage.removeItem(STORAGE_KEY);
           const defaultSchedule = generateDefaultSchedule(2025);
           setSchedule(defaultSchedule);
