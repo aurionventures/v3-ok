@@ -13,12 +13,29 @@ import AnnualCalendarWizard from "@/components/councils/AnnualCalendarWizard";
 import { MeetingSchedule } from "@/types/annualSchedule";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMeetings } from "@/hooks/useMeetings";
+import { useCouncils } from "@/hooks/useCouncils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 const AnnualAgenda = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingSchedule | null>(null);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isNewMeetingModalOpen, setIsNewMeetingModalOpen] = useState(false);
+  const [meetingForm, setMeetingForm] = useState({
+    council_id: "",
+    title: "",
+    date: "",
+    time: "",
+    type: "",
+    location: "",
+    modalidade: "Presencial"
+  });
 
   const {
     schedule,
@@ -33,6 +50,9 @@ const AnnualAgenda = () => {
     getPendingTasks,
   } = useAnnualSchedule();
 
+  const { councils, loading: councilsLoading } = useCouncils();
+  const { createMeeting, loading: creatingMeeting } = useMeetings();
+
   // Debug log
   console.log("📅 AnnualAgenda component - schedule:", schedule);
   console.log("📅 AnnualAgenda component - loading:", scheduleLoading);
@@ -40,6 +60,70 @@ const AnnualAgenda = () => {
   const handleMeetingClick = (meeting: MeetingSchedule) => {
     setSelectedMeeting(meeting);
     setIsMeetingModalOpen(true);
+  };
+
+  const handleCreateMeeting = async () => {
+    try {
+      // Validação
+      if (!meetingForm.council_id || !meetingForm.title || !meetingForm.date || !meetingForm.time || !meetingForm.type) {
+        toast({
+          title: "Erro",
+          description: "Preencha todos os campos obrigatórios (Conselho, Título, Data, Hora e Tipo).",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Criar reunião no banco de dados
+      await createMeeting({
+        council_id: meetingForm.council_id,
+        title: meetingForm.title,
+        date: meetingForm.date,
+        time: meetingForm.time,
+        type: meetingForm.type as 'Ordinária' | 'Extraordinária',
+        location: meetingForm.location || undefined
+      });
+
+      // Adicionar também ao localStorage (para sincronizar com a agenda anual)
+      const councilName = councils.find(c => c.id === meetingForm.council_id)?.name || "Conselho";
+      
+      addMeeting({
+        council: councilName,
+        date: meetingForm.date,
+        time: meetingForm.time,
+        type: meetingForm.type as 'Ordinária' | 'Extraordinária',
+        status: "Agendada",
+        modalidade: meetingForm.modalidade as 'Presencial' | 'Online' | 'Híbrida',
+        location: meetingForm.location,
+        agenda: [],
+        nextMeetingTopics: []
+      });
+
+      toast({
+        title: "Reunião criada",
+        description: "A nova reunião foi agendada com sucesso na Agenda Anual.",
+      });
+
+      // Fechar modal e limpar formulário
+      setIsNewMeetingModalOpen(false);
+      setMeetingForm({
+        council_id: "",
+        title: "",
+        date: "",
+        time: "",
+        type: "",
+        location: "",
+        modalidade: "Presencial"
+      });
+
+    } catch (error) {
+      console.error('Erro ao criar reunião:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar reunião. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const nextMeeting = getNextMeeting();
@@ -168,10 +252,7 @@ const AnnualAgenda = () => {
               Configurar Calendário Anual
             </Button>
             <Button 
-              onClick={() => {
-                setSelectedMeeting(null);
-                setIsMeetingModalOpen(true);
-              }}
+              onClick={() => setIsNewMeetingModalOpen(true)}
               className="flex items-center gap-2"
             >
               <Calendar className="h-4 w-4" />
