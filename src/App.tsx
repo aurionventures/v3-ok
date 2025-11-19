@@ -12,6 +12,7 @@ import LoginAdmin from "./components/auth/LoginAdmin";
 import Dashboard from "./pages/Dashboard";
 import ShareholderStructure from "./pages/ShareholderStructure";
 import Councils from "./pages/Councils";
+import GovernanceConfig from "./pages/GovernanceConfig";
 import SubmitProjects from "./pages/SubmitProjects";
 import Rituals from "./pages/Rituals";
 import Succession from "./pages/Succession";
@@ -165,14 +166,14 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/councils" 
-            element={
-              <ProtectedRoute >
-                <Councils />
-              </ProtectedRoute>
-            } 
-          />
+      <Route 
+        path="/governance-config" 
+        element={
+          <ProtectedRoute >
+            <GovernanceConfig />
+          </ProtectedRoute>
+        } 
+      />
           <Route 
             path="/submit-projects" 
             element={
