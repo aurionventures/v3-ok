@@ -50,6 +50,162 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       confirmed_participants: 0,
       notifications_sent: false,
     });
+
+    // Enrich first 3 council meetings with complete data
+    if (month < 3) {
+      const meeting = meetings[meetings.length - 1];
+      
+      meeting.agenda = [
+        {
+          id: `agenda-conselho-${month + 1}-1`,
+          title: "Aprovação da Ata Anterior",
+          description: "Revisão e aprovação da ata da reunião do mês anterior com ajustes sugeridos",
+          presenter: "Secretário Executivo",
+          duration: 15,
+          order: 1,
+          type: "Deliberação",
+          keyPoints: ["Leitura da ata", "Discussão de ajustes", "Votação"],
+          detailedScript: "O Secretário Executivo fará a leitura da ata anterior, seguida de discussão sobre possíveis ajustes e votação para aprovação final.",
+          expectedOutcome: "Ata aprovada por unanimidade"
+        },
+        {
+          id: `agenda-conselho-${month + 1}-2`,
+          title: `Análise de Resultados Financeiros Q${Math.floor(month / 3) + 1}`,
+          description: "Apresentação detalhada do balanço trimestral, análise de variações e projeções",
+          presenter: "CFO - Maria Santos",
+          duration: 45,
+          order: 2,
+          type: "Informativo",
+          keyPoints: ["Receita e despesas", "EBITDA", "Fluxo de caixa", "Investimentos"],
+          detailedScript: "A CFO apresentará os resultados financeiros do trimestre com análise comparativa, destacando principais variações e tendências.",
+          expectedOutcome: "Compreensão dos resultados e direcionamento estratégico"
+        },
+        {
+          id: `agenda-conselho-${month + 1}-3`,
+          title: month === 0 ? "Estratégia de Expansão Internacional" : month === 1 ? "Revisão de Políticas de Governança" : "Planejamento de Sucessão Executiva",
+          description: month === 0 ? "Discussão sobre entrada em novos mercados da América Latina" : month === 1 ? "Atualização das políticas de compliance e ética corporativa" : "Definição do plano de sucessão para posições-chave da alta gestão",
+          presenter: "CEO - João Silva",
+          duration: 60,
+          order: 3,
+          type: "Deliberação",
+          keyPoints: month === 0 ? ["Análise de mercados", "Investimento necessário", "Cronograma", "Riscos"] : month === 1 ? ["Compliance regulatório", "Código de ética", "Estrutura de governança"] : ["Mapeamento de talentos", "Plano de desenvolvimento", "Cronograma de transição"],
+          detailedScript: month === 0 ? "O CEO apresentará estudo de viabilidade para expansão internacional." : month === 1 ? "Revisão completa das políticas de governança." : "Apresentação do plano de sucessão para CEO, CFO e COO.",
+          expectedOutcome: month === 0 ? "Aprovação do plano de expansão" : month === 1 ? "Aprovação das novas políticas" : "Aprovação do plano de sucessão"
+        }
+      ];
+      
+      meeting.participants = [
+        {
+          id: `p-conselho-${month + 1}-1`,
+          user_id: "user-001",
+          external_name: "João Silva",
+          external_email: "joao.silva@empresa.com",
+          role: "MEMBRO",
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: true
+        },
+        {
+          id: `p-conselho-${month + 1}-2`,
+          user_id: "user-002",
+          external_name: "Maria Santos",
+          external_email: "maria.santos@empresa.com",
+          role: "MEMBRO",
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: true
+        },
+        {
+          id: `p-conselho-${month + 1}-3`,
+          user_id: "user-003",
+          external_name: "Pedro Costa",
+          external_email: "pedro.costa@empresa.com",
+          role: "MEMBRO",
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: true
+        }
+      ];
+      
+      meeting.confirmed_participants = 3;
+      
+      meeting.meeting_tasks = [
+        {
+          id: `task-conselho-${month + 1}-1`,
+          title: month === 0 ? "Preparar relatório de viabilidade mercado chileno" : month === 1 ? "Revisar Código de Ética" : "Mapear sucessores C-Level",
+          responsible: month === 0 ? "Diretor de Estratégia" : month === 1 ? "Compliance Officer" : "CHRO",
+          deadline: new Date(year, month + 1, 15).toISOString().split('T')[0],
+          status: "Concluída"
+        },
+        {
+          id: `task-conselho-${month + 1}-2`,
+          title: "Consolidar análise de riscos do projeto",
+          responsible: "CFO - Maria Santos",
+          deadline: new Date(year, month + 1, 20).toISOString().split('T')[0],
+          status: month < 2 ? "Concluída" : "Em Andamento"
+        }
+      ];
+      
+      meeting.nextMeetingTopics = month === 0 ? [
+        "Aprovação do budget de expansão",
+        "Nomeação de diretor LATAM",
+        "Estrutura societária subsidiária"
+      ] : month === 1 ? [
+        "Implementação novas políticas",
+        "Treinamento compliance",
+        "Planejamento auditoria externa"
+      ] : [
+        "Aprovação planos de desenvolvimento",
+        "Definição de KPIs sucessores",
+        "Revisão remuneração variável"
+      ];
+      
+      meeting.meeting_documents = [
+        {
+          id: `doc-conselho-${month + 1}-1`,
+          name: `Balanço_Q${Math.floor(month / 3) + 1}_2025.pdf`,
+          type: "application/pdf",
+          uploadDate: new Date(year, month, date.getDate() - 5).toISOString(),
+          url: "#"
+        },
+        {
+          id: `doc-conselho-${month + 1}-2`,
+          name: month === 0 ? "Estudo_Expansao_LATAM.pptx" : month === 1 ? "Politicas_Governanca.docx" : "Plano_Sucessao.pdf",
+          type: "application/pdf",
+          uploadDate: new Date(year, month, date.getDate() - 3).toISOString(),
+          url: "#"
+        }
+      ];
+      
+      meeting.ata = {
+        id: `ata-conselho-${month + 1}`,
+        summary: month === 0 
+          ? "Reunião Ordinária do Conselho realizada em 14/jan/2025. Presentes todos os conselheiros. Aprovados resultados 2024: +18% receita, +12% EBITDA. Expansão LATAM aprovada (R$ 8M). Criado Comitê Especial Internacional."
+          : month === 1
+          ? "Reunião de 11/fev/2025. Aprovadas atualizações de governança: novo Código de Ética, Política Compliance, treinamento obrigatório março/2025."
+          : "Reunião de 11/mar/2025. Aprovado Plano Sucessão C-Level: 12 sucessores identificados, programa 18 meses, mentoria conselheiros.",
+        decisions: month === 0 ? [
+          "Aprovação balanço 2024",
+          "Investimento R$ 8M expansão LATAM",
+          "Criação Comitê Especial Internacional"
+        ] : month === 1 ? [
+          "Aprovação novo Código de Ética",
+          "Atualização Política Compliance",
+          "Treinamento obrigatório"
+        ] : [
+          "Aprovação Plano Sucessão",
+          "12 sucessores identificados",
+          "Programa mentoria"
+        ],
+        generatedAt: new Date(year, month, date.getDate() + 2).toISOString(),
+        generatedBy: "Secretário Executivo"
+      };
+      
+      meeting.notifications_sent = true;
+    }
   }
 
   // Generate 12 COMMITTEE meetings (3rd Thursday of each month at 10:00)
@@ -72,6 +228,106 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       confirmed_participants: 0,
       notifications_sent: false,
     });
+
+    // Enrich first 4 committee meetings
+    if (month < 4) {
+      const meeting = meetings[meetings.length - 1];
+      
+      meeting.agenda = [
+        {
+          id: `agenda-comite-${month + 1}-1`,
+          title: "Análise de Riscos Operacionais",
+          description: "Revisão do mapa de riscos corporativos e controles internos",
+          presenter: "Auditor Interno - Carlos Ferreira",
+          duration: 40,
+          order: 1,
+          type: "Informativo",
+          keyPoints: ["Riscos identificados", "Controles", "Gaps", "Plano ação"],
+          detailedScript: "Apresentação da matriz de riscos atualizada.",
+          expectedOutcome: "Identificação de gaps e plano de mitigação"
+        },
+        {
+          id: `agenda-comite-${month + 1}-2`,
+          title: month % 2 === 0 ? "Conformidade Regulatória" : "Auditoria de Processos",
+          description: month % 2 === 0 ? "Status SOX, LGPD e regulações setoriais" : "Resultados auditoria processos internos",
+          presenter: "Compliance - Beatriz Lima",
+          duration: 50,
+          order: 2,
+          type: "Deliberação",
+          keyPoints: ["Aderência", "Não conformidades", "Ações corretivas"],
+          detailedScript: "Análise detalhada de conformidade.",
+          expectedOutcome: "Plano de adequação aprovado"
+        }
+      ];
+      
+      meeting.participants = [
+        {
+          id: `p-comite-${month + 1}-1`,
+          user_id: "user-004",
+          external_name: "Ana Paula Oliveira",
+          external_email: "ana.oliveira@empresa.com",
+          role: "MEMBRO",
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: true
+        },
+        {
+          id: `p-comite-${month + 1}-2`,
+          user_id: "user-005",
+          external_name: "Carlos Ferreira",
+          external_email: "carlos.ferreira@empresa.com",
+          role: "MEMBRO",
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: true
+        }
+      ];
+      
+      meeting.confirmed_participants = 2;
+      
+      meeting.meeting_tasks = [
+        {
+          id: `task-comite-${month + 1}-1`,
+          title: "Atualizar matriz de riscos",
+          responsible: "Carlos Ferreira",
+          deadline: new Date(year, month + 1, 10).toISOString().split('T')[0],
+          status: month < 2 ? "Concluída" : "Em Andamento"
+        }
+      ];
+      
+      meeting.nextMeetingTopics = [
+        "Investimentos em controles",
+        "Revisão segurança da informação"
+      ];
+      
+      meeting.meeting_documents = [
+        {
+          id: `doc-comite-${month + 1}-1`,
+          name: `Relatorio_Riscos_${month + 1}_2025.pdf`,
+          type: "application/pdf",
+          uploadDate: new Date(year, month, date.getDate() - 4).toISOString(),
+          url: "#"
+        }
+      ];
+      
+      if (month < 2) {
+        meeting.ata = {
+          id: `ata-comite-${month + 1}`,
+          summary: `Reunião Comitê Auditoria ${month + 1}/2025. Mapa riscos: 8 alta criticidade. Aprovado R$ 300k em controles.`,
+          decisions: [
+            "Aprovação mapa de riscos",
+            "3 novos controles",
+            "Investimento R$ 300k"
+          ],
+          generatedAt: new Date(year, month, date.getDate() + 1).toISOString(),
+          generatedBy: "Coordenadora"
+        };
+      }
+      
+      meeting.notifications_sent = true;
+    }
   }
 
   // Generate 12 COMMISSION meetings (last Friday of each month at 15:00)
@@ -94,6 +350,69 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       confirmed_participants: 0,
       notifications_sent: false,
     });
+
+    // Enrich first 3 commission meetings
+    if (month < 3) {
+      const meeting = meetings[meetings.length - 1];
+      
+      meeting.agenda = [
+        {
+          id: `agenda-comissao-${month + 1}-1`,
+          title: "Análise de Casos de Conduta",
+          description: `Revisão de ${3 + month} casos reportados`,
+          presenter: "Roberto Alves",
+          duration: 45,
+          order: 1,
+          type: "Deliberação",
+          keyPoints: ["Casos reportados", "Análise gravidade", "Decisões"],
+          detailedScript: "Apresentação casos com recomendações.",
+          expectedOutcome: "Deliberação ações disciplinares"
+        }
+      ];
+      
+      meeting.participants = [
+        {
+          id: `p-comissao-${month + 1}-1`,
+          user_id: "user-007",
+          external_name: "Beatriz Lima",
+          external_email: "beatriz.lima@empresa.com",
+          role: "MEMBRO",
+          can_upload: true,
+          can_view_materials: true,
+          can_comment: true,
+          confirmed: true
+        }
+      ];
+      
+      meeting.confirmed_participants = 1;
+      
+      meeting.meeting_tasks = [
+        {
+          id: `task-comissao-${month + 1}-1`,
+          title: `Investigar ${2 + month} casos pendentes`,
+          responsible: "Roberto Alves",
+          deadline: new Date(year, month + 1, 15).toISOString().split('T')[0],
+          status: "Em Andamento"
+        }
+      ];
+      
+      meeting.nextMeetingTopics = [
+        "Resultados investigações",
+        "Campanhas conscientização"
+      ];
+      
+      meeting.meeting_documents = [
+        {
+          id: `doc-comissao-${month + 1}-1`,
+          name: `Casos_${month + 1}_2025_CONFIDENCIAL.pdf`,
+          type: "application/pdf",
+          uploadDate: new Date(year, month, date.getDate() - 5).toISOString(),
+          url: "#"
+        }
+      ];
+      
+      meeting.notifications_sent = true;
+    }
   }
 
   return {
@@ -117,23 +436,34 @@ export const useAnnualSchedule = () => {
       const stored = localStorage.getItem(STORAGE_KEY);
       console.log("📁 Stored data:", stored ? "Found" : "Not found");
       
+      // Force regeneration if stored data is outdated or incomplete
       if (stored) {
         const parsedSchedule = JSON.parse(stored);
+        
+        // Check if we have the full 36 meetings with enriched data
+        if (parsedSchedule.meetings?.length !== 36 || 
+            parsedSchedule.year !== 2025 ||
+            !parsedSchedule.meetings[0]?.agenda?.length) {
+          console.log("⚠️ Outdated schedule detected, regenerating...");
+          localStorage.removeItem(STORAGE_KEY);
+          const defaultSchedule = generateDefaultSchedule(2025);
+          setSchedule(defaultSchedule);
+          saveSchedule(defaultSchedule);
+          return;
+        }
+        
         console.log("✅ Loaded schedule:", parsedSchedule);
         setSchedule(parsedSchedule);
       } else {
-        // Create default schedule for current year
-        const currentYear = 2025; // Fixed for the implementation
-        const defaultSchedule = generateDefaultSchedule(currentYear);
-        console.log("🆕 Created default schedule:", defaultSchedule);
+        // Create default schedule for 2025
+        const defaultSchedule = generateDefaultSchedule(2025);
+        console.log("🆕 Created default schedule with", defaultSchedule.meetings.length, "meetings");
         setSchedule(defaultSchedule);
         saveSchedule(defaultSchedule);
       }
     } catch (error) {
       console.error("❌ Error loading annual schedule:", error);
-      // Fallback to default schedule
       const defaultSchedule = generateDefaultSchedule(2025);
-      console.log("🔄 Fallback to default schedule:", defaultSchedule);
       setSchedule(defaultSchedule);
     } finally {
       setLoading(false);
