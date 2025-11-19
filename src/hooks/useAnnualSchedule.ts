@@ -10,94 +10,95 @@ const defaultSettings = {
   reminderDays: 30,
 };
 
+// Helper functions for date calculations
+const getNthWeekdayOfMonth = (year: number, month: number, weekday: number, nth: number): Date => {
+  const firstDay = new Date(year, month, 1);
+  const firstWeekday = firstDay.getDay();
+  const offset = (weekday - firstWeekday + 7) % 7;
+  const day = offset + (nth - 1) * 7 + 1;
+  return new Date(year, month, day);
+};
+
+const getLastWeekdayOfMonth = (year: number, month: number, weekday: number): Date => {
+  const lastDay = new Date(year, month + 1, 0);
+  const lastWeekday = lastDay.getDay();
+  const offset = (lastWeekday - weekday + 7) % 7;
+  return new Date(year, month, lastDay.getDate() - offset);
+};
+
 // Generate default annual schedule for 2025
 const generateDefaultSchedule = (year: number): AgendaAnual => {
-  const meetings: MeetingSchedule[] = [
-    {
-      id: "1",
+  const meetings: MeetingSchedule[] = [];
+
+  // Generate 12 COUNCIL meetings (2nd Tuesday of each month at 14:00)
+  for (let month = 0; month < 12; month++) {
+    const date = getNthWeekdayOfMonth(year, month, 2, 2); // Tuesday=2, 2nd occurrence
+    meetings.push({
+      id: `conselho-${month + 1}`,
       council: "Conselho de Administração",
-      council_id: "mock-conselho-admin",
+      council_id: "mock-council-admin-001",
       organ_type: "conselho",
-      date: "2025-03-15",
+      date: date.toISOString().split('T')[0],
       time: "14:00",
       type: "Ordinária",
-      status: "Agendada",
+      status: month < 3 ? "Realizada" : month < 5 ? "Pauta Definida" : "Agendada",
       modalidade: "Presencial",
+      location: "Sala Executiva - Matriz",
       agenda: [],
       nextMeetingTopics: [],
       participants: [],
       confirmed_participants: 0,
       notifications_sent: false,
-    },
-    {
-      id: "2",
-      council: "Conselho de Administração",
-      council_id: "mock-conselho-admin",
-      organ_type: "conselho",
-      date: "2025-06-15",
-      time: "14:00",
-      type: "Ordinária",
-      status: "Agendada",
-      modalidade: "Presencial",
-      agenda: [],
-      nextMeetingTopics: [],
-      participants: [],
-      confirmed_participants: 0,
-      notifications_sent: false,
-    },
-    {
-      id: "3",
+    });
+  }
+
+  // Generate 12 COMMITTEE meetings (3rd Thursday of each month at 10:00)
+  for (let month = 0; month < 12; month++) {
+    const date = getNthWeekdayOfMonth(year, month, 4, 3); // Thursday=4, 3rd occurrence
+    meetings.push({
+      id: `comite-${month + 1}`,
       council: "Comitê de Auditoria",
-      council_id: "mock-comite-audit",
+      council_id: "mock-committee-audit-004",
       organ_type: "comite",
-      date: "2025-04-20",
+      date: date.toISOString().split('T')[0],
       time: "10:00",
       type: "Ordinária",
-      status: "Agendada",
+      status: month < 2 ? "ATA Gerada" : month < 4 ? "Realizada" : "Agendada",
       modalidade: "Online",
+      location: "Microsoft Teams",
       agenda: [],
       nextMeetingTopics: [],
       participants: [],
       confirmed_participants: 0,
       notifications_sent: false,
-    },
-    {
-      id: "4",
-      council: "Comitê de Auditoria",
-      council_id: "mock-comite-audit",
-      organ_type: "comite",
-      date: "2025-10-20",
-      time: "10:00",
-      type: "Ordinária",
-      status: "Agendada",
-      modalidade: "Online",
-      agenda: [],
-      nextMeetingTopics: [],
-      participants: [],
-      confirmed_participants: 0,
-      notifications_sent: false,
-    },
-    {
-      id: "5",
-      council: "Comissão de Sucessão",
-      council_id: "mock-comissao-sucessao",
+    });
+  }
+
+  // Generate 12 COMMISSION meetings (last Friday of each month at 15:00)
+  for (let month = 0; month < 12; month++) {
+    const date = getLastWeekdayOfMonth(year, month, 5); // Friday=5
+    meetings.push({
+      id: `comissao-${month + 1}`,
+      council: "Comissão de Ética",
+      council_id: "mock-commission-ethics-007",
       organ_type: "comissao",
-      date: "2025-05-10",
+      date: date.toISOString().split('T')[0],
       time: "15:00",
-      type: "Extraordinária",
-      status: "Agendada",
+      type: month % 3 === 0 ? "Extraordinária" : "Ordinária",
+      status: month < 3 ? "Docs Enviados" : "Agendada",
       modalidade: "Híbrida",
+      location: "Sala 201 / Zoom",
       agenda: [],
       nextMeetingTopics: [],
       participants: [],
       confirmed_participants: 0,
       notifications_sent: false,
-    },
-  ];
+    });
+  }
 
   return {
     year,
-    meetings,
+    meetings: meetings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
     settings: defaultSettings,
   };
 };

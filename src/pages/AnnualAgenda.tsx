@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings, Filter } from "lucide-react";
+import { 
+  Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings, Filter,
+  Building2, Users, UserCog, CalendarCheck, FileText, Send, CheckCheck, 
+  FileCheck, Scale, Zap, BarChart3
+} from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { OrganSelector } from "@/components/governance/OrganSelector";
-import { Building2, Users, UserCog } from "lucide-react";
 import { QuickActionsCard } from "@/components/councils/QuickActionsCard";
 import { QuickAddGuestModal } from "@/components/councils/QuickAddGuestModal";
 import { useCalendarFilters } from "@/hooks/useCalendarFilters";
@@ -251,11 +254,11 @@ const AnnualAgenda = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">
-                        <span className="flex items-center gap-2">
-                          📊 Todos os Tipos
-                        </span>
-                      </SelectItem>
+            <SelectItem value="all">
+              <span className="flex items-center gap-2">
+                <BarChart3 className="h-3 w-3" /> Todos os Tipos
+              </span>
+            </SelectItem>
                       <SelectItem value="conselho">
                         <span className="flex items-center gap-2">
                           <Building2 className="h-3 w-3" /> Conselhos
@@ -308,12 +311,32 @@ const AnnualAgenda = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
-                      <SelectItem value="Agendada">📅 Agendada</SelectItem>
-                      <SelectItem value="Pauta Definida">📋 Pauta Definida</SelectItem>
-                      <SelectItem value="Docs Enviados">📤 Docs Enviados</SelectItem>
-                      <SelectItem value="Realizada">✅ Realizada</SelectItem>
-                      <SelectItem value="ATA Gerada">📄 ATA Gerada</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
+            <SelectItem value="Agendada">
+              <span className="flex items-center gap-2">
+                <CalendarCheck className="h-3 w-3" /> Agendada
+              </span>
+            </SelectItem>
+            <SelectItem value="Pauta Definida">
+              <span className="flex items-center gap-2">
+                <FileText className="h-3 w-3" /> Pauta Definida
+              </span>
+            </SelectItem>
+            <SelectItem value="Docs Enviados">
+              <span className="flex items-center gap-2">
+                <Send className="h-3 w-3" /> Docs Enviados
+              </span>
+            </SelectItem>
+            <SelectItem value="Realizada">
+              <span className="flex items-center gap-2">
+                <CheckCheck className="h-3 w-3" /> Realizada
+              </span>
+            </SelectItem>
+            <SelectItem value="ATA Gerada">
+              <span className="flex items-center gap-2">
+                <FileCheck className="h-3 w-3" /> ATA Gerada
+              </span>
+            </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -329,9 +352,17 @@ const AnnualAgenda = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os Tipos</SelectItem>
-                      <SelectItem value="Ordinária">⚖️ Ordinária</SelectItem>
-                      <SelectItem value="Extraordinária">⚡ Extraordinária</SelectItem>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            <SelectItem value="Ordinária">
+              <span className="flex items-center gap-2">
+                <Scale className="h-3 w-3" /> Ordinária
+              </span>
+            </SelectItem>
+            <SelectItem value="Extraordinária">
+              <span className="flex items-center gap-2">
+                <Zap className="h-3 w-3" /> Extraordinária
+              </span>
+            </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
