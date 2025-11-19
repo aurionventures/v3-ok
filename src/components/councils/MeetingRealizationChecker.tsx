@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MeetingSchedule } from "@/types/annualSchedule";
+import MeetingATAViewer from "./MeetingATAViewer";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MeetingRealizationCheckerProps {
   meeting: MeetingSchedule;
@@ -21,6 +24,8 @@ export function MeetingRealizationChecker({
   const [isRealized, setIsRealized] = useState(meeting.status === "Realizada" || meeting.status === "ATA Gerada");
   const [presentAttendees, setPresentAttendees] = useState(meeting.attendees || []);
   const [observations, setObservations] = useState("");
+  const [showATADialog, setShowATADialog] = useState(false);
+  const [isGeneratingATA, setIsGeneratingATA] = useState(false);
 
   const handleMarkAsRealized = () => {
     const now = new Date().toISOString();
@@ -180,6 +185,45 @@ export function MeetingRealizationChecker({
                 </div>
               </div>
             )}
+
+            {/* ATA Section - Only for Realized Meetings */}
+            <Separator />
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Ata da Reunião
+              </Label>
+              
+              {meeting.ata ? (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-green-900">ATA Gerada</p>
+                      <p className="text-sm text-green-700">
+                        Gerada em {new Date(meeting.ata.generatedAt).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                    <Button onClick={() => setShowATADialog(true)}>
+                      Ver ATA
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700 mb-3">
+                    A ATA ainda não foi gerada. Você pode gerar automaticamente com IA.
+                  </p>
+                  <Button 
+                    onClick={() => setShowATADialog(true)}
+                    className="w-full"
+                    disabled={isGeneratingATA}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Gerar ATA com IA
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -190,6 +234,49 @@ export function MeetingRealizationChecker({
             <p className="text-sm">Esta reunião ainda não aconteceu</p>
             <p className="text-xs">A confirmação de realização ficará disponível após a data agendada</p>
           </div>
+        )}
+
+        {/* ATA Viewer Dialog */}
+        {isRealized && (
+          <MeetingATAViewer 
+            meeting={meeting}
+            isOpen={showATADialog}
+            onClose={() => setShowATADialog(false)}
+            onGenerateATA={async () => {
+              setIsGeneratingATA(true);
+              try {
+                const { data, error } = await supabase.functions.invoke('generate-meeting-ata', {
+                  body: {
+                    meetingId: meeting.id,
+                    council: meeting.council,
+                    date: meeting.date,
+                    time: meeting.time,
+                    type: meeting.type,
+                    modalidade: meeting.modalidade,
+                    agenda: meeting.agenda || [],
+                    participants: meeting.participants || [],
+                    meeting_tasks: meeting.meeting_tasks || [],
+                    nextMeetingTopics: meeting.nextMeetingTopics || []
+                  }
+                });
+
+                if (error) throw error;
+
+                onUpdateMeeting({
+                  ata: data,
+                  status: "ATA Gerada"
+                });
+
+                toast.success('ATA gerada com sucesso!');
+              } catch (error) {
+                console.error('Erro ao gerar ATA:', error);
+                toast.error('Erro ao gerar ATA. Tente novamente.');
+              } finally {
+                setIsGeneratingATA(false);
+              }
+            }}
+            isGenerating={isGeneratingATA}
+          />
         )}
       </CardContent>
     </Card>

@@ -10,6 +10,8 @@ import ParticipantsManager from './ParticipantsManager';
 import { DocumentUploadWithTags } from './DocumentUploadWithTags';
 import { useMeetingNotifications } from '@/hooks/useMeetingNotifications';
 import { toast } from 'sonner';
+import MeetingATAViewer from './MeetingATAViewer';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MeetingQuickConfigModalProps {
   meeting: MeetingSchedule;
@@ -27,6 +29,7 @@ export default function MeetingQuickConfigModal({
   const [agenda, setAgenda] = useState<AgendaItem[]>(meeting.agenda || []);
   const [participants, setParticipants] = useState<MeetingParticipant[]>(meeting.participants || []);
   const { sendMeetingInvites } = useMeetingNotifications();
+  const [isGeneratingATA, setIsGeneratingATA] = useState(false);
 
   const handleSave = async () => {
     const updates: Partial<MeetingSchedule> = {
@@ -80,7 +83,7 @@ export default function MeetingQuickConfigModal({
         </DialogHeader>
 
         <Tabs defaultValue="pauta" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${meeting.status === "Realizada" || meeting.status === "ATA Gerada" ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="pauta" className="gap-2">
               <FileText className="h-4 w-4" />
               Pauta
@@ -103,6 +106,13 @@ export default function MeetingQuickConfigModal({
               <FileText className="h-4 w-4" />
               Documentos
             </TabsTrigger>
+            {(meeting.status === "Realizada" || meeting.status === "ATA Gerada") && (
+              <TabsTrigger value="ata" className="gap-2">
+                <FileText className="h-4 w-4" />
+                ATA
+                {meeting.ata && <Badge variant="secondary" className="ml-1">✓</Badge>}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="pauta" className="mt-4">
@@ -133,6 +143,50 @@ export default function MeetingQuickConfigModal({
               }}
             />
           </TabsContent>
+
+          {(meeting.status === "Realizada" || meeting.status === "ATA Gerada") && (
+            <TabsContent value="ata" className="mt-4">
+              <MeetingATAViewer 
+                meeting={meeting}
+                isOpen={true}
+                onClose={() => {}}
+                onGenerateATA={async () => {
+                  setIsGeneratingATA(true);
+                  try {
+                    const { data, error } = await supabase.functions.invoke('generate-meeting-ata', {
+                      body: {
+                        meetingId: meeting.id,
+                        council: meeting.council,
+                        date: meeting.date,
+                        time: meeting.time,
+                        type: meeting.type,
+                        modalidade: meeting.modalidade,
+                        agenda: agenda,
+                        participants: participants,
+                        meeting_tasks: meeting.meeting_tasks || [],
+                        nextMeetingTopics: meeting.nextMeetingTopics || []
+                      }
+                    });
+
+                    if (error) throw error;
+
+                    onSave({
+                      ata: data,
+                      status: "ATA Gerada"
+                    });
+
+                    toast.success('ATA gerada com sucesso!');
+                  } catch (error) {
+                    console.error('Erro ao gerar ATA:', error);
+                    toast.error('Erro ao gerar ATA. Tente novamente.');
+                  } finally {
+                    setIsGeneratingATA(false);
+                  }
+                }}
+                isGenerating={isGeneratingATA}
+              />
+            </TabsContent>
+          )}
         </Tabs>
 
         <DialogFooter className="flex gap-2">
