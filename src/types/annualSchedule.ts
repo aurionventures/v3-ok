@@ -11,6 +11,8 @@ export interface AgendaAnual {
 export interface MeetingSchedule {
   id: string;
   council: string;
+  council_id?: string;  // ID do órgão
+  organ_type?: 'conselho' | 'comite' | 'comissao';  // Tipo de órgão
   date: string;
   time: string;
   type: "Ordinária" | "Extraordinária";
@@ -32,6 +34,22 @@ export interface MeetingSchedule {
   attendees?: string[];
   location?: string;
   modalidade: "Presencial" | "Online" | "Híbrida";
+  participants?: MeetingParticipant[];
+  confirmed_participants?: number;
+  notifications_sent?: boolean;
+}
+
+export interface MeetingParticipant {
+  id: string;
+  user_id?: string;  // Se for membro interno
+  external_name?: string;  // Se for convidado externo
+  external_email?: string;
+  role: 'MEMBRO' | 'CONVIDADO' | 'OBSERVADOR';
+  can_upload: boolean;
+  can_view_materials: boolean;
+  can_comment: boolean;
+  guest_token?: string;  // Token de acesso para convidados
+  confirmed: boolean;
 }
 
 export interface AgendaItem {
