@@ -31,10 +31,10 @@ export default function MeetingATAViewer({
     await onGenerateATA();
     
     // Notificar sobre ATA gerada
-    await sendATAGeneratedNotification(
-      meeting.id,
-      meeting.title || `${meeting.council} - ${meeting.type}`
-    );
+                  await sendATAGeneratedNotification(
+                    meeting.id,
+                    `${meeting.council} - ${meeting.type}`
+                  );
   };
 
   return (
