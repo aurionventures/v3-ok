@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { 
   Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings, Filter,
   Building2, Users, UserCog, CalendarCheck, FileText, Send, CheckCheck, 
-  FileCheck, Scale, Zap, BarChart3
+  FileCheck, Scale, Zap, BarChart3, AlertCircle
 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -370,9 +370,19 @@ const AnnualAgenda = () => {
 
               {/* Badge de Resultados */}
               <div className="mt-4 flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">
-                  {filteredMeetings.length} reuniões encontradas
-                </Badge>
+              <Badge 
+                variant="secondary" 
+                className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                onClick={() => setFilters({
+                  organType: 'all',
+                  organId: 'all',
+                  status: 'all',
+                  meetingType: 'all'
+                })}
+                title="Clique para limpar filtros"
+              >
+                {filteredMeetings.length} de {schedule?.meetings.length || 0} reuniões
+              </Badge>
                 {(filters.organType !== 'all' || filters.status !== 'all' || filters.meetingType !== 'all') && (
                   <Button 
                     variant="ghost" 
@@ -391,6 +401,34 @@ const AnnualAgenda = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Mensagem quando nenhuma reunião é encontrada */}
+          {filteredMeetings.length === 0 && schedule?.meetings.length > 0 && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3 text-blue-900">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Nenhuma reunião encontrada com os filtros aplicados</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Existem {schedule.meetings.length} reuniões no total. 
+                      <button 
+                        onClick={() => setFilters({
+                          organType: 'all',
+                          organId: 'all',
+                          status: 'all',
+                          meetingType: 'all'
+                        })}
+                        className="ml-1 underline hover:text-blue-900 font-medium"
+                      >
+                        Clique aqui para limpar filtros
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Annual Calendar */}
           <Card>
