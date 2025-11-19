@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { getMockGovernanceData } from '../data/mockGovernanceData';
 
 type CouncilMember = Database['public']['Tables']['council_members']['Row'];
 
@@ -61,6 +62,17 @@ export const useGovernanceOrgans = (type?: OrganType) => {
       const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
+
+      // Se não há dados no banco, usar mockados
+      if (!data || data.length === 0) {
+        const mockData = getMockGovernanceData(user.company);
+        const filteredOrgans = type 
+          ? mockData.organs.filter(o => o.organ_type === type)
+          : mockData.organs;
+        setOrgans(filteredOrgans);
+        setLoading(false);
+        return;
+      }
 
       // Processar os dados - usar any para evitar problemas com tipos complexos
       const processedData: GovernanceOrgan[] = [];
@@ -247,121 +259,6 @@ export const useGovernanceOrgans = (type?: OrganType) => {
     }
   };
 
-  // Criar dados mockados para demonstração
-  const createMockData = async () => {
-    try {
-      setError(null);
-      if (!user?.company) {
-        throw new Error('Usuário não autenticado ou sem empresa associada');
-      }
-
-      // Dados dos órgãos
-      const mockOrgans = [
-        // 3 Conselhos
-        { name: 'Conselho de Administração', type: 'administrativo', organ_type: 'conselho', description: 'Conselho responsável pela gestão estratégica da empresa', quorum: 3, hierarchy_level: 1 },
-        { name: 'Conselho Fiscal', type: 'fiscal', organ_type: 'conselho', description: 'Conselho de fiscalização contábil e financeira', quorum: 3, hierarchy_level: 1 },
-        { name: 'Conselho Consultivo', type: 'consultivo', organ_type: 'conselho', description: 'Conselho de especialistas externos para orientação estratégica', quorum: 5, hierarchy_level: 1 },
-        // 3 Comitês
-        { name: 'Comitê de Auditoria', type: 'auditoria', organ_type: 'comite', description: 'Supervisão de processos de auditoria interna e externa', quorum: 3, hierarchy_level: 2 },
-        { name: 'Comitê de Estratégia', type: 'estrategia', organ_type: 'comite', description: 'Definição e acompanhamento do planejamento estratégico', quorum: 4, hierarchy_level: 2 },
-        { name: 'Comitê de Riscos', type: 'outros', organ_type: 'comite', description: 'Gestão e mitigação de riscos corporativos', quorum: 3, hierarchy_level: 2 },
-        // 3 Comissões
-        { name: 'Comissão de Ética', type: 'outros', organ_type: 'comissao', description: 'Análise de questões éticas e compliance corporativo', quorum: 3, hierarchy_level: 3 },
-        { name: 'Comissão de Inovação', type: 'outros', organ_type: 'comissao', description: 'Avaliação de projetos de inovação e transformação digital', quorum: 4, hierarchy_level: 3 },
-        { name: 'Comissão de Sustentabilidade', type: 'outros', organ_type: 'comissao', description: 'Iniciativas ESG e sustentabilidade empresarial', quorum: 3, hierarchy_level: 3 }
-      ];
-
-      // Inserir órgãos
-      const { data: insertedOrgans, error: organsError } = await supabase
-        .from('councils')
-        .insert(mockOrgans.map(organ => ({
-          ...organ,
-          company_id: user.company,
-          status: 'active'
-        })))
-        .select();
-
-      if (organsError) throw organsError;
-
-      // Dados dos membros por órgão
-      const membersByOrgan: Record<string, Array<{ name: string; role: string }>> = {
-        'Conselho de Administração': [
-          { name: 'Carlos Alberto Silva', role: 'Presidente' },
-          { name: 'Maria Fernanda Costa', role: 'Vice-Presidente' },
-          { name: 'Roberto Martins', role: 'Conselheiro' },
-          { name: 'Ana Paula Rodrigues', role: 'Conselheira Independente' }
-        ],
-        'Conselho Fiscal': [
-          { name: 'João Pedro Santos', role: 'Presidente' },
-          { name: 'Patricia Lima', role: 'Membro' },
-          { name: 'Fernando Alves', role: 'Membro' }
-        ],
-        'Conselho Consultivo': [
-          { name: 'Dr. Eduardo Campos', role: 'Consultor Sênior' },
-          { name: 'Dra. Juliana Moreira', role: 'Consultora Estratégica' },
-          { name: 'Prof. Ricardo Tavares', role: 'Consultor Acadêmico' },
-          { name: 'Beatriz Cardoso', role: 'Consultora de Inovação' },
-          { name: 'Marcelo Souza', role: 'Consultor Financeiro' }
-        ],
-        'Comitê de Auditoria': [
-          { name: 'Luiz Fernando Braga', role: 'Coordenador' },
-          { name: 'Sandra Oliveira', role: 'Membro' },
-          { name: 'Gustavo Henrique', role: 'Auditor Interno' }
-        ],
-        'Comitê de Estratégia': [
-          { name: 'Renata Barbosa', role: 'Coordenadora' },
-          { name: 'Daniel Ferreira', role: 'Analista de Planejamento' },
-          { name: 'Camila Nunes', role: 'Estrategista de Negócios' },
-          { name: 'André Carvalho', role: 'Membro' }
-        ],
-        'Comitê de Riscos': [
-          { name: 'Fabio Mendes', role: 'Coordenador de Riscos' },
-          { name: 'Luciana Dias', role: 'Analista de Compliance' },
-          { name: 'Thiago Pereira', role: 'Gestor de Riscos Operacionais' }
-        ],
-        'Comissão de Ética': [
-          { name: 'Isabela Monteiro', role: 'Presidente' },
-          { name: 'Rafael Gomes', role: 'Membro' },
-          { name: 'Vanessa Prado', role: 'Compliance Officer' }
-        ],
-        'Comissão de Inovação': [
-          { name: 'Leonardo Ribeiro', role: 'Líder de Inovação' },
-          { name: 'Priscila Araújo', role: 'Coordenadora de Projetos' },
-          { name: 'Bruno Castro', role: 'Analista de Tecnologia' },
-          { name: 'Tatiana Freitas', role: 'UX Researcher' }
-        ],
-        'Comissão de Sustentabilidade': [
-          { name: 'Henrique Azevedo', role: 'Coordenador ESG' },
-          { name: 'Márcia Santos', role: 'Analista Ambiental' },
-          { name: 'Rodrigo Teixeira', role: 'Especialista em Social' }
-        ]
-      };
-
-      // Inserir membros
-      if (insertedOrgans) {
-        for (const organ of insertedOrgans) {
-          const members = membersByOrgan[organ.name];
-          if (members) {
-            const membersToInsert = members.map(member => ({
-              council_id: organ.id,
-              name: member.name,
-              role: member.role,
-              start_date: '2024-01-15',
-              status: 'active'
-            }));
-
-            await supabase.from('council_members').insert(membersToInsert);
-          }
-        }
-      }
-
-      await fetchOrgans();
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar dados mockados');
-      throw err;
-    }
-  };
 
   useEffect(() => {
     if (user?.company) {
@@ -378,7 +275,6 @@ export const useGovernanceOrgans = (type?: OrganType) => {
     updateOrgan,
     deleteOrgan,
     getOrgan,
-    updateAccessConfig,
-    createMockData
+    updateAccessConfig
   };
 };
