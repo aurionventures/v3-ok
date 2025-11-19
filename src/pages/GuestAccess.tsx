@@ -56,6 +56,7 @@ export default function GuestAccess() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MeetingData | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [mockMode] = useState(true); // DEMO MODE
 
   useEffect(() => {
     if (token) {
@@ -64,29 +65,85 @@ export default function GuestAccess() {
   }, [token]);
 
   const fetchMeetingData = async () => {
+    if (!mockMode) {
+      // Código original de API
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-access/${token}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erro ao carregar dados');
+        }
+
+        const meetingData = await response.json();
+        setData(meetingData);
+      } catch (err: any) {
+        console.error('Error fetching meeting data:', err);
+        setError(err.message || 'Token inválido ou expirado');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    
+    // MODO DEMO: Carregar dados mockados
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-access/${token}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao carregar dados');
+      // Simular validação de token
+      const scheduleData = JSON.parse(localStorage.getItem('annual_council_schedule') || '{}');
+      const meetings = scheduleData.meetings || [];
+      
+      // Pegar primeira reunião com agenda para demo
+      const mockMeeting = meetings.find((m: any) => m.agenda?.length > 0) || meetings[0];
+      
+      if (!mockMeeting) {
+        throw new Error('Nenhuma reunião encontrada');
       }
 
-      const meetingData = await response.json();
-      setData(meetingData);
+      const mockData: MeetingData = {
+        participant: {
+          name: "Dr. João Silva",
+          email: "joao.silva@consultoria.com",
+          role: "Convidado Externo"
+        },
+        meeting: {
+          id: mockMeeting.id,
+          title: mockMeeting.title || `${mockMeeting.council} - ${mockMeeting.type}`,
+          date: mockMeeting.date,
+          time: mockMeeting.time,
+          location: mockMeeting.location,
+          status: mockMeeting.status,
+          modalidade: mockMeeting.modalidade,
+          council: {
+            name: mockMeeting.council,
+            type: mockMeeting.organ_type
+          }
+        },
+        permissions: {
+          can_upload: true,
+          can_view_materials: true
+        },
+        visible_items: mockMeeting.agenda || [],
+        documents: mockMeeting.meeting_documents || []
+      };
+
+      setData(mockData);
+      toast.success("📱 [DEMO] Dados carregados com sucesso");
     } catch (err: any) {
-      console.error('Error fetching meeting data:', err);
-      setError(err.message || 'Token inválido ou expirado');
+      console.error('Error in mock mode:', err);
+      setError(err.message || 'Erro ao carregar dados mockados');
     } finally {
       setLoading(false);
     }
@@ -96,29 +153,69 @@ export default function GuestAccess() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!mockMode) {
+      // Código original de API
+      try {
+        setUploading(true);
+
+        const formData = new FormData();
+        formData.append('file', file);
+        if (itemId) formData.append('meeting_item_id', itemId);
+        formData.append('document_type', 'OUTROS');
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-access/upload/${token}`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erro ao fazer upload');
+        }
+
+        toast.success('Documento enviado com sucesso');
+        fetchMeetingData();
+      } catch (err: any) {
+        console.error('Upload error:', err);
+        toast.error('Erro ao enviar documento: ' + err.message);
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    // MODO DEMO: Simular upload
     try {
       setUploading(true);
-
-      const formData = new FormData();
-      formData.append('file', file);
-      if (itemId) formData.append('meeting_item_id', itemId);
-      formData.append('document_type', 'OUTROS');
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guest-access/upload/${token}`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao fazer upload');
-      }
-
-      toast.success('Documento enviado com sucesso');
-      fetchMeetingData(); // Reload data to show new document
+      
+      // Simular delay de upload
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockDoc = {
+        id: `doc-${Date.now()}`,
+        name: file.name,
+        file_url: URL.createObjectURL(file),
+        file_type: file.type,
+        document_type: 'OUTROS',
+        created_at: new Date().toISOString()
+      };
+      
+      // Adicionar ao estado local
+      setData(prev => prev ? {
+        ...prev,
+        documents: [...prev.documents, mockDoc]
+      } : null);
+      
+      toast.success('📄 [DEMO] Documento enviado com sucesso');
+      
+      // Simular notificação aos participantes
+      setTimeout(() => {
+        toast.info('📧 [DEMO] Todos os participantes foram notificados');
+      }, 500);
+      
     } catch (err: any) {
       console.error('Upload error:', err);
       toast.error('Erro ao enviar documento: ' + err.message);

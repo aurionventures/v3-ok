@@ -28,10 +28,15 @@ export default function MeetingQuickConfigModal({
 }: MeetingQuickConfigModalProps) {
   const [agenda, setAgenda] = useState<AgendaItem[]>(meeting.agenda || []);
   const [participants, setParticipants] = useState<MeetingParticipant[]>(meeting.participants || []);
-  const { sendMeetingInvites } = useMeetingNotifications();
+  const { sendMeetingInvites, sendMeetingUpdateNotifications } = useMeetingNotifications();
   const [isGeneratingATA, setIsGeneratingATA] = useState(false);
 
   const handleSave = async () => {
+    // Identificar campos alterados
+    const changedFields: string[] = [];
+    if (JSON.stringify(agenda) !== JSON.stringify(meeting.agenda)) changedFields.push('pauta');
+    if (JSON.stringify(participants) !== JSON.stringify(meeting.participants)) changedFields.push('participantes');
+    
     const updates: Partial<MeetingSchedule> = {
       agenda,
       participants,
@@ -42,8 +47,11 @@ export default function MeetingQuickConfigModal({
     // Salvar configurações
     onSave(updates);
 
-    // Enviar notificações
-    if (participants.length > 0) {
+    // Enviar notificações sobre alterações
+    if (changedFields.length > 0) {
+      await sendMeetingUpdateNotifications(meeting.id, changedFields);
+    } else if (participants.length > 0 && !meeting.notifications_sent) {
+      // Enviar convites se é primeira vez
       await sendMeetingInvites(
         meeting.id,
         meeting.council,

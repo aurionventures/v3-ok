@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { FileText, Sparkles, Calendar, Users, CheckCircle, ArrowRight } from 'lucide-react';
 import { MeetingSchedule, MeetingATA } from '@/types/annualSchedule';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMeetingNotifications } from '@/hooks/useMeetingNotifications';
 
 interface MeetingATAViewerProps {
   meeting: MeetingSchedule;
@@ -24,6 +25,17 @@ export default function MeetingATAViewer({
   isGenerating
 }: MeetingATAViewerProps) {
   const hasATA = !!meeting.ata;
+  const { sendATAGeneratedNotification } = useMeetingNotifications();
+
+  const handleGenerate = async () => {
+    await onGenerateATA();
+    
+    // Notificar sobre ATA gerada
+    await sendATAGeneratedNotification(
+      meeting.id,
+      meeting.title || `${meeting.council} - ${meeting.type}`
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -75,7 +87,7 @@ export default function MeetingATAViewer({
                     baseada em todos os dados da reunião: pauta, participantes, decisões e tarefas.
                   </p>
                 </div>
-                <Button onClick={onGenerateATA} size="lg" className="gap-2">
+                <Button onClick={handleGenerate} size="lg" className="gap-2">
                   <Sparkles className="h-4 w-4" />
                   Gerar ATA Automaticamente
                 </Button>
