@@ -121,6 +121,15 @@ export default function ParticipantsManager({
       last_accessed_at: null
     };
     localStorage.setItem('guest_tokens', JSON.stringify(tokens));
+    
+    console.log('🔑 Magic Link gerado:', {
+      token,
+      meeting_id: meetingId,
+      guest: newGuest.name,
+      email: newGuest.email,
+      link: magicLink,
+      permissions: tokens[token].permissions
+    });
 
     const updated = [...localParticipants, guest];
     setLocalParticipants(updated);
@@ -134,7 +143,9 @@ export default function ParticipantsManager({
       can_comment: false,
     });
 
-    toast.success('🔗 Convidado adicionado! Magic Link gerado.');
+    toast.success(`Convidado ${newGuest.name} adicionado! 🎉`, {
+      description: 'Magic Link copiado para a área de transferência'
+    });
   };
 
   const removeParticipant = (id: string) => {
