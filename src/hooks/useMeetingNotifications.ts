@@ -20,6 +20,7 @@ export const useMeetingNotifications = () => {
       id: `notif-${Date.now()}-${Math.random()}`,
       user_id: p.user_id || null,
       external_email: p.external_email || null,
+      recipient_name: p.name || p.external_name || 'Participante',
       type: 'CONVOCACAO_REUNIAO',
       title: 'Nova Reunião Agendada',
       message: `Você foi convidado para a reunião "${meetingTitle}" em ${meetingDate} às ${meetingTime}.`,
@@ -51,6 +52,9 @@ export const useMeetingNotifications = () => {
     
     const notification = {
       id: `notif-${Date.now()}`,
+      user_id: null,
+      external_email: null,
+      recipient_name: 'Participantes',
       type: 'EDICAO_REUNIAO',
       title: 'Reunião Atualizada',
       message: `A reunião foi atualizada. Campos alterados: ${updatedFields.join(', ')}`,
@@ -58,6 +62,7 @@ export const useMeetingNotifications = () => {
       sent_at: new Date().toISOString(),
       status: 'ENVIADA',
       channel: 'EMAIL',
+      read_at: null,
       context: { meeting_id: meetingId, changed_fields: updatedFields }
     };
     
@@ -77,6 +82,9 @@ export const useMeetingNotifications = () => {
     
     const notification = {
       id: `notif-${Date.now()}`,
+      user_id: null,
+      external_email: null,
+      recipient_name: 'Participantes',
       type: 'UPLOAD_DOCUMENTO',
       title: 'Novo Documento',
       message: `${uploaderName} enviou o documento "${documentName}"`,
@@ -84,6 +92,7 @@ export const useMeetingNotifications = () => {
       sent_at: new Date().toISOString(),
       status: 'ENVIADA',
       channel: 'EMAIL',
+      read_at: null,
       context: { meeting_id: meetingId, document_name: documentName }
     };
     
@@ -102,6 +111,9 @@ export const useMeetingNotifications = () => {
     
     const notification = {
       id: `notif-${Date.now()}`,
+      user_id: null,
+      external_email: null,
+      recipient_name: 'Participantes',
       type: 'ATA_GERADA',
       title: 'ATA Disponível',
       message: `A ATA da reunião "${meetingTitle}" está disponível para consulta`,
@@ -109,6 +121,7 @@ export const useMeetingNotifications = () => {
       sent_at: new Date().toISOString(),
       status: 'ENVIADA',
       channel: 'EMAIL',
+      read_at: null,
       context: { meeting_id: meetingId }
     };
     
@@ -136,7 +149,9 @@ export const useMeetingNotifications = () => {
     
     const notification = {
       id: `notif-${Date.now()}-${Math.random()}`,
+      user_id: null,
       external_email: guestEmail,
+      recipient_name: guestName,
       type: 'MAGIC_LINK_CONVIDADO',
       title: '🔗 Acesso à Reunião',
       message: `Olá ${guestName},\n\nVocê foi convidado para a reunião "${meetingTitle}" em ${meetingDate} às ${meetingTime}.\n\n` +
