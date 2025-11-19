@@ -10,6 +10,42 @@ const defaultSettings = {
   reminderDays: 30,
 };
 
+// Helper function to generate mock participants for meetings
+const generateMockParticipants = (organType: string, councilName: string) => {
+  const membersByOrgan: Record<string, Array<{name: string, role: string, email: string}>> = {
+    'Conselho de Administração': [
+      { name: 'Carlos Alberto Silva', role: 'Presidente', email: 'carlos.silva@empresa.com' },
+      { name: 'Maria Santos Costa', role: 'Vice-Presidente', email: 'maria.costa@empresa.com' },
+      { name: 'Roberto Oliveira', role: 'Conselheiro Independente', email: 'roberto.oliveira@empresa.com' },
+      { name: 'Ana Paula Ferreira', role: 'Conselheira', email: 'ana.ferreira@empresa.com' }
+    ],
+    'Conselho Fiscal': [
+      { name: 'Fernando Rodrigues', role: 'Presidente', email: 'fernando.rodrigues@empresa.com' },
+      { name: 'Juliana Almeida', role: 'Conselheira Fiscal', email: 'juliana.almeida@empresa.com' },
+      { name: 'Pedro Henrique Santos', role: 'Conselheiro Fiscal', email: 'pedro.santos@empresa.com' }
+    ],
+    'Comitê de Auditoria': [
+      { name: 'Dr. Ricardo Mendes', role: 'Coordenador', email: 'ricardo.mendes@empresa.com' },
+      { name: 'Dra. Patrícia Lima', role: 'Membro', email: 'patricia.lima@empresa.com' },
+      { name: 'João Carlos Neves', role: 'Membro Independente', email: 'joao.neves@empresa.com' }
+    ]
+  };
+
+  const membersData = membersByOrgan[councilName] || membersByOrgan['Conselho de Administração'];
+  
+  return membersData.map((member, index) => ({
+    id: `mock-member-${councilName.replace(/\s/g, '-').toLowerCase()}-${index + 1}`,
+    name: member.name,
+    email: member.email,
+    phone: member.email.includes('carlos') ? '(11) 98765-4321' : undefined,
+    role: 'MEMBRO' as const,
+    confirmed: false,
+    can_upload: true,
+    can_view_materials: true,
+    can_comment: true,
+  }));
+};
+
 // Helper functions for date calculations
 const getNthWeekdayOfMonth = (year: number, month: number, weekday: number, nth: number): Date => {
   const firstDay = new Date(year, month, 1);
@@ -46,7 +82,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       location: "Sala Executiva - Matriz",
       agenda: [],
       nextMeetingTopics: [],
-      participants: [],
+      participants: generateMockParticipants("conselho", "Conselho de Administração"),
       confirmed_participants: 0,
       notifications_sent: false,
     });
@@ -224,7 +260,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       location: "Microsoft Teams",
       agenda: [],
       nextMeetingTopics: [],
-      participants: [],
+      participants: generateMockParticipants("comite", "Comitê de Auditoria"),
       confirmed_participants: 0,
       notifications_sent: false,
     });
@@ -346,7 +382,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       location: "Sala 201 / Zoom",
       agenda: [],
       nextMeetingTopics: [],
-      participants: [],
+      participants: generateMockParticipants("comissao", "Comissão de Ética"),
       confirmed_participants: 0,
       notifications_sent: false,
     });
