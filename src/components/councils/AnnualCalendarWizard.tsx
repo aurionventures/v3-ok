@@ -36,6 +36,8 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
   });
 
   const { organs } = useGovernanceOrgans(config.organType || undefined);
+  
+  const isFormValid = config.organType && config.organId && config.frequency && config.dayRule && config.time;
 
   const [generatedDates, setGeneratedDates] = useState<Date[]>([]);
   const [currentMonthOffset, setCurrentMonthOffset] = useState(0);
