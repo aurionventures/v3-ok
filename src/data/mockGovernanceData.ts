@@ -9,6 +9,15 @@ export interface MockMember {
   end_date?: string | null;
   status: string;
   user_id?: string | null;
+  email?: string;
+  phone?: string;
+  allocations?: Array<{
+    council_id: string;
+    council_name: string;
+    organ_type: 'conselho' | 'comite' | 'comissao';
+    role: string;
+    start_date: string;
+  }>;
 }
 
 export interface MockGuest {

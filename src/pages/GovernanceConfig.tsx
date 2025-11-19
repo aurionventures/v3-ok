@@ -8,7 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useGovernanceOrgans, OrganType, AccessConfig } from '@/hooks/useGovernanceOrgans';
+import { useGovernanceMembers, GovernanceMember, MemberFormData, AllocationData } from '@/hooks/useGovernanceMembers';
 import { HierarchyConfigurator } from '@/components/governance/HierarchyConfigurator';
+import { MembersTable } from '@/components/governance/MembersTable';
+import { CreateMemberModal } from '@/components/governance/CreateMemberModal';
+import { AllocateMemberModal } from '@/components/governance/AllocateMemberModal';
 import { Building2, Users, UserCog, Plus, Settings, Trash2, Edit } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -17,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 
 const GovernanceConfig = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<OrganType>('conselho');
+  const [activeTab, setActiveTab] = useState<OrganType | 'membros'>('conselho');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -28,9 +32,26 @@ const GovernanceConfig = () => {
     hierarchy_level: 1
   });
 
-  const { organs, loading, createOrgan, deleteOrgan, updateAccessConfig } = useGovernanceOrgans(activeTab);
+  const currentOrganType = activeTab === 'membros' ? 'conselho' : activeTab;
+  const { organs, loading, createOrgan, deleteOrgan, updateAccessConfig } = useGovernanceOrgans(currentOrganType);
+  const { 
+    members, 
+    loading: membersLoading,
+    createMember, 
+    updateMember, 
+    deleteMember,
+    allocateMemberToOrgan 
+  } = useGovernanceMembers();
+  
+  // Estados para modais de membros
+  const [isCreateMemberModalOpen, setIsCreateMemberModalOpen] = useState(false);
+  const [isAllocateMemberModalOpen, setIsAllocateMemberModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<GovernanceMember | null>(null);
+  const [allocatingMember, setAllocatingMember] = useState<GovernanceMember | null>(null);
 
   const handleCreate = async () => {
+    if (activeTab === 'membros') return;
+    
     try {
       await createOrgan({
         ...formData,
@@ -84,11 +105,58 @@ const GovernanceConfig = () => {
     await updateAccessConfig(selectedOrgan, config);
   };
 
-  const getOrganTypeLabel = (type: OrganType) => {
+  // Handlers para membros
+  const handleCreateMember = async (data: MemberFormData) => {
+    try {
+      if (editingMember) {
+        await updateMember(editingMember.id, data);
+      } else {
+        // Para criar, precisamos de um órgão - podemos pedir depois na alocação
+        toast({
+          title: "Atenção",
+          description: "Após criar o membro, aloque-o em um órgão.",
+        });
+      }
+      setEditingMember(null);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleAllocateMember = async (data: AllocationData) => {
+    try {
+      await allocateMemberToOrgan(data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleDeleteMember = async (member: GovernanceMember) => {
+    if (!confirm(`Tem certeza que deseja remover "${member.name}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteMember(member.id);
+      toast({
+        title: "Membro removido",
+        description: `"${member.name}" foi removido com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o membro.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getOrganTypeLabel = (type: OrganType | 'membros') => {
     switch (type) {
       case 'conselho': return 'Conselho';
       case 'comite': return 'Comitê';
       case 'comissao': return 'Comissão';
+      case 'membros': return 'Membros';
     }
   };
 
@@ -125,8 +193,8 @@ const GovernanceConfig = () => {
             </div>
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as OrganType)}>
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as OrganType | 'membros')}>
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="conselho" className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
                   Conselhos
@@ -139,9 +207,34 @@ const GovernanceConfig = () => {
                   <UserCog className="h-4 w-4" />
                   Comissões
                 </TabsTrigger>
+                <TabsTrigger value="membros" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Membros
+                </TabsTrigger>
               </TabsList>
 
-              {/* Content for each tab */}
+              {/* Aba Membros */}
+              <TabsContent value="membros" className="space-y-4">
+                <MembersTable
+                  members={members}
+                  loading={membersLoading}
+                  onCreateMember={() => {
+                    setEditingMember(null);
+                    setIsCreateMemberModalOpen(true);
+                  }}
+                  onEditMember={(member) => {
+                    setEditingMember(member);
+                    setIsCreateMemberModalOpen(true);
+                  }}
+                  onAllocateMember={(member) => {
+                    setAllocatingMember(member);
+                    setIsAllocateMemberModalOpen(true);
+                  }}
+                  onDeleteMember={handleDeleteMember}
+                />
+              </TabsContent>
+
+              {/* Content for each organ tab */}
               {(['conselho', 'comite', 'comissao'] as OrganType[]).map((type) => (
                 <TabsContent key={type} value={type} className="space-y-4">
                   {/* Create Button */}
@@ -322,6 +415,21 @@ const GovernanceConfig = () => {
                 </TabsContent>
               ))}
             </Tabs>
+
+            {/* Modais de Membros */}
+            <CreateMemberModal
+              open={isCreateMemberModalOpen}
+              onOpenChange={setIsCreateMemberModalOpen}
+              onSubmit={handleCreateMember}
+              editingMember={editingMember}
+            />
+
+            <AllocateMemberModal
+              open={isAllocateMemberModalOpen}
+              onOpenChange={setIsAllocateMemberModalOpen}
+              onAllocate={handleAllocateMember}
+              member={allocatingMember}
+            />
           </div>
         </main>
       </div>
