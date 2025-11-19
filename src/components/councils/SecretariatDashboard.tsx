@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,7 @@ import { FileText, Send, CheckCircle2, Clock, AlertCircle, Upload, UserCheck, Ca
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PendingTasksReportModal } from "./PendingTasksReportModal";
 
 interface SecretariatDashboardProps {
   onOpenConvocations?: () => void;
@@ -18,12 +20,13 @@ export const SecretariatDashboard = ({
   onViewMeeting 
 }: SecretariatDashboardProps) => {
   const { toast } = useToast();
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   // Mock data - Apenas tarefas e materiais
   const pendingTasks = [
-    { id: "1", task: "Enviar convocação - Conselho de Administração", priority: "high", dueDate: new Date(2025, 0, 20) },
-    { id: "2", task: "Aprovar materiais - Comitê de Auditoria", priority: "medium", dueDate: new Date(2025, 0, 23) },
-    { id: "3", task: "Confirmar presença dos membros", priority: "low", dueDate: new Date(2025, 0, 24) },
+    { id: "1", task: "Enviar convocação - Conselho de Administração", priority: "high" as const, dueDate: new Date(2025, 0, 20) },
+    { id: "2", task: "Aprovar materiais - Comitê de Auditoria", priority: "medium" as const, dueDate: new Date(2025, 0, 23) },
+    { id: "3", task: "Confirmar presença dos membros", priority: "low" as const, dueDate: new Date(2025, 0, 24) },
   ];
 
   const materialsAwaitingApproval = [
@@ -45,29 +48,7 @@ export const SecretariatDashboard = ({
   };
 
   const handleGenerateReport = () => {
-    // Gerar relatório mockado de pendências
-    const reportData = {
-      generatedAt: new Date().toISOString(),
-      totalTasks: pendingTasks.length,
-      highPriority: pendingTasks.filter(t => t.priority === "high").length,
-      mediumPriority: pendingTasks.filter(t => t.priority === "medium").length,
-      lowPriority: pendingTasks.filter(t => t.priority === "low").length,
-      tasks: pendingTasks
-    };
-    
-    // Simular download
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `relatorio-pendencias-${format(new Date(), 'dd-MM-yyyy')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Relatório Gerado",
-      description: "Relatório de pendências baixado com sucesso.",
-    });
+    setReportModalOpen(true);
   };
 
   return (
@@ -179,6 +160,13 @@ export const SecretariatDashboard = ({
           </Button>
         </CardContent>
       </Card>
+
+      {/* Modal de Geração de Relatório */}
+      <PendingTasksReportModal
+        open={reportModalOpen}
+        onOpenChange={setReportModalOpen}
+        tasks={pendingTasks}
+      />
     </div>
   );
 };
