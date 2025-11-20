@@ -30,5 +30,8 @@ verify_jwt = false
 [functions.request-partner-access]
 verify_jwt = false
 
+[functions.secretariat-search]
+verify_jwt = false
+
 [functions.setup-demo-users]
 verify_jwt = false
