@@ -445,49 +445,24 @@ export const ATALibrary = () => {
                 <div className="mt-3">
                   <div className="text-xs text-muted-foreground mb-2">Sugestões:</div>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    {
-                      text: "Quais decisões foram tomadas sobre expansão internacional?",
-                      icon: "🌎",
-                      category: "Estratégia"
-                    },
-                    {
-                      text: "Mostre as políticas de governança aprovadas",
-                      icon: "⚖️",
-                      category: "Governança"
-                    },
-                    {
-                      text: "Como está o planejamento de sucessão executiva?",
-                      icon: "👥",
-                      category: "Sucessão"
-                    },
-                    {
-                      text: "Quais riscos operacionais foram identificados?",
-                      icon: "⚠️",
-                      category: "Riscos"
-                    },
-                    {
-                      text: "Qual o status de conformidade com LGPD e SOX?",
-                      icon: "📋",
-                      category: "Compliance"
-                    },
-                    {
-                      text: "Quantos casos de ética foram analisados?",
-                      icon: "🤝",
-                      category: "Ética"
-                    }
-                  ].map((suggestion, idx) => (
-                    <Button
-                      key={idx}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-auto py-1.5 px-3 flex items-center gap-1.5"
-                      onClick={() => setInputMessage(suggestion.text)}
-                    >
-                      <span>{suggestion.icon}</span>
-                      <span>{suggestion.text}</span>
-                    </Button>
-                  ))}
+              {[
+                "Quais decisões foram tomadas sobre expansão internacional?",
+                "Mostre as políticas de governança aprovadas",
+                "Como está o planejamento de sucessão executiva?",
+                "Quais riscos operacionais foram identificados?",
+                "Qual o status de conformidade com LGPD e SOX?",
+                "Quantos casos de ética foram analisados?"
+              ].map((suggestion, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-auto py-1.5 px-3"
+                  onClick={() => setInputMessage(suggestion)}
+                >
+                  {suggestion}
+                </Button>
+              ))}
                 </div>
                 </div>
               )}
