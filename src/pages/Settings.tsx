@@ -60,33 +60,6 @@ const Settings = () => {
                 <TabsContent value="general">
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Preferências do Sistema</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Tema Escuro</Label>
-                            <p className="text-sm text-gray-500">Ativar o tema escuro para a interface</p>
-                          </div>
-                          <Switch />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Modo de Alto Contraste</Label>
-                            <p className="text-sm text-gray-500">Melhorar a legibilidade com alto contraste</p>
-                          </div>
-                          <Switch />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Animações</Label>
-                            <p className="text-sm text-gray-500">Ativar animações na interface</p>
-                          </div>
-                          <Switch defaultChecked />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
                       <h3 className="text-lg font-medium mb-4">Idioma e Região</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
