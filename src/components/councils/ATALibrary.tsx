@@ -269,25 +269,25 @@ export const ATALibrary = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Toggle de Modo */}
-        <div className="flex items-center gap-2 mb-4">
-          <Button
-            variant={!isChatMode ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setIsChatMode(false)}
-          >
-            <Search className="h-4 w-4 mr-1" />
-            Busca Rápida
-          </Button>
-          <Button
-            variant={isChatMode ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setIsChatMode(true)}
-          >
-            <Bot className="h-4 w-4 mr-1" />
-            Busca Conversacional (RAG)
-          </Button>
-        </div>
+          {/* Toggle de Modo */}
+          <div className="flex items-center gap-2 mb-4">
+            <Button
+              variant={isChatMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setIsChatMode(true)}
+            >
+              <Bot className="h-4 w-4 mr-1" />
+              Busca Conversacional
+            </Button>
+            <Button
+              variant={!isChatMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setIsChatMode(false)}
+            >
+              <Library className="h-4 w-4 mr-1" />
+              Biblioteca
+            </Button>
+          </div>
 
         {isChatMode ? (
           // MODO CONVERSACIONAL (RAG)
