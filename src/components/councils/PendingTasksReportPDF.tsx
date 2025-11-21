@@ -6,7 +6,7 @@ import { saveAs } from 'file-saver';
 export interface ReportTask {
   id: string;
   task: string;
-  priority: 'high' | 'medium' | 'low';
+  priority?: 'high' | 'medium' | 'low'; // Agora opcional
   dueDate: Date;
   organ: string;
   organType: 'conselho' | 'comite' | 'comissao';
@@ -27,9 +27,6 @@ export interface ReportData {
   tasks: ReportTask[];
   summary: {
     total: number;
-    highPriority: number;
-    mediumPriority: number;
-    lowPriority: number;
     byOrganType: {
       conselhos: number;
       comites: number;
@@ -249,24 +246,6 @@ export const PendingTasksReportDocument = ({ data }: { data: ReportData }) => {
               <Text style={styles.summaryLabel}>Total</Text>
               <Text style={styles.summaryValue}>{data.summary.total}</Text>
             </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Alta Prioridade</Text>
-              <Text style={[styles.summaryValue, { color: '#ef4444' }]}>
-                {data.summary.highPriority}
-              </Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Média</Text>
-              <Text style={[styles.summaryValue, { color: '#f59e0b' }]}>
-                {data.summary.mediumPriority}
-              </Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>Baixa</Text>
-              <Text style={[styles.summaryValue, { color: '#10b981' }]}>
-                {data.summary.lowPriority}
-              </Text>
-            </View>
           </View>
 
           {/* Distribuição por Tipo de Órgão */}
@@ -371,18 +350,6 @@ export const PendingTasksReportDocument = ({ data }: { data: ReportData }) => {
                   </Text>
                   <Text style={styles.taskLabel}>
                     Órgão: {task.organ}
-                  </Text>
-                </View>
-                <View style={[
-                  styles.priorityBadge,
-                  task.priority === 'high' && styles.priorityHigh,
-                  task.priority === 'medium' && styles.priorityMedium,
-                  task.priority === 'low' && styles.priorityLow,
-                ]}>
-                  <Text>
-                    {task.priority === 'high' && 'ALTA'}
-                    {task.priority === 'medium' && 'MÉDIA'}
-                    {task.priority === 'low' && 'BAIXA'}
                   </Text>
                 </View>
               </View>

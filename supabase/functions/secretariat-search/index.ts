@@ -10,6 +10,7 @@ interface SearchQuery {
   question: string;
   meetings: any[];
   documents: any[];
+  searchScope?: 'all' | 'atas_only' | 'documents_only';
 }
 
 interface SearchResult {
@@ -38,7 +39,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, meetings = [], documents = [] } = await req.json() as SearchQuery;
+    const { question, meetings = [], documents = [], searchScope = 'all' } = await req.json() as SearchQuery;
     
     if (!question || !question.trim()) {
       return new Response(
@@ -123,91 +124,136 @@ serve(async (req) => {
     // 2. Realizar busca nos dados
     const results: SearchResult[] = [];
 
-    // Buscar em ATAs
-    meetings.forEach((meeting: any) => {
-      if (meeting.minutes) {
-        const ataContent = `${meeting.minutes.full || ''}\n${meeting.minutes.summary || ''}`;
-        const matchScore = calculateRelevance(ataContent, searchIntent.keywords);
+    if (searchScope === 'atas_only') {
+      // Buscar APENAS em ATAs
+      meetings.forEach((meeting: any) => {
+        if (meeting.minutes) {
+          const ataContent = `${meeting.minutes.full || ''}\n${meeting.minutes.summary || ''}`;
+          const matchScore = calculateRelevance(ataContent, searchIntent.keywords);
+          
+          if (matchScore > 0.3) {
+            results.push({
+              type: 'ata',
+              title: `ATA ${meeting.council} - ${meeting.date}`,
+              content: meeting.minutes.summary || meeting.minutes.full?.substring(0, 200) || '',
+              date: meeting.date,
+              organ: meeting.council,
+              relevance: matchScore,
+              metadata: {
+                fullContent: meeting.minutes.full,
+                decisions: meeting.ata?.decisions || [],
+                participants: meeting.participants?.map((p: any) => p.name) || []
+              }
+            });
+          }
+        }
+      });
+    } else if (searchScope === 'documents_only') {
+      // Buscar APENAS em Documentos
+      documents.forEach((doc: any) => {
+        const docContent = `${doc.name || ''} ${doc.type || ''}`;
+        const matchScore = calculateRelevance(docContent, searchIntent.keywords);
         
-        if (matchScore > 0.3) {
+        if (matchScore > 0.2) {
           results.push({
-            type: 'ata',
-            title: `ATA ${meeting.council} - ${meeting.date}`,
-            content: meeting.minutes.summary || meeting.minutes.full?.substring(0, 200) || '',
+            type: 'document',
+            title: doc.name || 'Documento',
+            content: `Documento: ${doc.type || 'Geral'}`,
+            date: doc.uploadDate || doc.created_at || new Date().toISOString(),
+            organ: doc.organ || 'Geral',
+            relevance: matchScore,
+            metadata: { url: doc.url, type: doc.type }
+          });
+        }
+      });
+    } else {
+      // Busca completa (all)
+      // Buscar em ATAs
+      meetings.forEach((meeting: any) => {
+        if (meeting.minutes) {
+          const ataContent = `${meeting.minutes.full || ''}\n${meeting.minutes.summary || ''}`;
+          const matchScore = calculateRelevance(ataContent, searchIntent.keywords);
+          
+          if (matchScore > 0.3) {
+            results.push({
+              type: 'ata',
+              title: `ATA ${meeting.council} - ${meeting.date}`,
+              content: meeting.minutes.summary || meeting.minutes.full?.substring(0, 200) || '',
+              date: meeting.date,
+              organ: meeting.council,
+              relevance: matchScore,
+              metadata: {
+                fullContent: meeting.minutes.full,
+                decisions: meeting.ata?.decisions || [],
+                participants: meeting.participants?.map((p: any) => p.name) || []
+              }
+            });
+          }
+        }
+      });
+
+      // Buscar em Decisões
+      meetings.forEach((meeting: any) => {
+        if (meeting.ata?.decisions) {
+          meeting.ata.decisions.forEach((decision: string) => {
+            const matchScore = calculateRelevance(decision, searchIntent.keywords);
+            
+            if (matchScore > 0.3) {
+              results.push({
+                type: 'decision',
+                title: `Decisão - ${meeting.council}`,
+                content: decision,
+                date: meeting.date,
+                organ: meeting.council,
+                relevance: matchScore,
+                metadata: { meetingId: meeting.id, meetingTitle: meeting.title }
+              });
+            }
+          });
+        }
+      });
+
+      // Buscar em Documentos
+      documents.forEach((doc: any) => {
+        const docContent = `${doc.name || ''} ${doc.type || ''}`;
+        const matchScore = calculateRelevance(docContent, searchIntent.keywords);
+        
+        if (matchScore > 0.2) {
+          results.push({
+            type: 'document',
+            title: doc.name || 'Documento',
+            content: `Documento: ${doc.type || 'Geral'}`,
+            date: doc.uploadDate || doc.created_at || new Date().toISOString(),
+            organ: doc.organ || 'Geral',
+            relevance: matchScore,
+            metadata: { url: doc.url, type: doc.type }
+          });
+        }
+      });
+
+      // Buscar em Reuniões (informações gerais)
+      meetings.forEach((meeting: any) => {
+        const meetingContent = `${meeting.title || ''} ${meeting.council || ''} ${meeting.status || ''}`;
+        const matchScore = calculateRelevance(meetingContent, searchIntent.keywords);
+        
+        if (matchScore > 0.25 && !meeting.minutes) {
+          results.push({
+            type: 'meeting',
+            title: meeting.title || `Reunião ${meeting.council}`,
+            content: `Reunião agendada para ${meeting.date} - Status: ${meeting.status}`,
             date: meeting.date,
             organ: meeting.council,
             relevance: matchScore,
             metadata: {
-              fullContent: meeting.minutes.full,
-              decisions: meeting.ata?.decisions || [],
+              location: meeting.location,
+              time: meeting.time,
+              modalidade: meeting.modalidade,
               participants: meeting.participants?.map((p: any) => p.name) || []
             }
           });
         }
-      }
-    });
-
-    // Buscar em Decisões
-    meetings.forEach((meeting: any) => {
-      if (meeting.ata?.decisions) {
-        meeting.ata.decisions.forEach((decision: string) => {
-          const matchScore = calculateRelevance(decision, searchIntent.keywords);
-          
-          if (matchScore > 0.3) {
-            results.push({
-              type: 'decision',
-              title: `Decisão - ${meeting.council}`,
-              content: decision,
-              date: meeting.date,
-              organ: meeting.council,
-              relevance: matchScore,
-              metadata: { meetingId: meeting.id, meetingTitle: meeting.title }
-            });
-          }
-        });
-      }
-    });
-
-    // Buscar em Documentos
-    documents.forEach((doc: any) => {
-      const docContent = `${doc.name || ''} ${doc.type || ''}`;
-      const matchScore = calculateRelevance(docContent, searchIntent.keywords);
-      
-      if (matchScore > 0.2) {
-        results.push({
-          type: 'document',
-          title: doc.name || 'Documento',
-          content: `Documento: ${doc.type || 'Geral'}`,
-          date: doc.uploadDate || doc.created_at || new Date().toISOString(),
-          organ: doc.organ || 'Geral',
-          relevance: matchScore,
-          metadata: { url: doc.url, type: doc.type }
-        });
-      }
-    });
-
-    // Buscar em Reuniões (informações gerais)
-    meetings.forEach((meeting: any) => {
-      const meetingContent = `${meeting.title || ''} ${meeting.council || ''} ${meeting.status || ''}`;
-      const matchScore = calculateRelevance(meetingContent, searchIntent.keywords);
-      
-      if (matchScore > 0.25 && !meeting.minutes) {
-        results.push({
-          type: 'meeting',
-          title: meeting.title || `Reunião ${meeting.council}`,
-          content: `Reunião agendada para ${meeting.date} - Status: ${meeting.status}`,
-          date: meeting.date,
-          organ: meeting.council,
-          relevance: matchScore,
-          metadata: {
-            location: meeting.location,
-            time: meeting.time,
-            modalidade: meeting.modalidade,
-            participants: meeting.participants?.map((p: any) => p.name) || []
-          }
-        });
-      }
-    });
+      });
+    }
 
     // Ordenar por relevância
     results.sort((a, b) => b.relevance - a.relevance);
