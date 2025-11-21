@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Bot } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Shield, Bell } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { AIConfiguration } from "@/components/admin/AIConfiguration";
+
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -54,10 +54,6 @@ const Settings = () => {
                   <TabsTrigger value="notifications">
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
-                  </TabsTrigger>
-                  <TabsTrigger value="ai">
-                    <Bot className="h-4 w-4 mr-2" />
-                    Inteligência Artificial
                   </TabsTrigger>
                 </TabsList>
                 
@@ -195,28 +191,23 @@ const Settings = () => {
                 
                 <TabsContent value="notifications">
                   <div className="space-y-6">
-                    <div className="mb-6 p-4 bg-muted rounded-lg">
-                      <p className="text-sm mb-3">Configure suas preferências detalhadas de notificação.</p>
-                      <Button 
-                        onClick={() => window.location.href = '/configuracoes/notificacoes'}
-                        variant="default"
-                      >
-                        Configurar Notificações
-                      </Button>
-                    </div>
+                    {/* SEÇÃO 1: Preferências de Notificações */}
                     <div>
                       <h3 className="text-lg font-medium mb-4">Preferências de Notificações</h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
                             <Label>Notificações por Email</Label>
-                            <p className="text-sm text-gray-500">Receber notificações por email</p>
+                            <p className="text-sm text-muted-foreground">Receber notificações por email</p>
                           </div>
-                          <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                          <Switch 
+                            checked={notificationsEnabled} 
+                            onCheckedChange={setNotificationsEnabled} 
+                          />
                         </div>
                         
                         {notificationsEnabled && (
-                          <div className="ml-6 space-y-4 border-l-2 pl-4 border-gray-200">
+                          <div className="ml-6 space-y-4 border-l-2 pl-4 border-border">
                             <div className="flex items-center justify-between">
                               <Label>Atualizações de Documentos</Label>
                               <Switch defaultChecked />
@@ -237,30 +228,65 @@ const Settings = () => {
                         )}
                       </div>
                     </div>
-                    
+
+                    {/* SEÇÃO 2: Canais de Notificação */}
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Notificações no Sistema</h3>
+                      <h3 className="text-lg font-medium mb-4">Canais de Notificação</h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <Label>Notificações no Navegador</Label>
+                          <Label>E-mail</Label>
                           <Switch defaultChecked />
                         </div>
                         <div className="flex items-center justify-between">
-                          <Label>Sons de Notificação</Label>
+                          <Label>WhatsApp</Label>
                           <Switch />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Label>Notificações no App</Label>
+                          <Switch defaultChecked />
                         </div>
                       </div>
                     </div>
-                    
+
+                    {/* SEÇÃO 3: Tipos de Notificação */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-4">Tipos de Notificação</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Label>Lembretes de Reuniões</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receber lembretes automáticos antes das reuniões
+                            </p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Label>Pendências Próximas ao Vencimento</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receber avisos quando pendências estiverem próximas do prazo
+                            </p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Label>Pendências Atrasadas</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receber alertas diários sobre pendências atrasadas
+                            </p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                      </div>
+                    </div>
+
                     <Button onClick={handleSaveSettings}>
                       <Save className="h-4 w-4 mr-2" />
                       Salvar Preferências de Notificações
                     </Button>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="ai">
-                  <AIConfiguration />
                 </TabsContent>
               </Tabs>
             </CardContent>
