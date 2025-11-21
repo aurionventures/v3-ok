@@ -8,10 +8,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Library, List, Grid, Search, FileText, Calendar, Building2, Download, Eye, Building, BarChart3, Scale, ClipboardList, Bot, User, Send, Loader2 } from "lucide-react";
 import { useAnnualSchedule } from "@/hooks/useAnnualSchedule";
+import { MeetingSchedule } from "@/types/annualSchedule";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import MeetingATAViewer from './MeetingATAViewer';
+import { pdf } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
+import { ATAPDFDocument } from './ATAPDFDocument';
 
 type ViewMode = 'list' | 'mosaic';
 
@@ -44,6 +49,9 @@ export const ATALibrary = () => {
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [selectedATA, setSelectedATA] = useState<MeetingSchedule | null>(null);
+  const [isATAViewerOpen, setIsATAViewerOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   const { toast } = useToast();
   const { schedule } = useAnnualSchedule();
@@ -174,6 +182,33 @@ export const ATALibrary = () => {
       });
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleViewATA = (ata: MeetingSchedule) => {
+    setSelectedATA(ata);
+    setIsATAViewerOpen(true);
+  };
+
+  const handleDownloadPDF = async (ata: MeetingSchedule) => {
+    setIsGeneratingPDF(true);
+    try {
+      const blob = await pdf(<ATAPDFDocument meeting={ata} />).toBlob();
+      saveAs(blob, `ATA_${ata.council.replace(/\s+/g, '_')}_${format(new Date(ata.date), 'dd-MM-yyyy')}.pdf`);
+      
+      toast({
+        title: "PDF Gerado",
+        description: "O download começou automaticamente",
+      });
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Não foi possível gerar o arquivo",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -496,13 +531,22 @@ export const ATALibrary = () => {
                           </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                          <Button size="sm" variant="default">
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => handleViewATA(ata)}
+                          >
                             <Eye className="h-4 w-4 mr-1" />
                             Ver ATA
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDownloadPDF(ata)}
+                            disabled={isGeneratingPDF}
+                          >
                             <Download className="h-4 w-4 mr-1" />
-                            Download
+                            {isGeneratingPDF ? 'Gerando...' : 'Download'}
                           </Button>
                         </div>
                       </div>
@@ -536,11 +580,21 @@ export const ATALibrary = () => {
                           {ata.minutes?.summary || 'Resumo não disponível'}
                         </p>
                         <div className="flex gap-2 pt-2">
-                          <Button size="sm" className="flex-1" variant="default">
+                          <Button 
+                            size="sm" 
+                            className="flex-1" 
+                            variant="default"
+                            onClick={() => handleViewATA(ata)}
+                          >
                             <Eye className="h-3 w-3 mr-1" />
                             Abrir
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDownloadPDF(ata)}
+                            disabled={isGeneratingPDF}
+                          >
                             <Download className="h-3 w-3" />
                           </Button>
                         </div>
@@ -553,6 +607,25 @@ export const ATALibrary = () => {
           </>
         )}
       </CardContent>
+
+      {/* Modal de Visualização de ATA */}
+      {selectedATA && (
+        <MeetingATAViewer 
+          meeting={selectedATA}
+          isOpen={isATAViewerOpen}
+          onClose={() => {
+            setIsATAViewerOpen(false);
+            setSelectedATA(null);
+          }}
+          onGenerateATA={async () => {
+            toast({
+              title: "Funcionalidade em Demo",
+              description: "Em modo real, isso regeneraria a ATA",
+            });
+          }}
+          isGenerating={false}
+        />
+      )}
     </Card>
   );
 };
