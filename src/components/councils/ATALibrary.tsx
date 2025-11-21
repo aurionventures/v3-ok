@@ -43,7 +43,7 @@ export const ATALibrary = () => {
     {
       id: '1',
       type: 'assistant',
-      content: 'Olá! 👋 Sou seu assistente de busca em ATAs. Pergunte sobre qualquer tema, decisão ou pauta discutida nas reuniões.',
+      content: 'Olá! 👋 Sou seu assistente de busca em ATAs. Pergunte sobre qualquer tema, decisão ou pauta discutida nas reuniões.\n\n💡 Dica: Clique nos cards de ATA para visualizar o documento completo na Biblioteca.',
       timestamp: new Date(),
       results: []
     }
@@ -190,6 +190,36 @@ export const ATALibrary = () => {
     setIsATAViewerOpen(true);
   };
 
+  const handleNavigateToATA = (result: any) => {
+    // Encontrar a ATA correspondente no array de ATAs disponíveis
+    const ataId = result.metadata?.meetingId || result.id;
+    const foundATA = atasAvailable.find(
+      ata => ata.id === ataId || 
+             ata.council === result.metadata?.organ ||
+             format(new Date(ata.date), 'dd/MM/yyyy') === result.date
+    );
+    
+    if (foundATA) {
+      // Mudar para modo Biblioteca
+      setIsChatMode(false);
+      
+      // Abrir o visualizador de ATA
+      setSelectedATA(foundATA);
+      setIsATAViewerOpen(true);
+      
+      toast({
+        title: "ATA Localizada",
+        description: `Abrindo ATA de ${foundATA.council}`,
+      });
+    } else {
+      toast({
+        title: "ATA não encontrada",
+        description: "Não foi possível localizar esta ATA na biblioteca",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleDownloadPDF = async (ata: MeetingSchedule) => {
     setIsGeneratingPDF(true);
     try {
@@ -328,12 +358,18 @@ export const ATALibrary = () => {
                               {message.results.length} ATA(s) encontrada(s):
                             </div>
                             {message.results.slice(0, 3).map((result, idx) => (
-                              <Card key={idx} className="border-l-4 border-l-primary hover:shadow-md transition-shadow cursor-pointer">
+                              <Card 
+                                key={idx} 
+                                className="border-l-4 border-l-primary hover:shadow-md transition-all cursor-pointer group"
+                                onClick={() => handleNavigateToATA(result)}
+                              >
                                 <CardContent className="p-3">
                                   <div className="flex items-start gap-2">
                                     <FileText className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                                     <div className="flex-1 min-w-0">
-                                      <div className="font-semibold text-sm truncate">{result.title}</div>
+                                      <div className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                                        {result.title}
+                                      </div>
                                       <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
                                         {result.content}
                                       </div>
@@ -348,6 +384,7 @@ export const ATALibrary = () => {
                                         )}
                                       </div>
                                     </div>
+                                    <Eye className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
                                 </CardContent>
                               </Card>
@@ -407,23 +444,51 @@ export const ATALibrary = () => {
               {messages.length === 1 && (
                 <div className="mt-3">
                   <div className="text-xs text-muted-foreground mb-2">Sugestões:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Quais foram as principais decisões sobre ESG?",
-                      "Mostre discussões sobre compliance",
-                      "Reuniões que trataram de investimentos"
-                    ].map((suggestion, idx) => (
-                      <Button
-                        key={idx}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-auto py-1.5"
-                        onClick={() => setInputMessage(suggestion)}
-                      >
-                        {suggestion}
-                      </Button>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    {
+                      text: "Quais decisões foram tomadas sobre expansão internacional?",
+                      icon: "🌎",
+                      category: "Estratégia"
+                    },
+                    {
+                      text: "Mostre as políticas de governança aprovadas",
+                      icon: "⚖️",
+                      category: "Governança"
+                    },
+                    {
+                      text: "Como está o planejamento de sucessão executiva?",
+                      icon: "👥",
+                      category: "Sucessão"
+                    },
+                    {
+                      text: "Quais riscos operacionais foram identificados?",
+                      icon: "⚠️",
+                      category: "Riscos"
+                    },
+                    {
+                      text: "Qual o status de conformidade com LGPD e SOX?",
+                      icon: "📋",
+                      category: "Compliance"
+                    },
+                    {
+                      text: "Quantos casos de ética foram analisados?",
+                      icon: "🤝",
+                      category: "Ética"
+                    }
+                  ].map((suggestion, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-auto py-1.5 px-3 flex items-center gap-1.5"
+                      onClick={() => setInputMessage(suggestion.text)}
+                    >
+                      <span>{suggestion.icon}</span>
+                      <span>{suggestion.text}</span>
+                    </Button>
+                  ))}
+                </div>
                 </div>
               )}
             </CardContent>
