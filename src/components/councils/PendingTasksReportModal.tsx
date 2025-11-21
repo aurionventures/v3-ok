@@ -39,9 +39,11 @@ import { useGovernanceOrgans } from "@/hooks/useGovernanceOrgans";
 interface Task {
   id: string;
   task: string;
-  priority: "high" | "medium" | "low";
+  priority?: "high" | "medium" | "low"; // Agora opcional
   dueDate: Date;
   organ?: string;
+  organType?: string;
+  organName?: string;
 }
 
 interface PendingTasksReportModalProps {
@@ -56,7 +58,6 @@ export const PendingTasksReportModal = ({
   tasks,
 }: PendingTasksReportModalProps) => {
   const { toast } = useToast();
-  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
   const [selectedOrganType, setSelectedOrganType] = useState<'conselho' | 'comite' | 'comissao' | 'all'>('all');
   const [selectedOrganId, setSelectedOrganId] = useState<string>('all');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -117,29 +118,23 @@ export const PendingTasksReportModal = ({
   // Filtrar tarefas
   const filteredTasks = useMemo(() => {
     return enrichedTasks.filter((task) => {
-      const priorityMatch = selectedPriorities.length === 0 || 
-        selectedPriorities.includes(task.priority);
-      
       // Se "all" foi selecionado ou nenhum órgão específico, mostrar todas as tarefas
       if (!selectedOrganId || selectedOrganId === 'all') {
-        return priorityMatch;
+        return true;
       }
       
       // Encontrar o órgão selecionado para comparar com o nome
       const selectedOrgan = allOrgans.find(o => o.id === selectedOrganId);
       const organMatch = selectedOrgan ? task.organ === selectedOrgan.name : true;
       
-      return priorityMatch && organMatch;
+      return organMatch;
     });
-  }, [enrichedTasks, selectedPriorities, selectedOrganId, allOrgans]);
+  }, [enrichedTasks, selectedOrganId, allOrgans]);
 
   // Calcular resumo
   const summary = useMemo(() => {
     return {
       total: filteredTasks.length,
-      highPriority: filteredTasks.filter(t => t.priority === "high").length,
-      mediumPriority: filteredTasks.filter(t => t.priority === "medium").length,
-      lowPriority: filteredTasks.filter(t => t.priority === "low").length,
       byOrganType: {
         conselhos: filteredTasks.filter(t => t.organType === 'conselho').length,
         comites: filteredTasks.filter(t => t.organType === 'comite').length,
@@ -149,11 +144,7 @@ export const PendingTasksReportModal = ({
   }, [filteredTasks]);
 
   const handleTogglePriority = (priority: string) => {
-    setSelectedPriorities(prev =>
-      prev.includes(priority)
-        ? prev.filter(p => p !== priority)
-        : [...prev, priority]
-    );
+    // Removido - não usado mais
   };
 
 
@@ -171,7 +162,7 @@ export const PendingTasksReportModal = ({
 
       await generatePendingTasksReportPDF({
         filters: {
-          priorities: selectedPriorities,
+          priorities: [],
           organs: selectedOrgan ? [selectedOrgan.name] : [],
           organsByType: organsByTypeSelected,
         },
@@ -286,38 +277,6 @@ export const PendingTasksReportModal = ({
 
           {/* ABA DE FILTROS */}
           <TabsContent value="filters" className="flex-1 overflow-y-auto space-y-6 mt-4">
-            {/* Filtro de Prioridade */}
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-gray-600" />
-                Prioridade
-              </Label>
-              <div className="grid grid-cols-3 gap-3">
-                {["high", "medium", "low"].map((priority) => (
-                  <div
-                    key={priority}
-                    className={`flex items-center space-x-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                      selectedPriorities.includes(priority)
-                        ? "border-blue-500 bg-blue-50 shadow-sm"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                    onClick={() => handleTogglePriority(priority)}
-                  >
-                    <Checkbox
-                      checked={selectedPriorities.includes(priority)}
-                      onCheckedChange={() => handleTogglePriority(priority)}
-                    />
-                    {getPriorityIcon(priority)}
-                    <Label className="cursor-pointer flex-1 font-medium">
-                      {getPriorityLabel(priority)}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Filtro de Tipo de Órgão */}
             <div className="space-y-3">
               <Label className="text-sm font-semibold">
@@ -406,23 +365,11 @@ export const PendingTasksReportModal = ({
                 <div className="space-y-4">
                   {/* Por Prioridade */}
                   <div>
-                    <Label className="text-xs text-blue-700 mb-2 block">Por Prioridade</Label>
-                    <div className="grid grid-cols-4 gap-3 text-center">
+                    <Label className="text-xs text-blue-700 mb-2 block">Total de Tarefas</Label>
+                    <div className="grid grid-cols-1 gap-3 text-center">
                       <div className="bg-white p-3 rounded-lg shadow-sm">
                         <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
                         <div className="text-xs text-muted-foreground">Total</div>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg shadow-sm">
-                        <div className="text-2xl font-bold text-red-500">{summary.highPriority}</div>
-                        <div className="text-xs text-muted-foreground">Alta</div>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg shadow-sm">
-                        <div className="text-2xl font-bold text-yellow-500">{summary.mediumPriority}</div>
-                        <div className="text-xs text-muted-foreground">Média</div>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg shadow-sm">
-                        <div className="text-2xl font-bold text-green-500">{summary.lowPriority}</div>
-                        <div className="text-xs text-muted-foreground">Baixa</div>
                       </div>
                     </div>
                   </div>
@@ -515,17 +462,6 @@ export const PendingTasksReportModal = ({
                               </div>
                             </div>
                           </div>
-                          <Badge
-                            variant={
-                              task.priority === "high" ? "destructive" :
-                              task.priority === "medium" ? "default" :
-                              "secondary"
-                            }
-                            className="flex items-center gap-1.5 px-3 py-1.5 shadow-sm"
-                          >
-                            {getPriorityIcon(task.priority)}
-                            <span className="font-semibold">{getPriorityLabel(task.priority)}</span>
-                          </Badge>
                         </div>
                       </CardContent>
                     </Card>
