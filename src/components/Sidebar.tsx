@@ -206,6 +206,12 @@ const Sidebar = () => {
       color: "text-purple-400",
       items: [
         {
+          icon: <Settings className="h-5 w-5" />,
+          href: "/governance-config",
+          name: "Config. Governança",
+          moduleId: "governance-config"
+        },
+        {
           icon: <Calendar className="h-5 w-5" />,
           href: "/annual-agenda",
           name: "Agenda Anual",
@@ -218,12 +224,6 @@ const Sidebar = () => {
           name: "Secretariado",
           moduleId: "secretariat",
           priority: true
-        },
-        {
-          icon: <Settings className="h-5 w-5" />,
-          href: "/governance-config",
-          name: "Config. Governança",
-          moduleId: "governance-config"
         },
         {
           icon: <Send className="h-5 w-5" />,
