@@ -263,13 +263,14 @@ const AnnualAgenda = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Agenda Anual 2025" />
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4">
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex flex-wrap gap-3 mb-4">
             <Button 
               onClick={() => setIsWizardOpen(true)}
               variant="outline"
+              size="sm"
               className="flex items-center gap-2"
             >
               <Settings className="h-4 w-4" />
@@ -277,6 +278,7 @@ const AnnualAgenda = () => {
             </Button>
             <Button 
               onClick={() => setIsNewMeetingModalOpen(true)}
+              size="sm"
               className="flex items-center gap-2"
             >
               <Calendar className="h-4 w-4" />
@@ -285,21 +287,21 @@ const AnnualAgenda = () => {
           </div>
 
           {/* Barra de Filtros */}
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-4">
+          <Card className="mb-4">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-2 mb-3">
                 <Filter className="h-4 w-4" />
                 <h3 className="font-semibold">Filtrar Reuniões</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 {/* Filtro: Tipo de Órgão */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Tipo de Órgão</Label>
                   <Select 
                     value={filters.organType} 
                     onValueChange={(value) => setFilters({...filters, organType: value, organId: 'all'})}
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -328,14 +330,14 @@ const AnnualAgenda = () => {
                 </div>
 
                 {/* Filtro: Órgão Específico */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Órgão Específico</Label>
                   <Select 
                     value={filters.organId}
                     onValueChange={(value) => setFilters({...filters, organId: value})}
                     disabled={filters.organType === 'all'}
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -350,13 +352,13 @@ const AnnualAgenda = () => {
                 </div>
 
                 {/* Filtro: Status */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Status</Label>
                   <Select 
                     value={filters.status}
                     onValueChange={(value) => setFilters({...filters, status: value})}
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -391,13 +393,13 @@ const AnnualAgenda = () => {
                 </div>
 
                 {/* Filtro: Tipo de Reunião */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Tipo de Reunião</Label>
                   <Select 
                     value={filters.meetingType}
                     onValueChange={(value) => setFilters({...filters, meetingType: value})}
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -418,10 +420,10 @@ const AnnualAgenda = () => {
               </div>
 
               {/* Badge de Resultados */}
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-3 flex items-center gap-2">
               <Badge 
                 variant="secondary" 
-                className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                className="text-[10px] cursor-pointer hover:bg-secondary/80 transition-colors"
                 onClick={() => setFilters({
                   organType: 'all',
                   organId: 'all',
@@ -442,7 +444,7 @@ const AnnualAgenda = () => {
                       status: 'all',
                       meetingType: 'all'
                     })}
-                    className="h-7 text-xs"
+                    className="h-6 text-[10px]"
                   >
                     Limpar Filtros
                   </Button>

@@ -157,7 +157,7 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
         <div 
           key={day} 
           className={cn(
-            "p-2 min-h-[100px] border border-gray-100 transition-colors cursor-pointer",
+            "p-1.5 min-h-[80px] border border-gray-100 transition-colors cursor-pointer",
             isToday && "bg-blue-50",
             hasMeetings && !isToday && "bg-blue-900/10 hover:bg-blue-900/20"
           )}
@@ -186,7 +186,7 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
                 onOpenFullDetails={() => onMeetingClick(meeting)}
               >
                 <div
-                  className="text-xs p-1 rounded cursor-pointer hover:opacity-80 transition-opacity relative"
+                  className="text-[10px] p-0.5 leading-tight rounded cursor-pointer hover:opacity-80 transition-opacity relative"
                   style={{ backgroundColor: getStatusColor(meeting.status).includes('blue') ? '#dbeafe' : 
                            getStatusColor(meeting.status).includes('yellow') ? '#fef3c7' :
                            getStatusColor(meeting.status).includes('orange') ? '#fed7aa' :
@@ -214,7 +214,7 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
       <div className="grid grid-cols-7 gap-0 border border-gray-200">
         {/* Day headers */}
         {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-          <div key={day} className="p-3 bg-gray-50 text-center font-medium text-sm border-b border-gray-200">
+          <div key={day} className="p-2 bg-gray-50 text-center font-medium text-xs border-b border-gray-200">
             {day}
           </div>
         ))}
@@ -281,7 +281,7 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Calendar Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -318,25 +318,25 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
       {viewMode === 'month' ? renderCalendarMonth() : renderYearView()}
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-3 h-3 bg-blue-100 rounded"></div>
+      <div className="flex flex-wrap gap-2 mt-3 border-t pt-3">
+        <div className="flex items-center gap-1.5 text-xs">
+          <div className="w-2.5 h-2.5 bg-blue-100 rounded"></div>
           <span>Agendada</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-3 h-3 bg-yellow-100 rounded"></div>
+        <div className="flex items-center gap-1.5 text-xs">
+          <div className="w-2.5 h-2.5 bg-yellow-100 rounded"></div>
           <span>Pauta Definida</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-3 h-3 bg-orange-100 rounded"></div>
+        <div className="flex items-center gap-1.5 text-xs">
+          <div className="w-2.5 h-2.5 bg-orange-100 rounded"></div>
           <span>Docs Enviados</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-3 h-3 bg-purple-100 rounded"></div>
+        <div className="flex items-center gap-1.5 text-xs">
+          <div className="w-2.5 h-2.5 bg-purple-100 rounded"></div>
           <span>Realizada</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-3 h-3 bg-green-100 rounded"></div>
+        <div className="flex items-center gap-1.5 text-xs">
+          <div className="w-2.5 h-2.5 bg-green-100 rounded"></div>
           <span>ATA Gerada</span>
         </div>
       </div>
