@@ -36,50 +36,179 @@ export const GuestDocumentApproval = () => {
     // Initialize mock data if not exists
     const stored = localStorage.getItem('guest_pending_documents');
     if (!stored) {
-      const mockDocuments: PendingDocument[] = [
-        {
-          id: 'guest-doc-1',
-          name: 'Análise de Mercado Q1 2025.pdf',
-          type: 'application/pdf',
-          size: 2547821,
-          uploadedBy: 'João Silva',
-          uploadedByEmail: 'joao.silva@external.com',
-          uploadedAt: new Date(2025, 0, 18, 10, 30).toISOString(),
-          meetingId: 'conselho-2',
-          meetingTitle: 'Conselho de Administração - Fevereiro/2025',
-          status: 'pending',
-          url: 'data:application/pdf;base64,mock-data',
-          guestToken: 'demo-guest-token-123'
-        },
-        {
-          id: 'guest-doc-2',
-          name: 'Proposta de Investimento ESG.pptx',
-          type: 'application/vnd.ms-powerpoint',
-          size: 5242880,
-          uploadedBy: 'Maria Santos',
-          uploadedByEmail: 'maria.santos@external.com',
-          uploadedAt: new Date(2025, 0, 19, 14, 15).toISOString(),
-          meetingId: 'comite-2',
-          meetingTitle: 'Comitê de Auditoria - Fevereiro/2025',
-          status: 'pending',
-          url: 'data:application/vnd.ms-powerpoint;base64,mock-data',
-          guestToken: 'demo-guest-token-456'
-        },
-        {
-          id: 'guest-doc-3',
-          name: 'Relatório de Compliance 2024.xlsx',
-          type: 'application/vnd.ms-excel',
-          size: 1845760,
-          uploadedBy: 'Carlos Mendes',
-          uploadedByEmail: 'carlos.mendes@external.com',
-          uploadedAt: new Date(2025, 0, 20, 9, 0).toISOString(),
-          meetingId: 'comissao-2',
-          meetingTitle: 'Comissão de Ética - Fevereiro/2025',
-          status: 'pending',
-          url: 'data:application/vnd.ms-excel;base64,mock-data',
-          guestToken: 'demo-guest-token-789'
-        }
-      ];
+  const mockDocuments: PendingDocument[] = [
+    // CONSELHOS (4)
+    {
+      id: 'guest-doc-1',
+      name: 'Análise de Mercado Q1 2025.pdf',
+      type: 'application/pdf',
+      size: 2547821,
+      uploadedBy: 'João Silva',
+      uploadedByEmail: 'joao.silva@external.com',
+      uploadedAt: new Date(2025, 0, 18, 10, 30).toISOString(),
+      meetingId: 'conselho-2',
+      meetingTitle: 'Conselho de Administração - Fevereiro/2025',
+      status: 'pending',
+      url: 'data:application/pdf;base64,mock-data',
+      guestToken: 'demo-guest-token-001'
+    },
+    {
+      id: 'guest-doc-2',
+      name: 'Plano Estratégico 2025-2027.pptx',
+      type: 'application/vnd.ms-powerpoint',
+      size: 9175040,
+      uploadedBy: 'Ana Paula Ferreira',
+      uploadedByEmail: 'ana.ferreira@consultoria.com',
+      uploadedAt: new Date(2025, 2, 5, 9, 15).toISOString(),
+      meetingId: 'conselho-3',
+      meetingTitle: 'Conselho de Administração - Março/2025',
+      status: 'pending',
+      url: 'data:application/vnd.ms-powerpoint;base64,mock-data',
+      guestToken: 'demo-guest-token-002'
+    },
+    {
+      id: 'guest-doc-3',
+      name: 'Balanço Patrimonial Q4 2024.xlsx',
+      type: 'application/vnd.ms-excel',
+      size: 3271557,
+      uploadedBy: 'Roberto Santos',
+      uploadedByEmail: 'roberto.santos@auditoria.com',
+      uploadedAt: new Date(2025, 0, 22, 14, 45).toISOString(),
+      meetingId: 'conselho-fiscal-2',
+      meetingTitle: 'Conselho Fiscal - Fevereiro/2025',
+      status: 'pending',
+      url: 'data:application/vnd.ms-excel;base64,mock-data',
+      guestToken: 'demo-guest-token-003'
+    },
+    {
+      id: 'guest-doc-4',
+      name: 'Análise de Fluxo de Caixa.pdf',
+      type: 'application/pdf',
+      size: 1982464,
+      uploadedBy: 'Juliana Costa',
+      uploadedByEmail: 'juliana.costa@financeira.com',
+      uploadedAt: new Date(2025, 2, 8, 11, 20).toISOString(),
+      meetingId: 'conselho-fiscal-3',
+      meetingTitle: 'Conselho Fiscal - Março/2025',
+      status: 'pending',
+      url: 'data:application/pdf;base64,mock-data',
+      guestToken: 'demo-guest-token-004'
+    },
+    // COMITÊS (4)
+    {
+      id: 'guest-doc-5',
+      name: 'Proposta de Investimento ESG.pptx',
+      type: 'application/vnd.ms-powerpoint',
+      size: 5242880,
+      uploadedBy: 'Maria Santos',
+      uploadedByEmail: 'maria.santos@external.com',
+      uploadedAt: new Date(2025, 0, 19, 14, 15).toISOString(),
+      meetingId: 'comite-2',
+      meetingTitle: 'Comitê de Auditoria - Fevereiro/2025',
+      status: 'pending',
+      url: 'data:application/vnd.ms-powerpoint;base64,mock-data',
+      guestToken: 'demo-guest-token-005'
+    },
+    {
+      id: 'guest-doc-6',
+      name: 'Relatório de Riscos Financeiros.pdf',
+      type: 'application/pdf',
+      size: 4782080,
+      uploadedBy: 'Carlos Eduardo Lima',
+      uploadedByEmail: 'carlos.lima@riskmanagement.com',
+      uploadedAt: new Date(2025, 2, 10, 16, 30).toISOString(),
+      meetingId: 'comite-3',
+      meetingTitle: 'Comitê de Auditoria - Março/2025',
+      status: 'pending',
+      url: 'data:application/pdf;base64,mock-data',
+      guestToken: 'demo-guest-token-006'
+    },
+    {
+      id: 'guest-doc-7',
+      name: 'Plano de Sucessão C-Level.docx',
+      type: 'application/msword',
+      size: 2453504,
+      uploadedBy: 'Patricia Oliveira',
+      uploadedByEmail: 'patricia.oliveira@rh.com',
+      uploadedAt: new Date(2025, 0, 25, 10, 0).toISOString(),
+      meetingId: 'comite-pessoas-2',
+      meetingTitle: 'Comitê de Pessoas - Fevereiro/2025',
+      status: 'pending',
+      url: 'data:application/msword;base64,mock-data',
+      guestToken: 'demo-guest-token-007'
+    },
+    {
+      id: 'guest-doc-8',
+      name: 'Proposta de Transformação Digital.pdf',
+      type: 'application/pdf',
+      size: 7560396,
+      uploadedBy: 'Marcos Vieira',
+      uploadedByEmail: 'marcos.vieira@techconsult.com',
+      uploadedAt: new Date(2025, 2, 12, 15, 45).toISOString(),
+      meetingId: 'comite-tecnologia-3',
+      meetingTitle: 'Comitê de Tecnologia - Março/2025',
+      status: 'pending',
+      url: 'data:application/pdf;base64,mock-data',
+      guestToken: 'demo-guest-token-008'
+    },
+    // COMISSÕES (4)
+    {
+      id: 'guest-doc-9',
+      name: 'Relatório de Compliance 2024.xlsx',
+      type: 'application/vnd.ms-excel',
+      size: 1845760,
+      uploadedBy: 'Carlos Mendes',
+      uploadedByEmail: 'carlos.mendes@external.com',
+      uploadedAt: new Date(2025, 0, 20, 9, 0).toISOString(),
+      meetingId: 'comissao-2',
+      meetingTitle: 'Comissão de Ética - Fevereiro/2025',
+      status: 'pending',
+      url: 'data:application/vnd.ms-excel;base64,mock-data',
+      guestToken: 'demo-guest-token-009'
+    },
+    {
+      id: 'guest-doc-10',
+      name: 'Código de Conduta Atualizado.pdf',
+      type: 'application/pdf',
+      size: 933376,
+      uploadedBy: 'Fernanda Almeida',
+      uploadedByEmail: 'fernanda.almeida@compliance.com',
+      uploadedAt: new Date(2025, 2, 15, 13, 30).toISOString(),
+      meetingId: 'comissao-3',
+      meetingTitle: 'Comissão de Ética - Março/2025',
+      status: 'pending',
+      url: 'data:application/pdf;base64,mock-data',
+      guestToken: 'demo-guest-token-010'
+    },
+    {
+      id: 'guest-doc-11',
+      name: 'Relatório ESG 2024.pptx',
+      type: 'application/vnd.ms-powerpoint',
+      size: 6763520,
+      uploadedBy: 'Rodrigo Martins',
+      uploadedByEmail: 'rodrigo.martins@sustainability.com',
+      uploadedAt: new Date(2025, 0, 28, 11, 15).toISOString(),
+      meetingId: 'comissao-sustentabilidade-2',
+      meetingTitle: 'Comissão de Sustentabilidade - Fevereiro/2025',
+      status: 'pending',
+      url: 'data:application/vnd.ms-powerpoint;base64,mock-data',
+      guestToken: 'demo-guest-token-011'
+    },
+    {
+      id: 'guest-doc-12',
+      name: 'Portfólio de Projetos Inovadores.xlsx',
+      type: 'application/vnd.ms-excel',
+      size: 4173414,
+      uploadedBy: 'Beatriz Rocha',
+      uploadedByEmail: 'beatriz.rocha@innovation.com',
+      uploadedAt: new Date(2025, 2, 18, 14, 0).toISOString(),
+      meetingId: 'comissao-inovacao-3',
+      meetingTitle: 'Comissão de Inovação - Março/2025',
+      status: 'pending',
+      url: 'data:application/vnd.ms-excel;base64,mock-data',
+      guestToken: 'demo-guest-token-012'
+    }
+  ];
       localStorage.setItem('guest_pending_documents', JSON.stringify(mockDocuments));
       setPendingDocuments(mockDocuments);
     } else {
