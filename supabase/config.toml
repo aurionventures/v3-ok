@@ -2,3 +2,6 @@ project_id = "snmxvhngmeehplapdwko"
 
 [functions.setup-demo-users]
 verify_jwt = false
+
+[functions.populate-demo-data]
+verify_jwt = false
