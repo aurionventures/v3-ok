@@ -319,26 +319,26 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
 
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mt-3 border-t pt-3">
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-2.5 h-2.5 bg-blue-100 rounded"></div>
-          <span>Agendada</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-2.5 h-2.5 bg-yellow-100 rounded"></div>
-          <span>Pauta Definida</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-2.5 h-2.5 bg-orange-100 rounded"></div>
-          <span>Docs Enviados</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-2.5 h-2.5 bg-purple-100 rounded"></div>
-          <span>Realizada</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <div className="w-2.5 h-2.5 bg-green-100 rounded"></div>
-          <span>ATA Gerada</span>
-        </div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className="w-2.5 h-2.5 bg-blue-400 rounded"></div>
+              <span>Agendada</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className="w-2.5 h-2.5 bg-amber-400 rounded"></div>
+              <span>Pauta Definida</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className="w-2.5 h-2.5 bg-orange-400 rounded"></div>
+              <span>Docs Enviados</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className="w-2.5 h-2.5 bg-purple-400 rounded"></div>
+              <span>Realizada</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className="w-2.5 h-2.5 bg-green-500 rounded"></div>
+              <span>ATA Gerada</span>
+            </div>
       </div>
     </div>
   );
