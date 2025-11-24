@@ -75,28 +75,7 @@ Deno.serve(async (req) => {
 
       console.log(`✅ Usuário criado: ${user.email} (ID: ${newUser.user.id})`);
 
-      // Deletar role antiga (se existir)
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', newUser.user.id);
-
-      // Inserir role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: newUser.user.id,
-          role: user.role
-        });
-
-      if (roleError) {
-        console.error(`❌ Erro ao inserir role para ${user.email}:`, roleError);
-        throw roleError;
-      }
-
-      console.log(`🔑 Role ${user.role} atribuída para ${user.email}`);
-
-      // Criar/atualizar registro na tabela users (se existir)
+      // Criar/atualizar registro na tabela users PRIMEIRO
       const { error: userRecordError } = await supabase
         .from('users')
         .upsert({
@@ -109,8 +88,32 @@ Deno.serve(async (req) => {
         });
 
       if (userRecordError) {
-        console.log(`⚠️ Aviso ao criar registro em users para ${user.email}:`, userRecordError);
+        console.error(`❌ Erro ao criar registro em users para ${user.email}:`, userRecordError);
+        throw userRecordError;
       }
+
+      console.log(`📝 Registro criado em users para ${user.email}`);
+
+      // Deletar role antiga (se existir)
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', newUser.user.id);
+
+      // Inserir role DEPOIS
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: newUser.user.id,
+          role: user.role
+        });
+
+      if (roleError) {
+        console.error(`❌ Erro ao inserir role para ${user.email}:`, roleError);
+        throw roleError;
+      }
+
+      console.log(`🔑 Role ${user.role} atribuída para ${user.email}`)
 
       results.push({
         email: user.email,

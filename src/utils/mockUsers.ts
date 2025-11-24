@@ -9,7 +9,7 @@ export interface MockUser {
 
 export const mockUsers: MockUser[] = [
   {
-    id: 'cliente-demo-001',
+    id: 'a0000000-0000-0000-0000-000000000001',
     email: 'cliente@empresa.com',
     password: '123456',
     name: 'Cliente Demo',
@@ -17,7 +17,7 @@ export const mockUsers: MockUser[] = [
     company: 'Empresa Demo'
   },
   {
-    id: 'parceiro-demo-001',
+    id: 'a0000000-0000-0000-0000-000000000002',
     email: 'parceiro@consultor.com',
     password: 'parceiro123',
     name: 'Parceiro Consultor',
@@ -25,7 +25,7 @@ export const mockUsers: MockUser[] = [
     company: 'Consultoria Legacy'
   },
   {
-    id: 'admin-demo-001',
+    id: 'a0000000-0000-0000-0000-000000000003',
     email: 'admin@gov.com',
     password: 'admin123',
     name: 'Admin Master',
