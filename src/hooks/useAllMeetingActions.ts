@@ -59,7 +59,6 @@ export const useAllMeetingActions = () => {
             )
           )
         `)
-        .in('status', ['PENDENTE', 'EM_ANDAMENTO', 'ATRASADA'])
         .order('due_date', { ascending: true });
 
       if (fetchError) throw fetchError;
