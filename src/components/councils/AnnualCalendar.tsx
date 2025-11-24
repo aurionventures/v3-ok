@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, AlertCircle, CheckCircle2, FileText, FileCheck } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, AlertCircle, CheckCircle2, FileText, FileCheck, AlertTriangle, ClipboardList } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -197,8 +197,12 @@ export const AnnualCalendar: React.FC<AnnualCalendarProps> = ({ meetings, onMeet
                   <div className="text-gray-600">{meeting.time}</div>
                   {needsAgenda(meeting) && (
                     <div className="absolute -top-1 -right-1">
-                      <Badge variant="destructive" className="h-4 px-1 text-[10px]">
-                        {isDeadlineNear(meeting) ? "⚠️" : "📋"}
+                      <Badge variant="destructive" className="h-4 px-1 text-[10px] flex items-center gap-0.5">
+                        {isDeadlineNear(meeting) ? (
+                          <AlertTriangle className="h-3 w-3 text-orange-500" />
+                        ) : (
+                          <ClipboardList className="h-3 w-3 text-blue-500" />
+                        )}
                       </Badge>
                     </div>
                   )}

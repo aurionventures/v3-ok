@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase } from "lucide-react";
+import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -38,6 +38,7 @@ export const SecretariatDashboard = ({
   const [previewTasks, setPreviewTasks] = useState<any[]>([]);
   const [previewOrganType, setPreviewOrganType] = useState<string | undefined>();
   const [organFilter, setOrganFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'overdue' | 'completed'>('all');
 
   const urgencyCounts = getUrgencyCounts();
 
@@ -56,9 +57,33 @@ export const SecretariatDashboard = ({
     meetingId: action.meeting_id,
   }));
 
-  const filteredTasks = organFilter === 'all' 
+  const filteredByOrgan = organFilter === 'all' 
     ? pendingTasks 
     : pendingTasks.filter(task => task.organType === organFilter);
+
+  const getFilteredByStatus = (tasks: typeof pendingTasks) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    switch (statusFilter) {
+      case 'pending':
+        return tasks.filter(t => t.status === 'PENDENTE' && t.dueDate.toISOString().split('T')[0] >= today);
+      case 'in-progress':
+        return tasks.filter(t => t.status === 'EM_ANDAMENTO');
+      case 'overdue':
+        return tasks.filter(t => t.status === 'ATRASADA');
+      case 'completed':
+        return tasks.filter(t => t.status === 'CONCLUIDA');
+      default:
+        return tasks;
+    }
+  };
+
+  const filteredTasks = getFilteredByStatus(filteredByOrgan);
+
+  const pendingOnTime = actions.filter(a => a.status === 'PENDENTE' && a.due_date >= new Date().toISOString().split('T')[0]);
+  const inProgress = actions.filter(a => a.status === 'EM_ANDAMENTO');
+  const overdue = actions.filter(a => a.status === 'ATRASADA');
+  const completed = actions.filter(a => a.status === 'CONCLUIDA');
 
   const handleOpenPreview = (type: 'all' | 'conselho' | 'comite' | 'comissao') => {
     const filtered = type === 'all' 
@@ -128,7 +153,10 @@ export const SecretariatDashboard = ({
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-red-600">{urgencyCounts.overdue}</div>
-                  <div className="text-sm text-muted-foreground">🔴 Atrasadas</div>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <span>Atrasadas</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -136,7 +164,10 @@ export const SecretariatDashboard = ({
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-orange-600">{urgencyCounts.today}</div>
-                  <div className="text-sm text-muted-foreground">🟠 Hoje</div>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    <span>Hoje</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -144,7 +175,10 @@ export const SecretariatDashboard = ({
               <CardContent className="pt-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-yellow-600">{urgencyCounts.next3Days}</div>
-                  <div className="text-sm text-muted-foreground">🟡 Próximos 3 dias</div>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Timer className="h-4 w-4 text-yellow-600" />
+                    <span>Próximos 3 dias</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -165,18 +199,55 @@ export const SecretariatDashboard = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Filter */}
-                <Select value={organFilter} onValueChange={setOrganFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por tipo de órgão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Órgãos</SelectItem>
-                    <SelectItem value="conselho">Conselhos</SelectItem>
-                    <SelectItem value="comite">Comitês</SelectItem>
-                    <SelectItem value="comissao">Comissões</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Filters */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Select value={organFilter} onValueChange={setOrganFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por tipo de órgão" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Órgãos</SelectItem>
+                      <SelectItem value="conselho">Conselhos</SelectItem>
+                      <SelectItem value="comite">Comitês</SelectItem>
+                      <SelectItem value="comissao">Comissões</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        Todos ({actions.length})
+                      </SelectItem>
+                      <SelectItem value="pending">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-600" />
+                          Pendentes (No Prazo) ({pendingOnTime.length})
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="in-progress">
+                        <div className="flex items-center gap-2">
+                          <PlayCircle className="h-4 w-4 text-purple-600" />
+                          Em Andamento ({inProgress.length})
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="overdue">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                          Atrasadas ({overdue.length})
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="completed">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          Resolvidas ({completed.length})
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Relatórios Rápidos - Preview Mode */}
                 <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">

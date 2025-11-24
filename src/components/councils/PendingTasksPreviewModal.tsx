@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FileText, Building2, Users, Briefcase, Mail, Download } from "lucide-react";
+import { Calendar, FileText, Building2, Users, Briefcase, Mail, Download, BarChart3, Filter, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -228,7 +228,10 @@ export const PendingTasksPreviewModal = ({
           {/* Resumo Executivo */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">📊 Resumo Executivo</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-blue-600" />
+                Resumo Executivo
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2">
@@ -252,7 +255,10 @@ export const PendingTasksPreviewModal = ({
           {(selectedOrganType || selectedOrganId) && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">🔍 Filtros Aplicados</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-600" />
+                  Filtros Aplicados
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {selectedOrganType && (
@@ -274,7 +280,10 @@ export const PendingTasksPreviewModal = ({
           {/* Lista de Tarefas */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">📌 Tarefas Pendentes</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CheckSquare className="h-4 w-4 text-green-600" />
+                Tarefas Pendentes
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {tasks.length === 0 ? (
