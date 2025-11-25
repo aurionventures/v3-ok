@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, FileText, User, Calendar, Clock, Check, X, FileCheck } from "lucide-react";
+import { UserCheck, FileText, User, Calendar, Clock, Check, X, FileCheck, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAnnualSchedule } from "@/hooks/useAnnualSchedule";
+import { DocumentPreviewModal } from "./DocumentPreviewModal";
 
 interface PendingDocument {
   id: string;
@@ -25,6 +26,8 @@ interface PendingDocument {
 
 export const GuestDocumentApproval = () => {
   const [pendingDocuments, setPendingDocuments] = useState<PendingDocument[]>([]);
+  const [selectedDocument, setSelectedDocument] = useState<PendingDocument | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const { toast } = useToast();
   const { schedule, updateMeeting } = useAnnualSchedule();
 
@@ -49,7 +52,7 @@ export const GuestDocumentApproval = () => {
       meetingId: 'conselho-2',
       meetingTitle: 'Conselho de Administração - Fevereiro/2025',
       status: 'pending',
-      url: 'data:application/pdf;base64,mock-data',
+      url: 'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
       guestToken: 'demo-guest-token-001'
     },
     {
@@ -91,7 +94,7 @@ export const GuestDocumentApproval = () => {
       meetingId: 'conselho-fiscal-3',
       meetingTitle: 'Conselho Fiscal - Março/2025',
       status: 'pending',
-      url: 'data:application/pdf;base64,mock-data',
+      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
       guestToken: 'demo-guest-token-004'
     },
     // COMITÊS (4)
@@ -120,7 +123,7 @@ export const GuestDocumentApproval = () => {
       meetingId: 'comite-3',
       meetingTitle: 'Comitê de Auditoria - Março/2025',
       status: 'pending',
-      url: 'data:application/pdf;base64,mock-data',
+      url: 'https://www.africau.edu/images/default/sample.pdf',
       guestToken: 'demo-guest-token-006'
     },
     {
@@ -148,7 +151,7 @@ export const GuestDocumentApproval = () => {
       meetingId: 'comite-tecnologia-3',
       meetingTitle: 'Comitê de Tecnologia - Março/2025',
       status: 'pending',
-      url: 'data:application/pdf;base64,mock-data',
+      url: 'https://pdfobject.com/pdf/sample.pdf',
       guestToken: 'demo-guest-token-008'
     },
     // COMISSÕES (4)
@@ -177,7 +180,7 @@ export const GuestDocumentApproval = () => {
       meetingId: 'comissao-3',
       meetingTitle: 'Comissão de Ética - Março/2025',
       status: 'pending',
-      url: 'data:application/pdf;base64,mock-data',
+      url: 'https://www.orimi.com/pdf-test.pdf',
       guestToken: 'demo-guest-token-010'
     },
     {
@@ -366,7 +369,14 @@ export const GuestDocumentApproval = () => {
             </div>
           ) : (
             pendingDocuments.map((doc) => (
-              <Card key={doc.id} className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
+              <Card 
+                key={doc.id} 
+                className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedDocument(doc);
+                  setPreviewOpen(true);
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
@@ -407,10 +417,25 @@ export const GuestDocumentApproval = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2 min-w-[120px]">
+                    <div className="flex flex-col gap-2 min-w-[140px]">
                       <Button 
                         size="sm" 
-                        onClick={() => handleApprove(doc.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDocument(doc);
+                          setPreviewOpen(true);
+                        }}
+                        variant="outline"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Visualizar
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApprove(doc.id);
+                        }}
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <Check className="h-4 w-4 mr-1" />
@@ -419,7 +444,10 @@ export const GuestDocumentApproval = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleReject(doc.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReject(doc.id);
+                        }}
                         className="border-red-300 text-red-600 hover:bg-red-50"
                       >
                         <X className="h-4 w-4 mr-1" />
@@ -433,6 +461,14 @@ export const GuestDocumentApproval = () => {
           )}
         </div>
       </CardContent>
+
+      <DocumentPreviewModal
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        document={selectedDocument}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </Card>
   );
 };
