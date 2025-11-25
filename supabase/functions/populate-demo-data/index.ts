@@ -23,6 +23,26 @@ Deno.serve(async (req) => {
 
     console.log('🚀 Iniciando população de dados demo...');
 
+    // 0. Criar usuário auth.users para entrevistas
+    console.log('📝 Criando usuário auth para entrevistas...');
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email: 'entrevistador@empresademo.com',
+      password: 'demo123456',
+      email_confirm: true,
+      user_metadata: {
+        name: 'Entrevistador Demo'
+      }
+    });
+
+    if (authError) {
+      console.log('⚠️ Usuário auth já existe ou erro:', authError.message);
+    } else {
+      console.log('✅ Usuário auth criado:', authUser.user?.id);
+    }
+
+    // Usar o ID do usuário criado ou um ID fixo se já existir
+    const authUserId = authUser?.user?.id || 'a0000000-0000-0000-0000-000000000001';
+
     // 1. Inserir usuário
     const { error: userError } = await supabase
       .from('users')
@@ -127,14 +147,14 @@ Deno.serve(async (req) => {
     }
     console.log('✅ 20 tarefas inseridas:', actionsData?.length || 0);
 
-    // 5. Inserir 5 entrevistas (removendo user_id para evitar FK constraint)
+    // 5. Inserir 5 entrevistas com user_id do auth
     console.log('📝 Inserindo entrevistas...');
     const interviews = [
-      { id: 'e0000000-0000-0000-0000-000000000001', company_id: 'Empresa Demo', name: 'Roberto Silva', role: 'Fundador/CEO', email: 'roberto.silva@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-15 10:00:00', notes: 'Entrevista sobre visão estratégica e processo sucessório. Foco em profissionalização da governança.', created_at: '2025-11-10 09:00:00', updated_at: '2025-11-15 11:00:00' },
-      { id: 'e0000000-0000-0000-0000-000000000002', company_id: 'Empresa Demo', name: 'Ana Paula Costa', role: 'Diretora Financeira', email: 'ana.costa@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-18 14:30:00', notes: 'Discussão sobre estrutura financeira, controles internos e necessidade de comitê de auditoria.', created_at: '2025-11-12 11:00:00', updated_at: '2025-11-18 15:30:00' },
-      { id: 'e0000000-0000-0000-0000-000000000003', company_id: 'Empresa Demo', name: 'Carlos Eduardo Mendes', role: 'Conselheiro Independente', email: 'carlos.mendes@conselho.com', priority: 'medium', status: 'interviewed', interview_date: '2025-11-20 09:00:00', notes: 'Avaliação independente sobre governança corporativa e recomendações estruturais.', created_at: '2025-11-14 10:00:00', updated_at: '2025-11-20 10:00:00' },
-      { id: 'e0000000-0000-0000-0000-000000000004', company_id: 'Empresa Demo', name: 'Patricia Lima Santos', role: 'Sócia/Acionista Minoritária', email: 'patricia.santos@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-22 16:00:00', notes: 'Perspectiva de acionista minoritária sobre proteção de direitos e participação em decisões.', created_at: '2025-11-15 14:00:00', updated_at: '2025-11-22 17:00:00' },
-      { id: 'e0000000-0000-0000-0000-000000000005', company_id: 'Empresa Demo', name: 'Fernanda Oliveira', role: 'Herdeira (2ª Geração)', email: 'fernanda.oliveira@empresademo.com', priority: 'medium', status: 'interviewed', interview_date: '2025-11-23 11:00:00', notes: 'Visão da segunda geração sobre modernização, diversidade e necessidade de governança familiar.', created_at: '2025-11-18 09:00:00', updated_at: '2025-11-23 12:00:00' }
+      { id: 'e0000000-0000-0000-0000-000000000001', user_id: authUserId, company_id: 'Empresa Demo', name: 'Roberto Silva', role: 'Fundador/CEO', email: 'roberto.silva@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-15 10:00:00', notes: 'Entrevista sobre visão estratégica e processo sucessório. Foco em profissionalização da governança.', created_at: '2025-11-10 09:00:00', updated_at: '2025-11-15 11:00:00' },
+      { id: 'e0000000-0000-0000-0000-000000000002', user_id: authUserId, company_id: 'Empresa Demo', name: 'Ana Paula Costa', role: 'Diretora Financeira', email: 'ana.costa@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-18 14:30:00', notes: 'Discussão sobre estrutura financeira, controles internos e necessidade de comitê de auditoria.', created_at: '2025-11-12 11:00:00', updated_at: '2025-11-18 15:30:00' },
+      { id: 'e0000000-0000-0000-0000-000000000003', user_id: authUserId, company_id: 'Empresa Demo', name: 'Carlos Eduardo Mendes', role: 'Conselheiro Independente', email: 'carlos.mendes@conselho.com', priority: 'medium', status: 'interviewed', interview_date: '2025-11-20 09:00:00', notes: 'Avaliação independente sobre governança corporativa e recomendações estruturais.', created_at: '2025-11-14 10:00:00', updated_at: '2025-11-20 10:00:00' },
+      { id: 'e0000000-0000-0000-0000-000000000004', user_id: authUserId, company_id: 'Empresa Demo', name: 'Patricia Lima Santos', role: 'Sócia/Acionista Minoritária', email: 'patricia.santos@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-22 16:00:00', notes: 'Perspectiva de acionista minoritária sobre proteção de direitos e participação em decisões.', created_at: '2025-11-15 14:00:00', updated_at: '2025-11-22 17:00:00' },
+      { id: 'e0000000-0000-0000-0000-000000000005', user_id: authUserId, company_id: 'Empresa Demo', name: 'Fernanda Oliveira', role: 'Herdeira (2ª Geração)', email: 'fernanda.oliveira@empresademo.com', priority: 'medium', status: 'interviewed', interview_date: '2025-11-23 11:00:00', notes: 'Visão da segunda geração sobre modernização, diversidade e necessidade de governança familiar.', created_at: '2025-11-18 09:00:00', updated_at: '2025-11-23 12:00:00' }
     ];
 
     const { error: interviewsError, data: interviewsData } = await supabase
@@ -148,12 +168,13 @@ Deno.serve(async (req) => {
     }
     console.log('✅ 5 entrevistas inseridas:', interviewsData?.length || 0);
 
-    // 6. Inserir 5 transcrições
+    // 6. Inserir 5 transcrições com created_by
     console.log('📝 Inserindo transcrições...');
     const transcripts = [
       { 
         id: 'f0000000-0000-0000-0000-000000000001', 
-        interview_id: 'e0000000-0000-0000-0000-000000000001', 
+        interview_id: 'e0000000-0000-0000-0000-000000000001',
+        created_by: authUserId,
         uploaded_at: '2025-11-15 11:30:00',
         transcript_text: `ENTREVISTA COM ROBERTO SILVA - FUNDADOR/CEO
 Data: 15/11/2025 | Duração: 45 minutos
@@ -176,7 +197,8 @@ ROBERTO: Hoje temos uma estrutura básica, mas informal. Precisamos formalizar t
       },
       { 
         id: 'f0000000-0000-0000-0000-000000000002', 
-        interview_id: 'e0000000-0000-0000-0000-000000000002', 
+        interview_id: 'e0000000-0000-0000-0000-000000000002',
+        created_by: authUserId,
         uploaded_at: '2025-11-18 16:00:00',
         transcript_text: `ENTREVISTA COM ANA PAULA COSTA - DIRETORA FINANCEIRA
 Data: 18/11/2025 | Duração: 35 minutos
@@ -199,7 +221,8 @@ ANA PAULA: Sim. Nossa estrutura de capital está muito concentrada em crédito b
       },
       { 
         id: 'f0000000-0000-0000-0000-000000000003', 
-        interview_id: 'e0000000-0000-0000-0000-000000000003', 
+        interview_id: 'e0000000-0000-0000-0000-000000000003',
+        created_by: authUserId,
         uploaded_at: '2025-11-20 10:30:00',
         transcript_text: `ENTREVISTA COM CARLOS EDUARDO MENDES - CONSELHEIRO INDEPENDENTE
 Data: 20/11/2025 | Duração: 40 minutos
@@ -222,7 +245,8 @@ CARLOS: A família deve estar na propriedade e na governança, não necessariame
       },
       { 
         id: 'f0000000-0000-0000-0000-000000000004', 
-        interview_id: 'e0000000-0000-0000-0000-000000000004', 
+        interview_id: 'e0000000-0000-0000-0000-000000000004',
+        created_by: authUserId,
         uploaded_at: '2025-11-22 17:30:00',
         transcript_text: `ENTREVISTA COM PATRICIA LIMA SANTOS - SÓCIA/ACIONISTA MINORITÁRIA
 Data: 22/11/2025 | Duração: 30 minutos
@@ -245,7 +269,8 @@ PATRICIA: É fundamental para proteger acionistas minoritários como eu. Sem gov
       },
       { 
         id: 'f0000000-0000-0000-0000-000000000005', 
-        interview_id: 'e0000000-0000-0000-0000-000000000005', 
+        interview_id: 'e0000000-0000-0000-0000-000000000005',
+        created_by: authUserId,
         uploaded_at: '2025-11-23 12:30:00',
         transcript_text: `ENTREVISTA COM FERNANDA OLIVEIRA - HERDEIRA (2ª GERAÇÃO)
 Data: 23/11/2025 | Duração: 25 minutos
