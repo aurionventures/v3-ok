@@ -266,7 +266,8 @@ serve(async (req) => {
 2. Cite os documentos/ATAs mais relevantes encontrados
 3. Destaque informações importantes (decisões, datas, participantes)
 4. Se não encontrou resultados, sugira termos alternativos de busca
-5. Mantenha tom profissional mas amigável`;
+5. Mantenha tom profissional mas amigável
+6. IMPORTANTE: NÃO use emojis na resposta. Use apenas texto profissional.`;
 
     const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

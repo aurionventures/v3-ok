@@ -43,7 +43,7 @@ export const ATALibrary = () => {
     {
       id: '1',
       type: 'assistant',
-      content: 'Olá! 👋 Sou seu assistente de busca em ATAs. Pergunte sobre qualquer tema, decisão ou pauta discutida nas reuniões.\n\n💡 Dica: Clique nos cards de ATA para visualizar o documento completo na Biblioteca.',
+      content: 'Olá! Sou seu assistente de busca em ATAs. Pergunte sobre qualquer tema, decisão ou pauta discutida nas reuniões.\n\nDica: Clique nos cards de ATA para visualizar o documento completo na Biblioteca.',
       timestamp: new Date(),
       results: []
     }
@@ -125,13 +125,14 @@ export const ATALibrary = () => {
     }
   };
 
-  const handleConversationalSearch = async () => {
-    if (!inputMessage.trim() || isSearching) return;
+  const handleConversationalSearch = async (customQuestion?: string) => {
+    const questionToSearch = customQuestion || inputMessage;
+    if (!questionToSearch.trim() || isSearching) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputMessage,
+      content: questionToSearch,
       timestamp: new Date(),
       results: []
     };
@@ -427,13 +428,13 @@ export const ATALibrary = () => {
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleConversationalSearch()}
+                  onKeyDown={(e) => e.key === 'Enter' && !isSearching && handleConversationalSearch()}
                   placeholder="Pergunte sobre qualquer tema nas ATAs... Ex: 'Quais decisões foram tomadas sobre ESG?'"
                   disabled={isSearching}
                   className="flex-1"
                 />
                 <Button 
-                  onClick={handleConversationalSearch}
+                  onClick={() => handleConversationalSearch()}
                   disabled={!inputMessage.trim() || isSearching}
                 >
                   {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -458,7 +459,10 @@ export const ATALibrary = () => {
                   variant="outline"
                   size="sm"
                   className="text-xs h-auto py-1.5 px-3"
-                  onClick={() => setInputMessage(suggestion)}
+                  onClick={() => {
+                    setInputMessage(suggestion);
+                    handleConversationalSearch(suggestion);
+                  }}
                 >
                   {suggestion}
                 </Button>
