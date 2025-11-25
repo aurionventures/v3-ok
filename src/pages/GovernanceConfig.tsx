@@ -13,6 +13,7 @@ import { HierarchyConfigurator } from '@/components/governance/HierarchyConfigur
 import { MembersTable } from '@/components/governance/MembersTable';
 import { CreateMemberModal } from '@/components/governance/CreateMemberModal';
 import { AllocateMemberModal } from '@/components/governance/AllocateMemberModal';
+import { OrganDocumentsSection } from '@/components/governance/OrganDocumentsSection';
 import { Building2, Users, UserCog, Plus, Settings, Trash2, Edit } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -403,10 +404,16 @@ const GovernanceConfig = () => {
                                     guest_upload: false,
                                     require_approval: false
                                   }}
-                                  onSave={handleSaveAccessConfig}
+                                   onSave={handleSaveAccessConfig}
                                 />
                               </div>
                             )}
+                            
+                            {/* Seção de Documentos */}
+                            <OrganDocumentsSection 
+                              organId={organ.id}
+                              organName={organ.name}
+                            />
                           </CardContent>
                         </Card>
                       ))}

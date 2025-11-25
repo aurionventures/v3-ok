@@ -1,8 +1,11 @@
 // Tipos de documentos do conselho
 export type DocumentType = 
-  | 'council_documents'    // Documentos dos Conselhos
+  | 'council_documents'    // Documentos Gerais dos Conselhos
   | 'meeting_minutes'      // Atas de Reuniões  
-  | 'contracts';           // Contratos de Conselheiros
+  | 'contracts'            // Contratos de Conselheiros
+  | 'preliminary_docs'     // Documentos Prévios
+  | 'financial_docs'       // Documentos Financeiros
+  | 'presentations';       // Apresentações
 
 // Interface para documento do conselho
 export interface CouncilDocument {
@@ -53,17 +56,17 @@ export interface DocumentTypeConfig {
 export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeConfig> = {
   council_documents: {
     type: 'council_documents',
-    title: 'Documentos dos Conselhos',
-    description: 'Documentos oficiais e regulamentares dos conselhos',
-    acceptedFormats: ['.pdf', '.doc', '.docx', '.ppt', '.pptx'],
+    title: 'Documentos Gerais',
+    description: 'Regimentos, estatutos e políticas',
+    acceptedFormats: ['.pdf', '.doc', '.docx'],
     maxSize: 10,
-    uploadButtonText: 'Fazer upload de documentos de conselhos',
+    uploadButtonText: 'Fazer upload de documentos gerais',
     icon: '📄'
   },
   meeting_minutes: {
     type: 'meeting_minutes',
-    title: 'Atas de Reuniões',
-    description: 'Atas e registros de reuniões dos conselhos',
+    title: 'ATA',
+    description: 'Atas de reuniões',
     acceptedFormats: ['.pdf', '.doc', '.docx'],
     maxSize: 10,
     uploadButtonText: 'Fazer upload de atas',
@@ -71,12 +74,39 @@ export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeConfig> = {
   },
   contracts: {
     type: 'contracts',
-    title: 'Contratos de Conselheiros',
-    description: 'Contratos e acordos dos membros do conselho',
+    title: 'Contratos',
+    description: 'Contratos de conselheiros',
     acceptedFormats: ['.pdf', '.doc', '.docx'],
     maxSize: 10,
     uploadButtonText: 'Fazer upload de contratos',
     icon: '📝'
+  },
+  preliminary_docs: {
+    type: 'preliminary_docs',
+    title: 'Documento Prévio',
+    description: 'Documentos preparatórios para reuniões',
+    acceptedFormats: ['.pdf', '.doc', '.docx', '.ppt', '.pptx'],
+    maxSize: 10,
+    uploadButtonText: 'Fazer upload de documentos prévios',
+    icon: '📑'
+  },
+  financial_docs: {
+    type: 'financial_docs',
+    title: 'Documentos Financeiros',
+    description: 'Demonstrativos, balanços e relatórios',
+    acceptedFormats: ['.pdf', '.xls', '.xlsx', '.doc', '.docx'],
+    maxSize: 10,
+    uploadButtonText: 'Fazer upload de documentos financeiros',
+    icon: '💰'
+  },
+  presentations: {
+    type: 'presentations',
+    title: 'Apresentações',
+    description: 'Apresentações e slides',
+    acceptedFormats: ['.ppt', '.pptx', '.pdf'],
+    maxSize: 20,
+    uploadButtonText: 'Fazer upload de apresentações',
+    icon: '📊'
   }
 };
 

@@ -445,7 +445,10 @@ export class DocumentsService {
       const counts: Record<DocumentType, number> = {
         council_documents: 0,
         meeting_minutes: 0,
-        contracts: 0
+        contracts: 0,
+        preliminary_docs: 0,
+        financial_docs: 0,
+        presentations: 0
       };
 
       data?.forEach(doc => {
