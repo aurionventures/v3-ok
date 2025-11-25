@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard, CalendarIcon } from "lucide-react";
-import { PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -61,7 +61,7 @@ export const SecretariatDashboard = ({
   };
 
   const getMetricsByOrganType = (type: string) => {
-    const filtered = actions.filter(a => a.meeting?.councils?.organ_type === type);
+    const filtered = actions.filter(a => a.meetings?.councils?.organ_type === type);
     const total = filtered.length;
     const resolved = filtered.filter(a => a.status === 'CONCLUIDA').length;
     const pending = filtered.filter(a => a.status === 'PENDENTE').length;
@@ -94,17 +94,18 @@ export const SecretariatDashboard = ({
   ].filter(item => item.value > 0);
 
   const organChartData = actions
-    .filter(action => action.meeting?.councils?.name) // Filter out actions without organ
+    .filter(action => action.meetings?.councils?.name) // Filter out actions without organ
     .reduce((acc, action) => {
-      const organName = action.meeting!.councils!.name;
+      const organName = action.meetings!.councils!.name;
+      const organType = action.meetings!.councils!.organ_type || 'outros';
       const existing = acc.find(item => item.name === organName);
       if (existing) {
         existing.tasks += 1;
       } else {
-        acc.push({ name: organName, tasks: 1 });
+        acc.push({ name: organName, tasks: 1, organType });
       }
       return acc;
-    }, [] as { name: string; tasks: number }[])
+    }, [] as { name: string; tasks: number; organType: string }[])
     .sort((a, b) => b.tasks - a.tasks)
     .slice(0, 8);
 
@@ -112,8 +113,8 @@ export const SecretariatDashboard = ({
   const pendingTasks = actions.map(action => ({
     id: action.id,
     task: action.description,
-    organName: action.meeting?.councils?.name || 'N/A',
-    organType: action.meeting?.councils?.organ_type as 'conselho' | 'comite' | 'comissao',
+    organName: action.meetings?.councils?.name || 'N/A',
+    organType: action.meetings?.councils?.organ_type as 'conselho' | 'comite' | 'comissao',
     dueDate: new Date(action.due_date),
     priority: action.priority === 'ALTA' ? 'high' as const : 
               action.priority === 'MEDIA' ? 'medium' as const : 'low' as const,
@@ -231,12 +232,12 @@ export const SecretariatDashboard = ({
           <ATALibrary />
         </TabsContent>
 
-        <TabsContent value="tasks" className="mt-6 space-y-6">
-          {/* Dashboard de Métricas */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2">
-              <LayoutDashboard className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold">Dashboard de Gestão de Tarefas</h3>
+        <TabsContent value="tasks" className="mt-6 space-y-8">
+          {/* ====================== VISÃO GERENCIAL ====================== */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-primary">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              <h2 className="text-xl font-bold text-foreground">Visão Gerencial - Indicadores Executivos</h2>
             </div>
 
             {/* KPIs Principais */}
@@ -303,6 +304,14 @@ export const SecretariatDashboard = ({
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          {/* ====================== VISÃO ESTRATÉGICA ====================== */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-primary">
+              <Activity className="h-6 w-6 text-primary" />
+              <h2 className="text-xl font-bold text-foreground">Visão Estratégica - Análise por Órgãos</h2>
+            </div>
 
             {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -357,12 +366,46 @@ export const SecretariatDashboard = ({
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={organChartData} layout="horizontal">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={100} style={{ fontSize: '12px' }} />
-                      <Tooltip />
-                      <Bar dataKey="tasks" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        width={120} 
+                        style={{ fontSize: '11px' }} 
+                        tick={{ fill: 'hsl(var(--foreground))' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--popover))', 
+                          border: '1px solid hsl(var(--border))' 
+                        }}
+                      />
+                      <Bar dataKey="tasks" radius={[0, 4, 4, 0]}>
+                        {organChartData.map((entry, index) => {
+                          let fillColor = 'hsl(var(--primary))';
+                          if (entry.organType === 'conselho') fillColor = '#3b82f6'; // Blue
+                          if (entry.organType === 'comite') fillColor = '#10b981'; // Green
+                          if (entry.organType === 'comissao') fillColor = '#f97316'; // Orange
+                          return <Cell key={`cell-${index}`} fill={fillColor} />;
+                        })}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
+                  <div className="mt-4 flex items-center justify-center gap-6 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-[#3b82f6]" />
+                      <span>Conselhos</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-[#10b981]" />
+                      <span>Comitês</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-[#f97316]" />
+                      <span>Comissões</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -489,9 +532,8 @@ export const SecretariatDashboard = ({
                 </CardContent>
               </Card>
             </div>
-          </div>
 
-          {/* Urgency Counters */}
+            {/* Urgency Counters */}
           <div className="grid grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6">
@@ -527,6 +569,14 @@ export const SecretariatDashboard = ({
               </CardContent>
             </Card>
           </div>
+          </div>
+
+          {/* ====================== VISÃO OPERACIONAL ====================== */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-primary">
+              <ListTodo className="h-6 w-6 text-primary" />
+              <h2 className="text-xl font-bold text-foreground">Visão Operacional - Gestão de Tarefas</h2>
+            </div>
 
           <Card>
             <CardHeader className="pb-4">
@@ -761,6 +811,7 @@ export const SecretariatDashboard = ({
               </div>
             </CardContent>
           </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="guests" className="mt-6">
