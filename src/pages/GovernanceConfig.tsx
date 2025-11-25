@@ -9,12 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useGovernanceOrgans, OrganType, AccessConfig } from '@/hooks/useGovernanceOrgans';
 import { useGovernanceMembers, GovernanceMember, MemberFormData, AllocationData } from '@/hooks/useGovernanceMembers';
-import { HierarchyConfigurator } from '@/components/governance/HierarchyConfigurator';
 import { MembersTable } from '@/components/governance/MembersTable';
 import { CreateMemberModal } from '@/components/governance/CreateMemberModal';
 import { AllocateMemberModal } from '@/components/governance/AllocateMemberModal';
 import { OrganDocumentsSection } from '@/components/governance/OrganDocumentsSection';
-import { Building2, Users, UserCog, Plus, Settings, Trash2, Edit } from 'lucide-react';
+import { Building2, Users, UserCog, Plus, Trash2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +23,6 @@ const GovernanceConfig = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<OrganType | 'membros'>('conselho');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     type: 'administrativo',
@@ -99,11 +97,6 @@ const GovernanceConfig = () => {
         variant: "destructive"
       });
     }
-  };
-
-  const handleSaveAccessConfig = async (config: AccessConfig) => {
-    if (!selectedOrgan) return;
-    await updateAccessConfig(selectedOrgan, config);
   };
 
   // Handlers para membros
@@ -362,22 +355,13 @@ const GovernanceConfig = () => {
                                   {organ.description || 'Sem descrição'}
                                 </CardDescription>
                               </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => setSelectedOrgan(selectedOrgan === organ.id ? null : organ.id)}
-                                >
-                                  <Settings className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleDelete(organ.id, organ.name)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDelete(organ.id, organ.name)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </CardHeader>
                           <CardContent className="space-y-4">
@@ -391,26 +375,9 @@ const GovernanceConfig = () => {
                                 Membros: {organ.members?.length || 0}
                               </Badge>
                             </div>
-
-                            {/* Hierarchy Configurator */}
-                            {selectedOrgan === organ.id && (
-                              <div className="pt-4 border-t">
-                                <HierarchyConfigurator
-                                  organId={organ.id}
-                                  organName={organ.name}
-                                  currentConfig={organ.access_config || {
-                                    public_view: false,
-                                    member_upload: true,
-                                    guest_upload: false,
-                                    require_approval: false
-                                  }}
-                                   onSave={handleSaveAccessConfig}
-                                />
-                              </div>
-                            )}
                             
                             {/* Seção de Documentos */}
-                            <OrganDocumentsSection 
+                            <OrganDocumentsSection
                               organId={organ.id}
                               organName={organ.name}
                             />
