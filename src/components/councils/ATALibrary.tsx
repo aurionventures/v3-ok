@@ -60,17 +60,16 @@ export const ATALibrary = () => {
   const mockResponses: Record<string, { content: string; results: any[] }> = {
     "Quais decisões foram tomadas sobre expansão internacional?": {
       content: "Com base nas ATAs consultadas, identifiquei as seguintes decisões sobre expansão internacional:\n\n" +
-               "Na reunião do Conselho de Administração de 14/janeiro/2025, foram aprovadas:\n\n" +
+               "Na reunião do Conselho de Administração de 14/janeiro/2025, foram aprovadas as seguintes deliberações:\n\n" +
                "1. Investimento de R$ 8 milhões para expansão na América Latina\n" +
-               "2. Criação do Comitê Especial Internacional para coordenar operações\n" +
-               "3. Aprovação do plano de entrada no mercado chileno no primeiro trimestre\n" +
-               "4. Definição de estrutura societária para subsidiária internacional\n\n" +
-               "Próximos passos definidos: aprovação do budget detalhado de expansão, nomeação de diretor para LATAM e estruturação jurídica da subsidiária.",
+               "2. Criação do Comitê Especial Internacional\n" +
+               "3. Aprovação do plano de entrada no mercado chileno\n\n" +
+               "Próximos passos definidos: aprovação do budget de expansão, nomeação de diretor LATAM e estrutura societária da subsidiária.",
       results: [
         {
           type: 'ata',
           title: 'ATA Conselho de Administração - Janeiro/2025',
-          content: 'Deliberações sobre expansão internacional, aprovação de investimento de R$ 8M para LATAM, criação de comitê especial.',
+          content: 'Decisões sobre expansão internacional aprovadas',
           date: '2025-01-14',
           organ: 'Conselho de Administração',
           metadata: { meetingId: 'conselho-1', organ: 'Conselho de Administração' }
@@ -78,125 +77,137 @@ export const ATALibrary = () => {
       ]
     },
     "Mostre as políticas de governança aprovadas": {
-      content: "Foram aprovadas as seguintes políticas de governança nas reuniões recentes:\n\n" +
-               "No Conselho de Administração (Janeiro/2025):\n" +
-               "1. Novo Código de Ética e Conduta Corporativa\n" +
-               "2. Política de Compliance e Gestão de Riscos atualizada\n" +
-               "3. Regulamento interno do Comitê de Auditoria\n\n" +
-               "No Comitê de Governança (Dezembro/2024):\n" +
-               "4. Política de Sucessão para cargos executivos\n" +
-               "5. Manual de boas práticas de governança\n\n" +
-               "Todas as políticas entram em vigor a partir de março/2025, com programa de treinamento obrigatório para todos os colaboradores.",
+      content: "Com base nas ATAs consultadas, identifiquei as seguintes políticas de governança aprovadas:\n\n" +
+               "No Conselho de Administração (janeiro e fevereiro/2025):\n\n" +
+               "1. Código de Ética e Conduta - aprovado em janeiro/2025\n" +
+               "2. Política de Compliance e Anticorrupção - aprovada em fevereiro/2025\n" +
+               "3. Programa de treinamento obrigatório para colaboradores (início: março/2025)\n" +
+               "4. Criação do Comitê de Ética e Conduta\n\n" +
+               "Todas as políticas foram aprovadas por unanimidade e entram em vigor imediatamente.",
       results: [
         {
           type: 'ata',
           title: 'ATA Conselho de Administração - Janeiro/2025',
-          content: 'Aprovação de Código de Ética, Política de Compliance e regulamento interno do Comitê de Auditoria.',
+          content: 'Código de Ética e Conduta aprovado',
           date: '2025-01-14',
           organ: 'Conselho de Administração',
           metadata: { meetingId: 'conselho-1', organ: 'Conselho de Administração' }
         },
         {
           type: 'ata',
-          title: 'ATA Comitê de Governança - Dezembro/2024',
-          content: 'Política de Sucessão executiva e Manual de boas práticas aprovados.',
-          date: '2024-12-10',
-          organ: 'Comitê de Governança',
-          metadata: { meetingId: 'comite-gov-1', organ: 'Comitê de Governança' }
+          title: 'ATA Conselho de Administração - Fevereiro/2025',
+          content: 'Política de Compliance aprovada',
+          date: '2025-02-11',
+          organ: 'Conselho de Administração',
+          metadata: { meetingId: 'conselho-2', organ: 'Conselho de Administração' }
         }
       ]
     },
     "Como está o planejamento de sucessão executiva?": {
-      content: "O planejamento de sucessão executiva apresenta o seguinte status:\n\n" +
-               "Atualização mais recente do Comitê de Governança (Dezembro/2024):\n\n" +
-               "1. Identificados 12 sucessores potenciais para cargos de C-level\n" +
-               "2. Programa de desenvolvimento de líderes com duração de 18 meses iniciado\n" +
-               "3. Sistema de mentoria com conselheiros implementado\n" +
-               "4. Matriz de competências críticas mapeada para todas as posições-chave\n\n" +
-               "Próximas etapas: avaliação trimestral dos sucessores, programa de job rotation entre áreas e definição de planos individuais de desenvolvimento (PDI).",
+      content: "Com base nas ATAs consultadas, aqui está o status do planejamento de sucessão executiva:\n\n" +
+               "Conselho de Administração - Março/2025:\n\n" +
+               "1. Identificados 12 potenciais sucessores para posições-chave\n" +
+               "2. Programa de desenvolvimento de líderes aprovado (duração: 18 meses)\n" +
+               "3. Mentoria por conselheiros e executivos seniores\n" +
+               "4. Avaliações trimestrais de progresso\n" +
+               "5. Budget aprovado: R$ 2,5 milhões\n\n" +
+               "Próxima revisão agendada para junho/2025.",
       results: [
         {
           type: 'ata',
-          title: 'ATA Comitê de Governança - Dezembro/2024',
-          content: 'Apresentação do planejamento de sucessão: 12 sucessores identificados, programa de 18 meses, mentoria com conselheiros.',
-          date: '2024-12-10',
-          organ: 'Comitê de Governança',
-          metadata: { meetingId: 'comite-gov-1', organ: 'Comitê de Governança' }
+          title: 'ATA Conselho de Administração - Março/2025',
+          content: 'Planejamento de sucessão executiva aprovado',
+          date: '2025-03-11',
+          organ: 'Conselho de Administração',
+          metadata: { meetingId: 'conselho-3', organ: 'Conselho de Administração' }
         }
       ]
     },
     "Quais riscos operacionais foram identificados?": {
-      content: "Os principais riscos operacionais identificados foram:\n\n" +
-               "Análise do Comitê de Auditoria (Novembro/2024):\n\n" +
-               "1. Concentração de fornecedores críticos (risco alto)\n" +
-               "2. Vulnerabilidades em sistemas de TI legados (risco alto)\n" +
-               "3. Dependência de profissionais-chave sem sucessores (risco médio)\n" +
-               "4. Processos manuais em áreas críticas (risco médio)\n\n" +
-               "Foi aprovado investimento de R$ 2,5 milhões em controles internos e modernização de sistemas. Matriz de riscos completa será atualizada trimestralmente, com 8-10 riscos classificados como alta criticidade.",
+      content: "Com base nas ATAs do Comitê de Auditoria, aqui está o resumo dos riscos operacionais identificados:\n\n" +
+               "Janeiro e Fevereiro/2025:\n\n" +
+               "1. Matriz de riscos atualizada com 45 riscos mapeados\n" +
+               "2. 8-10 riscos classificados como alta criticidade\n" +
+               "3. Principais áreas de preocupação: TI, conformidade regulatória, cadeia de suprimentos\n" +
+               "4. Plano de ação aprovado com investimento de R$ 5 milhões em controles internos\n" +
+               "5. Auditoria externa programada para abril/2025\n\n" +
+               "Status: 85% dos controles implementados conforme cronograma.",
       results: [
         {
           type: 'ata',
-          title: 'ATA Comitê de Auditoria - Novembro/2024',
-          content: 'Identificação de riscos operacionais críticos: concentração de fornecedores, vulnerabilidades em TI, dependência de profissionais-chave.',
-          date: '2024-11-15',
+          title: 'ATA Comitê de Auditoria - Janeiro/2025',
+          content: 'Matriz de riscos operacionais apresentada',
+          date: '2025-01-16',
           organ: 'Comitê de Auditoria',
-          metadata: { meetingId: 'comite-audit-1', organ: 'Comitê de Auditoria' }
+          metadata: { meetingId: 'comite-1', organ: 'Comitê de Auditoria' }
+        },
+        {
+          type: 'ata',
+          title: 'ATA Comitê de Auditoria - Fevereiro/2025',
+          content: 'Plano de ação para riscos aprovado',
+          date: '2025-02-20',
+          organ: 'Comitê de Auditoria',
+          metadata: { meetingId: 'comite-2', organ: 'Comitê de Auditoria' }
         }
       ]
     },
     "Qual o status de conformidade com LGPD e SOX?": {
-      content: "Status de conformidade regulatória:\n\n" +
-               "LGPD (Lei Geral de Proteção de Dados):\n" +
-               "- Nível de aderência: 85% (meta: 95%)\n" +
-               "- 3 não conformidades críticas identificadas\n" +
-               "- Plano de ação com prazo de 6 meses para adequação total\n" +
-               "- Nomeação de DPO (Data Protection Officer) em andamento\n\n" +
+      content: "Com base nas ATAs do Comitê de Auditoria, aqui está o status de conformidade:\n\n" +
+               "Janeiro/2025:\n\n" +
+               "LGPD:\n" +
+               "- 92% de aderência aos requisitos\n" +
+               "- 3 não conformidades identificadas (todas de baixo risco)\n" +
+               "- Plano de adequação em andamento\n" +
+               "- Conclusão prevista: abril/2025\n\n" +
                "SOX (Sarbanes-Oxley):\n" +
-               "- Controles internos auditados e aprovados\n" +
-               "- 2 gaps identificados em controles de TI\n" +
-               "- Investimento de R$ 500 mil para remediação\n\n" +
-               "Ambos os programas têm acompanhamento mensal pelo Comitê de Auditoria.",
+               "- 88% dos controles implementados\n" +
+               "- 12 controles em fase de testes\n" +
+               "- Auditoria externa programada para maio/2025\n" +
+               "- Certificação esperada: junho/2025\n\n" +
+               "Próxima revisão: março/2025.",
       results: [
         {
           type: 'ata',
-          title: 'ATA Comitê de Auditoria - Novembro/2024',
-          content: 'Status de conformidade LGPD (85% de aderência) e SOX (controles aprovados com 2 gaps em TI). Planos de ação definidos.',
-          date: '2024-11-15',
+          title: 'ATA Comitê de Auditoria - Janeiro/2025',
+          content: 'Status de conformidade LGPD e SOX',
+          date: '2025-01-16',
           organ: 'Comitê de Auditoria',
-          metadata: { meetingId: 'comite-audit-1', organ: 'Comitê de Auditoria' }
+          metadata: { meetingId: 'comite-1', organ: 'Comitê de Auditoria' }
         }
       ]
     },
     "Quantos casos de ética foram analisados?": {
-      content: "Análise de casos de ética reportados:\n\n" +
-               "Comissão de Ética - Últimas reuniões:\n\n" +
-               "Outubro/2024:\n" +
-               "- 6 casos analisados\n" +
-               "- 2 arquivados (sem evidências)\n" +
-               "- 3 em investigação\n" +
-               "- 1 com aplicação de sanção\n\n" +
-               "Dezembro/2024:\n" +
-               "- 4 casos analisados\n" +
-               "- 1 arquivado\n" +
-               "- 2 em investigação\n" +
-               "- 1 concluído com advertência\n\n" +
-               "Média: 4-6 casos por reunião. Todos os casos são tratados com confidencialidade e seguem o protocolo estabelecido no Código de Ética.",
+      content: "Com base nas ATAs da Comissão de Ética, aqui está o resumo dos casos analisados:\n\n" +
+               "Janeiro e Fevereiro/2025:\n\n" +
+               "Janeiro:\n" +
+               "- 4 casos recebidos e analisados\n" +
+               "- 2 casos arquivados (sem evidências)\n" +
+               "- 1 caso resolvido com advertência\n" +
+               "- 1 caso em investigação\n\n" +
+               "Fevereiro:\n" +
+               "- 6 casos recebidos e analisados\n" +
+               "- 3 casos arquivados\n" +
+               "- 2 casos resolvidos com advertência\n" +
+               "- 1 caso encaminhado para medidas disciplinares\n\n" +
+               "Total no período: 10 casos\n" +
+               "Taxa de resolução: 90%\n" +
+               "Tempo médio de análise: 12 dias",
       results: [
         {
           type: 'ata',
-          title: 'ATA Comissão de Ética - Outubro/2024',
-          content: 'Análise de 6 casos de ética: 2 arquivados, 3 em investigação, 1 com sanção aplicada.',
-          date: '2024-10-20',
+          title: 'ATA Comissão de Ética - Janeiro/2025',
+          content: 'Análise de casos de ética',
+          date: '2025-01-31',
           organ: 'Comissão de Ética',
-          metadata: { meetingId: 'comissao-etica-1', organ: 'Comissão de Ética' }
+          metadata: { meetingId: 'comissao-1', organ: 'Comissão de Ética' }
         },
         {
           type: 'ata',
-          title: 'ATA Comissão de Ética - Dezembro/2024',
-          content: 'Análise de 4 casos de ética: 1 arquivado, 2 em investigação, 1 concluído com advertência.',
-          date: '2024-12-15',
+          title: 'ATA Comissão de Ética - Fevereiro/2025',
+          content: 'Análise de casos de ética',
+          date: '2025-02-28',
           organ: 'Comissão de Ética',
-          metadata: { meetingId: 'comissao-etica-2', organ: 'Comissão de Ética' }
+          metadata: { meetingId: 'comissao-2', organ: 'Comissão de Ética' }
         }
       ]
     }
@@ -390,26 +401,33 @@ export const ATALibrary = () => {
   };
 
   const handleNavigateToATA = (result: any) => {
-    // Encontrar a ATA correspondente no array de ATAs disponíveis
     const ataId = result.metadata?.meetingId || result.id;
-    const foundATA = atasAvailable.find(
-      ata => ata.id === ataId || 
-             ata.council === result.metadata?.organ ||
-             format(new Date(ata.date), 'dd/MM/yyyy') === result.date
-    );
     
+    const foundATA = atasAvailable.find(ata => {
+      // 1. Tentar match por ID direto
+      if (ata.id === ataId) return true;
+      
+      // 2. Tentar match por órgão e data
+      const organMatch = ata.council === result.metadata?.organ || 
+                         ata.council === result.organ;
+      
+      // 3. Comparação de datas (normalizar formatos)
+      const ataDate = ata.date; // formato: 'yyyy-MM-dd'
+      const resultDate = result.date; // formato: 'yyyy-MM-dd'
+      const dateMatch = ataDate === resultDate;
+      
+      return organMatch && dateMatch;
+    });
+
     if (foundATA) {
-      // Mudar para modo Biblioteca
       setIsChatMode(false);
-      
-      // Abrir o visualizador de ATA
-      setSelectedATA(foundATA);
-      setIsATAViewerOpen(true);
-      
-      toast({
-        title: "ATA Localizada",
-        description: `Abrindo ATA de ${foundATA.council}`,
-      });
+      setTimeout(() => {
+        handleViewATA(foundATA);
+        toast({
+          title: "ATA Localizada",
+          description: `${foundATA.council} - ${format(new Date(foundATA.date), 'dd/MM/yyyy')}`
+        });
+      }, 100);
     } else {
       toast({
         title: "ATA não encontrada",
