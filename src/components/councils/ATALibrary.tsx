@@ -56,6 +56,152 @@ export const ATALibrary = () => {
   const { toast } = useToast();
   const { schedule } = useAnnualSchedule();
 
+  // Mock responses for testing conversational search with ATA themes
+  const mockResponses: Record<string, { content: string; results: any[] }> = {
+    "Quais decisões foram tomadas sobre expansão internacional?": {
+      content: "Com base nas ATAs consultadas, identifiquei as seguintes decisões sobre expansão internacional:\n\n" +
+               "Na reunião do Conselho de Administração de 14/janeiro/2025, foram aprovadas:\n\n" +
+               "1. Investimento de R$ 8 milhões para expansão na América Latina\n" +
+               "2. Criação do Comitê Especial Internacional para coordenar operações\n" +
+               "3. Aprovação do plano de entrada no mercado chileno no primeiro trimestre\n" +
+               "4. Definição de estrutura societária para subsidiária internacional\n\n" +
+               "Próximos passos definidos: aprovação do budget detalhado de expansão, nomeação de diretor para LATAM e estruturação jurídica da subsidiária.",
+      results: [
+        {
+          type: 'ata',
+          title: 'ATA Conselho de Administração - Janeiro/2025',
+          content: 'Deliberações sobre expansão internacional, aprovação de investimento de R$ 8M para LATAM, criação de comitê especial.',
+          date: '2025-01-14',
+          organ: 'Conselho de Administração',
+          metadata: { meetingId: 'conselho-1', organ: 'Conselho de Administração' }
+        }
+      ]
+    },
+    "Mostre as políticas de governança aprovadas": {
+      content: "Foram aprovadas as seguintes políticas de governança nas reuniões recentes:\n\n" +
+               "No Conselho de Administração (Janeiro/2025):\n" +
+               "1. Novo Código de Ética e Conduta Corporativa\n" +
+               "2. Política de Compliance e Gestão de Riscos atualizada\n" +
+               "3. Regulamento interno do Comitê de Auditoria\n\n" +
+               "No Comitê de Governança (Dezembro/2024):\n" +
+               "4. Política de Sucessão para cargos executivos\n" +
+               "5. Manual de boas práticas de governança\n\n" +
+               "Todas as políticas entram em vigor a partir de março/2025, com programa de treinamento obrigatório para todos os colaboradores.",
+      results: [
+        {
+          type: 'ata',
+          title: 'ATA Conselho de Administração - Janeiro/2025',
+          content: 'Aprovação de Código de Ética, Política de Compliance e regulamento interno do Comitê de Auditoria.',
+          date: '2025-01-14',
+          organ: 'Conselho de Administração',
+          metadata: { meetingId: 'conselho-1', organ: 'Conselho de Administração' }
+        },
+        {
+          type: 'ata',
+          title: 'ATA Comitê de Governança - Dezembro/2024',
+          content: 'Política de Sucessão executiva e Manual de boas práticas aprovados.',
+          date: '2024-12-10',
+          organ: 'Comitê de Governança',
+          metadata: { meetingId: 'comite-gov-1', organ: 'Comitê de Governança' }
+        }
+      ]
+    },
+    "Como está o planejamento de sucessão executiva?": {
+      content: "O planejamento de sucessão executiva apresenta o seguinte status:\n\n" +
+               "Atualização mais recente do Comitê de Governança (Dezembro/2024):\n\n" +
+               "1. Identificados 12 sucessores potenciais para cargos de C-level\n" +
+               "2. Programa de desenvolvimento de líderes com duração de 18 meses iniciado\n" +
+               "3. Sistema de mentoria com conselheiros implementado\n" +
+               "4. Matriz de competências críticas mapeada para todas as posições-chave\n\n" +
+               "Próximas etapas: avaliação trimestral dos sucessores, programa de job rotation entre áreas e definição de planos individuais de desenvolvimento (PDI).",
+      results: [
+        {
+          type: 'ata',
+          title: 'ATA Comitê de Governança - Dezembro/2024',
+          content: 'Apresentação do planejamento de sucessão: 12 sucessores identificados, programa de 18 meses, mentoria com conselheiros.',
+          date: '2024-12-10',
+          organ: 'Comitê de Governança',
+          metadata: { meetingId: 'comite-gov-1', organ: 'Comitê de Governança' }
+        }
+      ]
+    },
+    "Quais riscos operacionais foram identificados?": {
+      content: "Os principais riscos operacionais identificados foram:\n\n" +
+               "Análise do Comitê de Auditoria (Novembro/2024):\n\n" +
+               "1. Concentração de fornecedores críticos (risco alto)\n" +
+               "2. Vulnerabilidades em sistemas de TI legados (risco alto)\n" +
+               "3. Dependência de profissionais-chave sem sucessores (risco médio)\n" +
+               "4. Processos manuais em áreas críticas (risco médio)\n\n" +
+               "Foi aprovado investimento de R$ 2,5 milhões em controles internos e modernização de sistemas. Matriz de riscos completa será atualizada trimestralmente, com 8-10 riscos classificados como alta criticidade.",
+      results: [
+        {
+          type: 'ata',
+          title: 'ATA Comitê de Auditoria - Novembro/2024',
+          content: 'Identificação de riscos operacionais críticos: concentração de fornecedores, vulnerabilidades em TI, dependência de profissionais-chave.',
+          date: '2024-11-15',
+          organ: 'Comitê de Auditoria',
+          metadata: { meetingId: 'comite-audit-1', organ: 'Comitê de Auditoria' }
+        }
+      ]
+    },
+    "Qual o status de conformidade com LGPD e SOX?": {
+      content: "Status de conformidade regulatória:\n\n" +
+               "LGPD (Lei Geral de Proteção de Dados):\n" +
+               "- Nível de aderência: 85% (meta: 95%)\n" +
+               "- 3 não conformidades críticas identificadas\n" +
+               "- Plano de ação com prazo de 6 meses para adequação total\n" +
+               "- Nomeação de DPO (Data Protection Officer) em andamento\n\n" +
+               "SOX (Sarbanes-Oxley):\n" +
+               "- Controles internos auditados e aprovados\n" +
+               "- 2 gaps identificados em controles de TI\n" +
+               "- Investimento de R$ 500 mil para remediação\n\n" +
+               "Ambos os programas têm acompanhamento mensal pelo Comitê de Auditoria.",
+      results: [
+        {
+          type: 'ata',
+          title: 'ATA Comitê de Auditoria - Novembro/2024',
+          content: 'Status de conformidade LGPD (85% de aderência) e SOX (controles aprovados com 2 gaps em TI). Planos de ação definidos.',
+          date: '2024-11-15',
+          organ: 'Comitê de Auditoria',
+          metadata: { meetingId: 'comite-audit-1', organ: 'Comitê de Auditoria' }
+        }
+      ]
+    },
+    "Quantos casos de ética foram analisados?": {
+      content: "Análise de casos de ética reportados:\n\n" +
+               "Comissão de Ética - Últimas reuniões:\n\n" +
+               "Outubro/2024:\n" +
+               "- 6 casos analisados\n" +
+               "- 2 arquivados (sem evidências)\n" +
+               "- 3 em investigação\n" +
+               "- 1 com aplicação de sanção\n\n" +
+               "Dezembro/2024:\n" +
+               "- 4 casos analisados\n" +
+               "- 1 arquivado\n" +
+               "- 2 em investigação\n" +
+               "- 1 concluído com advertência\n\n" +
+               "Média: 4-6 casos por reunião. Todos os casos são tratados com confidencialidade e seguem o protocolo estabelecido no Código de Ética.",
+      results: [
+        {
+          type: 'ata',
+          title: 'ATA Comissão de Ética - Outubro/2024',
+          content: 'Análise de 6 casos de ética: 2 arquivados, 3 em investigação, 1 com sanção aplicada.',
+          date: '2024-10-20',
+          organ: 'Comissão de Ética',
+          metadata: { meetingId: 'comissao-etica-1', organ: 'Comissão de Ética' }
+        },
+        {
+          type: 'ata',
+          title: 'ATA Comissão de Ética - Dezembro/2024',
+          content: 'Análise de 4 casos de ética: 1 arquivado, 2 em investigação, 1 concluído com advertência.',
+          date: '2024-12-15',
+          organ: 'Comissão de Ética',
+          metadata: { meetingId: 'comissao-etica-2', organ: 'Comissão de Ética' }
+        }
+      ]
+    }
+  };
+
   // Filter only meetings with generated ATAs
   const atasAvailable = schedule?.meetings.filter(m => 
     m.status === 'ATA Gerada' && m.minutes
@@ -142,6 +288,7 @@ export const ATALibrary = () => {
     setIsSearching(true);
 
     try {
+      // Try calling edge function first
       const { data, error } = await supabase.functions.invoke('secretariat-search', {
         body: { 
           question: userMessage.content,
@@ -151,36 +298,87 @@ export const ATALibrary = () => {
         }
       });
 
-      if (error) throw error;
+      // Check if we should use mock response (no results or error)
+      const shouldUseMock = error || !data?.results?.length;
+      const mockData = mockResponses[questionToSearch];
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: data.answer || 'Encontrei alguns resultados relevantes:',
-        timestamp: new Date(),
-        results: data.results || []
-      };
+      if (shouldUseMock && mockData) {
+        // Use mock response as fallback
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: mockData.content,
+          timestamp: new Date(),
+          results: mockData.results
+        };
 
-      setMessages(prev => [...prev, assistantMessage]);
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        toast({
+          title: "Busca concluída (modo simulação)",
+          description: `Encontradas ${mockData.results.length} ATA(s)`,
+        });
+      } else if (!error && data?.results?.length) {
+        // Use real results from edge function
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: data.answer || 'Encontrei alguns resultados relevantes:',
+          timestamp: new Date(),
+          results: data.results || []
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        // No mock and no real results
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: 'Não encontrei resultados para sua pergunta. Tente reformular ou usar uma das sugestões acima.',
+          timestamp: new Date(),
+          results: []
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+      }
 
     } catch (error) {
       console.error('Search error:', error);
       
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'Desculpe, ocorreu um erro ao processar sua busca. Por favor, tente novamente.',
-        timestamp: new Date(),
-        results: []
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      
-      toast({
-        title: "Erro na busca",
-        description: "Não foi possível realizar a busca",
-        variant: "destructive"
-      });
+      // Try mock response on catch as well
+      const mockData = mockResponses[questionToSearch];
+      if (mockData) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: mockData.content,
+          timestamp: new Date(),
+          results: mockData.results
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        toast({
+          title: "Busca concluída (modo simulação)",
+          description: `Encontradas ${mockData.results.length} ATA(s)`,
+        });
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: 'Desculpe, ocorreu um erro ao processar sua busca. Por favor, tente novamente.',
+          timestamp: new Date(),
+          results: []
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+        
+        toast({
+          title: "Erro na busca",
+          description: "Não foi possível realizar a busca",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSearching(false);
     }
