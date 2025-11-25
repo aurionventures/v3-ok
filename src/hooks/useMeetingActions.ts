@@ -95,10 +95,32 @@ export const useMeetingActions = (meetingId: string | undefined) => {
 
       await fetchActions();
       
-      toast({
-        title: 'Pendência criada',
-        description: 'A pendência foi adicionada com sucesso.',
-      });
+      // Gerar token demo e link de acesso se houver responsável
+      if (data && actionData.responsible_external_email) {
+        const token = crypto.randomUUID();
+        const demoLink = `${window.location.origin}/task-access/${token}`;
+        
+        // Salvar token no localStorage para validação
+        localStorage.setItem(`task_token_${token}`, JSON.stringify({
+          actionId: data.id,
+          responsibleName: actionData.responsible_external_name,
+          responsibleEmail: actionData.responsible_external_email,
+          createdAt: new Date().toISOString(),
+        }));
+        
+        // Copiar automaticamente para área de transferência
+        navigator.clipboard.writeText(demoLink);
+        
+        toast({
+          title: '✅ Pendência criada e link copiado!',
+          description: `Link de acesso copiado. Envie para ${actionData.responsible_external_name}`,
+        });
+      } else {
+        toast({
+          title: 'Pendência criada',
+          description: 'A pendência foi adicionada com sucesso.',
+        });
+      }
 
       return { data, error: null };
     } catch (err: any) {
