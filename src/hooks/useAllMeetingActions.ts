@@ -19,7 +19,7 @@ export interface MeetingActionWithContext {
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  meeting?: {
+  meetings?: {
     id: string;
     title: string;
     date: string;
@@ -116,13 +116,13 @@ export const useAllMeetingActions = () => {
 
   const getActionsByOrganType = (organType: string) => {
     return actions.filter(action => 
-      action.meeting?.councils?.organ_type === organType
+      action.meetings?.councils?.organ_type === organType
     );
   };
 
   const getActionsByOrgan = (councilId: string) => {
     return actions.filter(action => 
-      action.meeting?.council_id === councilId
+      action.meetings?.council_id === councilId
     );
   };
 
