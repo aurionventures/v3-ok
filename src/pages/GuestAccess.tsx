@@ -3,7 +3,10 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calendar, MapPin, Users, Upload, FileText, AlertCircle, Download, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2, Calendar, MapPin, Users, Upload, FileText, AlertCircle, Download, Clock, Shield, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MeetingData {
@@ -68,6 +71,9 @@ export default function GuestAccess() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MeetingData | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsCheckbox, setTermsCheckbox] = useState(false);
 
   // Função para inicializar dados de demonstração completos
   const initializeDemoData = () => {
@@ -371,12 +377,21 @@ export default function GuestAccess() {
       };
       
       setData(mockData);
-    toast.success(`Bem-vindo, ${tokenData.name}! 👋`, {
-      description: `Esta é uma demonstração de acesso de convidado. Você pode ${
-        tokenData.permissions.can_upload ? 'visualizar materiais e fazer upload de documentos' : 'visualizar materiais da reunião'
-      }.`,
-      duration: 5000
-    });
+      
+      // Verificar se já aceitou o termo de confidencialidade
+      const acceptedTermsKey = `confidentiality_accepted_${token}`;
+      const previouslyAccepted = localStorage.getItem(acceptedTermsKey) === 'true';
+      setHasAcceptedTerms(previouslyAccepted);
+      setShowTermsModal(!previouslyAccepted);
+      
+      if (previouslyAccepted) {
+        toast.success(`Bem-vindo, ${tokenData.name}! 👋`, {
+          description: `Esta é uma demonstração de acesso de convidado. Você pode ${
+            tokenData.permissions.can_upload ? 'visualizar materiais e fazer upload de documentos' : 'visualizar materiais da reunião'
+          }.`,
+          duration: 5000
+        });
+      }
       
       console.log('✅ Dados carregados com sucesso:', mockData);
     } catch (err: any) {
@@ -452,9 +467,143 @@ export default function GuestAccess() {
     toast.success('Download iniciado!');
   };
 
+  const handleAcceptTerms = () => {
+    if (!token) return;
+    
+    localStorage.setItem(`confidentiality_accepted_${token}`, 'true');
+    setHasAcceptedTerms(true);
+    setShowTermsModal(false);
+    
+    toast.success('Termo aceito com sucesso!', {
+      description: 'Você agora tem acesso às informações da reunião.'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="max-w-5xl mx-auto">
+        {/* Modal de Termo de Confidencialidade */}
+        <Dialog open={showTermsModal} onOpenChange={() => {}}>
+          <DialogContent 
+            className="max-w-2xl max-h-[90vh] overflow-hidden"
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl">Termo de Confidencialidade</DialogTitle>
+                  <DialogDescription>
+                    Leia atentamente antes de acessar o conteúdo
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            <ScrollArea className="h-[350px] pr-4">
+              <div className="space-y-4 text-sm">
+                <p className="font-semibold text-base">
+                  TERMO DE CONFIDENCIALIDADE E SIGILO
+                </p>
+                
+                <p>
+                  Ao acessar esta pauta de reunião, você está ciente e concorda com os 
+                  seguintes termos e condições:
+                </p>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <span className="font-bold">1.</span>
+                    <p>
+                      <strong>Confidencialidade das Informações:</strong> Todas as informações 
+                      contidas nesta pauta, incluindo mas não se limitando a documentos, 
+                      deliberações, atas e discussões, são consideradas <strong>CONFIDENCIAIS</strong> 
+                      e de propriedade exclusiva da organização.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <span className="font-bold">2.</span>
+                    <p>
+                      <strong>Uso Restrito:</strong> As informações acessadas devem ser utilizadas 
+                      exclusivamente para os fins relacionados à reunião em questão, sendo 
+                      expressamente proibida sua divulgação, reprodução ou compartilhamento 
+                      com terceiros não autorizados.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <span className="font-bold">3.</span>
+                    <p>
+                      <strong>Responsabilidade:</strong> O convidado assume total responsabilidade 
+                      pela guarda e sigilo das informações acessadas, comprometendo-se a não 
+                      utilizá-las de forma prejudicial aos interesses da organização.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <span className="font-bold">4.</span>
+                    <p>
+                      <strong>Penalidades:</strong> O descumprimento deste termo poderá resultar 
+                      em medidas legais cabíveis, incluindo ações por danos morais e materiais.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <span className="font-bold">5.</span>
+                    <p>
+                      <strong>Registro de Acesso:</strong> O aceite deste termo será registrado 
+                      com data, hora e identificação do usuário para fins de auditoria e 
+                      compliance.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-amber-800">
+                      <strong>Aviso:</strong> Ao clicar em "Aceito os Termos", você declara 
+                      estar ciente de todas as cláusulas acima e concorda em cumpri-las 
+                      integralmente.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+            
+            <DialogFooter className="flex flex-col gap-4 pt-4 border-t">
+              <div className="flex items-start gap-3">
+                <Checkbox 
+                  id="accept-terms"
+                  checked={termsCheckbox}
+                  onCheckedChange={(checked) => setTermsCheckbox(!!checked)}
+                />
+                <label 
+                  htmlFor="accept-terms" 
+                  className="text-sm cursor-pointer leading-tight"
+                >
+                  Li e compreendi o Termo de Confidencialidade e me comprometo a 
+                  respeitar todas as cláusulas aqui descritas.
+                </label>
+              </div>
+              
+              <Button 
+                onClick={handleAcceptTerms}
+                disabled={!termsCheckbox}
+                className="w-full"
+                size="lg"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Aceito os Termos e Desejo Acessar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {loading && (
           <div className="flex items-center justify-center min-h-screen">
             <Card>
@@ -494,7 +643,22 @@ export default function GuestAccess() {
           </div>
         )}
 
-        {data && (
+        {data && !hasAcceptedTerms && (
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <Card className="max-w-md">
+              <CardContent className="pt-6 text-center">
+                <Shield className="h-12 w-12 mx-auto mb-4 text-amber-500" />
+                <h2 className="text-lg font-semibold mb-2">Acesso Restrito</h2>
+                <p className="text-muted-foreground">
+                  É necessário aceitar o Termo de Confidencialidade para visualizar 
+                  o conteúdo desta reunião.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {data && hasAcceptedTerms && (
           <div className="space-y-0">
             {/* Header com informações da reunião */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 shadow-lg">
