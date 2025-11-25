@@ -368,7 +368,14 @@ export const PendingTasksReportDocument = ({ data }: { data: ReportData }) => {
 };
 
 export const generatePendingTasksReportPDF = async (data: ReportData) => {
-  const blob = await pdf(<PendingTasksReportDocument data={data} />).toBlob();
-  const fileName = `relatorio-pendencias-${format(new Date(), 'dd-MM-yyyy-HHmm')}.pdf`;
-  saveAs(blob, fileName);
+  try {
+    const doc = <PendingTasksReportDocument data={data} />;
+    const asPdf = pdf(doc);
+    const blob = await asPdf.toBlob();
+    const fileName = `relatorio-pendencias-${format(new Date(), 'dd-MM-yyyy-HHmm')}.pdf`;
+    saveAs(blob, fileName);
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw new Error('Falha ao gerar o relatório PDF. Tente novamente.');
+  }
 };
