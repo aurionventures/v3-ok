@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard } from "lucide-react";
+import { PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -39,8 +41,64 @@ export const SecretariatDashboard = ({
   const [previewOrganType, setPreviewOrganType] = useState<string | undefined>();
   const [organFilter, setOrganFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'overdue' | 'completed'>('all');
+  const [periodFilter, setPeriodFilter] = useState<'7d' | '30d' | 'month' | 'all'>('all');
 
   const urgencyCounts = getUrgencyCounts();
+
+  // Calculate metrics
+  const calculateMetrics = () => {
+    const total = actions.length;
+    const resolved = actions.filter(a => a.status === 'CONCLUIDA').length;
+    const pending = actions.filter(a => a.status !== 'CONCLUIDA').length;
+    const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+    return { total, resolved, pending, resolutionRate };
+  };
+
+  const getMetricsByOrganType = (type: string) => {
+    const filtered = actions.filter(a => a.meeting?.councils?.organ_type === type);
+    const total = filtered.length;
+    const resolved = filtered.filter(a => a.status === 'CONCLUIDA').length;
+    const pending = filtered.filter(a => a.status === 'PENDENTE').length;
+    const overdue = filtered.filter(a => {
+      const today = new Date();
+      const dueDate = new Date(a.due_date);
+      return dueDate < today && a.status !== 'CONCLUIDA';
+    }).length;
+    const inProgress = filtered.filter(a => a.status === 'EM_ANDAMENTO').length;
+    const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+    return { total, resolved, pending, overdue, inProgress, resolutionRate };
+  };
+
+  const metrics = calculateMetrics();
+  const councilMetrics = getMetricsByOrganType('conselho');
+  const committeeMetrics = getMetricsByOrganType('comite');
+  const commissionMetrics = getMetricsByOrganType('comissao');
+
+  // Chart data
+  const pendingOnTime = actions.filter(a => a.status === 'PENDENTE' && a.due_date >= new Date().toISOString().split('T')[0]);
+  const inProgress = actions.filter(a => a.status === 'EM_ANDAMENTO');
+  const overdue = actions.filter(a => a.status === 'ATRASADA');
+  const completed = actions.filter(a => a.status === 'CONCLUIDA');
+
+  const statusChartData = [
+    { name: 'Resolvidas', value: completed.length, color: '#22c55e' },
+    { name: 'Pendentes', value: pendingOnTime.length, color: '#3b82f6' },
+    { name: 'Em Andamento', value: inProgress.length, color: '#a855f7' },
+    { name: 'Atrasadas', value: overdue.length, color: '#ef4444' },
+  ].filter(item => item.value > 0);
+
+  const organChartData = actions.reduce((acc, action) => {
+    const organName = action.meeting?.councils?.name || 'Sem órgão';
+    const existing = acc.find(item => item.name === organName);
+    if (existing) {
+      existing.tasks += 1;
+    } else {
+      acc.push({ name: organName, tasks: 1 });
+    }
+    return acc;
+  }, [] as { name: string; tasks: number }[])
+    .sort((a, b) => b.tasks - a.tasks)
+    .slice(0, 8);
 
   // Transform real actions to display format
   const pendingTasks = actions.map(action => ({
@@ -79,11 +137,6 @@ export const SecretariatDashboard = ({
   };
 
   const filteredTasks = getFilteredByStatus(filteredByOrgan);
-
-  const pendingOnTime = actions.filter(a => a.status === 'PENDENTE' && a.due_date >= new Date().toISOString().split('T')[0]);
-  const inProgress = actions.filter(a => a.status === 'EM_ANDAMENTO');
-  const overdue = actions.filter(a => a.status === 'ATRASADA');
-  const completed = actions.filter(a => a.status === 'CONCLUIDA');
 
   const handleOpenPreview = (type: 'all' | 'conselho' | 'comite' | 'comissao') => {
     const filtered = type === 'all' 
@@ -146,7 +199,266 @@ export const SecretariatDashboard = ({
           <ATALibrary />
         </TabsContent>
 
-        <TabsContent value="tasks" className="mt-6 space-y-4">
+        <TabsContent value="tasks" className="mt-6 space-y-6">
+          {/* Dashboard de Métricas */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <LayoutDashboard className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Dashboard de Gestão de Tarefas</h3>
+            </div>
+
+            {/* KPIs Principais */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Target className="h-4 w-4 text-blue-600" />
+                    Total Criadas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-foreground">{metrics.total}</div>
+                  <Progress value={100} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-2">Todas as tarefas registradas</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Resolvidas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">{metrics.resolved}</div>
+                  <Progress value={metrics.resolutionRate} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {metrics.resolutionRate}% do total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    Pendentes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-orange-600">{metrics.pending}</div>
+                  <Progress value={(metrics.pending / metrics.total) * 100} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {Math.round((metrics.pending / metrics.total) * 100)}% do total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    Taxa de Resolução
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-600">{metrics.resolutionRate}%</div>
+                  <Progress value={metrics.resolutionRate} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {metrics.resolved} de {metrics.total} concluídas
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Distribuição por Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={statusChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {statusChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {statusChartData.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span>{item.name}</span>
+                        </div>
+                        <span className="font-semibold">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Tarefas por Órgão
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={organChartData} layout="horizontal">
+                      <XAxis type="number" />
+                      <YAxis dataKey="name" type="category" width={100} style={{ fontSize: '12px' }} />
+                      <Tooltip />
+                      <Bar dataKey="tasks" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Cards por Tipo de Órgão */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-blue-600" />
+                    Conselhos
+                  </CardTitle>
+                  <CardDescription>{councilMetrics.total} tarefas</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      Resolvidas
+                    </span>
+                    <span className="font-semibold">{councilMetrics.resolved}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      Pendentes
+                    </span>
+                    <span className="font-semibold">{councilMetrics.pending}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      Atrasadas
+                    </span>
+                    <span className="font-semibold">{councilMetrics.overdue}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex items-center justify-between text-sm font-medium">
+                      <span>Taxa de Resolução</span>
+                      <span className="text-primary">{councilMetrics.resolutionRate}%</span>
+                    </div>
+                    <Progress value={councilMetrics.resolutionRate} className="mt-2" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    Comitês
+                  </CardTitle>
+                  <CardDescription>{committeeMetrics.total} tarefas</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      Resolvidas
+                    </span>
+                    <span className="font-semibold">{committeeMetrics.resolved}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      Pendentes
+                    </span>
+                    <span className="font-semibold">{committeeMetrics.pending}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      Atrasadas
+                    </span>
+                    <span className="font-semibold">{committeeMetrics.overdue}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex items-center justify-between text-sm font-medium">
+                      <span>Taxa de Resolução</span>
+                      <span className="text-primary">{committeeMetrics.resolutionRate}%</span>
+                    </div>
+                    <Progress value={committeeMetrics.resolutionRate} className="mt-2" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-orange-600" />
+                    Comissões
+                  </CardTitle>
+                  <CardDescription>{commissionMetrics.total} tarefas</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      Resolvidas
+                    </span>
+                    <span className="font-semibold">{commissionMetrics.resolved}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      Pendentes
+                    </span>
+                    <span className="font-semibold">{commissionMetrics.pending}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      Atrasadas
+                    </span>
+                    <span className="font-semibold">{commissionMetrics.overdue}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex items-center justify-between text-sm font-medium">
+                      <span>Taxa de Resolução</span>
+                      <span className="text-primary">{commissionMetrics.resolutionRate}%</span>
+                    </div>
+                    <Progress value={commissionMetrics.resolutionRate} className="mt-2" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
           {/* Urgency Counters */}
           <div className="grid grid-cols-3 gap-4">
             <Card>
