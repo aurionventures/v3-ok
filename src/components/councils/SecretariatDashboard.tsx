@@ -364,35 +364,43 @@ export const SecretariatDashboard = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={organChartData} layout="horizontal">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={organChartData} margin={{ bottom: 80, top: 20, left: 10, right: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis type="number" />
-                      <YAxis 
+                      <XAxis 
                         dataKey="name" 
-                        type="category" 
-                        width={120} 
-                        style={{ fontSize: '11px' }} 
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        style={{ fontSize: '11px' }}
+                        tick={{ fill: 'hsl(var(--foreground))' }}
+                      />
+                      <YAxis 
+                        label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', style: { fontSize: '12px' } }}
                         tick={{ fill: 'hsl(var(--foreground))' }}
                       />
                       <Tooltip 
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--popover))', 
-                          border: '1px solid hsl(var(--border))' 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px',
+                          padding: '8px'
                         }}
+                        formatter={(value: any) => [`${value} tarefa${value !== 1 ? 's' : ''}`, 'Total']}
                       />
-                      <Bar dataKey="tasks" radius={[0, 4, 4, 0]}>
+                      <Bar dataKey="tasks" radius={[8, 8, 0, 0]}>
                         {organChartData.map((entry, index) => {
                           let fillColor = 'hsl(var(--primary))';
-                          if (entry.organType === 'conselho') fillColor = '#3b82f6'; // Blue
-                          if (entry.organType === 'comite') fillColor = '#10b981'; // Green
-                          if (entry.organType === 'comissao') fillColor = '#f97316'; // Orange
+                          if (entry.organType === 'conselho') fillColor = '#3b82f6';
+                          if (entry.organType === 'comite') fillColor = '#10b981';
+                          if (entry.organType === 'comissao') fillColor = '#f97316';
                           return <Cell key={`cell-${index}`} fill={fillColor} />;
                         })}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                  <div className="mt-4 flex items-center justify-center gap-6 text-xs">
+                  <div className="mt-2 flex items-center justify-center gap-6 text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-sm bg-[#3b82f6]" />
                       <span>Conselhos</span>
