@@ -265,6 +265,82 @@ const AnnualAgenda = () => {
         <Header title="Agenda Anual 2025" />
         <div className="flex-1 overflow-y-auto p-4">
 
+          {/* Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Próxima Reunião */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Próxima Reunião
+                  </CardTitle>
+                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                {nextMeeting ? (
+                  <>
+                    <div className="text-lg font-semibold mb-1">
+                      {nextMeeting.council}
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-2">
+                      {format(new Date(nextMeeting.date), 'dd/MM/yyyy')} às {nextMeeting.time}
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {nextMeeting.status}
+                    </Badge>
+                  </>
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    Nenhuma reunião agendada
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Pautas Definidas */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Pautas Definidas
+                  </CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-2">
+                  {agendaProgress.percentage}%
+                </div>
+                <Progress value={agendaProgress.percentage} className="h-2 mb-2" />
+                <div className="text-xs text-muted-foreground">
+                  {agendaProgress.defined} de {agendaProgress.total} reuniões
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ATAs Geradas */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    ATAs Geradas
+                  </CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-2">
+                  {ataProgress.percentage}%
+                </div>
+                <Progress value={ataProgress.percentage} className="h-2 mb-2" />
+                <div className="text-xs text-muted-foreground">
+                  {ataProgress.generated} de {ataProgress.total} reuniões
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mb-4">
             <Button 
