@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Building2, Users, Briefcase, Mail, MessageCircle, CheckCircle2, User, Clock, AlertCircle } from "lucide-react";
+import { Calendar, Building2, Users, Briefcase, Mail, MessageCircle, CheckCircle2, User, Clock, AlertCircle, Link2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -178,6 +178,37 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
     onOpenChange(false);
   };
 
+  const handleCopyLink = () => {
+    if (!task.responsibleEmail) {
+      toast({
+        title: "Responsável não cadastrado",
+        description: "Esta tarefa não possui um responsável cadastrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Gerar token demo
+    const token = crypto.randomUUID();
+    const demoLink = `${window.location.origin}/task-access/${token}`;
+    
+    // Salvar token no localStorage
+    localStorage.setItem(`task_token_${token}`, JSON.stringify({
+      actionId: task.id,
+      responsibleName: task.responsible,
+      responsibleEmail: task.responsibleEmail,
+      createdAt: new Date().toISOString(),
+    }));
+    
+    // Copiar para área de transferência
+    navigator.clipboard.writeText(demoLink);
+    
+    toast({
+      title: "Link copiado!",
+      description: "O link de acesso à tarefa foi copiado para a área de transferência.",
+    });
+  };
+
   const urgency = getUrgencyInfo();
 
   return (
@@ -267,7 +298,7 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
           {/* Action Buttons */}
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground">Ações</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Button
                 variant="outline"
                 onClick={handleSendEmailAlert}
@@ -286,6 +317,16 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Enviar WhatsApp
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleCopyLink}
+                className="w-full"
+                disabled={!task.responsibleEmail}
+              >
+                <Link2 className="h-4 w-4 mr-2" />
+                Copiar Link de Acesso
               </Button>
 
               <Button

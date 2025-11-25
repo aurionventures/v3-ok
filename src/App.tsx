@@ -56,6 +56,7 @@ import AnnualAgenda from "./pages/AnnualAgenda";
 import Reunioes from "./pages/Reunioes";
 import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
 import GuestAccess from "./pages/GuestAccess";
+import TaskAccess from "./pages/TaskAccess";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AuditLogs from "./pages/AuditLogs";
@@ -107,6 +108,7 @@ const App = () => (
           <Route path="/diagnostic-quiz" element={<StandaloneQuiz />} />
           <Route path="/standalone-quiz" element={<StandaloneQuiz />} />
           <Route path="/guest-access/:token" element={<GuestAccess />} />
+          <Route path="/task-access/:token" element={<TaskAccess />} />
           <Route path="/generate-company-token" element={<GenerateCompanyToken />} />
           <Route path="/generate-admin-token" element={<GenerateAdminToken />} />
           <Route path="/generate-partner-token" element={<GeneratePartnerToken />} />

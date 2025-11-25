@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, CheckCircle2, Clock, AlertCircle, User } from 'lucide-react';
 import { useMeetingActions, type MeetingActionFormData } from '@/hooks/useMeetingActions';
+import { useMeetingParticipants } from '@/hooks/useMeetingParticipants';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -19,6 +20,7 @@ interface ReuniaoPendenciasProps {
 
 export const ReuniaoPendencias = ({ meetingId }: ReuniaoPendenciasProps) => {
   const { actions, loading, createAction, updateAction, deleteAction } = useMeetingActions(meetingId);
+  const { participants } = useMeetingParticipants(meetingId);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -218,24 +220,42 @@ export const ReuniaoPendencias = ({ meetingId }: ReuniaoPendenciasProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="responsible">Responsável</Label>
-                  <Input
-                    id="responsible"
-                    value={formData.responsible_external_name}
-                    onChange={(e) => setFormData({ ...formData, responsible_external_name: e.target.value })}
-                    placeholder="Nome do responsável"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email do Responsável</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.responsible_external_email}
-                    onChange={(e) => setFormData({ ...formData, responsible_external_email: e.target.value })}
-                    placeholder="email@exemplo.com"
-                  />
+                  <Label htmlFor="responsible">Responsável *</Label>
+                  <Select
+                    value={formData.responsible_external_name || ''}
+                    onValueChange={(participantId) => {
+                      const participant = participants.find(p => p.id === participantId);
+                      if (participant) {
+                        setFormData({
+                          ...formData,
+                          responsible_external_name: participant.external_name || '',
+                          responsible_external_email: participant.external_email || '',
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um participante da reunião" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {participants.length > 0 ? (
+                        participants.map(p => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.external_name} ({p.role})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>
+                          Nenhum participante cadastrado
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {formData.responsible_external_email && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      📧 {formData.responsible_external_email}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
