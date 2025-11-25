@@ -10,7 +10,10 @@ export const useDocuments = () => {
   const [documentCounts, setDocumentCounts] = useState<Record<DocumentType, number>>({
     council_documents: 0,
     meeting_minutes: 0,
-    contracts: 0
+    contracts: 0,
+    preliminary_docs: 0,
+    financial_docs: 0,
+    presentations: 0
   });
   const { user } = useAuth();
 
@@ -197,7 +200,10 @@ export const useDocuments = () => {
       setDocumentCounts({
         council_documents: 0,
         meeting_minutes: 0,
-        contracts: 0
+        contracts: 0,
+        preliminary_docs: 0,
+        financial_docs: 0,
+        presentations: 0
       });
       setLoading(false);
     }
