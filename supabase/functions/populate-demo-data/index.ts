@@ -127,6 +127,158 @@ Deno.serve(async (req) => {
     }
     console.log('✅ 20 tarefas inseridas:', actionsData?.length || 0);
 
+    // 5. Inserir 5 entrevistas (removendo user_id para evitar FK constraint)
+    console.log('📝 Inserindo entrevistas...');
+    const interviews = [
+      { id: 'e0000000-0000-0000-0000-000000000001', company_id: 'Empresa Demo', name: 'Roberto Silva', role: 'Fundador/CEO', email: 'roberto.silva@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-15 10:00:00', notes: 'Entrevista sobre visão estratégica e processo sucessório. Foco em profissionalização da governança.', created_at: '2025-11-10 09:00:00', updated_at: '2025-11-15 11:00:00' },
+      { id: 'e0000000-0000-0000-0000-000000000002', company_id: 'Empresa Demo', name: 'Ana Paula Costa', role: 'Diretora Financeira', email: 'ana.costa@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-18 14:30:00', notes: 'Discussão sobre estrutura financeira, controles internos e necessidade de comitê de auditoria.', created_at: '2025-11-12 11:00:00', updated_at: '2025-11-18 15:30:00' },
+      { id: 'e0000000-0000-0000-0000-000000000003', company_id: 'Empresa Demo', name: 'Carlos Eduardo Mendes', role: 'Conselheiro Independente', email: 'carlos.mendes@conselho.com', priority: 'medium', status: 'interviewed', interview_date: '2025-11-20 09:00:00', notes: 'Avaliação independente sobre governança corporativa e recomendações estruturais.', created_at: '2025-11-14 10:00:00', updated_at: '2025-11-20 10:00:00' },
+      { id: 'e0000000-0000-0000-0000-000000000004', company_id: 'Empresa Demo', name: 'Patricia Lima Santos', role: 'Sócia/Acionista Minoritária', email: 'patricia.santos@empresademo.com', priority: 'high', status: 'interviewed', interview_date: '2025-11-22 16:00:00', notes: 'Perspectiva de acionista minoritária sobre proteção de direitos e participação em decisões.', created_at: '2025-11-15 14:00:00', updated_at: '2025-11-22 17:00:00' },
+      { id: 'e0000000-0000-0000-0000-000000000005', company_id: 'Empresa Demo', name: 'Fernanda Oliveira', role: 'Herdeira (2ª Geração)', email: 'fernanda.oliveira@empresademo.com', priority: 'medium', status: 'interviewed', interview_date: '2025-11-23 11:00:00', notes: 'Visão da segunda geração sobre modernização, diversidade e necessidade de governança familiar.', created_at: '2025-11-18 09:00:00', updated_at: '2025-11-23 12:00:00' }
+    ];
+
+    const { error: interviewsError, data: interviewsData } = await supabase
+      .from('interviews')
+      .upsert(interviews, { onConflict: 'id' })
+      .select();
+
+    if (interviewsError) {
+      console.error('❌ Erro ao inserir entrevistas:', JSON.stringify(interviewsError, null, 2));
+      throw new Error(`Erro interviews: ${interviewsError.message} - ${JSON.stringify(interviewsError.details || {})}`);
+    }
+    console.log('✅ 5 entrevistas inseridas:', interviewsData?.length || 0);
+
+    // 6. Inserir 5 transcrições
+    console.log('📝 Inserindo transcrições...');
+    const transcripts = [
+      { 
+        id: 'f0000000-0000-0000-0000-000000000001', 
+        interview_id: 'e0000000-0000-0000-0000-000000000001', 
+        uploaded_at: '2025-11-15 11:30:00',
+        transcript_text: `ENTREVISTA COM ROBERTO SILVA - FUNDADOR/CEO
+Data: 15/11/2025 | Duração: 45 minutos
+
+ENTREVISTADOR: Bom dia, Roberto. Poderia nos contar um pouco sobre a origem da empresa?
+
+ROBERTO SILVA: Claro. Fundei a empresa em 1998, quando o mercado brasileiro estava em transformação. Começamos como uma pequena distribuidora no interior de São Paulo e, ao longo de 26 anos, nos tornamos referência nacional no setor de tecnologia industrial. Hoje temos 8 unidades distribuídas pelo país e cerca de 450 colaboradores.
+
+ENTREVISTADOR: Como você enxerga o processo de sucessão?
+
+ROBERTO: A sucessão é uma das minhas maiores preocupações. Não quero que o que construímos se perca por falta de planejamento. Meu filho mais velho, Eduardo, trabalha conosco há 10 anos e tem mostrado capacidade técnica, mas ainda precisa desenvolver a visão estratégica de longo prazo. Por outro lado, minha filha Patricia, que é acionista minoritária, tem uma visão muito aguçada do mercado financeiro.
+
+ENTREVISTADOR: Qual sua expectativa para os próximos 5 anos?
+
+ROBERTO: Pretendo me afastar gradualmente da operação nos próximos 3 anos. Quero que Eduardo assuma a presidência executiva, mas com um Conselho de Administração forte que possa orientá-lo. Patricia poderia compor esse conselho. Também acredito que precisamos profissionalizar ainda mais a gestão, trazendo executivos de mercado para algumas diretorias.
+
+ENTREVISTADOR: Como você enxerga a governança corporativa na empresa?
+
+ROBERTO: Hoje temos uma estrutura básica, mas informal. Precisamos formalizar tudo: políticas de conflito de interesses, acordo de acionistas atualizado, conselho fiscal ativo. Isso é fundamental para proteger o patrimônio familiar e dar segurança aos investidores externos que queremos trazer nos próximos anos.`
+      },
+      { 
+        id: 'f0000000-0000-0000-0000-000000000002', 
+        interview_id: 'e0000000-0000-0000-0000-000000000002', 
+        uploaded_at: '2025-11-18 16:00:00',
+        transcript_text: `ENTREVISTA COM ANA PAULA COSTA - DIRETORA FINANCEIRA
+Data: 18/11/2025 | Duração: 35 minutos
+
+ENTREVISTADOR: Ana Paula, como está estruturada a área financeira atualmente?
+
+ANA PAULA: Trabalho na empresa há 12 anos. Quando entrei, tínhamos controles muito básicos, quase tudo em planilhas. Hoje implementamos um ERP robusto, temos auditoria externa anual e controles internos bem definidos. Nossa maior conquista foi reduzir o endividamento de 4,5x para 1,8x EBITDA nos últimos 5 anos.
+
+ENTREVISTADOR: Quais são os principais desafios financeiros?
+
+ANA PAULA: O principal desafio é equilibrar investimentos em crescimento com distribuição de dividendos. A família Silva tem uma expectativa de retorno anual, mas precisamos reter recursos para expansão. Outro ponto crítico é a separação entre contas da empresa e pessoais da família, algo que ainda precisa ser mais bem delimitado.
+
+ENTREVISTADOR: Como você vê a profissionalização da governança?
+
+ANA PAULA: É essencial. Precisamos de um Comitê de Auditoria independente que avalie nossos números com olhar crítico. Também defendemos a criação de um Conselho Fiscal ativo, não apenas pró-forma. Isso dá credibilidade para eventuais captações de recursos ou entrada de investidores estratégicos.
+
+ENTREVISTADOR: Há riscos financeiros relevantes que devem ser endereçados?
+
+ANA PAULA: Sim. Nossa estrutura de capital está muito concentrada em crédito bancário de curto prazo. Precisamos diversificar: debêntures, fundos de investimento, talvez até uma abertura de capital em 5-7 anos. Mas para isso, a governança precisa estar impecável.`
+      },
+      { 
+        id: 'f0000000-0000-0000-0000-000000000003', 
+        interview_id: 'e0000000-0000-0000-0000-000000000003', 
+        uploaded_at: '2025-11-20 10:30:00',
+        transcript_text: `ENTREVISTA COM CARLOS EDUARDO MENDES - CONSELHEIRO INDEPENDENTE
+Data: 20/11/2025 | Duração: 40 minutos
+
+ENTREVISTADOR: Carlos, você foi convidado para compor o conselho como membro independente. Como avalia a empresa?
+
+CARLOS: Vejo uma empresa sólida, com marca forte e equipe competente, mas ainda muito dependente do fundador. Roberto é brilhante, mas centraliza demais as decisões estratégicas. O conselho hoje funciona mais como um grupo consultivo do que como um órgão deliberativo.
+
+ENTREVISTADOR: Quais são as maiores fragilidades?
+
+CARLOS: Primeira: falta de sucessão clara documentada. Segunda: inexistência de políticas formais de governança - não há código de conduta, política de transações com partes relacionadas ou matriz de alçadas bem definida. Terceira: sobreposição entre propriedade e gestão sem mecanismos de mediação.
+
+ENTREVISTADOR: O que você recomendaria como prioridade?
+
+CARLOS: Três ações imediatas: 1) Elaborar um Acordo de Acionistas robusto com cláusulas de liquidez e sucessão; 2) Implementar um Conselho de Administração profissional com maioria independente; 3) Criar um Conselho de Família separado para tratar questões patrimoniais e educação das próximas gerações.
+
+ENTREVISTADOR: Como o senhor vê o papel da família na gestão?
+
+CARLOS: A família deve estar na propriedade e na governança, não necessariamente na gestão executiva. Nem todos os familiares têm perfil ou competência para gerir. É importante distinguir: ser dono não te qualifica automaticamente para ser gestor.`
+      },
+      { 
+        id: 'f0000000-0000-0000-0000-000000000004', 
+        interview_id: 'e0000000-0000-0000-0000-000000000004', 
+        uploaded_at: '2025-11-22 17:30:00',
+        transcript_text: `ENTREVISTA COM PATRICIA LIMA SANTOS - SÓCIA/ACIONISTA MINORITÁRIA
+Data: 22/11/2025 | Duração: 30 minutos
+
+ENTREVISTADOR: Patricia, como acionista com 15% da empresa, como você se relaciona com a gestão?
+
+PATRICIA: É uma relação que evoluiu muito. No início, eu não tinha visibilidade nenhuma das operações. Recebia dividendos, mas não participava de decisões. Nos últimos 3 anos, com a formalização do conselho, passei a ter acesso a relatórios trimestrais e participo das assembleias.
+
+ENTREVISTADOR: Quais são suas expectativas?
+
+PATRICIA: Quero que a empresa continue crescendo de forma sustentável e que haja clareza nos critérios de distribuição de lucros. Também é importante ter regras claras para entrada e saída de acionistas. E se meu primo Eduardo assumir a presidência, quero garantias de que haverá meritocracia, não nepotismo.
+
+ENTREVISTADOR: Você tem interesse em participar da gestão?
+
+PATRICIA: Não na operação do dia a dia. Minha carreira é no mercado financeiro, trabalho num banco de investimentos. Mas posso contribuir muito no conselho, especialmente em temas de M&A, captação de recursos e valuation da empresa.
+
+ENTREVISTADOR: Como você vê a necessidade de governança?
+
+PATRICIA: É fundamental para proteger acionistas minoritários como eu. Sem governança, ficamos à mercê das decisões do controlador. Precisamos de acordos que garantam direitos, como tag along, acesso a informações e participação em decisões relevantes.`
+      },
+      { 
+        id: 'f0000000-0000-0000-0000-000000000005', 
+        interview_id: 'e0000000-0000-0000-0000-000000000005', 
+        uploaded_at: '2025-11-23 12:30:00',
+        transcript_text: `ENTREVISTA COM FERNANDA OLIVEIRA - HERDEIRA (2ª GERAÇÃO)
+Data: 23/11/2025 | Duração: 25 minutos
+
+ENTREVISTADOR: Fernanda, você tem 28 anos e é herdeira. Como enxerga seu papel na empresa?
+
+FERNANDA: Ainda estou descobrindo. Cresci vendo meu pai dedicar a vida à empresa, mas sempre fui incentivada a seguir minha carreira. Me formei em engenharia e trabalho numa multinacional. A empresa da família sempre foi um tema de domingo, nunca senti pressão para trabalhar lá.
+
+ENTREVISTADOR: Você tem interesse em se envolver?
+
+FERNANDA: Tenho interesse em entender melhor o negócio, participar de conselhos e ajudar nas decisões estratégicas, mas não vejo meu futuro na gestão operacional. Acho que posso contribuir trazendo perspectivas de inovação, sustentabilidade e governança moderna. Minha geração pensa diferente.
+
+ENTREVISTADOR: O que você acha que a empresa precisa melhorar?
+
+FERNANDA: Precisa se modernizar. Tanto em tecnologia quanto em cultura organizacional. Vi que há pouca diversidade na liderança, todos são homens acima de 50 anos. Também acho que falta transparência: nunca entendi direito quanto vale minha participação ou como são tomadas as decisões de investimento.
+
+ENTREVISTADOR: Como você vê a governança familiar?
+
+FERNANDA: Acho essencial. Minha família precisa sentar e conversar abertamente sobre sucessão, valores, expectativas. Conheço casos de empresas familiares que quebraram por falta de alinhamento entre gerações. Precisamos de regras claras e um plano de longo prazo.`
+      }
+    ];
+
+    const { error: transcriptsError, data: transcriptsData } = await supabase
+      .from('interview_transcripts')
+      .upsert(transcripts, { onConflict: 'id' })
+      .select();
+
+    if (transcriptsError) {
+      console.error('❌ Erro ao inserir transcrições:', JSON.stringify(transcriptsError, null, 2));
+      throw new Error(`Erro transcripts: ${transcriptsError.message} - ${JSON.stringify(transcriptsError.details || {})}`);
+    }
+    console.log('✅ 5 transcrições inseridas:', transcriptsData?.length || 0);
+
     console.log('✨ População de dados demo concluída com sucesso!');
 
     return new Response(
@@ -137,7 +289,9 @@ Deno.serve(async (req) => {
           users: 1,
           councils: 8,
           meetings: 12,
-          actions: 20
+          actions: 20,
+          interviews: 5,
+          transcripts: 5
         }
       }),
       {
