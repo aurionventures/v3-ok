@@ -5,16 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard, CalendarIcon } from "lucide-react";
 import { PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PendingTasksReportModal } from "./PendingTasksReportModal";
 import { PendingTasksPreviewModal } from "./PendingTasksPreviewModal";
+import { TaskDetailModal } from "./TaskDetailModal";
 import { ATALibrary } from "./ATALibrary";
 import { GuestDocumentApproval } from "./GuestDocumentApproval";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
+import { cn } from "@/lib/utils";
 
 interface SecretariatDashboardProps {
   onOpenConvocations?: () => void;
@@ -39,9 +43,11 @@ export const SecretariatDashboard = ({
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewTasks, setPreviewTasks] = useState<any[]>([]);
   const [previewOrganType, setPreviewOrganType] = useState<string | undefined>();
+  const [taskDetailModalOpen, setTaskDetailModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const [organFilter, setOrganFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'overdue' | 'completed'>('all');
-  const [periodFilter, setPeriodFilter] = useState<'7d' | '30d' | 'month' | 'all'>('all');
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
 
   const urgencyCounts = getUrgencyCounts();
 
@@ -87,16 +93,18 @@ export const SecretariatDashboard = ({
     { name: 'Atrasadas', value: overdue.length, color: '#ef4444' },
   ].filter(item => item.value > 0);
 
-  const organChartData = actions.reduce((acc, action) => {
-    const organName = action.meeting?.councils?.name || 'Sem órgão';
-    const existing = acc.find(item => item.name === organName);
-    if (existing) {
-      existing.tasks += 1;
-    } else {
-      acc.push({ name: organName, tasks: 1 });
-    }
-    return acc;
-  }, [] as { name: string; tasks: number }[])
+  const organChartData = actions
+    .filter(action => action.meeting?.councils?.name) // Filter out actions without organ
+    .reduce((acc, action) => {
+      const organName = action.meeting!.councils!.name;
+      const existing = acc.find(item => item.name === organName);
+      if (existing) {
+        existing.tasks += 1;
+      } else {
+        acc.push({ name: organName, tasks: 1 });
+      }
+      return acc;
+    }, [] as { name: string; tasks: number }[])
     .sort((a, b) => b.tasks - a.tasks)
     .slice(0, 8);
 
@@ -136,7 +144,26 @@ export const SecretariatDashboard = ({
     }
   };
 
-  const filteredTasks = getFilteredByStatus(filteredByOrgan);
+  const getFilteredByDateRange = (tasks: typeof pendingTasks) => {
+    if (!dateRange.from && !dateRange.to) return tasks;
+    
+    return tasks.filter(task => {
+      const taskDate = task.dueDate;
+      if (dateRange.from && dateRange.to) {
+        return taskDate >= dateRange.from && taskDate <= dateRange.to;
+      }
+      if (dateRange.from) {
+        return taskDate >= dateRange.from;
+      }
+      if (dateRange.to) {
+        return taskDate <= dateRange.to;
+      }
+      return true;
+    });
+  };
+
+  const filteredByStatus = getFilteredByStatus(filteredByOrgan);
+  const filteredTasks = getFilteredByDateRange(filteredByStatus);
 
   const handleOpenPreview = (type: 'all' | 'conselho' | 'comite' | 'comissao') => {
     const filtered = type === 'all' 
@@ -162,6 +189,11 @@ export const SecretariatDashboard = ({
 
   const handleCompleteTask = async (taskId: string) => {
     await completeAction(taskId);
+  };
+
+  const handleOpenTaskDetail = (task: typeof pendingTasks[0]) => {
+    setSelectedTask(task);
+    setTaskDetailModalOpen(true);
   };
 
   const getUrgencyColor = (dueDate: Date) => {
@@ -512,7 +544,7 @@ export const SecretariatDashboard = ({
             <CardContent>
               <div className="space-y-4">
                 {/* Filters */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <Select value={organFilter} onValueChange={setOrganFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filtrar por tipo de órgão" />
@@ -559,6 +591,50 @@ export const SecretariatDashboard = ({
                       </SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !dateRange.from && !dateRange.to && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "dd/MM")} - {format(dateRange.to, "dd/MM")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "dd/MM/yyyy")
+                          )
+                        ) : (
+                          <span>Filtrar por período</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 space-y-2">
+                        <Calendar
+                          mode="range"
+                          selected={{ from: dateRange.from, to: dateRange.to }}
+                          onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+                          numberOfMonths={2}
+                          locale={ptBR}
+                          className="pointer-events-auto"
+                        />
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setDateRange({ from: undefined, to: undefined })}
+                        >
+                          Limpar filtro
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* Relatórios Rápidos - Preview Mode */}
@@ -647,7 +723,8 @@ export const SecretariatDashboard = ({
                   filteredTasks.map((task) => (
                     <div 
                       key={task.id} 
-                      className={`flex items-start justify-between gap-4 p-4 rounded-lg transition-colors ${getUrgencyColor(task.dueDate)}`}
+                      className={`flex items-start justify-between gap-4 p-4 rounded-lg transition-colors cursor-pointer hover:opacity-80 ${getUrgencyColor(task.dueDate)}`}
+                      onClick={() => handleOpenTaskDetail(task)}
                     >
                       <div className="flex-1 space-y-2">
                         <p className="text-sm font-medium leading-none">{task.task}</p>
@@ -669,7 +746,10 @@ export const SecretariatDashboard = ({
                         <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => handleCompleteTask(task.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCompleteTask(task.id);
+                          }}
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                           Concluir
@@ -710,6 +790,13 @@ export const SecretariatDashboard = ({
         onOpenChange={setPreviewModalOpen}
         tasks={previewTasks}
         selectedOrganType={previewOrganType}
+      />
+
+      <TaskDetailModal
+        open={taskDetailModalOpen}
+        onOpenChange={setTaskDetailModalOpen}
+        task={selectedTask}
+        onComplete={handleCompleteTask}
       />
     </div>
   );
