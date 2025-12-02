@@ -31,6 +31,7 @@ import PeopleDevelopment from "./pages/PeopleDevelopment";
 import Subsystems from "./pages/Subsystems";
 import Legacy from "./pages/Legacy";
 import GovernanceRiskManagement from "./pages/GovernanceRiskManagement";
+import MarketIntelligence from "./pages/MarketIntelligence";
 import Admin from "./pages/Admin";
 import AdminFinances from "./pages/AdminFinances";
 import AdminAgentConfig from "./pages/AdminAgentConfig";
@@ -260,7 +261,15 @@ const App = () => (
             } 
           />
           <Route 
-            path="/cap-table" 
+            path="/market-intelligence" 
+            element={
+              <ProtectedRoute >
+                <MarketIntelligence />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/cap-table"
             element={
               <ProtectedRoute >
                 <CapTable />
