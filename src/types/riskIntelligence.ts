@@ -53,9 +53,11 @@ export interface SectorTrend {
 }
 
 export interface CompanyContext {
-  sector: string;
-  region: string;
-  mainCompetitors: string[];
+  sector: string;           // Setor IBGE (dropdown)
+  segment: string;          // Segmento específico
+  region: string;           // Região de atuação principal
+  mainCompetitors: string[]; // Até 5 competidores
   companySize: 'pequena' | 'media' | 'grande';
   focusAreas: string[];
+  strategicKeywords: string[]; // Palavras-chave estratégicas
 }
