@@ -36,6 +36,7 @@ import RiskMatrix from "@/components/RiskMatrix";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from "recharts";
 import { RiskDetailsDialog } from "@/components/risks/RiskDetailsDialog";
 import { RiskEditDialog } from "@/components/risks/RiskEditDialog";
+import { MarketIntelligenceTab } from "@/components/risks/MarketIntelligenceTab";
 
 // Governance Risk Categories
 // Import shared risk data
@@ -238,13 +239,14 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="matrix" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="matrix">Matriz de Riscos</TabsTrigger>
-                  <TabsTrigger value="mitigation">Planos de Mitigação</TabsTrigger>
-                  <TabsTrigger value="assessment">Nova Avaliação</TabsTrigger>
-                  <TabsTrigger value="kpis">KPIs & Análise</TabsTrigger>
-                </TabsList>
+        <Tabs defaultValue="matrix" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="matrix">Matriz de Riscos</TabsTrigger>
+            <TabsTrigger value="mitigation">Planos de Mitigação</TabsTrigger>
+            <TabsTrigger value="assessment">Nova Avaliação</TabsTrigger>
+            <TabsTrigger value="kpis">KPIs & Análise</TabsTrigger>
+            <TabsTrigger value="intelligence">Inteligência de Mercado</TabsTrigger>
+          </TabsList>
 
                 <TabsContent value="matrix" className="space-y-6">
                   <div className="flex gap-4 mb-6">
