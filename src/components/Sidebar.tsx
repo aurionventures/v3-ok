@@ -265,6 +265,12 @@ const Sidebar = () => {
           moduleId: "governance-risks"
         },
         {
+          icon: <TrendingUp className="h-5 w-5" />,
+          href: "/market-intelligence",
+          name: "Inteligência de Mercado",
+          moduleId: "market-intelligence"
+        },
+        {
           icon: <Leaf className="h-5 w-5" />,
           href: "/esg",
           name: "ESG",
