@@ -694,6 +694,10 @@ ${comments ? `Considerando seus comentários: "${comments}", sugiro também foca
                     </Card>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="intelligence" className="space-y-6">
+                  <MarketIntelligenceTab />
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
