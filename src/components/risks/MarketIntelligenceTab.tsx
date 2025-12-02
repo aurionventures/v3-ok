@@ -87,26 +87,117 @@ export const MarketIntelligenceTab = () => {
         <CardHeader>
           <CardTitle>Contexto Empresarial</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Linha 1: Setor + Segmento */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="sector">Setor de Atuação</Label>
-              <Input
-                id="sector"
+              <Label htmlFor="sector">Setor/Indústria (IBGE)</Label>
+              <Select
                 value={companyContext.sector}
-                onChange={(e) => setCompanyContext({ ...companyContext, sector: e.target.value })}
-                placeholder="Ex: Tecnologia - Software de Governança"
-              />
+                onValueChange={(value) => setCompanyContext({ ...companyContext, sector: value })}
+              >
+                <SelectTrigger id="sector">
+                  <SelectValue placeholder="Selecione o setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Comércio - Varejo">Comércio - Varejo</SelectItem>
+                  <SelectItem value="Comércio - Atacado">Comércio - Atacado</SelectItem>
+                  <SelectItem value="Indústria de Transformação">Indústria de Transformação</SelectItem>
+                  <SelectItem value="Serviços de Informação e Comunicação">Serviços de Informação e Comunicação</SelectItem>
+                  <SelectItem value="Agricultura, Pecuária e Pesca">Agricultura, Pecuária e Pesca</SelectItem>
+                  <SelectItem value="Construção Civil">Construção Civil</SelectItem>
+                  <SelectItem value="Serviços Financeiros">Serviços Financeiros</SelectItem>
+                  <SelectItem value="Saúde e Assistência Social">Saúde e Assistência Social</SelectItem>
+                  <SelectItem value="Educação">Educação</SelectItem>
+                  <SelectItem value="Transporte e Logística">Transporte e Logística</SelectItem>
+                  <SelectItem value="Alojamento e Alimentação">Alojamento e Alimentação</SelectItem>
+                  <SelectItem value="Energia e Utilities">Energia e Utilities</SelectItem>
+                  <SelectItem value="Atividades Imobiliárias">Atividades Imobiliárias</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="region">Região Principal</Label>
+              <Label htmlFor="segment">Segmento Específico</Label>
               <Input
-                id="region"
-                value={companyContext.region}
-                onChange={(e) => setCompanyContext({ ...companyContext, region: e.target.value })}
-                placeholder="Ex: Brasil - São Paulo"
+                id="segment"
+                value={companyContext.segment}
+                onChange={(e) => setCompanyContext({ ...companyContext, segment: e.target.value })}
+                placeholder="Ex: Varejo de Moda Feminina"
               />
             </div>
+          </div>
+
+          {/* Linha 2: Região + Porte */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="region">Região de Atuação Principal</Label>
+              <Select
+                value={companyContext.region}
+                onValueChange={(value) => setCompanyContext({ ...companyContext, region: value })}
+              >
+                <SelectTrigger id="region">
+                  <SelectValue placeholder="Selecione a região" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Norte">Norte</SelectItem>
+                  <SelectItem value="Nordeste">Nordeste</SelectItem>
+                  <SelectItem value="Centro-Oeste">Centro-Oeste</SelectItem>
+                  <SelectItem value="Sudeste">Sudeste</SelectItem>
+                  <SelectItem value="Sul">Sul</SelectItem>
+                  <SelectItem value="Nacional">Nacional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="companySize">Porte da Empresa</Label>
+              <Select
+                value={companyContext.companySize}
+                onValueChange={(value: 'pequena' | 'media' | 'grande') => 
+                  setCompanyContext({ ...companyContext, companySize: value })}
+              >
+                <SelectTrigger id="companySize">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pequena">Pequena</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="grande">Grande</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Linha 3: Principais Competidores */}
+          <div className="space-y-2">
+            <Label>Principais Competidores (até 5)</Label>
+            <div className="grid grid-cols-5 gap-2">
+              {[0, 1, 2, 3, 4].map((index) => (
+                <Input
+                  key={index}
+                  value={companyContext.mainCompetitors[index] || ''}
+                  onChange={(e) => {
+                    const newCompetitors = [...companyContext.mainCompetitors];
+                    newCompetitors[index] = e.target.value;
+                    setCompanyContext({ ...companyContext, mainCompetitors: newCompetitors.filter(c => c) });
+                  }}
+                  placeholder={`Competidor ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Linha 4: Palavras-chave Estratégicas */}
+          <div className="space-y-2">
+            <Label htmlFor="keywords">Palavras-chave Estratégicas</Label>
+            <Input
+              id="keywords"
+              value={companyContext.strategicKeywords.join(', ')}
+              onChange={(e) => setCompanyContext({ 
+                ...companyContext, 
+                strategicKeywords: e.target.value.split(',').map(k => k.trim()).filter(k => k)
+              })}
+              placeholder="Ex: omnichannel, fast fashion, sustentabilidade, marketplace"
+            />
           </div>
 
           <div className="mt-6">

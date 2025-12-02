@@ -25,11 +25,13 @@ export const useRiskIntelligence = () => {
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   
   const [companyContext, setCompanyContext] = useState<CompanyContext>({
-    sector: 'Tecnologia - Software de Governança',
-    region: 'Brasil - São Paulo',
-    mainCompetitors: ['Atlas Governance', 'Diligent', 'Convene'],
+    sector: 'Comércio - Varejo',
+    segment: 'Varejo de Moda Feminina',
+    region: 'Sudeste',
+    mainCompetitors: ['Renner', 'C&A', 'Riachuelo', 'Zara', 'Shein'],
     companySize: 'media',
-    focusAreas: ['Governança Corporativa', 'ESG', 'Compliance', 'Inteligência Artificial']
+    focusAreas: ['Moda Feminina', 'E-commerce', 'Fast Fashion', 'Sustentabilidade'],
+    strategicKeywords: ['omnichannel', 'fast fashion', 'sustentabilidade', 'marketplace', 'social commerce']
   });
 
   const [threats, setThreats] = useState<MarketThreat[]>([]);

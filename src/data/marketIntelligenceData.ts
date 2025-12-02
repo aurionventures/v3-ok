@@ -1,492 +1,544 @@
 import { MarketThreat, MarketOpportunity, AgendaSuggestion, CompetitorInsight, SectorTrend } from '@/types/riskIntelligence';
 
+// Lista de Setores IBGE
+export const ibgeSectors = [
+  'Comércio - Varejo',
+  'Comércio - Atacado',
+  'Indústria de Transformação',
+  'Serviços de Informação e Comunicação',
+  'Agricultura, Pecuária e Pesca',
+  'Construção Civil',
+  'Serviços Financeiros',
+  'Saúde e Assistência Social',
+  'Educação',
+  'Transporte e Logística',
+  'Alojamento e Alimentação',
+  'Energia e Utilities',
+  'Atividades Imobiliárias',
+];
+
+// Regiões do Brasil
+export const brazilRegions = [
+  'Norte',
+  'Nordeste',
+  'Centro-Oeste',
+  'Sudeste',
+  'Sul',
+  'Nacional',
+];
+
+// CASE: VAREJO DE MODA - Ameaças de Mercado
 export const mockThreats: MarketThreat[] = [
   {
     id: 'threat-1',
-    title: 'Nova Regulamentação LGPD 2.0',
-    description: 'Projeto de lei em tramitação que amplia significativamente as obrigações de proteção de dados, incluindo requisitos de governança de dados e responsabilização de conselheiros.',
-    source: 'regulatory',
+    title: 'Invasão do Shein no Mercado Brasileiro',
+    description: 'O Shein intensificou operações no Brasil com preços até 70% menores, frete grátis e marketing massivo em redes sociais, capturando rapidamente participação de mercado do varejo tradicional.',
+    source: 'competitive',
     impact: 5,
-    probability: 4,
-    timeHorizon: 'short_term',
+    probability: 5,
+    timeHorizon: 'immediate',
     suggestedActions: [
-      'Criar Comitê de Proteção de Dados',
-      'Revisar políticas de privacidade',
-      'Implementar programa de treinamento para conselheiros',
-      'Contratar Data Protection Officer (DPO)'
-    ]
+      'Desenvolver estratégia de resposta rápida à moda',
+      'Criar coleções-cápsula com lançamentos semanais',
+      'Investir em marketing de influenciadores',
+      'Reforçar atributos de qualidade e sustentabilidade',
+      'Implementar programa de fidelidade diferenciado'
+    ],
+    relatedCompetitors: ['Shein', 'AliExpress']
   },
   {
     id: 'threat-2',
-    title: 'Entrada da Atlas Governance no Mercado',
-    description: 'Concorrente direto lançou plataforma com preços 30% menores e está conquistando clientes de médio porte rapidamente.',
-    source: 'competitive',
+    title: 'Nova Lei de Tributação do E-commerce (PL 2337/2021)',
+    description: 'Projeto de lei em tramitação pode elevar tributação de produtos importados via e-commerce, mas também afetará operações digitais de varejistas nacionais com novas obrigações fiscais.',
+    source: 'regulatory',
+    impact: 4,
+    probability: 4,
+    timeHorizon: 'short_term',
+    suggestedActions: [
+      'Avaliar impacto fiscal nas operações online',
+      'Revisar estrutura de precificação digital',
+      'Adequar sistemas de e-commerce à nova legislação',
+      'Consultar especialistas tributários',
+      'Preparar comunicação ao mercado'
+    ]
+  },
+  {
+    id: 'threat-3',
+    title: 'Aumento de 35% nos Custos Logísticos',
+    description: 'Alta nos preços de combustível e insumos logísticos está pressionando margens, especialmente no modelo omnichannel que exige integração entre lojas físicas e e-commerce.',
+    source: 'economic',
     impact: 4,
     probability: 5,
     timeHorizon: 'immediate',
     suggestedActions: [
-      'Análise competitiva detalhada',
-      'Revisar estratégia de precificação',
-      'Destacar diferenciais tecnológicos',
-      'Acelerar desenvolvimento de funcionalidades únicas'
-    ],
-    relatedCompetitors: ['Atlas Governance']
-  },
-  {
-    id: 'threat-3',
-    title: 'Disrupção por Plataformas de IA Generativa',
-    description: 'Soluções de IA generativa (ChatGPT, Claude) estão sendo usadas diretamente por empresas para análise de ATAs e geração de insights de governança, sem intermediários.',
-    source: 'technological',
-    impact: 4,
-    probability: 4,
-    timeHorizon: 'medium_term',
-    suggestedActions: [
-      'Integrar IA nativa na plataforma',
-      'Desenvolver funcionalidades exclusivas de IA',
-      'Posicionar como solução especializada vs. genérica',
-      'Criar API de IA para governança'
+      'Renegociar contratos com transportadoras',
+      'Otimizar centros de distribuição',
+      'Implementar tecnologia de roteirização inteligente',
+      'Avaliar modelo de ship from store',
+      'Considerar repasse seletivo de custos'
     ]
   },
   {
     id: 'threat-4',
-    title: 'Pressão ESG de Investidores Institucionais',
-    description: 'Fundos de investimento estão exigindo transparência total em práticas ESG e ameaçando desinvestir de empresas sem governança robusta.',
+    title: 'Exigências ESG na Cadeia de Fornecedores Têxteis',
+    description: 'Consumidores e investidores exigem transparência total da cadeia produtiva têxtil, incluindo certificações de trabalho digno, uso responsável de água e materiais sustentáveis.',
     source: 'esg',
     impact: 5,
     probability: 5,
-    timeHorizon: 'immediate',
+    timeHorizon: 'medium_term',
     suggestedActions: [
-      'Implementar módulo ESG completo',
-      'Criar relatórios ESG automáticos',
-      'Integrar métricas de sustentabilidade',
-      'Desenvolver dashboards para investidores'
+      'Auditar fornecedores quanto a práticas ESG',
+      'Certificar cadeia produtiva (GOTS, Fair Trade)',
+      'Desenvolver coleção com materiais sustentáveis',
+      'Comunicar iniciativas de sustentabilidade',
+      'Criar conselho consultivo de sustentabilidade'
     ]
   },
   {
     id: 'threat-5',
-    title: 'Instabilidade Econômica e Alta de Juros',
-    description: 'Cenário macroeconômico adverso está reduzindo orçamentos de empresas para software de governança, priorizando soluções essenciais.',
+    title: 'Crise de Crédito ao Consumidor',
+    description: 'Alta inadimplência e restrição de crédito estão reduzindo poder de compra do consumidor, especialmente em itens não essenciais como moda.',
     source: 'economic',
-    impact: 3,
+    impact: 4,
     probability: 4,
     timeHorizon: 'short_term',
     suggestedActions: [
-      'Criar planos de pagamento flexíveis',
-      'Desenvolver versão essencial mais acessível',
-      'Demonstrar ROI claro da plataforma',
-      'Oferecer garantia de resultados'
+      'Desenvolver coleções de entrada (preço acessível)',
+      'Ampliar parcerias com fintechs de crédito',
+      'Criar programas de cashback e vale-compras',
+      'Implementar análise de crédito própria',
+      'Reforçar categoria de básicos e essenciais'
     ]
   },
   {
     id: 'threat-6',
-    title: 'Fusão entre Diligent e Nasdaq Governance',
-    description: 'Dois grandes players do mercado anunciaram fusão, criando gigante com recursos massivos para inovação e marketing.',
+    title: 'Concorrência de Marketplaces (Mercado Livre, Amazon)',
+    description: 'Marketplaces estão investindo pesado em moda, oferecendo variedade infinita, preços competitivos e logística rápida, competindo diretamente com varejistas tradicionais.',
     source: 'competitive',
     impact: 4,
     probability: 5,
     timeHorizon: 'immediate',
     suggestedActions: [
-      'Reforçar posicionamento de nicho',
-      'Focar em agilidade vs. burocracia de grandes empresas',
-      'Criar parcerias estratégicas',
-      'Desenvolver recursos exclusivos para mercado brasileiro'
+      'Avaliar venda em marketplaces como canal complementar',
+      'Reforçar experiência de marca própria',
+      'Criar produtos exclusivos não disponíveis em marketplaces',
+      'Investir em atendimento personalizado',
+      'Desenvolver comunidade de marca'
     ],
-    relatedCompetitors: ['Diligent', 'Nasdaq Governance Solutions']
+    relatedCompetitors: ['Mercado Livre', 'Amazon', 'Magalu']
   },
   {
     id: 'threat-7',
-    title: 'Mudanças na Lei das Sociedades Anônimas',
-    description: 'Proposta de reforma da Lei 6.404/76 inclui novos requisitos para composição de conselhos e comitês, com potencial impacto em sistemas de governança.',
-    source: 'regulatory',
-    impact: 4,
-    probability: 3,
+    title: 'Mudanças no Comportamento do Consumidor Pós-Pandemia',
+    description: 'Consumidor valoriza cada vez mais conforto, versatilidade e experiência phygital, reduzindo frequência de visitas a lojas físicas e exigindo integração total entre canais.',
+    source: 'market',
+    impact: 3,
+    probability: 5,
     timeHorizon: 'medium_term',
     suggestedActions: [
-      'Monitorar tramitação do projeto',
-      'Preparar módulo de compliance automático',
-      'Criar alertas de adequação regulatória',
-      'Desenvolver checklist de conformidade'
+      'Redesenhar experiência omnichannel',
+      'Implementar provador virtual com IA',
+      'Criar serviços de personal styling online',
+      'Desenvolver aplicativo com recursos de AR',
+      'Integrar programa de fidelidade cross-channel'
     ]
   },
   {
     id: 'threat-8',
-    title: 'Escassez de Talentos em Governança Corporativa',
-    description: 'Dificuldade crescente em encontrar profissionais qualificados em governança está limitando expansão e qualidade do suporte ao cliente.',
-    source: 'market',
-    impact: 3,
+    title: 'Pressão por Moda Sustentável e Movimento Slow Fashion',
+    description: 'Crescente rejeição ao modelo fast fashion por gerações mais jovens, com preferência por marcas sustentáveis, brechós e moda circular.',
+    source: 'esg',
+    impact: 4,
     probability: 4,
-    timeHorizon: 'short_term',
+    timeHorizon: 'medium_term',
     suggestedActions: [
-      'Automatizar processos com IA',
-      'Criar programa de formação interna',
-      'Desenvolver recursos de auto-atendimento',
-      'Parcerias com instituições de ensino'
+      'Lançar linha de moda sustentável certificada',
+      'Implementar programa de revenda/brechó da marca',
+      'Criar serviço de conserto e customização',
+      'Desenvolver coleções atemporais e duráveis',
+      'Comunicar pegada ambiental dos produtos'
     ]
   }
 ];
 
+// CASE: VAREJO DE MODA - Oportunidades de Mercado
 export const mockOpportunities: MarketOpportunity[] = [
   {
     id: 'opp-1',
-    title: 'Gap no Mercado de Governança Familiar',
-    description: 'Empresas familiares de médio porte (faturamento R$ 50-500M) estão buscando profissionalizar governança mas não encontram soluções adequadas ao seu perfil.',
-    source: 'market_gap',
-    potentialValue: 'high',
-    timeWindow: '6-12 meses',
-    requirements: [
-      'Desenvolver módulo específico para empresas familiares',
-      'Criar funcionalidades de sucessão familiar',
-      'Adaptar linguagem e interface para este público',
-      'Parcerias com consultorias de empresas familiares'
-    ],
-    estimatedImpact: 'Potencial de 200+ novos clientes no primeiro ano'
-  },
-  {
-    id: 'opp-2',
-    title: 'Tendência de Digitalização de Conselhos',
-    description: 'Aceleração pós-pandemia da digitalização de reuniões de conselhos criou demanda por soluções integradas que vão além de videoconferência.',
+    title: 'Explosão do Social Commerce (Instagram, TikTok)',
+    description: 'Vendas via redes sociais crescem 45% ao ano no Brasil. Consumidores, especialmente Gen Z, preferem descobrir e comprar produtos diretamente em plataformas sociais.',
     source: 'trend',
     potentialValue: 'high',
     timeWindow: 'Imediato',
     requirements: [
-      'Integração com Zoom/Teams/Meet',
-      'Transcrição automática de reuniões',
-      'Votação eletrônica segura',
-      'Assinatura digital de ATAs'
+      'Criar contas comerciais otimizadas em Instagram e TikTok',
+      'Desenvolver estratégia de conteúdo para social selling',
+      'Integrar checkout nativo das plataformas',
+      'Treinar equipe em social commerce',
+      'Investir em anúncios segmentados por comportamento'
     ],
-    estimatedImpact: 'Aumento de 40% na conversão de leads'
+    estimatedImpact: 'Potencial de 30% do faturamento via social commerce em 18 meses'
   },
   {
-    id: 'opp-3',
-    title: 'Nova Lei de Incentivos Fiscais para ESG',
-    description: 'Governo federal está lançando programa de incentivos fiscais para empresas que comprovarem práticas ESG robustas com governança certificada.',
-    source: 'regulation',
+    id: 'opp-2',
+    title: 'Live Commerce como Novo Canal de Vendas',
+    description: 'Lives de vendas com influenciadores geram conversão 10x superior ao e-commerce tradicional, combinando entretenimento, urgência e prova social.',
+    source: 'technology',
     potentialValue: 'high',
     timeWindow: '3-6 meses',
     requirements: [
-      'Desenvolver módulo de certificação ESG',
-      'Criar relatórios para órgãos fiscalizadores',
-      'Integrar com sistema da Receita Federal',
-      'Parceria com auditorias certificadoras'
+      'Estabelecer parceria com plataforma de live commerce',
+      'Recrutar influenciadores alinhados à marca',
+      'Criar ofertas e promoções exclusivas para lives',
+      'Treinar equipe de atendimento para lives',
+      'Desenvolver logística para entrega rápida pós-live'
     ],
-    estimatedImpact: 'Potencial de triplicar base de clientes em 18 meses'
+    estimatedImpact: 'Incremento de R$ 2-5M em vendas anuais'
+  },
+  {
+    id: 'opp-3',
+    title: 'Programa de Fidelidade Omnichannel Avançado',
+    description: 'Clientes com programa de fidelidade gastam 67% mais. Oportunidade de criar programa integrado entre lojas físicas, e-commerce e redes sociais.',
+    source: 'market_gap',
+    potentialValue: 'high',
+    timeWindow: '6-9 meses',
+    requirements: [
+      'Desenvolver app de fidelidade com gamificação',
+      'Integrar pontos em todos os canais (físico + digital)',
+      'Criar benefícios exclusivos (early access, eventos VIP)',
+      'Implementar sistema de cashback progressivo',
+      'Desenvolver clube de assinatura premium'
+    ],
+    estimatedImpact: 'Aumento de 25% no ticket médio e 40% na recompra'
   },
   {
     id: 'opp-4',
-    title: 'Parceria Estratégica com Big Four',
-    description: 'Grandes auditorias (PwC, Deloitte, KPMG, EY) estão buscando soluções tecnológicas para complementar serviços de consultoria em governança.',
+    title: 'Parceria com Influenciadores Digitais de Moda',
+    description: 'Influenciadores de médio porte (50k-500k seguidores) geram ROI superior a celebridades, com custo acessível e audiência engajada.',
     source: 'partnership',
-    potentialValue: 'high',
-    timeWindow: '6-12 meses',
-    requirements: [
-      'Desenvolver API para integração',
-      'Criar programa de whitelabel',
-      'Estabelecer modelo de revenue share',
-      'Adaptar plataforma para requisitos de auditoria'
-    ],
-    estimatedImpact: 'Acesso a carteira de 1000+ empresas de grande porte'
-  },
-  {
-    id: 'opp-5',
-    title: 'Adoção de IA para Análise de ATAs',
-    description: 'Demanda crescente por análise automática de ATAs para identificar padrões, riscos e oportunidades não percebidos manualmente.',
-    source: 'technology',
     potentialValue: 'medium',
     timeWindow: 'Imediato',
     requirements: [
-      'Implementar processamento de linguagem natural',
-      'Criar modelos de IA treinados em governança',
-      'Desenvolver dashboards de insights',
-      'Garantir segurança e privacidade dos dados'
+      'Mapear influenciadores alinhados ao posicionamento da marca',
+      'Criar programa de embaixadores com benefícios mútuos',
+      'Desenvolver coleções-cápsula co-criadas',
+      'Estabelecer modelo de comissionamento por vendas',
+      'Mensurar conversão por influenciador'
     ],
-    estimatedImpact: 'Diferenciação competitiva significativa'
+    estimatedImpact: 'Alcance de 2-5M de pessoas e conversão de 3-8% em vendas'
+  },
+  {
+    id: 'opp-5',
+    title: 'Certificação de Moda Sustentável (Sistema B, GOTS)',
+    description: '68% dos consumidores pagariam mais por produtos sustentáveis certificados. Certificações geram diferenciação e acesso a novos públicos.',
+    source: 'regulation',
+    potentialValue: 'high',
+    timeWindow: '9-12 meses',
+    requirements: [
+      'Auditar cadeia produtiva para certificação',
+      'Ajustar processos para atender requisitos',
+      'Investir em materiais e fornecedores certificados',
+      'Obter selos GOTS, Sistema B ou equivalentes',
+      'Comunicar certificações no marketing'
+    ],
+    estimatedImpact: 'Acesso a mercado premium e aumento de 15-20% no preço médio'
   },
   {
     id: 'opp-6',
-    title: 'Expansão para Mercado LATAM',
-    description: 'Países da América Latina (Chile, Colômbia, Peru) estão implementando novas regulamentações de governança, criando demanda por soluções especializadas.',
+    title: 'Expansão para Cidades do Interior (Tier 2 e 3)',
+    description: 'Cidades médias do interior apresentam crescimento de renda per capita acima da média nacional e carência de opções de moda de qualidade.',
     source: 'market_gap',
     potentialValue: 'medium',
     timeWindow: '12-18 meses',
     requirements: [
-      'Adaptar plataforma para regulamentações locais',
-      'Tradução e localização para espanhol',
-      'Estabelecer parcerias locais',
-      'Criar estrutura de suporte regional'
+      'Mapear cidades com maior potencial (renda + demanda)',
+      'Desenvolver modelo de franquia ou loja própria',
+      'Adaptar mix de produtos ao perfil regional',
+      'Criar estratégia de marketing local',
+      'Estabelecer logística para regiões remotas'
     ],
-    estimatedImpact: 'Mercado potencial de 500+ empresas de médio/grande porte'
+    estimatedImpact: 'Abertura de 10-15 lojas em 2 anos, gerando R$ 15-20M adicionais'
   }
 ];
 
+// CASE: VAREJO DE MODA - Sugestões de Pauta para Reuniões
 export const mockAgendaSuggestions: AgendaSuggestion[] = [
   {
     id: 'agenda-1',
-    title: 'Adequação à LGPD 2.0: Responsabilidades do Conselho',
-    description: 'Discussão sobre as novas obrigações do Conselho de Administração na proteção de dados e potenciais responsabilizações.',
+    title: 'Estratégia de Defesa contra Shein: Plano de Ação Urgente',
+    description: 'Aprovação de plano de resposta à entrada agressiva do Shein no mercado brasileiro, incluindo investimentos em fast fashion e marketing digital.',
     relatedInsightId: 'threat-1',
     relatedInsightType: 'threat',
     suggestedOrgan: 'conselho',
     organName: 'Conselho de Administração',
     priority: 'urgent',
     discussionPoints: [
-      'Apresentação da proposta de lei LGPD 2.0',
-      'Impactos na governança corporativa',
-      'Definição de responsável pela proteção de dados',
-      'Orçamento para adequação e treinamento',
-      'Criação de Comitê de Proteção de Dados'
+      'Análise detalhada do modelo de negócio do Shein',
+      'Identificação de diferenciais competitivos da marca',
+      'Plano de investimento em coleções rápidas',
+      'Orçamento para marketing de influenciadores',
+      'Estratégia de comunicação de qualidade e sustentabilidade',
+      'Meta de participação de mercado para próximos 12 meses'
     ]
   },
   {
     id: 'agenda-2',
-    title: 'Análise Competitiva: Resposta à Entrada da Atlas Governance',
-    description: 'Avaliação da estratégia competitiva frente ao novo player no mercado de governança.',
+    title: 'Adequação à Nova Lei de Tributação do E-commerce',
+    description: 'Avaliação do impacto do PL 2337/2021 nas operações digitais e aprovação de plano de adequação fiscal.',
     relatedInsightId: 'threat-2',
     relatedInsightType: 'threat',
-    suggestedOrgan: 'conselho',
-    organName: 'Conselho de Administração',
+    suggestedOrgan: 'comite',
+    organName: 'Comitê Financeiro',
     priority: 'high',
     discussionPoints: [
-      'Análise do posicionamento da Atlas Governance',
-      'Comparativo de funcionalidades e precificação',
-      'Estratégia de retenção de clientes',
-      'Investimentos em inovação e marketing',
-      'Plano de ação para próximos 90 dias'
+      'Apresentação do projeto de lei e implicações fiscais',
+      'Análise de impacto nas margens do e-commerce',
+      'Necessidade de ajustes em sistemas e processos',
+      'Estratégia de repasse ou absorção de custos',
+      'Cronograma de adequação'
     ]
   },
   {
     id: 'agenda-3',
-    title: 'Estratégia de IA: Integração de Inteligência Artificial',
-    description: 'Definição da estratégia de IA para evitar disrupção por plataformas genéricas.',
+    title: 'Otimização de Custos Logísticos: Ship from Store',
+    description: 'Aprovação de projeto piloto de envio de pedidos online diretamente das lojas físicas para reduzir custos de distribuição.',
     relatedInsightId: 'threat-3',
     relatedInsightType: 'threat',
     suggestedOrgan: 'comite',
-    organName: 'Comitê de Tecnologia',
+    organName: 'Comitê de Operações',
     priority: 'high',
     discussionPoints: [
-      'Benchmark de soluções de IA em governança',
-      'Funcionalidades prioritárias para desenvolvimento',
-      'Roadmap de integração de IA',
-      'Orçamento e timeline',
-      'Riscos de segurança e privacidade'
+      'Cenário de aumento de custos logísticos',
+      'Modelo de ship from store e benefícios esperados',
+      'Investimento em tecnologia de gestão de estoque',
+      'Lojas piloto para implementação',
+      'Projeção de economia em 12 meses'
     ]
   },
   {
     id: 'agenda-4',
-    title: 'Implementação de Módulo ESG',
-    description: 'Aprovação do projeto de desenvolvimento do módulo ESG para atender pressão de investidores.',
+    title: 'Certificação ESG na Cadeia Têxtil',
+    description: 'Aprovação de programa de certificação ESG dos fornecedores e desenvolvimento de coleção sustentável certificada.',
     relatedInsightId: 'threat-4',
     relatedInsightType: 'threat',
     suggestedOrgan: 'conselho',
     organName: 'Conselho de Administração',
     priority: 'urgent',
     discussionPoints: [
-      'Requisitos mínimos exigidos por investidores',
-      'Escopo do módulo ESG',
-      'Integrações necessárias',
-      'Prazo e orçamento',
-      'Estratégia de lançamento'
+      'Pressão de consumidores e investidores por transparência',
+      'Mapeamento da cadeia de fornecedores atual',
+      'Certificações necessárias (GOTS, Fair Trade)',
+      'Investimento em auditoria e adequação',
+      'Lançamento de linha sustentável premium',
+      'Comunicação de sustentabilidade ao mercado'
     ]
   },
   {
     id: 'agenda-5',
-    title: 'Revisão de Pricing e Modelos de Pagamento',
-    description: 'Adequação da estratégia comercial ao cenário econômico adverso.',
+    title: 'Ampliação de Crédito: Parceria com Fintechs',
+    description: 'Avaliação de parcerias com fintechs de crédito para ampliar acesso ao consumo em cenário de crise.',
     relatedInsightId: 'threat-5',
     relatedInsightType: 'threat',
     suggestedOrgan: 'comite',
     organName: 'Comitê Financeiro',
     priority: 'medium',
     discussionPoints: [
-      'Análise de sensibilidade de preços',
-      'Modelos alternativos de pagamento',
-      'Versão essencial da plataforma',
-      'Demonstração de ROI para clientes',
-      'Impacto no faturamento'
+      'Análise do cenário de crédito ao consumidor',
+      'Benchmarking de parcerias com fintechs no varejo',
+      'Propostas comerciais recebidas',
+      'Riscos de inadimplência',
+      'Aprovação de parceria piloto'
     ]
   },
   {
     id: 'agenda-6',
-    title: 'Oportunidade: Mercado de Empresas Familiares',
-    description: 'Avaliação do potencial de entrada no segmento de governança familiar.',
+    title: 'Social Commerce: Investimento em Instagram e TikTok',
+    description: 'Aprovação de orçamento para estruturação de estratégia de social commerce como novo canal de vendas.',
     relatedInsightId: 'opp-1',
     relatedInsightType: 'opportunity',
     suggestedOrgan: 'conselho',
     organName: 'Conselho de Administração',
     priority: 'high',
     discussionPoints: [
-      'Análise de mercado e tamanho da oportunidade',
-      'Adaptações necessárias na plataforma',
-      'Estratégia de go-to-market',
-      'Parcerias com consultorias especializadas',
-      'Projeção de receita e investimento'
+      'Crescimento exponencial do social commerce no Brasil',
+      'Benchmarking de cases de sucesso no varejo',
+      'Investimento necessário (plataforma + conteúdo + ads)',
+      'Meta de faturamento via social commerce',
+      'Integração com e-commerce e ERP',
+      'Aprovação de orçamento de R$ 800k para 12 meses'
     ]
   },
   {
     id: 'agenda-7',
-    title: 'Digitalização de Conselhos: Roadmap de Funcionalidades',
-    description: 'Definição de prioridades para atender tendência de digitalização completa.',
+    title: 'Implementação de Live Commerce',
+    description: 'Avaliação de parceria com plataforma de live commerce e aprovação de calendário de lives com influenciadores.',
     relatedInsightId: 'opp-2',
     relatedInsightType: 'opportunity',
     suggestedOrgan: 'comite',
-    organName: 'Comitê de Produto',
+    organName: 'Comitê de Marketing',
     priority: 'high',
     discussionPoints: [
-      'Funcionalidades mais demandadas pelo mercado',
-      'Integrações com ferramentas de videoconferência',
-      'Recursos de votação eletrônica',
-      'Timeline de desenvolvimento',
-      'Estratégia de comunicação e lançamento'
+      'Apresentação do modelo de live commerce',
+      'Benchmarking de conversão e ROI',
+      'Proposta de parceria com plataforma',
+      'Seleção de influenciadores para lives',
+      'Ofertas exclusivas e estratégia de conteúdo',
+      'Aprovação de projeto piloto com 6 lives'
     ]
   },
   {
     id: 'agenda-8',
-    title: 'Certificação ESG: Parceria com Governo Federal',
-    description: 'Exploração da oportunidade de incentivos fiscais para empresas com governança ESG.',
+    title: 'Programa de Fidelidade Omnichannel',
+    description: 'Aprovação do desenvolvimento de aplicativo de fidelidade integrado com todos os canais de venda.',
     relatedInsightId: 'opp-3',
-    relatedInsightType: 'opportunity',
-    suggestedOrgan: 'conselho',
-    organName: 'Conselho de Administração',
-    priority: 'high',
-    discussionPoints: [
-      'Detalhes do programa de incentivos fiscais',
-      'Requisitos técnicos para certificação',
-      'Desenvolvimento do módulo de certificação',
-      'Parcerias com auditorias',
-      'Potencial de crescimento'
-    ]
-  },
-  {
-    id: 'agenda-9',
-    title: 'Parceria Estratégica com Big Four',
-    description: 'Avaliação de proposta de parceria com grandes empresas de auditoria.',
-    relatedInsightId: 'opp-4',
     relatedInsightType: 'opportunity',
     suggestedOrgan: 'conselho',
     organName: 'Conselho de Administração',
     priority: 'medium',
     discussionPoints: [
-      'Modelo de parceria proposto',
-      'Vantagens e riscos da parceria',
-      'Adaptações tecnológicas necessárias',
-      'Modelo de revenue share',
-      'Decisão de avançar com negociações'
+      'Benchmarking de programas de fidelidade no varejo',
+      'Escopo do app: funcionalidades e gamificação',
+      'Integração com loja física, e-commerce e redes sociais',
+      'Modelo de pontuação e recompensas',
+      'Investimento e timeline de desenvolvimento',
+      'Projeção de aumento em ticket médio e recompra'
+    ]
+  },
+  {
+    id: 'agenda-9',
+    title: 'Parceria com Influenciadores: Programa de Embaixadores',
+    description: 'Estruturação de programa de parceria com micro e médio influenciadores de moda.',
+    relatedInsightId: 'opp-4',
+    relatedInsightType: 'opportunity',
+    suggestedOrgan: 'comite',
+    organName: 'Comitê de Marketing',
+    priority: 'medium',
+    discussionPoints: [
+      'Mapeamento de influenciadores alinhados à marca',
+      'Modelo de parceria e comissionamento',
+      'Coleções-cápsula co-criadas',
+      'Métricas de performance por influenciador',
+      'Aprovação de orçamento e início de negociações'
     ]
   },
   {
     id: 'agenda-10',
-    title: 'Expansão Internacional: Mercado LATAM',
-    description: 'Estudo de viabilidade para expansão para países da América Latina.',
+    title: 'Expansão Geográfica: Cidades do Interior',
+    description: 'Estudo de viabilidade para abertura de lojas em cidades médias com alto potencial de consumo.',
     relatedInsightId: 'opp-6',
     relatedInsightType: 'opportunity',
     suggestedOrgan: 'conselho',
     organName: 'Conselho de Administração',
     priority: 'medium',
     discussionPoints: [
-      'Análise de mercado LATAM',
-      'Barreiras regulatórias e culturais',
-      'Investimento necessário',
-      'Estratégia de entrada',
-      'Timeline e milestones'
+      'Análise de mercado: cidades tier 2 e 3',
+      'Potencial de faturamento por região',
+      'Modelo de expansão: franquia ou loja própria',
+      'Investimento necessário por loja',
+      'Cronograma de expansão para 24 meses',
+      'Aprovação de estudo de viabilidade detalhado'
     ]
   }
 ];
 
+// CASE: VAREJO DE MODA - Análise de Concorrentes
 export const mockCompetitors: CompetitorInsight[] = [
   {
     id: 'comp-1',
-    name: 'Atlas Governance',
-    recentMove: 'Lançou plataforma com precificação agressiva 30% abaixo do mercado e está capturando empresas de médio porte rapidamente',
+    name: 'Shein',
+    recentMove: 'Investiu R$ 500M em marketing no Brasil, abriu centro de distribuição local e reduziu tempo de entrega de 45 para 7 dias',
     threatLevel: 'high',
-    opportunityFromWeakness: 'Plataforma ainda carece de funcionalidades avançadas de IA e integração com outros sistemas',
-    marketShare: '15% do mercado brasileiro'
+    opportunityFromWeakness: 'Qualidade inferior e questões ESG geram rejeição de consumidores conscientes. Falta de experiência de marca.',
+    marketShare: '12% do e-commerce de moda brasileiro'
   },
   {
     id: 'comp-2',
-    name: 'Diligent',
-    recentMove: 'Anunciou fusão com Nasdaq Governance Solutions, criando maior player global do setor',
+    name: 'Renner',
+    recentMove: 'Lançou marketplace de moda com marcas parceiras e ampliou serviços financeiros via Realize',
     threatLevel: 'high',
-    opportunityFromWeakness: 'Plataforma complexa e cara, inadequada para empresas de médio porte. Foco em grandes corporações.',
-    marketShare: '25% do mercado global'
+    opportunityFromWeakness: 'Percepção de marca muito massificada. Dificuldade em se comunicar com público jovem e digitalmente nativo.',
+    marketShare: '19% do varejo de moda físico + digital'
   },
   {
     id: 'comp-3',
-    name: 'Nasdaq Governance Solutions',
-    recentMove: 'Em processo de fusão com Diligent. Manteve foco em empresas listadas em bolsa.',
+    name: 'C&A',
+    recentMove: 'Reposicionamento para básicos de qualidade e sustentabilidade, com linha circular e programa de coleta de roupas usadas',
     threatLevel: 'medium',
-    opportunityFromWeakness: 'Interface desatualizada e pouco intuitiva. Dificuldade de customização.',
-    marketShare: '18% do mercado global'
+    opportunityFromWeakness: 'Lojas físicas com experiência datada. E-commerce com menor investimento em UX comparado aos líderes.',
+    marketShare: '11% do varejo de moda'
   },
   {
     id: 'comp-4',
-    name: 'Board Intelligence',
-    recentMove: 'Expandiu operações na Europa, mas ainda sem presença significativa na América Latina',
-    threatLevel: 'low',
-    opportunityFromWeakness: 'Foco exclusivo em mercado europeu. Não adaptado para regulamentação brasileira.',
-    marketShare: '8% do mercado europeu'
+    name: 'Riachuelo',
+    recentMove: 'Investiu pesado em e-commerce, lives de vendas e parceria com influenciadores. App com 15M de downloads.',
+    threatLevel: 'medium',
+    opportunityFromWeakness: 'Marca posicionada em classe C/D limita acesso a público premium. Qualidade ainda abaixo de líderes.',
+    marketShare: '14% do varejo de moda'
   },
   {
     id: 'comp-5',
-    name: 'Convene',
-    recentMove: 'Lançou recursos de IA para análise de documentos, competindo diretamente em funcionalidades avançadas',
+    name: 'Zara',
+    recentMove: 'Acelerou modelo de fast fashion com coleções semanais e app de AR para provador virtual',
     threatLevel: 'medium',
-    opportunityFromWeakness: 'Focado apenas em reuniões virtuais, sem visão completa de governança corporativa.',
-    marketShare: '12% do mercado norte-americano'
+    opportunityFromWeakness: 'Preços premium restringem público. Críticas ao modelo fast fashion insustentável crescem entre jovens.',
+    marketShare: '8% do segmento premium de moda'
   }
 ];
 
+// CASE: VAREJO DE MODA - Tendências Setoriais
 export const mockSectorTrends: SectorTrend[] = [
   {
     id: 'trend-1',
-    title: 'Governança ESG como Vantagem Competitiva',
-    description: 'Empresas com governança ESG robusta estão obtendo avaliações 20-30% superiores e acesso facilitado a crédito',
+    title: 'Social Commerce cresce 45% ao ano no Brasil',
+    description: 'Vendas via Instagram, TikTok e WhatsApp explodem, com Gen Z comprando majoritariamente via redes sociais',
     impact: 'positive',
     relevance: 95,
-    source: 'McKinsey Global Institute',
+    source: 'NielsenIQ E-commerce Report 2024',
     timeframe: '2024-2026'
   },
   {
     id: 'trend-2',
-    title: 'Digitalização Acelerada de Conselhos',
-    description: 'Adoção de ferramentas digitais para gestão de conselhos cresceu 250% desde 2020, com 78% das empresas planejando investir mais',
+    title: 'Consumidor exige transparência na cadeia produtiva',
+    description: '68% dos consumidores verificam origem e condições de produção antes de comprar moda. Certificações ESG se tornam obrigatórias.',
     impact: 'positive',
     relevance: 90,
-    source: 'Deloitte Board Practices Report',
-    timeframe: '2023-2025'
+    source: 'McKinsey Fashion Report',
+    timeframe: '2024-2027'
   },
   {
     id: 'trend-3',
-    title: 'Complexidade Regulatória Crescente',
-    description: 'Número de regulamentações relacionadas à governança corporativa cresceu 180% nos últimos 5 anos, aumentando custos de compliance',
+    title: 'Inflação reduz ticket médio e frequência de compra',
+    description: 'Consumidor prioriza básicos e produtos essenciais. Moda perde participação no orçamento familiar.',
     impact: 'negative',
     relevance: 85,
-    source: 'Thomson Reuters Regulatory Intelligence',
-    timeframe: '2020-2025'
+    source: 'FGV - Índice de Confiança do Consumidor',
+    timeframe: '2024-2025'
   },
   {
     id: 'trend-4',
-    title: 'Acionistas Ativistas em Ascensão',
-    description: 'Fundos ativistas estão cada vez mais pressionando conselhos por mudanças estratégicas e melhor governança',
-    impact: 'neutral',
-    relevance: 75,
-    source: 'Harvard Law School Forum',
-    timeframe: '2023-2026'
+    title: 'Omnichannel deixa de ser diferencial e vira obrigatório',
+    description: 'Consumidor espera comprar online e retirar na loja, trocar no físico o que comprou no digital, e integração perfeita entre canais.',
+    impact: 'positive',
+    relevance: 88,
+    source: 'Google Retail Trends',
+    timeframe: '2024-2025'
   },
   {
     id: 'trend-5',
-    title: 'Diversidade Obrigatória em Conselhos',
-    description: 'Regulamentações exigindo diversidade de gênero, raça e experiência em conselhos estão se expandindo globalmente',
-    impact: 'positive',
-    relevance: 88,
-    source: 'World Economic Forum',
+    title: 'Revenda e brechós ganham espaço entre jovens',
+    description: 'Consumo de segunda mão cresce 30% ao ano. Jovens preferem brechós e plataformas de revenda por questões econômicas e ambientais.',
+    impact: 'neutral',
+    relevance: 75,
+    source: 'ThredUp Resale Report',
     timeframe: '2024-2028'
   },
   {
     id: 'trend-6',
-    title: 'Cybersecurity como Pauta Prioritária',
-    description: 'Conselhos estão dedicando 40% mais tempo a discussões sobre segurança cibernética, exigindo expertise técnica',
-    impact: 'neutral',
+    title: 'Moda circular e sustentável em alta demanda',
+    description: 'Marcas que oferecem programa de coleta, conserto e revenda de peças usadas crescem 3x mais que fast fashion tradicional.',
+    impact: 'positive',
     relevance: 82,
-    source: 'PwC Annual Corporate Directors Survey',
-    timeframe: '2023-2025'
+    source: 'Ellen MacArthur Foundation',
+    timeframe: '2024-2030'
   }
 ];
