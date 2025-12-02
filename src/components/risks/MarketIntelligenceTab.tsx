@@ -16,12 +16,15 @@ import { InsightCard } from './InsightCard';
 import { CreateAgendaFromInsightModal } from './CreateAgendaFromInsightModal';
 import { SectorTrendsChart } from './SectorTrendsChart';
 import { CompetitorAnalysisCard } from './CompetitorAnalysisCard';
-import { Compass, Sparkles, Filter, Calendar, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Compass, Sparkles, Filter, Calendar, AlertTriangle, TrendingUp, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketThreat, MarketOpportunity, AgendaSuggestion } from '@/types/riskIntelligence';
+import { sectorDataMap } from '@/data/marketIntelligenceData';
+import { useToast } from '@/hooks/use-toast';
 
 export const MarketIntelligenceTab = () => {
+  const { toast } = useToast();
   const {
     companyContext,
     setCompanyContext,
@@ -38,6 +41,7 @@ export const MarketIntelligenceTab = () => {
     setSelectedSource,
     selectedPriority,
     setSelectedPriority,
+    resetAnalysis,
   } = useRiskIntelligence();
 
   const [selectedInsight, setSelectedInsight] = useState<{
@@ -47,6 +51,26 @@ export const MarketIntelligenceTab = () => {
 
   const [selectedSuggestion, setSelectedSuggestion] = useState<AgendaSuggestion | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSectorChange = (value: string) => {
+    const sectorData = sectorDataMap[value];
+    if (sectorData?.defaultContext) {
+      setCompanyContext({
+        ...companyContext,
+        sector: value,
+        segment: sectorData.defaultContext.segment || '',
+        mainCompetitors: sectorData.defaultContext.mainCompetitors || [],
+        strategicKeywords: sectorData.defaultContext.strategicKeywords || [],
+      });
+      toast({
+        title: 'Contexto Atualizado',
+        description: `Campos preenchidos com dados do setor "${value}"`,
+      });
+    } else {
+      setCompanyContext({ ...companyContext, sector: value });
+    }
+    resetAnalysis();
+  };
 
   const handleInsightClick = (insight: MarketThreat | MarketOpportunity, type: 'threat' | 'opportunity') => {
     setSelectedInsight({ data: insight, type });
@@ -94,27 +118,53 @@ export const MarketIntelligenceTab = () => {
               <Label htmlFor="sector">Setor/Indústria (IBGE)</Label>
               <Select
                 value={companyContext.sector}
-                onValueChange={(value) => setCompanyContext({ ...companyContext, sector: value })}
+                onValueChange={handleSectorChange}
               >
                 <SelectTrigger id="sector">
                   <SelectValue placeholder="Selecione o setor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Comércio - Varejo">Comércio - Varejo</SelectItem>
+                  <SelectItem value="Comércio - Varejo">
+                    <div className="flex items-center gap-2">
+                      Comércio - Varejo
+                      <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Demo</Badge>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="Comércio - Atacado">Comércio - Atacado</SelectItem>
                   <SelectItem value="Indústria de Transformação">Indústria de Transformação</SelectItem>
-                  <SelectItem value="Serviços de Informação e Comunicação">Serviços de Informação e Comunicação</SelectItem>
+                  <SelectItem value="Serviços de Informação e Comunicação">
+                    <div className="flex items-center gap-2">
+                      Serviços de Informação e Comunicação
+                      <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Demo</Badge>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="Agricultura, Pecuária e Pesca">Agricultura, Pecuária e Pesca</SelectItem>
                   <SelectItem value="Construção Civil">Construção Civil</SelectItem>
                   <SelectItem value="Serviços Financeiros">Serviços Financeiros</SelectItem>
-                  <SelectItem value="Saúde e Assistência Social">Saúde e Assistência Social</SelectItem>
+                  <SelectItem value="Saúde e Assistência Social">
+                    <div className="flex items-center gap-2">
+                      Saúde e Assistência Social
+                      <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Demo</Badge>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="Educação">Educação</SelectItem>
                   <SelectItem value="Transporte e Logística">Transporte e Logística</SelectItem>
-                  <SelectItem value="Alojamento e Alimentação">Alojamento e Alimentação</SelectItem>
+                  <SelectItem value="Alojamento e Alimentação">
+                    <div className="flex items-center gap-2">
+                      Alojamento e Alimentação
+                      <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Demo</Badge>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="Energia e Utilities">Energia e Utilities</SelectItem>
                   <SelectItem value="Atividades Imobiliárias">Atividades Imobiliárias</SelectItem>
                 </SelectContent>
               </Select>
+              {sectorDataMap[companyContext.sector] && (
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1">
+                  <CheckCircle className="h-3 w-3" />
+                  Este setor possui análise completa de demonstração
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="segment">Segmento Específico</Label>

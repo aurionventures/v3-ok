@@ -43,6 +43,10 @@ export const useRiskIntelligence = () => {
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
 
+  const resetAnalysis = useCallback(() => {
+    setHasAnalyzed(false);
+  }, []);
+
   const analyzeMarket = useCallback(async () => {
     setIsAnalyzing(true);
 
@@ -137,5 +141,6 @@ export const useRiskIntelligence = () => {
     setSelectedSource,
     selectedPriority,
     setSelectedPriority,
+    resetAnalysis,
   };
 };
