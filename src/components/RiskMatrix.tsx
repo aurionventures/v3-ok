@@ -39,7 +39,7 @@ const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks }) => {
       <CardContent>
         <div className="relative">
           {/* Título dos eixos */}
-          <div className="absolute -left-16 top-1/2 transform -rotate-90 text-sm font-medium text-muted-foreground">
+          <div className="absolute -left-24 top-1/2 transform -rotate-90 text-sm font-medium text-muted-foreground">
             Probabilidade
           </div>
           <div className="text-center mb-4 text-sm font-medium text-muted-foreground">
