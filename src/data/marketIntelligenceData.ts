@@ -1,4 +1,4 @@
-import { MarketThreat, MarketOpportunity, AgendaSuggestion, CompetitorInsight, SectorTrend } from '@/types/riskIntelligence';
+import { MarketThreat, MarketOpportunity, AgendaSuggestion, CompetitorInsight, SectorTrend, CompanyContext } from '@/types/riskIntelligence';
 
 // Lista de Setores IBGE
 export const ibgeSectors = [
@@ -27,7 +27,10 @@ export const brazilRegions = [
   'Nacional',
 ];
 
-// CASE: VAREJO DE MODA - Ameaças de Mercado
+// ======================================
+// SETOR: COMÉRCIO - VAREJO (Varejo de Moda)
+// ======================================
+
 export const mockThreats: MarketThreat[] = [
   {
     id: 'threat-1',
@@ -161,7 +164,6 @@ export const mockThreats: MarketThreat[] = [
   }
 ];
 
-// CASE: VAREJO DE MODA - Oportunidades de Mercado
 export const mockOpportunities: MarketOpportunity[] = [
   {
     id: 'opp-1',
@@ -261,7 +263,6 @@ export const mockOpportunities: MarketOpportunity[] = [
   }
 ];
 
-// CASE: VAREJO DE MODA - Sugestões de Pauta para Reuniões
 export const mockAgendaSuggestions: AgendaSuggestion[] = [
   {
     id: 'agenda-1',
@@ -441,7 +442,6 @@ export const mockAgendaSuggestions: AgendaSuggestion[] = [
   }
 ];
 
-// CASE: VAREJO DE MODA - Análise de Concorrentes
 export const mockCompetitors: CompetitorInsight[] = [
   {
     id: 'comp-1',
@@ -485,60 +485,86 @@ export const mockCompetitors: CompetitorInsight[] = [
   }
 ];
 
-// CASE: VAREJO DE MODA - Tendências Setoriais
 export const mockSectorTrends: SectorTrend[] = [
   {
     id: 'trend-1',
-    title: 'Social Commerce cresce 45% ao ano no Brasil',
-    description: 'Vendas via Instagram, TikTok e WhatsApp explodem, com Gen Z comprando majoritariamente via redes sociais',
+    title: 'Social Commerce em Alta',
+    description: 'Vendas via Instagram e TikTok crescem 45% ao ano, transformando redes sociais em principais canais de descoberta e compra.',
     impact: 'positive',
     relevance: 95,
-    source: 'NielsenIQ E-commerce Report 2024',
-    timeframe: '2024-2026'
-  },
-  {
-    id: 'trend-2',
-    title: 'Consumidor exige transparência na cadeia produtiva',
-    description: '68% dos consumidores verificam origem e condições de produção antes de comprar moda. Certificações ESG se tornam obrigatórias.',
-    impact: 'positive',
-    relevance: 90,
-    source: 'McKinsey Fashion Report',
-    timeframe: '2024-2027'
-  },
-  {
-    id: 'trend-3',
-    title: 'Inflação reduz ticket médio e frequência de compra',
-    description: 'Consumidor prioriza básicos e produtos essenciais. Moda perde participação no orçamento familiar.',
-    impact: 'negative',
-    relevance: 85,
-    source: 'FGV - Índice de Confiança do Consumidor',
+    source: 'McKinsey Digital Commerce Report 2024',
     timeframe: '2024-2025'
   },
   {
-    id: 'trend-4',
-    title: 'Omnichannel deixa de ser diferencial e vira obrigatório',
-    description: 'Consumidor espera comprar online e retirar na loja, trocar no físico o que comprou no digital, e integração perfeita entre canais.',
+    id: 'trend-2',
+    title: 'Exigência de Transparência na Cadeia Têxtil',
+    description: 'Consumidores demandam rastreabilidade completa desde a matéria-prima até o produto final, impulsionando certificações ESG.',
     impact: 'positive',
     relevance: 88,
-    source: 'Google Retail Trends',
+    source: 'Fashion Revolution Index',
+    timeframe: '2024-2026'
+  },
+  {
+    id: 'trend-3',
+    title: 'Crescimento do Mercado de Revenda (Resale)',
+    description: 'Mercado de moda de segunda mão cresce 15x mais rápido que o varejo tradicional, com Gen Z liderando o movimento.',
+    impact: 'negative',
+    relevance: 82,
+    source: 'ThredUp Resale Report',
+    timeframe: '2024-2027'
+  },
+  {
+    id: 'trend-4',
+    title: 'Personalização via Inteligência Artificial',
+    description: 'IA generativa permite personalização em massa de produtos e experiências, aumentando conversão em até 40%.',
+    impact: 'positive',
+    relevance: 90,
+    source: 'Gartner Retail Tech Trends',
     timeframe: '2024-2025'
   },
   {
     id: 'trend-5',
-    title: 'Revenda e brechós ganham espaço entre jovens',
-    description: 'Consumo de segunda mão cresce 30% ao ano. Jovens preferem brechós e plataformas de revenda por questões econômicas e ambientais.',
-    impact: 'neutral',
-    relevance: 75,
-    source: 'ThredUp Resale Report',
-    timeframe: '2024-2028'
+    title: 'Live Commerce como Novo Padrão',
+    description: 'Lives de vendas com influenciadores se tornam canal estratégico, gerando conversão 10x superior ao e-commerce tradicional.',
+    impact: 'positive',
+    relevance: 85,
+    source: 'Mercado Livre Trends Report',
+    timeframe: '2024-2025'
   },
   {
     id: 'trend-6',
-    title: 'Moda circular e sustentável em alta demanda',
-    description: 'Marcas que oferecem programa de coleta, conserto e revenda de peças usadas crescem 3x mais que fast fashion tradicional.',
-    impact: 'positive',
-    relevance: 82,
-    source: 'Ellen MacArthur Foundation',
-    timeframe: '2024-2030'
+    title: 'Declínio do Fast Fashion Tradicional',
+    description: 'Modelo fast fashion enfrenta rejeição crescente por questões ambientais, com 58% dos consumidores reduzindo compras impulsivas.',
+    impact: 'negative',
+    relevance: 78,
+    source: 'Instituto Modefica',
+    timeframe: '2024-2028'
   }
 ];
+
+// ======================================
+// MAPEAMENTO DE DADOS POR SETOR
+// ======================================
+
+export const sectorDataMap: Record<string, {
+  threats: MarketThreat[];
+  opportunities: MarketOpportunity[];
+  agendaSuggestions: AgendaSuggestion[];
+  competitors: CompetitorInsight[];
+  sectorTrends: SectorTrend[];
+  defaultContext: Partial<CompanyContext>;
+}> = {
+  'Comércio - Varejo': {
+    threats: mockThreats,
+    opportunities: mockOpportunities,
+    agendaSuggestions: mockAgendaSuggestions,
+    competitors: mockCompetitors,
+    sectorTrends: mockSectorTrends,
+    defaultContext: {
+      sector: 'Comércio - Varejo',
+      segment: 'Varejo de Moda Feminina',
+      mainCompetitors: ['Renner', 'C&A', 'Riachuelo', 'Zara', 'Shein'],
+      strategicKeywords: ['omnichannel', 'fast fashion', 'sustentabilidade', 'marketplace', 'social commerce']
+    }
+  }
+};
