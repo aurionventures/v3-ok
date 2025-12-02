@@ -49,20 +49,26 @@ export const useRiskIntelligence = () => {
     // Simula processamento de IA com delay
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    setThreats(mockThreats);
-    setOpportunities(mockOpportunities);
-    setAgendaSuggestions(mockAgendaSuggestions);
-    setCompetitors(mockCompetitors);
-    setSectorTrends(mockSectorTrends);
+    // Importar sectorDataMap dinamicamente
+    const { sectorDataMap } = await import('@/data/marketIntelligenceData');
+    
+    // Obter dados do setor selecionado (fallback para Varejo se não encontrar)
+    const sectorData = sectorDataMap[companyContext.sector] || sectorDataMap['Comércio - Varejo'];
+
+    setThreats(sectorData.threats);
+    setOpportunities(sectorData.opportunities);
+    setAgendaSuggestions(sectorData.agendaSuggestions);
+    setCompetitors(sectorData.competitors);
+    setSectorTrends(sectorData.sectorTrends);
 
     setHasAnalyzed(true);
     setIsAnalyzing(false);
 
     toast({
       title: 'Análise Concluída',
-      description: `Identificadas ${mockThreats.length} ameaças, ${mockOpportunities.length} oportunidades e ${mockAgendaSuggestions.length} sugestões de pauta.`,
+      description: `Análise do setor ${companyContext.sector} concluída. Identificadas ${sectorData.threats.length} ameaças, ${sectorData.opportunities.length} oportunidades e ${sectorData.agendaSuggestions.length} sugestões de pauta.`,
     });
-  }, [toast]);
+  }, [companyContext.sector, toast]);
 
   const createAgendaFromSuggestion = useCallback(
     async (suggestion: AgendaSuggestion, councilId: string, meetingId?: string) => {
