@@ -1,0 +1,325 @@
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useRiskIntelligence } from '@/hooks/useRiskIntelligence';
+import { ThreatOpportunityMatrix } from './ThreatOpportunityMatrix';
+import { InsightCard } from './InsightCard';
+import { CreateAgendaFromInsightModal } from './CreateAgendaFromInsightModal';
+import { SectorTrendsChart } from './SectorTrendsChart';
+import { CompetitorAnalysisCard } from './CompetitorAnalysisCard';
+import { Compass, Sparkles, Filter, Calendar, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MarketThreat, MarketOpportunity, AgendaSuggestion } from '@/types/riskIntelligence';
+
+export const MarketIntelligenceTab = () => {
+  const {
+    companyContext,
+    setCompanyContext,
+    threats,
+    opportunities,
+    agendaSuggestions,
+    competitors,
+    sectorTrends,
+    isAnalyzing,
+    hasAnalyzed,
+    analyzeMarket,
+    createAgendaFromSuggestion,
+    selectedSource,
+    setSelectedSource,
+    selectedPriority,
+    setSelectedPriority,
+  } = useRiskIntelligence();
+
+  const [selectedInsight, setSelectedInsight] = useState<{
+    data: MarketThreat | MarketOpportunity | null;
+    type: 'threat' | 'opportunity' | null;
+  }>({ data: null, type: null });
+
+  const [selectedSuggestion, setSelectedSuggestion] = useState<AgendaSuggestion | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleInsightClick = (insight: MarketThreat | MarketOpportunity, type: 'threat' | 'opportunity') => {
+    setSelectedInsight({ data: insight, type });
+  };
+
+  const handleCreateAgenda = (insight: MarketThreat | MarketOpportunity, type: 'threat' | 'opportunity') => {
+    const relatedSuggestion = agendaSuggestions.find(
+      s => s.relatedInsightId === insight.id && s.relatedInsightType === type
+    );
+    if (relatedSuggestion) {
+      setSelectedSuggestion(relatedSuggestion);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: AgendaSuggestion) => {
+    setSelectedSuggestion(suggestion);
+    setIsModalOpen(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Compass className="h-6 w-6" />
+            Inteligência de Mercado
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Análise de ameaças, oportunidades e tendências setoriais com IA
+          </p>
+        </div>
+      </div>
+
+      {/* Contexto da Empresa */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Contexto Empresarial</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="sector">Setor de Atuação</Label>
+              <Input
+                id="sector"
+                value={companyContext.sector}
+                onChange={(e) => setCompanyContext({ ...companyContext, sector: e.target.value })}
+                placeholder="Ex: Tecnologia - Software de Governança"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="region">Região Principal</Label>
+              <Input
+                id="region"
+                value={companyContext.region}
+                onChange={(e) => setCompanyContext({ ...companyContext, region: e.target.value })}
+                placeholder="Ex: Brasil - São Paulo"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <Button
+              onClick={analyzeMarket}
+              disabled={isAnalyzing}
+              className="w-full"
+              size="lg"
+            >
+              <Sparkles className="h-5 w-5 mr-2" />
+              {isAnalyzing ? 'Analisando Mercado...' : 'Analisar Mercado com IA'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Resultados da Análise */}
+      {hasAnalyzed && (
+        <Tabs defaultValue="matrix" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="matrix">Matriz</TabsTrigger>
+            <TabsTrigger value="insights">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Insights ({threats.length + opportunities.length})
+            </TabsTrigger>
+            <TabsTrigger value="agenda">
+              <Calendar className="h-4 w-4 mr-2" />
+              Sugestões ({agendaSuggestions.length})
+            </TabsTrigger>
+            <TabsTrigger value="trends">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Tendências
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Aba: Matriz */}
+          <TabsContent value="matrix" className="space-y-4">
+            <ThreatOpportunityMatrix
+              threats={threats}
+              opportunities={opportunities}
+              onInsightClick={handleInsightClick}
+            />
+          </TabsContent>
+
+          {/* Aba: Insights */}
+          <TabsContent value="insights" className="space-y-4">
+            {/* Filtros */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Filter className="h-4 w-4" />
+                  Filtros
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="source-filter">Fonte</Label>
+                    <Select value={selectedSource} onValueChange={setSelectedSource}>
+                      <SelectTrigger id="source-filter">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as Fontes</SelectItem>
+                        <SelectItem value="regulatory">Regulatório</SelectItem>
+                        <SelectItem value="competitive">Competitivo</SelectItem>
+                        <SelectItem value="technological">Tecnológico</SelectItem>
+                        <SelectItem value="economic">Econômico</SelectItem>
+                        <SelectItem value="esg">ESG</SelectItem>
+                        <SelectItem value="market">Mercado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cards de Ameaças */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <h3 className="text-lg font-semibold text-foreground">Ameaças Identificadas</h3>
+                <Badge variant="destructive">{threats.length}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {threats.map((threat) => (
+                  <InsightCard
+                    key={threat.id}
+                    insight={threat}
+                    type="threat"
+                    onCreateAgenda={() => handleCreateAgenda(threat, 'threat')}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Cards de Oportunidades */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <h3 className="text-lg font-semibold text-foreground">Oportunidades Mapeadas</h3>
+                <Badge className="bg-green-600">{opportunities.length}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {opportunities.map((opportunity) => (
+                  <InsightCard
+                    key={opportunity.id}
+                    insight={opportunity}
+                    type="opportunity"
+                    onCreateAgenda={() => handleCreateAgenda(opportunity, 'opportunity')}
+                  />
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Aba: Sugestões de Pauta */}
+          <TabsContent value="agenda" className="space-y-4">
+            {/* Filtro de Prioridade */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Filter className="h-4 w-4" />
+                  Filtrar por Prioridade
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Prioridades</SelectItem>
+                    <SelectItem value="urgent">Urgente</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="low">Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-4">
+              {agendaSuggestions.map((suggestion) => {
+                const priorityColors = {
+                  urgent: 'bg-destructive',
+                  high: 'bg-orange-500',
+                  medium: 'bg-yellow-500',
+                  low: 'bg-blue-500',
+                };
+
+                return (
+                  <Card key={suggestion.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground mb-1">{suggestion.title}</h3>
+                            <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                          </div>
+                          <Badge className={`${priorityColors[suggestion.priority]} text-white`}>
+                            {suggestion.priority === 'urgent' ? 'Urgente' :
+                             suggestion.priority === 'high' ? 'Alta' :
+                             suggestion.priority === 'medium' ? 'Média' : 'Baixa'}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Badge variant="outline">{suggestion.organName}</Badge>
+                          <Badge variant="outline">
+                            {suggestion.relatedInsightType === 'threat' ? 'Ameaça' : 'Oportunidade'}
+                          </Badge>
+                        </div>
+
+                        <Button
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Criar Pauta para Reunião
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          {/* Aba: Tendências */}
+          <TabsContent value="trends" className="space-y-4">
+            <div className="grid grid-cols-2 gap-6">
+              <SectorTrendsChart trends={sectorTrends} />
+              <CompetitorAnalysisCard competitors={competitors} />
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
+
+      {/* Modal de Criação de Pauta */}
+      {selectedSuggestion && (
+        <CreateAgendaFromInsightModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedSuggestion(null);
+          }}
+          suggestion={selectedSuggestion}
+          onConfirm={createAgendaFromSuggestion}
+        />
+      )}
+    </div>
+  );
+};
