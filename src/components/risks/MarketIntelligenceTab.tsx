@@ -390,12 +390,10 @@ export const MarketIntelligenceTab = () => {
           </TabsContent>
 
           {/* Aba: Tendências */}
-          <TabsContent value="trends" className="space-y-4">
-            <div className="grid grid-cols-2 gap-6">
-              <SectorTrendsChart trends={sectorTrends} />
-              <CompetitorAnalysisCard competitors={competitors} />
-            </div>
-          </TabsContent>
+        <TabsContent value="trends" className="space-y-6">
+          <SectorTrendsChart trends={sectorTrends} />
+          <CompetitorAnalysisCard competitors={competitors} />
+        </TabsContent>
         </Tabs>
       )}
 
