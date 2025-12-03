@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Sparkles, Calendar, Users, CheckCircle, ArrowRight } from 'lucide-react';
+import { FileText, Sparkles, Calendar, Users, CheckCircle, ArrowRight, Download } from 'lucide-react';
 import { MeetingSchedule, MeetingATA } from '@/types/annualSchedule';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMeetingNotifications } from '@/hooks/useMeetingNotifications';
 import { ATAApprovalSection } from './ATAApprovalSection';
-
+import { pdf } from '@react-pdf/renderer';
+import { saveAs } from 'file-saver';
+import { ATAPDFDocument } from './ATAPDFDocument';
 interface MeetingATAViewerProps {
   meeting: MeetingSchedule;
   isOpen: boolean;
@@ -32,10 +34,22 @@ export default function MeetingATAViewer({
     await onGenerateATA();
     
     // Notificar sobre ATA gerada
-                  await sendATAGeneratedNotification(
-                    meeting.id,
-                    `${meeting.council} - ${meeting.type}`
-                  );
+    await sendATAGeneratedNotification(
+      meeting.id,
+      `${meeting.council} - ${meeting.type}`
+    );
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!meeting.ata) return;
+    
+    try {
+      const blob = await pdf(<ATAPDFDocument meeting={meeting} />).toBlob();
+      const fileName = `ATA_${meeting.council.replace(/\s+/g, '_')}_${meeting.date}.pdf`;
+      saveAs(blob, fileName);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+    }
   };
 
   return (
@@ -239,10 +253,16 @@ export default function MeetingATAViewer({
 
         <DialogFooter className="flex gap-2">
           {hasATA && !isGenerating && (
-            <Button variant="outline" onClick={onGenerateATA} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Regenerar ATA
-            </Button>
+            <>
+              <Button onClick={handleDownloadPDF} className="gap-2">
+                <Download className="h-4 w-4" />
+                Gerar PDF
+              </Button>
+              <Button variant="outline" onClick={onGenerateATA} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Regenerar ATA
+              </Button>
+            </>
           )}
           <Button variant="secondary" onClick={onClose}>
             Fechar
