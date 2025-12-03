@@ -9,6 +9,51 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
+import { initialDocumentChecklist } from '@/data/documentChecklistData';
+
+// Mock documents data for fallback
+const initialDocumentsData = [
+  { id: '1', name: 'Estatuto Social', status: 'complete', category: 'Societário' },
+  { id: '2', name: 'Ata AGO 2023', status: 'incomplete', category: 'Governança' },
+  { id: '3', name: 'Política de Compliance', status: 'divergent', category: 'Compliance' }
+];
+
+// Mock interviews data for fallback
+const mockInterviews = [
+  { 
+    id: '1', 
+    name: 'Roberto Silva',
+    role: 'Fundador/CEO',
+    alignmentScore: 85,
+    conflicts: [],
+    keyTopics: ['Sucessão', 'Governança', 'Estratégia']
+  },
+  { 
+    id: '2', 
+    name: 'Maria Santos',
+    role: 'Herdeira',
+    alignmentScore: 72,
+    conflicts: ['Visão sobre expansão'],
+    keyTopics: ['Herança', 'Formação', 'Papel na empresa']
+  },
+  { 
+    id: '3', 
+    name: 'Carlos Oliveira',
+    role: 'Conselheiro',
+    alignmentScore: 90,
+    conflicts: [],
+    keyTopics: ['Riscos', 'Compliance', 'Auditoria']
+  },
+  { 
+    id: '4', 
+    name: 'Ana Costa',
+    role: 'Diretora Financeira',
+    alignmentScore: 78,
+    conflicts: ['Investimentos prioritários'],
+    keyTopics: ['Finanças', 'Investimentos', 'Controles']
+  }
+];
+
 interface ReportData {
   documentStats: {
     total: number;
@@ -56,27 +101,32 @@ export default function InitialReport() {
     // Simulate AI report generation delay
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Load data from localStorage
-    const documentChecklist = JSON.parse(localStorage.getItem('document_checklist') || '[]');
-    const uploadedDocuments = JSON.parse(localStorage.getItem('uploaded_documents') || '[]');
-    const interviews = JSON.parse(localStorage.getItem('interviews') || '[]');
+    // Load data from localStorage with correct keys and fallbacks
+    const storedChecklist = localStorage.getItem('document-checklist');
+    const documentChecklist = storedChecklist ? JSON.parse(storedChecklist) : initialDocumentChecklist;
+    
+    const storedDocuments = localStorage.getItem('uploaded-documents');
+    const uploadedDocuments = storedDocuments ? JSON.parse(storedDocuments) : initialDocumentsData;
+    
+    const storedInterviews = localStorage.getItem('interviews');
+    const interviews = storedInterviews ? JSON.parse(storedInterviews) : mockInterviews;
 
     // Calculate document stats
-    const allItems = documentChecklist.flatMap((cat: any) => cat.items);
+    const allItems = documentChecklist.flatMap((cat: any) => cat.items || []);
     const checkedItems = allItems.filter((item: any) => item.checked);
     const documentStats = {
       total: allItems.length,
       complete: uploadedDocuments.filter((doc: any) => doc.status === 'complete').length,
       incomplete: uploadedDocuments.filter((doc: any) => doc.status === 'incomplete').length,
       divergent: uploadedDocuments.filter((doc: any) => doc.status === 'divergent').length,
-      completionPercentage: Math.round(checkedItems.length / allItems.length * 100)
+      completionPercentage: allItems.length > 0 ? Math.round(checkedItems.length / allItems.length * 100) : 0
     };
 
     // Calculate interview stats
     const interviewStats = {
       total: interviews.length,
-      avgAlignment: interviews.length > 0 ? Math.round(interviews.reduce((sum: number, int: any) => sum + int.alignmentScore, 0) / interviews.length) : 0,
-      totalConflicts: interviews.reduce((sum: number, int: any) => sum + int.conflicts.length, 0),
+      avgAlignment: interviews.length > 0 ? Math.round(interviews.reduce((sum: number, int: any) => sum + (int.alignmentScore || 0), 0) / interviews.length) : 0,
+      totalConflicts: interviews.reduce((sum: number, int: any) => sum + (int.conflicts?.length || 0), 0),
       keyTopics: [...new Set(interviews.flatMap((int: any) => int.keyTopics || []))].slice(0, 8) as string[]
     };
 
