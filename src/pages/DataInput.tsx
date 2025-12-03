@@ -10,12 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { mockHistoricalAssessments, getHistoricalTrend } from "@/data/mockHistoricalData";
 import ExecutiveReport from "@/components/ExecutiveReport";
-
 const DataInput = () => {
   const handleGovernanceStart = () => {
     window.location.href = '/maturity-quiz';
   };
-
   const getMaturityBadgeColor = (stage: string) => {
     switch (stage.toLowerCase()) {
       case 'básico':
@@ -28,11 +26,8 @@ const DataInput = () => {
         return 'outline';
     }
   };
-
   const historicalTrend = getHistoricalTrend();
-
-  return (
-    <div className="flex h-screen bg-gray-50">
+  return <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Maturidade de Governança" />
@@ -42,14 +37,12 @@ const DataInput = () => {
             <CardContent className="p-6">
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <BarChart3 className="h-16 w-16 text-legacy-500" />
+                  
                 </div>
                 <h2 className="text-2xl font-semibold text-legacy-500 mb-4">
                   Avaliação de Maturidade de Governança
                 </h2>
-                <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-                  Avalie a maturidade da governança corporativa da sua organização com base em diretrizes de boas práticas de governança corporativa. Esta avaliação fornece insights valiosos sobre o nível de maturidade dos processos de governança.
-                </p>
+                <p className="text-gray-600 mb-8 max-w-2xl mx-auto">Avalie a maturidade da governança corporativa da sua organização com base em diretrizes de boas práticas de governança corporativa. </p>
                 <Button onClick={handleGovernanceStart} size="lg" className="w-full md:w-auto px-8">
                   <BarChart3 className="h-5 w-5 mr-2" />
                   Iniciar Avaliação de Governança
@@ -73,13 +66,11 @@ const DataInput = () => {
                   <XAxis dataKey="period" fontSize={12} />
                   <YAxis domain={[0, 5]} fontSize={12} />
                   <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={3}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                  />
+                  <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={3} dot={{
+                  fill: "hsl(var(--primary))",
+                  strokeWidth: 2,
+                  r: 4
+                }} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -95,8 +86,7 @@ const DataInput = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockHistoricalAssessments.map((assessment) => (
-                  <Card key={assessment.id} className="border hover:shadow-md transition-shadow">
+                {mockHistoricalAssessments.map(assessment => <Card key={assessment.id} className="border hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -142,24 +132,18 @@ const DataInput = () => {
                             <DialogHeader>
                               <DialogTitle>Relatório Executivo - {assessment.period}</DialogTitle>
                             </DialogHeader>
-                            <ExecutiveReport 
-                              assessment={assessment} 
-                              isLatest={assessment.id === mockHistoricalAssessments[mockHistoricalAssessments.length - 1].id}
-                            />
+                            <ExecutiveReport assessment={assessment} isLatest={assessment.id === mockHistoricalAssessments[mockHistoricalAssessments.length - 1].id} />
                           </DialogContent>
                         </Dialog>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
             </CardContent>
           </Card>
 
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default DataInput;
