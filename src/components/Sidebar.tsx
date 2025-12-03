@@ -253,12 +253,6 @@ const Sidebar = () => {
           moduleId: "governance-risks"
         },
         {
-          icon: <TrendingUp className="h-5 w-5" />,
-          href: "/market-intelligence",
-          name: "Inteligência de Mercado",
-          moduleId: "market-intelligence"
-        },
-        {
           icon: <Leaf className="h-5 w-5" />,
           href: "/esg",
           name: "ESG",
@@ -269,6 +263,19 @@ const Sidebar = () => {
           href: "/activities",
           name: "Atividades",
           moduleId: null
+        }
+      ]
+    },
+    {
+      phase: "Inteligência de Mercado",
+      icon: <TrendingUp className="h-4 w-4" />,
+      color: "text-cyan-400",
+      items: [
+        {
+          icon: <TrendingUp className="h-5 w-5" />,
+          href: "/market-intelligence",
+          name: "Inteligência de Mercado",
+          moduleId: "market-intelligence"
         }
       ]
     },

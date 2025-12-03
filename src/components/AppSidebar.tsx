@@ -5,7 +5,7 @@ import {
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, Database, BookOpen, BookText, 
   Activity, Building, Bot, DollarSign, PieChart, CheckCircle, 
-  Clock, AlertCircle, Zap, Target, Map, Play, Send
+  Clock, AlertCircle, Zap, Target, Map, Play, Send, TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -227,6 +227,19 @@ export function AppSidebar() {
           href: "/activities",
           name: "Atividades",
           moduleId: null
+        }
+      ]
+    },
+    {
+      phase: "Inteligência de Mercado",
+      icon: TrendingUp,
+      color: "text-cyan-400",
+      items: [
+        {
+          icon: TrendingUp,
+          href: "/market-intelligence",
+          name: "Inteligência de Mercado",
+          moduleId: "market-intelligence"
         }
       ]
     },
