@@ -194,12 +194,6 @@ export function AppSidebar() {
           href: "/submit-projects",
           name: "Submeter Projetos",
           moduleId: "submit-projects"
-        },
-        {
-          icon: Calendar,
-          href: "/rituals",
-          name: "Rituais",
-          moduleId: "rituals"
         }
       ]
     },
