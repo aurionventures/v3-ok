@@ -269,29 +269,9 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-4">
-                {latestGovernanceAssessment ? (
-                  <>
+                {latestGovernanceAssessment ? <>
                     {/* Header com Score + Tendência */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/50 rounded-lg flex-1">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {latestGovernanceAssessment.result.pontuacao_total.toFixed(1)}/5.0
-                        </div>
-                        <Badge className="mt-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                          {latestGovernanceAssessment.result.estagio || 'Sólido'}
-                        </Badge>
-                        <p className="text-[10px] text-blue-600 mt-1">
-                          Última: {new Date(latestGovernanceAssessment.timestamp).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg">
-                        <div className="flex items-center gap-1 text-green-600">
-                          <TrendingUp className="h-4 w-4" />
-                          <span className="text-lg font-bold">+0.2</span>
-                        </div>
-                        <p className="text-[10px] text-green-600">vs 3 meses</p>
-                      </div>
-                    </div>
+                    
 
                     {/* Layout 2 colunas: Gráfico + KPIs */}
                     <div className="grid grid-cols-2 gap-4">
@@ -299,13 +279,11 @@ const Dashboard = () => {
                         <MaturityRadarChart data={convertStoredDataToRadarData(latestGovernanceAssessment)} />
                       </div>
                       <div className="space-y-2">
-                        {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 5).map((dim) => (
-                          <div key={dim.name} className="flex items-center gap-2">
+                        {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 5).map(dim => <div key={dim.name} className="flex items-center gap-2">
                             <span className="text-[10px] w-16 truncate text-muted-foreground">{dim.name}</span>
                             <Progress value={dim.score * 20} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
                             <span className="text-[10px] font-bold w-6 text-blue-600">{dim.score.toFixed(1)}</span>
-                          </div>
-                        ))}
+                          </div>)}
                       </div>
                     </div>
 
@@ -318,16 +296,13 @@ const Dashboard = () => {
                         Nova Avaliação
                       </Button>
                     </div>
-                  </>
-                ) : (
-                  <div className="text-center py-6">
+                  </> : <div className="text-center py-6">
                     <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground mb-4">Nenhuma avaliação realizada</p>
                     <Button onClick={() => navigateTo("/maturity-quiz")} size="sm" className="bg-blue-600 hover:bg-blue-700">
                       Iniciar Avaliação
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
 
@@ -340,44 +315,19 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-4">
-                {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
-                  <>
+                {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? <>
                     {/* Header com Score + Tendência */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg flex-1">
-                        <div className="text-2xl font-bold text-green-600">
-                          {latestESGAssessment.overallScore.toFixed(1)}/5.0
-                        </div>
-                        <Badge className="mt-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-                          {latestESGAssessment.maturityLevel?.name || 'Inclusivo'}
-                        </Badge>
-                        <p className="text-[10px] text-green-600 mt-1">
-                          Última: {latestESGAssessment.completedAt ? new Date(latestESGAssessment.completedAt).toLocaleDateString() : 'N/A'}
-                        </p>
-                      </div>
-                      <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg">
-                        <div className="flex items-center gap-1 text-green-600">
-                          <TrendingUp className="h-4 w-4" />
-                          <span className="text-lg font-bold">+0.3</span>
-                        </div>
-                        <p className="text-[10px] text-green-600">vs 3 meses</p>
-                      </div>
-                    </div>
+                    
 
                     {/* Layout 2 colunas: Gráfico + KPIs */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="h-[140px]">
-                        {latestESGAssessment.pillarScores ? (
-                          <ESGPillarChart pillarScores={latestESGAssessment.pillarScores} />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                        {latestESGAssessment.pillarScores ? <ESGPillarChart pillarScores={latestESGAssessment.pillarScores} /> : <div className="flex items-center justify-center h-full text-muted-foreground">
                             <p className="text-xs">Dados não disponíveis</p>
-                          </div>
-                        )}
+                          </div>}
                       </div>
                       <div className="space-y-2">
-                        {latestESGAssessment.pillarScores && (
-                          <>
+                        {latestESGAssessment.pillarScores && <>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] w-16 text-muted-foreground">Ambiental</span>
                               <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-green-500" />
@@ -398,8 +348,7 @@ const Dashboard = () => {
                               <Progress value={latestESGAssessment.pillarScores.strategy?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-orange-500" />
                               <span className="text-[10px] font-bold w-6 text-orange-600">{((latestESGAssessment.pillarScores.strategy?.percentage || 0) / 20).toFixed(1)}</span>
                             </div>
-                          </>
-                        )}
+                          </>}
                       </div>
                     </div>
 
@@ -412,16 +361,13 @@ const Dashboard = () => {
                         Nova Avaliação
                       </Button>
                     </div>
-                  </>
-                ) : (
-                  <div className="text-center py-6">
+                  </> : <div className="text-center py-6">
                     <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground mb-4">Nenhuma avaliação realizada</p>
                     <Button onClick={() => navigateTo("/dados-esg")} size="sm" className="bg-green-600 hover:bg-green-700">
                       Iniciar Avaliação
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
           </div>
