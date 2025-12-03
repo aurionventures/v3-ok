@@ -59,7 +59,18 @@ const MaturityRadarChart = ({
       </div>;
   }
   return <TooltipProvider>
-      
+      <div className="w-full h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart data={data}>
+            <PolarGrid />
+            <PolarAngleAxis dataKey="name" tick={{ fontSize: 10 }} tickFormatter={formatAxisLabel} />
+            <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fontSize: 8 }} />
+            <Radar name="Sua Empresa" dataKey="score" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.5} />
+            <Radar name="Média do Setor" dataKey="sectorAverage" stroke="#10B981" fill="#10B981" fillOpacity={0.3} />
+            <Tooltip />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
     </TooltipProvider>;
 };
 export default MaturityRadarChart;
