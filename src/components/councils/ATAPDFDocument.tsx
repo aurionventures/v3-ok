@@ -170,14 +170,21 @@ export const ATAPDFDocument = ({ meeting, approvals, ataStatus }: ATAPDFDocument
       </View>
 
       {/* Participantes Presentes */}
-      {meeting.participants && meeting.participants.length > 0 && (
+      {((meeting.participants && meeting.participants.length > 0) || (approvals && approvals.length > 0)) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>PARTICIPANTES PRESENTES</Text>
-          {meeting.participants.filter(p => p.confirmed !== false).map((p, idx) => (
-            <Text key={idx} style={styles.listItem}>
-              - {p.external_name || p.name || 'Membro'} ({getRoleLabel(p.role)})
-            </Text>
-          ))}
+          {meeting.participants && meeting.participants.length > 0 
+            ? meeting.participants.filter(p => p.confirmed !== false).map((p, idx) => (
+                <Text key={idx} style={styles.listItem}>
+                  - {p.external_name || p.name || 'Membro'} ({getRoleLabel(p.role)})
+                </Text>
+              ))
+            : approvals?.map((a, idx) => (
+                <Text key={idx} style={styles.listItem}>
+                  - {a.participant?.external_name || 'Membro'} ({getRoleLabel(a.participant?.role || 'MEMBRO')})
+                </Text>
+              ))
+          }
         </View>
       )}
 
@@ -299,7 +306,7 @@ export const ATAPDFDocument = ({ meeting, approvals, ataStatus }: ATAPDFDocument
             minute: '2-digit'
           })}
         </Text>
-        <Text>Por: {meeting.ata?.generatedBy || 'Sistema'}</Text>
+        <Text>Legacy Governança Corporativa</Text>
       </View>
     </Page>
   </Document>
