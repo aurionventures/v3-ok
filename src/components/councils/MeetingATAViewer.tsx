@@ -8,6 +8,7 @@ import { FileText, Sparkles, Calendar, Users, CheckCircle, ArrowRight } from 'lu
 import { MeetingSchedule, MeetingATA } from '@/types/annualSchedule';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMeetingNotifications } from '@/hooks/useMeetingNotifications';
+import { ATAApprovalSection } from './ATAApprovalSection';
 
 interface MeetingATAViewerProps {
   meeting: MeetingSchedule;
@@ -230,6 +231,9 @@ export default function MeetingATAViewer({
               </p>
               <p>Por: {meeting.ata.generatedBy}</p>
             </div>
+
+            {/* Seção de Aprovação e Assinatura */}
+            <ATAApprovalSection meetingId={meeting.id} hasATA={hasATA} />
           </div>
         )}
 
