@@ -1,16 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Calendar, FileText, Users, Award, ChevronRight, Shield, AlertTriangle, TrendingUp, PieChart, Leaf, Building2, BookOpen, Target, Settings, DollarSign } from "lucide-react";
+import { BarChart3, Calendar, FileText, Users, Award, ChevronRight, Shield, AlertTriangle, TrendingUp, PieChart, Leaf, Building2, BookOpen, Target, Settings, DollarSign, Clock, FileSignature, ListTodo, PlayCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import MetricCard from "@/components/metrics/MetricCard";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
 import ESGPillarChart from "@/components/ESGPillarChart";
-import ActivityList from "@/components/ActivityList";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
 
 import { toast } from "@/hooks/use-toast";
 import { getCurrentMaturityAssessment, convertStoredDataToRadarData } from "@/utils/maturityStorage";
@@ -18,64 +19,52 @@ import { loadLatestESGAssessment } from "@/utils/esgMaturityCalculator";
 import { getLatestESGAssessment } from "@/data/mockESGHistoricalData";
 import { mockHistoricalAssessments } from "@/data/mockHistoricalData";
 
-// Sample data for radar chart
-const maturityData = [
-  { name: "Estrutura Formal", score: 4.2, sectorAverage: 3.8, fullMark: 5 },
-  { name: "Processos Decisórios", score: 3.1, sectorAverage: 3.6, fullMark: 5 },
-  { name: "Participação Familiar", score: 4.5, sectorAverage: 3.9, fullMark: 5 },
-  { name: "Sucessão", score: 2.8, sectorAverage: 3.6, fullMark: 5 },
-  { name: "Prestação de Contas", score: 3.7, sectorAverage: 3.5, fullMark: 5 },
-  { name: "Cultura de Governança", score: 3.4, sectorAverage: 3.7, fullMark: 5 },
-];
-
-// Sample data for activities
-const recentActivities = [
-  {
-    id: 1,
-    type: "meeting" as const,
-    title: "Reunião do Conselho Consultivo",
-    date: "24 de maio, 2025",
-    status: "scheduled" as const,
-  },
-  {
-    id: 2,
-    type: "document" as const,
-    title: "Atualização do Protocolo Familiar",
-    date: "20 de maio, 2025",
-    status: "completed" as const,
-  },
-];
-
-// Sample alerts
-const alerts = [
-  {
-    id: 1,
-    message: "Reunião do Conselho de Administração em 5 dias",
-    priority: "high",
-  },
-  {
-    id: 2,
-    message: "3 documentos pendentes de aprovação",
-    priority: "medium",
-  }
-];
-
 // Risk data imported from shared source
 import { governanceRisks } from "@/data/riskData";
-import { calculateRiskStats, calculateRiskCategoryStats, generateRiskTrends } from "@/utils/riskCalculator";
+import { calculateRiskStats, calculateRiskCategoryStats } from "@/utils/riskCalculator";
 
 // Calculate real-time risk statistics
 const riskSummary = calculateRiskStats(governanceRisks);
 const riskCategories = calculateRiskCategoryStats(governanceRisks);
-const riskTrends = generateRiskTrends();
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { actions, loading: loadingActions } = useAllMeetingActions();
   
   // Load latest assessments
   const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
   const [latestESGAssessment, setLatestESGAssessment] = React.useState<any>(null);
+
+  // Calculate task metrics
+  const taskMetrics = React.useMemo(() => {
+    const total = actions.length;
+    const overdue = actions.filter(a => a.status === 'ATRASADA').length;
+    const inProgress = actions.filter(a => a.status === 'EM_ANDAMENTO').length;
+    const pending = actions.filter(a => a.status === 'PENDENTE').length;
+    const completed = actions.filter(a => a.status === 'CONCLUIDA').length;
+    const resolutionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const pendingRate = total > 0 ? Math.round(((pending + overdue) / total) * 100) : 0;
+    return { total, overdue, inProgress, pending, completed, resolutionRate, pendingRate };
+  }, [actions]);
+
+  // Metrics for meetings and ATAs (demo data)
+  const meetingMetrics = React.useMemo(() => {
+    const totalMeetings = 36;
+    const meetingsWithAgenda = 12;
+    const totalConcluidas = 10;
+    const meetingsWithATA = 9;
+    const pautasPercentual = Math.round((meetingsWithAgenda / totalMeetings) * 100);
+    const atasPercentual = totalConcluidas > 0 ? Math.round((meetingsWithATA / totalConcluidas) * 100) : 0;
+    return { totalMeetings, meetingsWithAgenda, totalConcluidas, meetingsWithATA, pautasPercentual, atasPercentual };
+  }, []);
+
+  // ATA approval metrics (demo data)
+  const ataApprovalMetrics = React.useMemo(() => ({
+    aguardandoAprovacao: 1,
+    aguardandoAssinatura: 1,
+    finalizadas: 1
+  }), []);
 
   React.useEffect(() => {
     // Load latest Governance assessment
@@ -116,34 +105,6 @@ const Dashboard = () => {
     navigate(path);
   };
 
-  // Handle quick actions
-  const handleQuickAction = (action: string) => {
-    switch (action) {
-      case "add-family":
-        navigateTo("/family-structure");
-        break;
-      case "documents":
-        navigateTo("/documents");
-        break;
-      case "schedule-meeting":
-        navigateTo("/rituals");
-        break;
-      case "update-assessment":
-        navigateTo("/maturity");
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Handle activity click
-  const handleActivityClick = (activity: any) => {
-    toast({
-      title: `${activity.title}`,
-      description: `Detalhes da atividade serão exibidos em breve`,
-    });
-  };
-
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
@@ -165,23 +126,39 @@ const Dashboard = () => {
               description={`${riskSummary.totalRisks} riscos totais`}
               icon={<AlertTriangle className="h-5 w-5" />}
             />
-            <MetricCard
-              title="Membros Cadastrados"
-              value="12"
-              description="3 gerações mapeadas"
-              icon={<Users className="h-5 w-5" />}
-            />
-            <MetricCard
-              title="Módulos Ativos"
-              value="18"
-              description="Módulos de governança configurados"
-              icon={<Award className="h-5 w-5" />}
-            />
+            {/* Pautas Definidas com Progress */}
+            <Card className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Pautas Definidas</p>
+                  <p className="text-2xl font-bold text-primary mt-1">{meetingMetrics.pautasPercentual}%</p>
+                  <Progress value={meetingMetrics.pautasPercentual} className="h-2 mt-2" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {meetingMetrics.meetingsWithAgenda} de {meetingMetrics.totalMeetings} reuniões
+                  </p>
+                </div>
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+            </Card>
+            {/* ATAs Geradas */}
+            <Card className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">ATAs Geradas</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{meetingMetrics.atasPercentual}%</p>
+                  <Progress value={meetingMetrics.atasPercentual} className="h-2 mt-2 [&>div]:bg-green-600" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {meetingMetrics.meetingsWithATA} de {meetingMetrics.totalConcluidas} reuniões realizadas
+                  </p>
+                </div>
+                <FileText className="h-5 w-5 text-green-600" />
+              </div>
+            </Card>
           </div>
 
-          {/* Gestão de Riscos - Seção Compacta */}
+          {/* Gestão de Riscos - Layout 2 Colunas */}
           <Card className="mb-8">
-            <CardHeader>
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-red-600" />
@@ -196,82 +173,90 @@ const Dashboard = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Resumo Executivo */}
+            <CardContent className="p-6 pt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* COLUNA ESQUERDA: Resumo Executivo */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold text-foreground">Resumo Executivo</h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-100 dark:border-blue-900">
                       <div className="text-3xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
                       <div className="text-xs text-blue-600 font-medium mt-1">Total de Riscos</div>
                     </div>
-                    <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg">
+                    <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-100 dark:border-red-900">
                       <div className="text-3xl font-bold text-red-600">{riskSummary.criticalRisks}</div>
                       <div className="text-xs text-red-600 font-medium mt-1">Críticos</div>
                     </div>
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg">
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-100 dark:border-green-900">
                       <div className="text-3xl font-bold text-green-600">{riskSummary.mitigationPlans}</div>
                       <div className="text-xs text-green-600 font-medium mt-1">Com Mitigação</div>
                     </div>
-                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg">
+                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg border border-yellow-100 dark:border-yellow-900">
                       <div className="text-3xl font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
                       <div className="text-xs text-yellow-600 font-medium mt-1">Sem Mitigação</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Matriz Visual Compacta */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Matriz de Riscos</h3>
-                  <div className="bg-muted rounded-lg p-4">
-                    <div className="grid grid-cols-5 gap-1 mb-3">
-                      {[5, 4, 3, 2, 1].map((impact) => (
-                        <div key={impact} className="grid grid-rows-3 gap-1">
-                          {[3, 2, 1].map((probability) => {
-                            const score = impact * probability;
-                            let bgColor = "bg-green-200 dark:bg-green-900";
-                            if (score >= 12) bgColor = "bg-red-300 dark:bg-red-900";
-                            else if (score >= 6) bgColor = "bg-yellow-200 dark:bg-yellow-900";
-                            return (
-                              <div
-                                key={`${impact}-${probability}`}
-                                className={`${bgColor} rounded h-10 flex items-center justify-center font-medium text-sm`}
-                              >
-                                {score}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
+                {/* COLUNA DIREITA: Visão Gerencial */}
+                <div className="space-y-4 lg:border-l lg:pl-6">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Visão Gerencial - Indicadores Executivos</h3>
+                  </div>
+                  
+                  {/* KPIs de Tarefas - 4 cards horizontais */}
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <div className="text-xl font-bold text-foreground">{taskMetrics.total}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium">Total Criadas</div>
                     </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Baixo Impacto</span>
-                      <span>Alto Impacto</span>
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg">
+                      <div className="text-xl font-bold text-green-600">{taskMetrics.completed}</div>
+                      <div className="text-[10px] text-green-600 font-medium">Resolvidas</div>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-950/50 rounded-lg">
+                      <div className="text-xl font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
+                      <div className="text-[10px] text-orange-600 font-medium">Pendentes</div>
+                    </div>
+                    <div className="text-center p-3 bg-primary/10 rounded-lg">
+                      <div className="text-xl font-bold text-primary">{taskMetrics.resolutionRate}%</div>
+                      <div className="text-[10px] text-primary font-medium">Taxa Resolução</div>
                     </div>
                   </div>
-                </div>
 
-                {/* Categorias de Risco */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Categorias</h3>
-                  <div className="space-y-3">
-                    {riskCategories.map((category) => {
-                      const IconComponent = category.icon;
-                      return (
-                        <div key={category.category} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <IconComponent className="h-4 w-4" style={{ color: category.color }} />
-                            <span className="text-sm font-medium">{category.category}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <span>Críticos: <strong className="text-foreground">{category.criticalCount}</strong></span>
-                            <span>Total: <strong className="text-foreground">{category.count}</strong></span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  {/* ATAs Pendentes de Aprovação/Assinatura */}
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FileSignature className="h-4 w-4 text-muted-foreground" />
+                      <h4 className="text-xs font-medium text-muted-foreground">ATAs Pendentes de Aprovação/Assinatura</h4>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg border border-yellow-200 dark:border-yellow-900">
+                        <div className="text-2xl font-bold text-yellow-600">{ataApprovalMetrics.aguardandoAprovacao}</div>
+                        <div className="text-[10px] text-yellow-600 font-medium">Aguardando Aprovação</div>
+                      </div>
+                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-900">
+                        <div className="text-2xl font-bold text-blue-600">{ataApprovalMetrics.aguardandoAssinatura}</div>
+                        <div className="text-[10px] text-blue-600 font-medium">Aguardando Assinatura</div>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-900">
+                        <div className="text-2xl font-bold text-green-600">{ataApprovalMetrics.finalizadas}</div>
+                        <div className="text-[10px] text-green-600 font-medium">Finalizadas</div>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Botão Ver Painel */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full gap-2 mt-2"
+                    onClick={() => navigateTo("/secretariat-panel")}
+                  >
+                    <ListTodo className="h-4 w-4" />
+                    Ver Painel de Secretariado
+                  </Button>
                 </div>
               </div>
             </CardContent>
