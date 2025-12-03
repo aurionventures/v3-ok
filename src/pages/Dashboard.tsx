@@ -243,10 +243,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Botão Ver Painel */}
-                  <Button variant="outline" size="sm" className="w-full gap-2 mt-2" onClick={() => navigateTo("/secretariat-panel")}>
-                    <ListTodo className="h-4 w-4" />
-                    Ver Painel de Secretariado
-                  </Button>
+                  
                 </div>
               </div>
             </CardContent>
