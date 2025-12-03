@@ -348,17 +348,17 @@ const Dashboard = () => {
 
                     {/* Botões de Ação */}
                     <div className="flex gap-3 mt-auto pt-6">
-                      <Button variant="outline" className="flex-1" onClick={() => navigateTo("/dados-esg")}>
+                      <Button variant="outline" className="flex-1" onClick={() => navigateTo("/esg")}>
                         Ver Detalhes
                       </Button>
-                      <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => navigateTo("/dados-esg")}>
+                      <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => navigateTo("/esg?tab=new-assessment")}>
                         Nova Avaliação
                       </Button>
                     </div>
                   </> : <div className="text-center py-6 flex-1 flex flex-col justify-center">
                     <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground mb-4">Nenhuma avaliação realizada</p>
-                    <Button onClick={() => navigateTo("/dados-esg")} size="sm" className="bg-green-600 hover:bg-green-700">
+                    <Button onClick={() => navigateTo("/esg?tab=new-assessment")} size="sm" className="bg-green-600 hover:bg-green-700">
                       Iniciar Avaliação
                     </Button>
                   </div>}

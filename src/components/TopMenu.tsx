@@ -217,19 +217,13 @@ export function TopMenu() {
       phase: "Otimização",
       icon: Zap,
       color: "text-yellow-400",
-      items: [
+    items: [
         {
           icon: BarChart3,
           href: "/data-input",
           name: "Maturidade de Governança",
           moduleId: "maturity",
           priority: true
-        },
-        {
-          icon: Leaf,
-          href: "/dados-esg",
-          name: "Maturidade ESG",
-          moduleId: "esg"
         },
         {
           icon: Bot,

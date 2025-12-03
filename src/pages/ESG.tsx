@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Leaf, BarChart3, Users, Search, Eye, ChevronRight, Download, FileText, Edit, Target, TrendingUp, Calendar, Activity, Shield, Scale, AlertTriangle, MinusCircle, CheckCircle } from "lucide-react";
+import { Leaf, BarChart3, Users, Search, Eye, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Download, FileText, Edit, Target, TrendingUp, Calendar, Activity, Shield, Scale, AlertTriangle, MinusCircle, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   BarChart,
   Bar,
@@ -44,11 +46,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import FileUpload from "@/components/FileUpload";
 import { Badge } from "@/components/ui/badge";
-import { loadLatestESGAssessment, loadESGAssessmentHistory, generateESGRecommendations } from "@/utils/esgMaturityCalculator";
-import { ESGMaturityResult, ESGAssessmentHistory } from "@/types/esgMaturity";
+import { loadLatestESGAssessment, loadESGAssessmentHistory, generateESGRecommendations, calculateESGMaturity, saveESGAssessment } from "@/utils/esgMaturityCalculator";
+import { ESGMaturityResult, ESGAssessmentHistory, ESGUserAnswers } from "@/types/esgMaturity";
+import { esgQuestions, maturityLevels, pillarInfo } from "@/data/esgMaturityData";
+import ESGResultsDashboard from "@/components/ESGResultsDashboard";
+import ESGHistoryModal from "@/components/ESGHistoryModal";
 
 // Sample ESG policies
 const esgPolicies = [
@@ -293,12 +298,27 @@ const esgReportMockData = {
 
 const ESG = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   const [selectedIndicator, setSelectedIndicator] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [esgMaturityData, setESGMaturityData] = useState<ESGMaturityResult | null>(null);
   const [assessmentHistory, setAssessmentHistory] = useState<ESGAssessmentHistory[]>([]);
+  
+  // Quiz state
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<ESGUserAnswers>({});
+  const [showResults, setShowResults] = useState(false);
+  const [quizResults, setQuizResults] = useState<any>(null);
+  const [currentPillar, setCurrentPillar] = useState<string>('environmental');
+  const [showNavigator, setShowNavigator] = useState(false);
+  
+  // Get active tab from URL params
+  const activeTab = searchParams.get('tab') || 'maturity';
+
+  const totalQuestions = esgQuestions.length;
+  const progress = (Object.keys(answers).length / totalQuestions) * 100;
 
   useEffect(() => {
     // Load latest ESG maturity assessment
@@ -310,7 +330,98 @@ const ESG = () => {
     // Load assessment history
     const history = loadESGAssessmentHistory();
     setAssessmentHistory(history);
+    
+    // Load saved quiz answers
+    const savedAnswers = localStorage.getItem('esg_temp_answers');
+    if (savedAnswers) {
+      try {
+        setAnswers(JSON.parse(savedAnswers));
+      } catch (error) {
+        console.error('Error loading saved answers:', error);
+      }
+    }
   }, []);
+  
+  // Auto-save quiz answers
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      localStorage.setItem('esg_temp_answers', JSON.stringify(answers));
+    }
+  }, [answers]);
+
+  const currentQuestionData = esgQuestions[currentQuestion];
+  const isAnswered = currentQuestionData ? answers[currentQuestionData.id] !== undefined : false;
+
+  const getPillarIcon = (pillar: string) => {
+    const iconMap: { [key: string]: React.ElementType } = {
+      environmental: Leaf,
+      social: Users,
+      governance: Scale,
+      strategy: Target
+    };
+    return iconMap[pillar] || Leaf;
+  };
+
+  const handleAnswer = (questionId: string, answer: number) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    setTimeout(() => {
+      if (currentQuestion < totalQuestions - 1) {
+        handleNext();
+      }
+    }, 400);
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < totalQuestions - 1) {
+      setCurrentQuestion(prev => prev + 1);
+      updateCurrentPillar(currentQuestion + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
+      updateCurrentPillar(currentQuestion - 1);
+    }
+  };
+
+  const updateCurrentPillar = (questionIndex: number) => {
+    const question = esgQuestions[questionIndex];
+    if (question && question.pillar !== currentPillar) {
+      setCurrentPillar(question.pillar);
+    }
+  };
+
+  const handleFinishAssessment = () => {
+    const result = calculateESGMaturity(answers);
+    setQuizResults(result);
+    saveESGAssessment(answers, result);
+    setShowResults(true);
+    setESGMaturityData(result);
+    localStorage.removeItem('esg_temp_answers');
+    
+    toast({
+      title: "Avaliação ESG Concluída!",
+      description: `Sua maturidade ESG é: ${result.maturityLevel.name} (${result.overallScore.toFixed(1)}/6.0)`,
+    });
+    
+    // Switch to maturity tab after completing
+    setSearchParams({ tab: 'maturity' });
+  };
+
+  const handleRestartQuiz = () => {
+    setCurrentQuestion(0);
+    setAnswers({});
+    setShowResults(false);
+    setQuizResults(null);
+    setCurrentPillar('environmental');
+    localStorage.removeItem('esg_temp_answers');
+  };
+
+  const jumpToQuestion = (index: number) => {
+    setCurrentQuestion(index);
+    updateCurrentPillar(index);
+  };
 
   const filteredPolicies = esgPolicies.filter(
     (policy) =>
@@ -391,52 +502,66 @@ const ESG = () => {
     });
   };
 
-  const goToDataInput = () => {
-    navigate("/dados-esg");
+  const goToNewAssessment = () => {
+    setSearchParams({ tab: 'new-assessment' });
   };
+
+  // If quiz completed and showing results within assessment tab
+  if (showResults && quizResults && activeTab === 'new-assessment') {
+    return <ESGResultsDashboard results={quizResults} onRestart={handleRestartQuiz} />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="ESG" />
+        <Header title="Maturidade ESG" />
         <div className="flex-1 overflow-y-auto p-6">
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
-                  Monitoramento ESG
-                </h2>
-                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="search"
-                      placeholder="Buscar..."
-                      className="pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <Button onClick={goToDataInput}>
-                    Avaliar Maturidade ESG
-                  </Button>
-                </div>
-              </div>
+          {/* High-level tabs */}
+          <Tabs value={activeTab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="maturity">Maturidade em ESG</TabsTrigger>
+              <TabsTrigger value="new-assessment">Nova Avaliação</TabsTrigger>
+            </TabsList>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center">
-                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                    <Leaf className="h-6 w-6 text-green-600" />
+            {/* Tab 1: Maturidade em ESG */}
+            <TabsContent value="maturity">
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
+                      Dashboard ESG
+                    </h2>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          type="search"
+                          placeholder="Buscar..."
+                          className="pl-8"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <Button onClick={goToNewAssessment}>
+                        Nova Avaliação
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Leaf className="h-4 w-4" />
-                      Ambiental
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Score: {esgMaturityData ? esgMaturityData.pillarScores.environmental.percentage.toFixed(0) : '75'}%
-                    </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center">
+                      <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                        <Leaf className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium flex items-center gap-2">
+                          <Leaf className="h-4 w-4" />
+                          Ambiental
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Score: {esgMaturityData ? esgMaturityData.pillarScores.environmental.percentage.toFixed(0) : '75'}%
+                        </p>
                     <p className="text-xs text-gray-500">
                       Nível: {esgMaturityData ? esgMaturityData.pillarScores.environmental.maturityLevel : '4'}
                     </p>
@@ -660,13 +785,13 @@ const ESG = () => {
                                 </div>
                               );
                             })}
-                            {!esgMaturityData && (
+                              {!esgMaturityData && (
                               <div className="text-center py-8">
                                 <p className="text-muted-foreground mb-4">
                                   Nenhuma avaliação ESG encontrada.
                                 </p>
                                 <Button 
-                                  onClick={() => navigate('/dados-esg')}
+                                  onClick={goToNewAssessment}
                                 >
                                   Realizar Primeira Avaliação
                                 </Button>
@@ -677,7 +802,7 @@ const ESG = () => {
                             <Button 
                               variant="outline" 
                               className="w-full mt-4"
-                              onClick={() => navigate('/dados-esg')}
+                              onClick={goToNewAssessment}
                             >
                               Fazer Nova Avaliação
                             </Button>
@@ -1188,8 +1313,179 @@ const ESG = () => {
               </Tabs>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+
+        {/* Tab 2: Nova Avaliação */}
+        <TabsContent value="new-assessment">
+          {/* Progress Header */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {currentQuestionData && React.createElement(getPillarIcon(currentPillar), { 
+                    className: "h-8 w-8 text-green-500" 
+                  })}
+                  <div>
+                    <CardTitle className="text-xl">Avaliação de Maturidade ESG</CardTitle>
+                    <p className="text-sm text-gray-600">
+                      Responda 90 perguntas para descobrir o nível de maturidade ESG da sua empresa
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-lg px-3 py-1">
+                  {Object.keys(answers).length}/{totalQuestions}
+                </Badge>
+              </div>
+              <div className="mt-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Progresso da Avaliação</span>
+                  <span>{progress.toFixed(0)}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Current Pillar Badge */}
+          {currentQuestionData && (
+            <div className="mb-4">
+              <Badge className={`${pillarInfo[currentPillar as keyof typeof pillarInfo]?.color || 'bg-green-500'} text-white px-4 py-2`}>
+                {pillarInfo[currentPillar as keyof typeof pillarInfo]?.title || 'Ambiental'}
+              </Badge>
+              <p className="text-sm text-gray-600 mt-2">
+                {pillarInfo[currentPillar as keyof typeof pillarInfo]?.description || ''}
+              </p>
+            </div>
+          )}
+
+          {/* Question Card */}
+          {currentQuestionData && (
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline">
+                        Pergunta {currentQuestion + 1}
+                      </Badge>
+                      <Badge variant="secondary">
+                        {currentQuestionData.subDimension}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg leading-relaxed">
+                      {currentQuestionData.text}
+                    </CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={answers[currentQuestionData.id]?.toString() || ""}
+                  onValueChange={(value) => handleAnswer(currentQuestionData.id, parseInt(value))}
+                  className="space-y-4"
+                >
+                  {maturityLevels.map((level) => (
+                    <div key={level.level} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                      <RadioGroupItem value={level.level.toString()} id={`level-${level.level}`} className="mt-1" />
+                      <Label htmlFor={`level-${level.level}`} className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className={`${level.color} text-white text-xs`}>
+                            {level.level}
+                          </Badge>
+                          <span className="font-medium">{level.name}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{level.description}</p>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestion === 0}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Anterior
+              </Button>
+              <ESGHistoryModal />
+            </div>
+
+            <div className="flex gap-2">
+              {currentQuestion === totalQuestions - 1 ? (
+                <Button
+                  onClick={handleFinishAssessment}
+                  disabled={!isAnswered}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Finalizar Avaliação
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  disabled={!isAnswered}
+                >
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Question Navigator Toggle */}
+          <div className="mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowNavigator(!showNavigator)}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              {showNavigator ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Ocultar Navegação Rápida
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Mostrar Navegação Rápida ({Object.keys(answers).length}/{totalQuestions} respondidas)
+                </>
+              )}
+            </Button>
+
+            {showNavigator && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-lg">Navegação Rápida</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-10 gap-2">
+                    {esgQuestions.map((question, index) => (
+                      <Button
+                        key={question.id}
+                        variant={answers[question.id] ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => jumpToQuestion(index)}
+                        className={`w-10 h-10 p-0 ${currentQuestion === index ? 'ring-2 ring-primary' : ''}`}
+                      >
+                        {index + 1}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  </div>
 
       {/* Dialog for policy details */}
       <Dialog open={!!selectedPolicy} onOpenChange={() => setSelectedPolicy(null)}>

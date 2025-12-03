@@ -125,7 +125,7 @@ const ESGHistory = () => {
                     Você ainda não possui avaliações de maturidade ESG registradas.
                   </p>
                   <Button
-                    onClick={() => navigate("/dados-esg")}
+                    onClick={() => navigate("/esg?tab=new-assessment")}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     Iniciar Nova Avaliação
@@ -406,7 +406,7 @@ const ESGHistory = () => {
             {/* Action Buttons */}
             <div className="flex justify-center gap-4">
               <Button
-                onClick={() => navigate("/dados-esg")}
+                onClick={() => navigate("/esg?tab=new-assessment")}
                 className="bg-green-600 hover:bg-green-700"
               >
                 Nova Avaliação ESG
