@@ -105,12 +105,6 @@ export function AppSidebar() {
           moduleId: "maturity-results"
         },
         {
-          icon: Clock,
-          href: "/governance-history",
-          name: "Histórico Governança",
-          moduleId: "governance-history"
-        },
-        {
           icon: Leaf,
           href: "/dados-esg",
           name: "Maturidade ESG",

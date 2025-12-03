@@ -149,12 +149,6 @@ const Sidebar = () => {
           moduleId: "maturity-results"
         },
         {
-          icon: <Clock className="h-5 w-5" />,
-          href: "/governance-history",
-          name: "Histórico Governança",
-          moduleId: "governance-history"
-        },
-        {
           icon: <Leaf className="h-5 w-5" />,
           href: "/dados-esg",
           name: "Maturidade ESG",
