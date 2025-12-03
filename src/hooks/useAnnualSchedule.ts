@@ -496,8 +496,272 @@ export const useAnnualSchedule = () => {
     loadSchedule();
   }, []);
 
+  const initializeDemoATAApprovals = () => {
+    // Check if demo data already exists
+    const existingApprovals = localStorage.getItem('ata_approvals');
+    if (existingApprovals) return;
+    
+    console.log("🔄 Initializing demo ATA approvals data...");
+    
+    // Demo approval data for 3 meetings with ATA
+    const demoApprovals = [
+      // Conselho 1 - Em Aprovação (2/4 approved)
+      {
+        id: 'demo-approval-conselho-1-1',
+        meeting_id: 'conselho-1',
+        participant_id: 'mock-member-conselho-de-administração-1',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-16T10:30:00Z',
+        signature_status: 'ASSINADO',
+        signature_hash: 'a1b2c3d4e5f6789012345678901234567890abcd',
+        signature_ip: '192.168.1.100',
+        signature_user_agent: 'Mozilla/5.0',
+        signed_at: '2025-01-16T11:00:00Z',
+        notification_sent_at: '2025-01-15T09:00:00Z',
+        magic_link_token: 'demo-ata-token-carlos',
+        created_at: '2025-01-15T09:00:00Z',
+        updated_at: '2025-01-16T11:00:00Z',
+        participant: {
+          id: 'mock-member-conselho-de-administração-1',
+          external_name: 'Carlos Alberto Silva',
+          external_email: 'carlos.silva@empresa.com',
+          role: 'Presidente'
+        }
+      },
+      {
+        id: 'demo-approval-conselho-1-2',
+        meeting_id: 'conselho-1',
+        participant_id: 'mock-member-conselho-de-administração-2',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-16T14:00:00Z',
+        signature_status: 'NAO_ASSINADO',
+        signature_hash: null,
+        signature_ip: null,
+        signature_user_agent: null,
+        signed_at: null,
+        notification_sent_at: '2025-01-15T09:00:00Z',
+        magic_link_token: 'demo-ata-token-maria',
+        created_at: '2025-01-15T09:00:00Z',
+        updated_at: '2025-01-16T14:00:00Z',
+        participant: {
+          id: 'mock-member-conselho-de-administração-2',
+          external_name: 'Maria Santos Costa',
+          external_email: 'maria.costa@empresa.com',
+          role: 'Vice-Presidente'
+        }
+      },
+      {
+        id: 'demo-approval-conselho-1-3',
+        meeting_id: 'conselho-1',
+        participant_id: 'mock-member-conselho-de-administração-3',
+        approval_status: 'PENDENTE',
+        approval_comment: null,
+        approved_at: null,
+        signature_status: 'NAO_ASSINADO',
+        signature_hash: null,
+        signature_ip: null,
+        signature_user_agent: null,
+        signed_at: null,
+        notification_sent_at: '2025-01-15T09:00:00Z',
+        magic_link_token: 'demo-ata-token-roberto',
+        created_at: '2025-01-15T09:00:00Z',
+        updated_at: '2025-01-15T09:00:00Z',
+        participant: {
+          id: 'mock-member-conselho-de-administração-3',
+          external_name: 'Roberto Oliveira',
+          external_email: 'roberto.oliveira@empresa.com',
+          role: 'Conselheiro Independente'
+        }
+      },
+      {
+        id: 'demo-approval-conselho-1-4',
+        meeting_id: 'conselho-1',
+        participant_id: 'mock-member-conselho-de-administração-4',
+        approval_status: 'PENDENTE',
+        approval_comment: null,
+        approved_at: null,
+        signature_status: 'NAO_ASSINADO',
+        signature_hash: null,
+        signature_ip: null,
+        signature_user_agent: null,
+        signed_at: null,
+        notification_sent_at: '2025-01-15T09:00:00Z',
+        magic_link_token: 'demo-ata-token-ana',
+        created_at: '2025-01-15T09:00:00Z',
+        updated_at: '2025-01-15T09:00:00Z',
+        participant: {
+          id: 'mock-member-conselho-de-administração-4',
+          external_name: 'Ana Paula Ferreira',
+          external_email: 'ana.ferreira@empresa.com',
+          role: 'Conselheira'
+        }
+      },
+      
+      // Comitê 1 - Aprovado, aguardando assinaturas (3/3 approved, 1/3 signed)
+      {
+        id: 'demo-approval-comite-1-1',
+        meeting_id: 'comite-1',
+        participant_id: 'mock-member-comitê-de-auditoria-1',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-18T10:00:00Z',
+        signature_status: 'ASSINADO',
+        signature_hash: 'b2c3d4e5f6a789012345678901234567890bcde',
+        signature_ip: '192.168.1.101',
+        signature_user_agent: 'Mozilla/5.0',
+        signed_at: '2025-01-18T10:30:00Z',
+        notification_sent_at: '2025-01-17T09:00:00Z',
+        magic_link_token: 'demo-ata-token-ricardo',
+        created_at: '2025-01-17T09:00:00Z',
+        updated_at: '2025-01-18T10:30:00Z',
+        participant: {
+          id: 'mock-member-comitê-de-auditoria-1',
+          external_name: 'Dr. Ricardo Mendes',
+          external_email: 'ricardo.mendes@empresa.com',
+          role: 'Coordenador'
+        }
+      },
+      {
+        id: 'demo-approval-comite-1-2',
+        meeting_id: 'comite-1',
+        participant_id: 'mock-member-comitê-de-auditoria-2',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-18T11:00:00Z',
+        signature_status: 'NAO_ASSINADO',
+        signature_hash: null,
+        signature_ip: null,
+        signature_user_agent: null,
+        signed_at: null,
+        notification_sent_at: '2025-01-17T09:00:00Z',
+        magic_link_token: 'demo-ata-token-patricia',
+        created_at: '2025-01-17T09:00:00Z',
+        updated_at: '2025-01-18T11:00:00Z',
+        participant: {
+          id: 'mock-member-comitê-de-auditoria-2',
+          external_name: 'Dra. Patrícia Lima',
+          external_email: 'patricia.lima@empresa.com',
+          role: 'Membro'
+        }
+      },
+      {
+        id: 'demo-approval-comite-1-3',
+        meeting_id: 'comite-1',
+        participant_id: 'mock-member-comitê-de-auditoria-3',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-18T14:00:00Z',
+        signature_status: 'NAO_ASSINADO',
+        signature_hash: null,
+        signature_ip: null,
+        signature_user_agent: null,
+        signed_at: null,
+        notification_sent_at: '2025-01-17T09:00:00Z',
+        magic_link_token: 'demo-ata-token-joao',
+        created_at: '2025-01-17T09:00:00Z',
+        updated_at: '2025-01-18T14:00:00Z',
+        participant: {
+          id: 'mock-member-comitê-de-auditoria-3',
+          external_name: 'João Carlos Neves',
+          external_email: 'joao.neves@empresa.com',
+          role: 'Membro Independente'
+        }
+      },
+      
+      // Comissão 1 - Finalizado (todos aprovaram e assinaram)
+      {
+        id: 'demo-approval-comissao-1-1',
+        meeting_id: 'comissao-1',
+        participant_id: 'mock-member-comissão-de-ética-1',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-25T16:00:00Z',
+        signature_status: 'ASSINADO',
+        signature_hash: 'c3d4e5f6a7b89012345678901234567890cdef',
+        signature_ip: '192.168.1.102',
+        signature_user_agent: 'Mozilla/5.0',
+        signed_at: '2025-01-25T16:30:00Z',
+        notification_sent_at: '2025-01-24T09:00:00Z',
+        magic_link_token: 'demo-ata-token-roberto-alves',
+        created_at: '2025-01-24T09:00:00Z',
+        updated_at: '2025-01-25T16:30:00Z',
+        participant: {
+          id: 'mock-member-comissão-de-ética-1',
+          external_name: 'Roberto Alves',
+          external_email: 'roberto.alves@empresa.com',
+          role: 'Coordenador'
+        }
+      },
+      {
+        id: 'demo-approval-comissao-1-2',
+        meeting_id: 'comissao-1',
+        participant_id: 'mock-member-comissão-de-ética-2',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-25T17:00:00Z',
+        signature_status: 'ASSINADO',
+        signature_hash: 'd4e5f6a7b8c9012345678901234567890defg',
+        signature_ip: '192.168.1.103',
+        signature_user_agent: 'Mozilla/5.0',
+        signed_at: '2025-01-25T17:30:00Z',
+        notification_sent_at: '2025-01-24T09:00:00Z',
+        magic_link_token: 'demo-ata-token-beatriz',
+        created_at: '2025-01-24T09:00:00Z',
+        updated_at: '2025-01-25T17:30:00Z',
+        participant: {
+          id: 'mock-member-comissão-de-ética-2',
+          external_name: 'Beatriz Lima',
+          external_email: 'beatriz.lima@empresa.com',
+          role: 'Membro'
+        }
+      },
+      {
+        id: 'demo-approval-comissao-1-3',
+        meeting_id: 'comissao-1',
+        participant_id: 'mock-member-comissão-de-ética-3',
+        approval_status: 'APROVADO',
+        approval_comment: null,
+        approved_at: '2025-01-25T18:00:00Z',
+        signature_status: 'ASSINADO',
+        signature_hash: 'e5f6a7b8c9d0123456789012345678901efgh',
+        signature_ip: '192.168.1.104',
+        signature_user_agent: 'Mozilla/5.0',
+        signed_at: '2025-01-25T18:30:00Z',
+        notification_sent_at: '2025-01-24T09:00:00Z',
+        magic_link_token: 'demo-ata-token-daniela',
+        created_at: '2025-01-24T09:00:00Z',
+        updated_at: '2025-01-25T18:30:00Z',
+        participant: {
+          id: 'mock-member-comissão-de-ética-3',
+          external_name: 'Daniela Ferreira',
+          external_email: 'daniela.ferreira@empresa.com',
+          role: 'Membro'
+        }
+      }
+    ];
+    
+    // Save demo approvals to localStorage
+    localStorage.setItem('ata_approvals', JSON.stringify(demoApprovals));
+    
+    // Save ATA status map
+    const ataStatusMap = {
+      'conselho-1': 'EM_APROVACAO',
+      'comite-1': 'APROVADO',
+      'comissao-1': 'ASSINADO'
+    };
+    localStorage.setItem('meeting_ata_status', JSON.stringify(ataStatusMap));
+    
+    console.log("✅ Demo ATA approvals initialized");
+  };
+
   const loadSchedule = () => {
     console.log("🔄 Loading annual schedule...");
+    
+    // Initialize demo ATA approvals
+    initializeDemoATAApprovals();
+    
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       console.log("📁 Stored data:", stored ? "Found" : "Not found");
