@@ -113,7 +113,7 @@ export function AppSidebar() {
         {
           icon: BookText,
           href: "/legacy",
-          name: "Legado",
+          name: "Legado e Rituais",
           moduleId: null
         }
       ]
