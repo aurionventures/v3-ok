@@ -189,7 +189,7 @@ const Sidebar = () => {
         {
           icon: <BarChart3 className="h-5 w-5" />,
           href: "/initial-report",
-          name: "Relatório Inicial",
+          name: "Análise e Ações",
           moduleId: "initial-report"
         }
       ]
