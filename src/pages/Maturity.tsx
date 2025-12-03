@@ -256,7 +256,8 @@ const Maturity = () => {
           <Card className="mb-6">
             <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-legacy-500">Benchmark Setorial Maturidade em Governança</h2>
+                  <h2 className="text-xl font-semibold text-legacy-500">Maturidade em Governança
+              </h2>
                   <Button onClick={() => navigate("/data-input")}>Nova Avaliação</Button>
                 </div>
                 <div className="h-96 mb-4">
