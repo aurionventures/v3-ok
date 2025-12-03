@@ -81,7 +81,7 @@ const DataInput = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
-                <span>Relatórios Históricos de Maturidade</span>
+                <span>Históricos de Maturidade</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
