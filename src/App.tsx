@@ -217,11 +217,7 @@ const App = () => (
           />
           <Route 
             path="/documents" 
-            element={
-              <ProtectedRoute >
-                <Documents />
-              </ProtectedRoute>
-            } 
+            element={<Navigate to="/document-checklist?tab=biblioteca" replace />}
           />
           <Route 
             path="/maturity" 

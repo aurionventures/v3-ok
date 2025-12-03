@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
-  Leaf, Settings, Shield, Users, Database, BookOpen, BookText, 
+  Leaf, Settings, Shield, Users, BookOpen, BookText, 
   Activity, Building, Bot, DollarSign, PieChart, CheckCircle, 
   Clock, AlertCircle, Zap, Target, Map, Play, Send, Menu, X
 } from "lucide-react";
@@ -104,15 +104,8 @@ export function TopMenu() {
         {
           icon: FileText,
           href: "/document-checklist",
-          name: "Checklist de Documentos",
+          name: "Checklist",
           moduleId: "document-checklist",
-          priority: true
-        },
-        {
-          icon: Database,
-          href: "/document-upload",
-          name: "Upload de Documentos",
-          moduleId: "document-upload",
           priority: true
         },
         {
@@ -124,7 +117,7 @@ export function TopMenu() {
         {
           icon: BarChart3,
           href: "/initial-report",
-          name: "Relatório Inicial",
+          name: "Análise e Ações",
           moduleId: "initial-report"
         }
       ]
