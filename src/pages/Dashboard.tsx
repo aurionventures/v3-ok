@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import MetricCard from "@/components/metrics/MetricCard";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
 import ESGPillarChart from "@/components/ESGPillarChart";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,11 +127,33 @@ const Dashboard = () => {
         <div className="h-[calc(100vh-4rem)] overflow-y-auto p-6">
           {/* Métricas Principais */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <MetricCard title="Score Geral de Maturidade" value="3.6/5.0" description="Melhoria de 0.3 em 3 meses" trend={{
-            value: 9,
-            isPositive: true
-          }} icon={<BarChart3 className="h-5 w-5" />} />
-            <MetricCard title="Riscos Críticos" value={riskSummary.criticalRisks.toString()} description={`${riskSummary.totalRisks} riscos totais`} icon={<AlertTriangle className="h-5 w-5" />} />
+            {/* Score Geral de Maturidade */}
+            <Card className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Score Geral de Maturidade</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold text-primary">3.6</p>
+                    <span className="text-sm text-green-600 font-medium">+9%</span>
+                  </div>
+                  <Progress value={72} className="h-2 mt-2" />
+                  <p className="text-xs text-muted-foreground mt-1">Melhoria de 0.3 em 3 meses</p>
+                </div>
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+            </Card>
+            {/* Riscos Críticos */}
+            <Card className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Riscos Críticos</p>
+                  <p className="text-2xl font-bold text-red-600 mt-1">{riskSummary.criticalRisks}</p>
+                  <Progress value={(riskSummary.criticalRisks / riskSummary.totalRisks) * 100} className="h-2 mt-2 [&>div]:bg-red-500" />
+                  <p className="text-xs text-muted-foreground mt-1">{riskSummary.criticalRisks} de {riskSummary.totalRisks} riscos totais</p>
+                </div>
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+            </Card>
             {/* Pautas Definidas com Progress */}
             <Card className="p-6">
               <div className="flex justify-between items-start">
