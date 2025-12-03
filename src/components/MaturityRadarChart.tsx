@@ -1,25 +1,21 @@
-
 import { useState } from "react";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider, Tooltip as UITooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-
 interface MaturityDimension {
   name: string;
   score: number;
   sectorAverage: number;
   fullMark: number;
 }
-
 interface MaturityRadarChartProps {
   data: MaturityDimension[];
 }
-
-const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
+const MaturityRadarChart = ({
+  data
+}: MaturityRadarChartProps) => {
   // Validate data before rendering
-  const isValidData = data && Array.isArray(data) && data.length > 0 && 
-    data.every(item => item && typeof item.name === 'string' && 
-    typeof item.score === 'number' && typeof item.sectorAverage === 'number');
+  const isValidData = data && Array.isArray(data) && data.length > 0 && data.every(item => item && typeof item.name === 'string' && typeof item.score === 'number' && typeof item.sectorAverage === 'number');
 
   // Function to format long axis labels with line breaks
   const formatAxisLabel = (label: string) => {
@@ -28,11 +24,10 @@ const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
       'Conduta e Conflitos': 'Conduta e\nConflitos',
       'Órgãos de Fiscalização': 'Órgãos de\nFiscalização'
     };
-    
     if (specificCases[label]) {
       return specificCases[label];
     }
-    
+
     // General case for other long labels
     if (label.length > 12) {
       const words = label.split(' ');
@@ -55,92 +50,16 @@ const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
     };
     return descriptions[name] || 'Pilar de governança corporativa';
   };
-
   if (!isValidData) {
-    return (
-      <div className="w-full h-72 flex items-center justify-center text-gray-500">
+    return <div className="w-full h-72 flex items-center justify-center text-gray-500">
         <div className="text-center">
           <p>Carregando dados do gráfico...</p>
           <p className="text-sm mt-1">Aguarde enquanto processamos as informações</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <TooltipProvider>
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="h-full w-full max-w-md">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart 
-              cx="50%" 
-              cy="50%" 
-              outerRadius="55%" 
-              data={data.map(item => ({
-                ...item,
-                name: formatAxisLabel(item.name)
-              }))}
-              margin={{ top: 15, right: 25, bottom: 15, left: 25 }}
-            >
-              <PolarGrid stroke="#e2e8f0" strokeWidth={1} />
-              <PolarAngleAxis 
-                dataKey="name" 
-                tick={{ 
-                  fontSize: 12, 
-                  fill: "#1f2937", 
-                  fontWeight: 700,
-                  textAnchor: "middle"
-                }}
-                className="text-xs font-bold"
-              />
-              <PolarRadiusAxis 
-                domain={[0, 5]} 
-                tick={{ fontSize: 10, fill: "#6b7280" }}
-                tickCount={6}
-                angle={90}
-              />
-              <Tooltip 
-                formatter={(value, name) => {
-                  const percentage = ((value as number) * 20).toFixed(0);
-                  if (name === 'score') {
-                    return [`${percentage}% (${value})`, 'Pontuação da empresa'];
-                  }
-                  return [`${((value as number) * 20).toFixed(0)}% (${value})`, 'Pontuação média da amostra total'];
-                }}
-                labelFormatter={(label) => {
-                  const originalName = data.find(item => formatAxisLabel(item.name) === label)?.name || label;
-                  return originalName;
-                }}
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.98)', 
-                  borderRadius: '12px', 
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                  fontSize: '13px'
-                }}
-              />
-              <Radar
-                name="score"
-                dataKey="score"
-                stroke="#1f40af"
-                fill="#1f40af"
-                fillOpacity={0.1}
-                strokeWidth={3}
-              />
-              <Radar
-                name="sectorAverage"
-                dataKey="sectorAverage"
-                stroke="#20b2aa"
-                fill="transparent"
-                strokeWidth={2}
-                strokeDasharray="8 4"
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </TooltipProvider>
-  );
+  return <TooltipProvider>
+      
+    </TooltipProvider>;
 };
-
 export default MaturityRadarChart;
