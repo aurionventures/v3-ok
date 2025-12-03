@@ -166,19 +166,13 @@ const Dashboard = () => {
           {/* Gestão de Riscos - Layout 2 Colunas */}
           <Card className="mb-8">
             <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-red-600" />
-                  <CardTitle className="text-lg">Gestão de Riscos</CardTitle>
-                </div>
-                
-              </div>
+              
             </CardHeader>
             <CardContent className="p-6 pt-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* COLUNA ESQUERDA: Resumo Executivo */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Resumo Executivo</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Gestão de Riscos - Indicadores Executivos</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-100 dark:border-blue-900">
                       <div className="text-3xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
