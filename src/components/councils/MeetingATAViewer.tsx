@@ -1,17 +1,18 @@
-import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { FileText, Sparkles, Calendar, Users, CheckCircle, ArrowRight, Download } from 'lucide-react';
-import { MeetingSchedule, MeetingATA } from '@/types/annualSchedule';
+import { MeetingSchedule } from '@/types/annualSchedule';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMeetingNotifications } from '@/hooks/useMeetingNotifications';
 import { ATAApprovalSection } from './ATAApprovalSection';
+import { useATAApprovals } from '@/hooks/useATAApprovals';
 import { pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import { ATAPDFDocument } from './ATAPDFDocument';
+
 interface MeetingATAViewerProps {
   meeting: MeetingSchedule;
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function MeetingATAViewer({
 }: MeetingATAViewerProps) {
   const hasATA = !!meeting.ata;
   const { sendATAGeneratedNotification } = useMeetingNotifications();
+  const { approvals, ataStatus } = useATAApprovals(meeting.id);
 
   const handleGenerate = async () => {
     await onGenerateATA();
@@ -44,7 +46,13 @@ export default function MeetingATAViewer({
     if (!meeting.ata) return;
     
     try {
-      const blob = await pdf(<ATAPDFDocument meeting={meeting} />).toBlob();
+      const blob = await pdf(
+        <ATAPDFDocument 
+          meeting={meeting} 
+          approvals={approvals}
+          ataStatus={ataStatus}
+        />
+      ).toBlob();
       const fileName = `ATA_${meeting.council.replace(/\s+/g, '_')}_${meeting.date}.pdf`;
       saveAs(blob, fileName);
     } catch (error) {
@@ -136,9 +144,9 @@ export default function MeetingATAViewer({
               </div>
               <div className="pl-6">
                 <ul className="space-y-1">
-                  {meeting.participants?.filter(p => p.confirmed).map(p => (
+                  {meeting.participants?.filter(p => p.confirmed !== false).map(p => (
                     <li key={p.id} className="text-sm">
-                      • {p.external_name || 'Membro'} - {p.role}
+                      • {p.external_name || p.name || 'Membro'} - {p.role === 'MEMBRO' ? 'Membro' : p.role === 'CONVIDADO' ? 'Convidado' : p.role === 'OBSERVADOR' ? 'Observador' : p.role}
                     </li>
                   ))}
                 </ul>
