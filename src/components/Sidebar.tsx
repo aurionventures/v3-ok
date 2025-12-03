@@ -139,7 +139,7 @@ const Sidebar = () => {
         {
           icon: <BarChart3 className="h-5 w-5" />,
           href: "/data-input",
-          name: "Avaliação Governança",
+          name: "Avaliação de Governança",
           moduleId: "maturity"
         },
         {

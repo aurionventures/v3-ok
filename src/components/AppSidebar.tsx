@@ -95,7 +95,7 @@ export function AppSidebar() {
         {
           icon: BarChart3,
           href: "/data-input",
-          name: "Avaliação Governança",
+          name: "Avaliação de Governança",
           moduleId: "maturity"
         },
         {
