@@ -95,8 +95,9 @@ interface UploadedDocument {
   };
 }
 
-// Mock documents data
+// Mock documents data - 15 realistic governance documents
 const initialDocuments: UploadedDocument[] = [
+  // DOCUMENTOS SOCIETÁRIOS
   {
     id: '1',
     name: 'Estatuto Social v2024.pdf',
@@ -104,33 +105,181 @@ const initialDocuments: UploadedDocument[] = [
     uploadDate: '2024-01-15',
     status: 'compliant',
     aiAnalysis: {
-      summary: 'Documento conforme com as melhores práticas de governança corporativa.',
+      summary: 'Estatuto Social em plena conformidade com a Lei das S.A. e melhores práticas do IBGC. Estrutura de governança bem definida.',
       issues: [],
-      recommendations: ['Considerar adicionar cláusula sobre sustentabilidade.']
+      recommendations: ['Considerar adicionar cláusula sobre sustentabilidade ESG', 'Avaliar inclusão de mecanismo de voto múltiplo']
     }
   },
   {
-    id: '2', 
-    name: 'Política de Compliance.pdf',
-    category: 'Políticas Corporativas',
-    uploadDate: '2024-01-10',
-    status: 'divergent',
+    id: '2',
+    name: 'Contrato Social Consolidado.pdf',
+    category: 'Contratos Sociais',
+    uploadDate: '2024-01-12',
+    status: 'compliant',
     aiAnalysis: {
-      summary: 'Política necessita de atualizações para conformidade com LGPD.',
-      issues: ['Ausência de procedimentos LGPD', 'Falta definição de responsabilidades'],
-      recommendations: ['Incluir seção específica sobre proteção de dados', 'Definir papel do encarregado de dados']
+      summary: 'Contrato Social consolidado e atualizado conforme Código Civil e legislação vigente.',
+      issues: [],
+      recommendations: ['Manter registro das alterações anteriores para histórico']
     }
   },
   {
     id: '3',
-    name: 'Ata AGO 2023.pdf', 
-    category: 'Atas de Assembleia',
-    uploadDate: '2024-01-08',
+    name: 'Acordo de Acionistas 2023.pdf',
+    category: 'Acordo de Acionistas',
+    uploadDate: '2024-01-10',
     status: 'pending',
     aiAnalysis: {
-      summary: 'Ata bem estruturada, mas faltam algumas informações obrigatórias.',
-      issues: ['Ausência de quórum detalhado'],
-      recommendations: ['Incluir detalhamento do quórum presente', 'Adicionar lista de presença completa']
+      summary: 'Acordo de Acionistas com estrutura adequada, mas necessita revisão de cláusulas de saída.',
+      issues: ['Cláusula de tag-along incompleta'],
+      recommendations: ['Revisar mecanismo de tag-along para 100%', 'Incluir cláusula de drag-along']
+    }
+  },
+  // ATAS E DELIBERAÇÕES
+  {
+    id: '4',
+    name: 'Ata AGO 2024.pdf',
+    category: 'Atas de Assembleia',
+    uploadDate: '2024-03-20',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Ata da Assembleia Geral Ordinária completa e em conformidade com requisitos legais.',
+      issues: [],
+      recommendations: ['Modelo pode ser padronizado para futuras assembleias']
+    }
+  },
+  {
+    id: '5',
+    name: 'Ata AGE Janeiro 2024.pdf',
+    category: 'Atas de Assembleia',
+    uploadDate: '2024-01-28',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Ata Extraordinária bem estruturada com todas as formalidades necessárias.',
+      issues: [],
+      recommendations: ['Incluir resumo executivo no início do documento']
+    }
+  },
+  {
+    id: '6',
+    name: 'Ata Conselho Administração Q1.pdf',
+    category: 'Atas de Assembleia',
+    uploadDate: '2024-04-05',
+    status: 'pending',
+    aiAnalysis: {
+      summary: 'Ata do Conselho necessita assinaturas pendentes de 2 conselheiros.',
+      issues: ['Assinaturas pendentes', 'Falta anexo mencionado na deliberação 3'],
+      recommendations: ['Coletar assinaturas restantes', 'Anexar documento referenciado']
+    }
+  },
+  // POLÍTICAS CORPORATIVAS
+  {
+    id: '7',
+    name: 'Código de Conduta Empresarial.pdf',
+    category: 'Código de Conduta',
+    uploadDate: '2024-02-01',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Código de Conduta abrangente, alinhado com práticas anticorrupção e compliance.',
+      issues: [],
+      recommendations: ['Atualizar seção sobre uso de redes sociais', 'Incluir casos práticos como exemplos']
+    }
+  },
+  {
+    id: '8',
+    name: 'Política de Compliance v3.pdf',
+    category: 'Política de Compliance',
+    uploadDate: '2024-01-10',
+    status: 'divergent',
+    aiAnalysis: {
+      summary: 'Política de Compliance necessita adequação urgente à LGPD e nova Lei Anticorrupção.',
+      issues: ['Ausência de procedimentos LGPD', 'Falta definição do encarregado de dados', 'Desatualização com Lei 14.230/2021'],
+      recommendations: ['Incluir seção específica sobre proteção de dados', 'Nomear DPO formalmente', 'Atualizar referências à Lei de Improbidade']
+    }
+  },
+  {
+    id: '9',
+    name: 'Política de Gestão de Riscos.pdf',
+    category: 'Política de Riscos',
+    uploadDate: '2024-02-15',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Política de Riscos bem estruturada com matriz de riscos e planos de mitigação adequados.',
+      issues: [],
+      recommendations: ['Considerar integração com framework COSO ERM', 'Incluir riscos cibernéticos específicos']
+    }
+  },
+  {
+    id: '10',
+    name: 'Política Anticorrupção.pdf',
+    category: 'Políticas Corporativas',
+    uploadDate: '2024-02-20',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Política Anticorrupção em conformidade com Lei 12.846/2013 e FCPA.',
+      issues: [],
+      recommendations: ['Incluir treinamento obrigatório anual', 'Adicionar due diligence para terceiros']
+    }
+  },
+  // REGIMENTOS E REGULAMENTOS
+  {
+    id: '11',
+    name: 'Regimento Interno Conselho.pdf',
+    category: 'Regimento Interno',
+    uploadDate: '2024-01-25',
+    status: 'pending',
+    aiAnalysis: {
+      summary: 'Regimento do Conselho de Administração necessita atualização quanto à periodicidade das reuniões.',
+      issues: ['Periodicidade de reuniões não especificada', 'Ausência de quórum para deliberações específicas'],
+      recommendations: ['Definir calendário anual de reuniões', 'Especificar quóruns qualificados por tipo de matéria']
+    }
+  },
+  {
+    id: '12',
+    name: 'Regimento Comitê Auditoria.pdf',
+    category: 'Regimento Interno',
+    uploadDate: '2024-02-10',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Regimento do Comitê de Auditoria completo e alinhado às melhores práticas de mercado.',
+      issues: [],
+      recommendations: ['Incluir interação formal com auditoria externa']
+    }
+  },
+  {
+    id: '13',
+    name: 'Regulamento Canal Denúncias.pdf',
+    category: 'Políticas Corporativas',
+    uploadDate: '2024-03-01',
+    status: 'divergent',
+    aiAnalysis: {
+      summary: 'Regulamento do Canal de Denúncias com falhas críticas de confidencialidade e não-retaliação.',
+      issues: ['Garantia de anonimato insuficiente', 'Política de não-retaliação incompleta', 'Ausência de SLA para investigação'],
+      recommendations: ['Garantir anonimato tecnológico do canal', 'Detalhar proteções contra retaliação', 'Definir prazos máximos de apuração']
+    }
+  },
+  // OUTROS DOCUMENTOS
+  {
+    id: '14',
+    name: 'Protocolo Familiar 2024.pdf',
+    category: 'Outros Documentos',
+    uploadDate: '2024-01-05',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Protocolo Familiar bem elaborado com regras claras de sucessão e governança familiar.',
+      issues: [],
+      recommendations: ['Revisar anualmente em Assembleia Familiar', 'Incluir programa de formação de herdeiros']
+    }
+  },
+  {
+    id: '15',
+    name: 'Matriz de Riscos Corporativos.xlsx',
+    category: 'Política de Riscos',
+    uploadDate: '2024-03-15',
+    status: 'pending',
+    aiAnalysis: {
+      summary: 'Matriz de Riscos necessita atualização do mapeamento de riscos operacionais.',
+      issues: ['Riscos cibernéticos desatualizados', 'Falta avaliação de riscos ESG'],
+      recommendations: ['Atualizar riscos de segurança da informação', 'Incluir riscos climáticos e sociais']
     }
   }
 ];
@@ -386,7 +535,7 @@ export default function DocumentChecklist() {
                 {/* Library Sub-Tabs */}
                 <Tabs value={librarySubTab} onValueChange={setLibrarySubTab} className="space-y-6">
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="upload">Upload & Análise</TabsTrigger>
+                    <TabsTrigger value="upload">Upload</TabsTrigger>
                     <TabsTrigger value="library">Documentos</TabsTrigger>
                     <TabsTrigger value="analysis">Análises</TabsTrigger>
                   </TabsList>
@@ -557,22 +706,68 @@ export default function DocumentChecklist() {
                   {/* Analysis Sub-Tab */}
                   <TabsContent value="analysis">
                     <div className="space-y-6">
+                      {/* Status Summary Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className="border-green-200 bg-green-50/50">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-full bg-green-100">
+                                <CheckCircle className="h-5 w-5 text-green-600" />
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-green-700">{compliantDocs}</div>
+                                <div className="text-sm text-green-600">Documentos Conformes</div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-yellow-200 bg-yellow-50/50">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-full bg-yellow-100">
+                                <Clock className="h-5 w-5 text-yellow-600" />
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-yellow-700">{pendingDocs}</div>
+                                <div className="text-sm text-yellow-600">Aguardando Análise</div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-red-200 bg-red-50/50">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-full bg-red-100">
+                                <AlertTriangle className="h-5 w-5 text-red-600" />
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-red-700">{divergentDocs}</div>
+                                <div className="text-sm text-red-600">Requerem Atenção</div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Compliance by Category - All Categories */}
                       <Card>
                         <CardHeader>
                           <CardTitle>Conformidade por Categoria</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            {documentCategories.slice(0, 5).map((category) => {
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {documentCategories.map((category) => {
                               const categoryDocs = documents.filter(d => d.category === category);
                               const categoryCompliant = categoryDocs.filter(d => d.status === 'compliant').length;
                               const categoryProgress = categoryDocs.length > 0 ? (categoryCompliant / categoryDocs.length) * 100 : 0;
                               
                               return (
-                                <div key={category} className="space-y-2">
+                                <div key={category} className="space-y-2 p-3 border rounded-lg">
                                   <div className="flex justify-between text-sm">
-                                    <span>{category}</span>
-                                    <span className="text-muted-foreground">{categoryDocs.length} docs</span>
+                                    <span className="font-medium">{category}</span>
+                                    <span className="text-muted-foreground">
+                                      {categoryCompliant}/{categoryDocs.length} conformes
+                                    </span>
                                   </div>
                                   <Progress value={categoryProgress} className="h-2" />
                                 </div>
@@ -582,43 +777,99 @@ export default function DocumentChecklist() {
                         </CardContent>
                       </Card>
 
+                      {/* Complete Document Analysis List */}
                       <Card>
                         <CardHeader>
-                          <CardTitle>Problemas Identificados</CardTitle>
+                          <CardTitle>Análises Detalhadas por Documento</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-4">
-                            {documents.filter(d => d.status === 'divergent').map((doc) => (
-                              <div key={doc.id} className="p-4 border border-red-200 rounded-lg bg-red-50">
-                                <div className="flex items-start justify-between">
-                                  <div>
-                                    <div className="font-medium text-red-800">{doc.name}</div>
-                                    <div className="text-sm text-red-600 mt-1">
-                                      {doc.aiAnalysis?.issues?.join(', ') || 'Problemas identificados'}
+                          <div className="space-y-3">
+                            {documents.map((doc) => (
+                              <div key={doc.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    {getStatusIcon(doc.status)}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-medium">{doc.name}</span>
+                                        {getStatusBadge(doc.status)}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        {doc.category} | {doc.uploadDate}
+                                      </div>
+                                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                                        {doc.aiAnalysis?.summary || 'Análise pendente...'}
+                                      </p>
+                                      
+                                      {/* Show issues inline if divergent */}
+                                      {doc.status === 'divergent' && doc.aiAnalysis?.issues && doc.aiAnalysis.issues.length > 0 && (
+                                        <div className="mt-2 pl-3 border-l-2 border-red-300">
+                                          <ul className="text-xs text-red-600 space-y-1">
+                                            {doc.aiAnalysis.issues.slice(0, 2).map((issue, i) => (
+                                              <li key={i}>{issue}</li>
+                                            ))}
+                                            {doc.aiAnalysis.issues.length > 2 && (
+                                              <li className="text-red-500">+{doc.aiAnalysis.issues.length - 2} mais...</li>
+                                            )}
+                                          </ul>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
-                                  <Button
-                                    variant="outline"
+                                  <Button 
+                                    variant="outline" 
                                     size="sm"
-                                    onClick={() => {
-                                      setSelectedIssueDoc(doc);
-                                      setCorrectionsModalOpen(true);
-                                    }}
+                                    onClick={() => setViewDocument(doc)}
                                   >
-                                    <FileEdit className="h-4 w-4 mr-1" />
-                                    Ver Correções
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Ver Análise
                                   </Button>
                                 </div>
                               </div>
                             ))}
-                            {documents.filter(d => d.status === 'divergent').length === 0 && (
-                              <p className="text-muted-foreground text-center py-4">
-                                Nenhum problema identificado nos documentos.
-                              </p>
-                            )}
                           </div>
                         </CardContent>
                       </Card>
+
+                      {/* Critical Issues Section */}
+                      {divergentDocs > 0 && (
+                        <Card className="border-red-200">
+                          <CardHeader>
+                            <CardTitle className="text-red-700 flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5" />
+                              Problemas Críticos ({divergentDocs})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {documents.filter(d => d.status === 'divergent').map((doc) => (
+                                <div key={doc.id} className="p-4 border border-red-200 rounded-lg bg-red-50">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-red-800">{doc.name}</div>
+                                      <div className="text-sm text-red-600 mt-1">
+                                        {doc.aiAnalysis?.issues?.join(' | ') || 'Problemas identificados'}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-red-300 text-red-700 hover:bg-red-100"
+                                      onClick={() => {
+                                        setSelectedIssueDoc(doc);
+                                        setCorrectionsModalOpen(true);
+                                      }}
+                                    >
+                                      <FileEdit className="h-4 w-4 mr-1" />
+                                      Ver Correções
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>
