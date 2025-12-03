@@ -5,21 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
 import MaturityInsights from "@/components/MaturityInsights";
@@ -28,117 +15,140 @@ import SectorRanking from "@/components/SectorRanking";
 import MaturityTimeline from "@/components/MaturityTimeline";
 import { useNavigate } from "react-router-dom";
 import { mockHistoricalAssessments, getHistoricalTrend } from "@/data/mockHistoricalData";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getCurrentMaturityAssessment, getMaturityHistory, convertStoredDataToRadarData, StoredMaturityAssessment } from "@/utils/maturityStorage";
 
-
 // Sample historical data for maturity scores
-const historyData = [
-  {
-    id: 1,
-    date: "Jun/2024",
-    overall: 3.6,
-    details: [
-      { name: "Estrutura Formal", score: 4.2 },
-      { name: "Processos Decisórios", score: 3.1 },
-      { name: "Participação Familiar", score: 4.5 },
-      { name: "Sucessão", score: 2.8 },
-      { name: "Prestação de Contas", score: 3.7 },
-      { name: "Cultura de Governança", score: 3.4 },
-    ]
-  },
-  {
-    id: 2,
-    date: "Dez/2023",
-    overall: 3.3,
-    details: [
-      { name: "Estrutura Formal", score: 3.8 },
-      { name: "Processos Decisórios", score: 2.9 },
-      { name: "Participação Familiar", score: 4.2 },
-      { name: "Sucessão", score: 2.5 },
-      { name: "Prestação de Contas", score: 3.5 },
-      { name: "Cultura de Governança", score: 3.0 },
-    ]
-  },
-  {
-    id: 3,
-    date: "Jun/2023",
-    overall: 2.9,
-    details: [
-      { name: "Estrutura Formal", score: 3.5 },
-      { name: "Processos Decisórios", score: 2.6 },
-      { name: "Participação Familiar", score: 3.8 },
-      { name: "Sucessão", score: 2.0 },
-      { name: "Prestação de Contas", score: 3.0 },
-      { name: "Cultura de Governança", score: 2.6 },
-    ]
-  },
-  {
-    id: 4,
-    date: "Dez/2022",
-    overall: 2.5,
-    details: [
-      { name: "Estrutura Formal", score: 3.0 },
-      { name: "Processos Decisórios", score: 2.2 },
-      { name: "Participação Familiar", score: 3.0 },
-      { name: "Sucessão", score: 1.8 },
-      { name: "Prestação de Contas", score: 2.5 },
-      { name: "Cultura de Governança", score: 2.2 },
-    ]
-  }
-];
+const historyData = [{
+  id: 1,
+  date: "Jun/2024",
+  overall: 3.6,
+  details: [{
+    name: "Estrutura Formal",
+    score: 4.2
+  }, {
+    name: "Processos Decisórios",
+    score: 3.1
+  }, {
+    name: "Participação Familiar",
+    score: 4.5
+  }, {
+    name: "Sucessão",
+    score: 2.8
+  }, {
+    name: "Prestação de Contas",
+    score: 3.7
+  }, {
+    name: "Cultura de Governança",
+    score: 3.4
+  }]
+}, {
+  id: 2,
+  date: "Dez/2023",
+  overall: 3.3,
+  details: [{
+    name: "Estrutura Formal",
+    score: 3.8
+  }, {
+    name: "Processos Decisórios",
+    score: 2.9
+  }, {
+    name: "Participação Familiar",
+    score: 4.2
+  }, {
+    name: "Sucessão",
+    score: 2.5
+  }, {
+    name: "Prestação de Contas",
+    score: 3.5
+  }, {
+    name: "Cultura de Governança",
+    score: 3.0
+  }]
+}, {
+  id: 3,
+  date: "Jun/2023",
+  overall: 2.9,
+  details: [{
+    name: "Estrutura Formal",
+    score: 3.5
+  }, {
+    name: "Processos Decisórios",
+    score: 2.6
+  }, {
+    name: "Participação Familiar",
+    score: 3.8
+  }, {
+    name: "Sucessão",
+    score: 2.0
+  }, {
+    name: "Prestação de Contas",
+    score: 3.0
+  }, {
+    name: "Cultura de Governança",
+    score: 2.6
+  }]
+}, {
+  id: 4,
+  date: "Dez/2022",
+  overall: 2.5,
+  details: [{
+    name: "Estrutura Formal",
+    score: 3.0
+  }, {
+    name: "Processos Decisórios",
+    score: 2.2
+  }, {
+    name: "Participação Familiar",
+    score: 3.0
+  }, {
+    name: "Sucessão",
+    score: 1.8
+  }, {
+    name: "Prestação de Contas",
+    score: 2.5
+  }, {
+    name: "Cultura de Governança",
+    score: 2.2
+  }]
+}];
 
 // Progress data for line chart
 const progressData = historyData.map(entry => ({
   date: entry.date,
-  score: entry.overall,
+  score: entry.overall
 })).reverse();
 
 // Sample log data for activity tracking
-const activityLogs = [
-  {
-    id: "1",
-    user: "Admin",
-    userInitials: "A",
-    action: "Atualizou a avaliação de maturidade",
-    timestamp: new Date(2024, 5, 15, 14, 30),
-    details: "Pontuação geral: 3.6"
-  },
-  {
-    id: "2",
-    user: "Maria Silva",
-    userInitials: "MS",
-    action: "Criou nova avaliação de maturidade",
-    timestamp: new Date(2023, 11, 10, 9, 45),
-    details: "Pontuação geral: 3.3"
-  },
-  {
-    id: "3",
-    user: "João Costa",
-    userInitials: "JC",
-    action: "Atualizou a avaliação de maturidade",
-    timestamp: new Date(2023, 5, 5, 16, 15),
-    details: "Pontuação geral: 2.9"
-  },
-  {
-    id: "4",
-    user: "Carolina Mendes",
-    userInitials: "CM",
-    action: "Criou a primeira avaliação de maturidade",
-    timestamp: new Date(2022, 11, 20, 11, 20),
-    details: "Pontuação geral: 2.5"
-  }
-];
-
+const activityLogs = [{
+  id: "1",
+  user: "Admin",
+  userInitials: "A",
+  action: "Atualizou a avaliação de maturidade",
+  timestamp: new Date(2024, 5, 15, 14, 30),
+  details: "Pontuação geral: 3.6"
+}, {
+  id: "2",
+  user: "Maria Silva",
+  userInitials: "MS",
+  action: "Criou nova avaliação de maturidade",
+  timestamp: new Date(2023, 11, 10, 9, 45),
+  details: "Pontuação geral: 3.3"
+}, {
+  id: "3",
+  user: "João Costa",
+  userInitials: "JC",
+  action: "Atualizou a avaliação de maturidade",
+  timestamp: new Date(2023, 5, 5, 16, 15),
+  details: "Pontuação geral: 2.9"
+}, {
+  id: "4",
+  user: "Carolina Mendes",
+  userInitials: "CM",
+  action: "Criou a primeira avaliação de maturidade",
+  timestamp: new Date(2022, 11, 20, 11, 20),
+  details: "Pontuação geral: 2.5"
+}];
 const formatDate = (date: Date) => {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -148,7 +158,6 @@ const formatDate = (date: Date) => {
     minute: '2-digit'
   }).format(date);
 };
-
 const Maturity = () => {
   const navigate = useNavigate();
   const [openDialog, setOpenDialog] = useState(false);
@@ -160,7 +169,6 @@ const Maturity = () => {
   const [progressData, setProgressData] = useState<any[]>([]);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   const [timelineData, setTimelineData] = useState<any[]>([]);
-
   useEffect(() => {
     // Load current assessment
     const currentAssessment = getCurrentMaturityAssessment();
@@ -168,10 +176,11 @@ const Maturity = () => {
 
     // Load IBGC historical data
     const ibgcHistory = mockHistoricalAssessments;
-    const formattedHistory = ibgcHistory.map((assessment) => ({
+    const formattedHistory = ibgcHistory.map(assessment => ({
       id: assessment.id,
       date: assessment.period,
-      overall: assessment.result.pontuacao_total * 5, // Convert to 0-5 scale
+      overall: assessment.result.pontuacao_total * 5,
+      // Convert to 0-5 scale
       details: Object.entries(assessment.result.pontuacao_dimensoes).map(([name, score]) => ({
         name,
         score: score * 5
@@ -179,20 +188,18 @@ const Maturity = () => {
       timestamp: assessment.date,
       stage: assessment.result.estagio
     }));
-
     setHistoryData(formattedHistory);
-    
+
     // Set timeline data with IBGC historical trend
     const timeline = getHistoricalTrend();
     setTimelineData(timeline);
-    
     setProgressData(formattedHistory.map(entry => ({
       date: entry.date,
-      score: entry.overall,
+      score: entry.overall
     })).reverse());
 
     // Convert history to activity logs
-    const logs = ibgcHistory.map((assessment) => ({
+    const logs = ibgcHistory.map(assessment => ({
       id: assessment.id,
       user: assessment.analyst,
       userInitials: assessment.analystInitials,
@@ -202,36 +209,46 @@ const Maturity = () => {
     }));
     setActivityLogs(logs);
   }, []);
-
   const handleOpenDetails = (assessment: any) => {
     setSelectedAssessment(assessment);
     setOpenDialog(true);
   };
-
   const getMaturityLevel = (score: number) => {
-    if (score >= 4) return { level: "Alto", color: "bg-purple-500" };
-    if (score >= 3) return { level: "Médio", color: "bg-orange-500" };
-    return { level: "Baixo", color: "bg-red-500" };
+    if (score >= 4) return {
+      level: "Alto",
+      color: "bg-purple-500"
+    };
+    if (score >= 3) return {
+      level: "Médio",
+      color: "bg-orange-500"
+    };
+    return {
+      level: "Baixo",
+      color: "bg-red-500"
+    };
   };
-
   const getScoreTrend = (currentIndex: number) => {
     if (currentIndex >= historyData.length - 1) return null;
-    
     const currentScore = historyData[currentIndex].overall;
     const previousScore = historyData[currentIndex + 1].overall;
     const diff = currentScore - previousScore;
-    
-    if (diff > 0) return { icon: <ArrowUpRight className="h-4 w-4 text-green-600" />, text: `+${diff.toFixed(1)}` };
-    if (diff < 0) return { icon: <ArrowDownRight className="h-4 w-4 text-red-600" />, text: diff.toFixed(1) };
-    return { icon: <Minus className="h-4 w-4 text-gray-600" />, text: "0.0" };
+    if (diff > 0) return {
+      icon: <ArrowUpRight className="h-4 w-4 text-green-600" />,
+      text: `+${diff.toFixed(1)}`
+    };
+    if (diff < 0) return {
+      icon: <ArrowDownRight className="h-4 w-4 text-red-600" />,
+      text: diff.toFixed(1)
+    };
+    return {
+      icon: <Minus className="h-4 w-4 text-gray-600" />,
+      text: "0.0"
+    };
   };
-
   const goToMaturityQuiz = () => {
     navigate("/maturity-quiz");
   };
-
-  return (
-    <div className="flex h-screen bg-gray-50">
+  return <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Maturidade" />
@@ -239,22 +256,16 @@ const Maturity = () => {
           <Card className="mb-6">
             <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-legacy-500">
-                    Avaliação de Maturidade IBGC vs Benchmark Setorial
-                  </h2>
+                  <h2 className="text-xl font-semibold text-legacy-500">Benchmark Setorial Maturidade em Governança</h2>
                   <Button onClick={() => navigate("/data-input")}>Nova Avaliação</Button>
                 </div>
                 <div className="h-96 mb-4">
-                  {maturityData && maturityData.length > 0 ? (
-                    <MaturityRadarChart data={maturityData} />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
+                  {maturityData && maturityData.length > 0 ? <MaturityRadarChart data={maturityData} /> : <div className="flex items-center justify-center h-full text-gray-500">
                       <div className="text-center">
                         <p>Carregando dados de maturidade...</p>
                         <p className="text-sm mt-1">Aguarde enquanto processamos as informações</p>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
                 <div className="flex justify-center gap-6 text-sm text-gray-600 mb-6">
                   <div className="flex items-center gap-2">
@@ -267,10 +278,9 @@ const Maturity = () => {
                   </div>
                 </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
-                {maturityData.map((item) => {
-                  const maturity = getMaturityLevel(item.score);
-                  return (
-                    <div key={item.name} className="text-center p-3 border rounded-md">
+                {maturityData.map(item => {
+                const maturity = getMaturityLevel(item.score);
+                return <div key={item.name} className="text-center p-3 border rounded-md">
                       <div className="text-sm font-medium text-gray-500 mb-1">
                         {item.name}
                       </div>
@@ -283,21 +293,17 @@ const Maturity = () => {
                         </Badge>
                       </div>
                       <div className="text-xs text-gray-500">
-                        Setor: {item.sectorAverage} | Gap: {(item.score - item.sectorAverage) > 0 ? '+' : ''}{(item.score - item.sectorAverage).toFixed(1)}
+                        Setor: {item.sectorAverage} | Gap: {item.score - item.sectorAverage > 0 ? '+' : ''}{(item.score - item.sectorAverage).toFixed(1)}
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+              })}
               </div>
               <div className="mt-6 flex justify-end space-x-2">
                 <Button onClick={() => navigate("/maturity-quiz")} className="bg-legacy-500 hover:bg-legacy-600">
                   <TrendingUp className="h-4 w-4 mr-2" />
                   Iniciar Nova Avaliação
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowHistoricalData(!showHistoricalData)}
-                >
+                <Button variant="outline" onClick={() => setShowHistoricalData(!showHistoricalData)}>
                   {showHistoricalData ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
                   {showHistoricalData ? 'Ocultar Histórico' : 'Ver Histórico'}
                 </Button>
@@ -316,10 +322,7 @@ const Maturity = () => {
 
           {/* Ranking Setorial */}
           <div className="mb-6">
-            <SectorRanking 
-              currentCompanyScore={maturityData.reduce((acc, item) => acc + item.score, 0) / maturityData.length}
-              sector="Tecnologia"
-            />
+            <SectorRanking currentCompanyScore={maturityData.reduce((acc, item) => acc + item.score, 0) / maturityData.length} sector="Tecnologia" />
           </div>
 
           {/* Painel de Insights */}
@@ -335,8 +338,7 @@ const Maturity = () => {
           </Card>
           
           {/* Historical Data Section - Expandable */}
-          {showHistoricalData && (
-            <>
+          {showHistoricalData && <>
               <Card className="mb-6">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center mb-6">
@@ -346,8 +348,7 @@ const Maturity = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    {activityLogs.map((log) => (
-                      <div key={log.id} className="flex items-start space-x-4 border-b pb-4 last:border-0">
+                    {activityLogs.map(log => <div key={log.id} className="flex items-start space-x-4 border-b pb-4 last:border-0">
                         <Avatar className="h-10 w-10 mt-1">
                           <AvatarFallback className="bg-legacy-500 text-white">{log.userInitials}</AvatarFallback>
                         </Avatar>
@@ -362,8 +363,7 @@ const Maturity = () => {
                           <p className="text-sm text-gray-700 mt-1">{log.action}</p>
                           {log.details && <p className="text-sm text-gray-500 mt-1">{log.details}</p>}
                         </div>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </CardContent>
               </Card>
@@ -388,14 +388,8 @@ const Maturity = () => {
                     </TableHeader>
                     <TableBody>
                       {historyData.map((assessment, index) => {
-                        const trend = getScoreTrend(index);
-                        
-                        return (
-                          <TableRow 
-                            key={assessment.id}
-                            className="cursor-pointer hover:bg-gray-50"
-                            onClick={() => handleOpenDetails(assessment)}
-                          >
+                    const trend = getScoreTrend(index);
+                    return <TableRow key={assessment.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleOpenDetails(assessment)}>
                             <TableCell>
                               <div className="flex items-center">
                                 <Calendar className="h-4 w-4 mr-2 text-legacy-purple-500" />
@@ -409,38 +403,29 @@ const Maturity = () => {
                               </Badge>
                             </TableCell>
                              <TableCell>
-                               {trend ? (
-                                 <div className="flex items-center">
+                               {trend ? <div className="flex items-center">
                                    {trend.icon}
                                    <span className={`ml-1 ${trend.text.startsWith('+') ? 'text-green-600' : trend.text === '0.0' ? 'text-gray-600' : 'text-red-600'}`}>
                                      {trend.text}
                                    </span>
-                                 </div>
-                               ) : (
-                                 <span>-</span>
-                               )}
+                                 </div> : <span>-</span>}
                              </TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenDetails(assessment);
-                            }}
-                          >
+                          <Button variant="ghost" onClick={e => {
+                          e.stopPropagation();
+                          handleOpenDetails(assessment);
+                        }}>
                             <Eye className="h-4 w-4 mr-2" />
                             Ver Detalhes
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    );
+                      </TableRow>;
                   })}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
-          </>
-        )}
+          </>}
         </div>
       </div>
 
@@ -453,8 +438,7 @@ const Maturity = () => {
             </DialogDescription>
           </DialogHeader>
           
-          {selectedAssessment && (
-            <div className="py-4">
+          {selectedAssessment && <div className="py-4">
               <div className="mb-4">
                 <div className="text-lg font-medium flex items-center">
                   Pontuação Geral: 
@@ -467,9 +451,8 @@ const Maturity = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 {selectedAssessment.details.map((detail: any) => {
-                  const maturity = getMaturityLevel(detail.score);
-                  return (
-                    <div key={detail.name} className="border rounded-md p-3">
+              const maturity = getMaturityLevel(detail.score);
+              return <div key={detail.name} className="border rounded-md p-3">
                       <div className="text-sm font-medium text-gray-500">{detail.name}</div>
                       <div className="flex items-center mt-1">
                         <div className="text-lg font-medium text-legacy-purple-500 mr-2">
@@ -479,42 +462,30 @@ const Maturity = () => {
                           {maturity.level}
                         </Badge>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+            })}
               </div>
               
               <div className="mt-6">
                 <h4 className="text-sm font-semibold mb-2">Comentários da Avaliação</h4>
                 <p className="text-sm text-gray-600 border rounded-md p-3 bg-gray-50">
-                  {selectedAssessment.id === 1 ? 
-                    "Houve progresso significativo na estrutura formal e participação familiar. O processo sucessório ainda precisa ser melhor definido." : 
-                    "Avaliação referente ao período indicado. Verificar áreas com pontuações mais baixas para desenvolvimento de ações de melhoria."}
+                  {selectedAssessment.id === 1 ? "Houve progresso significativo na estrutura formal e participação familiar. O processo sucessório ainda precisa ser melhor definido." : "Avaliação referente ao período indicado. Verificar áreas com pontuações mais baixas para desenvolvimento de ações de melhoria."}
                 </p>
               </div>
               
               {/* Add activity information to the dialog */}
               <div className="mt-6">
                 <h4 className="text-sm font-semibold mb-2">Informações de Atividade</h4>
-                {activityLogs.find(log => log.details?.includes(selectedAssessment.overall.toFixed(1))) ? (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                {activityLogs.find(log => log.details?.includes(selectedAssessment.overall.toFixed(1))) ? <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <User className="h-4 w-4" />
                     <span>
-                      Atualizado por {activityLogs.find(log => 
-                        log.details?.includes(selectedAssessment.overall.toFixed(1))
-                      )?.user}
+                      Atualizado por {activityLogs.find(log => log.details?.includes(selectedAssessment.overall.toFixed(1)))?.user}
                     </span>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600">Informações de atividade não disponíveis</p>
-                )}
+                  </div> : <p className="text-sm text-gray-600">Informações de atividade não disponíveis</p>}
               </div>
-            </div>
-          )}
+            </div>}
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default Maturity;
