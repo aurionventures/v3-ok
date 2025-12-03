@@ -171,9 +171,18 @@ export const useATAApprovals = (meetingId?: string) => {
   ) => {
     try {
       const allApprovals = getStoredApprovals();
-      const index = allApprovals.findIndex(a => a.id === approvalId);
+      let index = allApprovals.findIndex(a => a.id === approvalId);
       
-      if (index === -1) return false;
+      // If not found by exact ID, try finding by demo pattern
+      if (index === -1 && approvalId.includes('demo-approval')) {
+        index = allApprovals.findIndex(a => a.id === approvalId || a.id.includes('demo-approval'));
+        console.log(`🔍 Demo approval lookup: found at index ${index}`);
+      }
+      
+      if (index === -1) {
+        console.log(`⚠️ Approval not found: ${approvalId}`);
+        return false;
+      }
       
       allApprovals[index] = {
         ...allApprovals[index],
@@ -185,10 +194,14 @@ export const useATAApprovals = (meetingId?: string) => {
       
       setStoredApprovals(allApprovals);
       
+      const targetMeetingId = allApprovals[index].meeting_id;
+      
       if (meetingId) {
         const meetingApprovals = allApprovals.filter(a => a.meeting_id === meetingId);
         setApprovals(meetingApprovals);
         await checkAllApproved(meetingId);
+      } else if (targetMeetingId) {
+        await checkAllApproved(targetMeetingId);
       }
       
       toast({
@@ -249,9 +262,18 @@ export const useATAApprovals = (meetingId?: string) => {
       const signatureHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
       const allApprovals = getStoredApprovals();
-      const index = allApprovals.findIndex(a => a.id === approvalId);
+      let index = allApprovals.findIndex(a => a.id === approvalId);
       
-      if (index === -1) return false;
+      // If not found, try finding by demo pattern
+      if (index === -1 && approvalId.includes('demo-approval')) {
+        index = allApprovals.findIndex(a => a.id === approvalId || a.id.includes('demo-approval'));
+        console.log(`🔍 Demo signature lookup: found at index ${index}`);
+      }
+      
+      if (index === -1) {
+        console.log(`⚠️ Approval not found for signing: ${approvalId}`);
+        return false;
+      }
       
       const targetMeetingId = allApprovals[index].meeting_id;
       
@@ -264,7 +286,7 @@ export const useATAApprovals = (meetingId?: string) => {
         signed_at: signedAt,
         updated_at: new Date().toISOString(),
       };
-      
+
       setStoredApprovals(allApprovals);
       
       if (meetingId) {
@@ -313,16 +335,106 @@ export const useATAApprovals = (meetingId?: string) => {
     return allSigned;
   };
 
+  // Helper to capitalize name
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   // Get approval by token (for guest access)
-  const getApprovalByToken = async (token: string) => {
+  const getApprovalByToken = async (token: string): Promise<ATAApprovalWithParticipant | null> => {
     const allApprovals = getStoredApprovals();
-    return allApprovals.find(a => a.magic_link_token === token) || null;
+    const existingApproval = allApprovals.find(a => a.magic_link_token === token);
+    
+    if (existingApproval) {
+      console.log(`✅ Found existing approval for token ${token}`);
+      return existingApproval;
+    }
+    
+    // If it's a demo token, auto-create approval data
+    if (token.startsWith('demo-ata-token-')) {
+      console.log(`🔄 Creating demo approval for token ${token}`);
+      const participantName = token.replace('demo-ata-token-', '');
+      
+      const demoApproval: ATAApprovalWithParticipant = {
+        id: `demo-approval-${token}`,
+        meeting_id: 'comite-1', // Default demo meeting
+        participant_id: `demo-participant-${participantName}`,
+        approval_status: 'PENDENTE',
+        approval_comment: null,
+        approved_at: null,
+        signature_status: 'NAO_ASSINADO',
+        signature_hash: null,
+        signature_ip: null,
+        signature_user_agent: null,
+        signed_at: null,
+        notification_sent_at: new Date().toISOString(),
+        magic_link_token: token,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        participant: {
+          id: `demo-participant-${participantName}`,
+          external_name: capitalizeFirstLetter(participantName),
+          external_email: `${participantName.toLowerCase()}@empresa.com`,
+          role: 'Membro'
+        }
+      };
+      
+      // Save to localStorage for persistence
+      const updatedApprovals = [...allApprovals, demoApproval];
+      setStoredApprovals(updatedApprovals);
+      
+      return demoApproval;
+    }
+    
+    return null;
   };
 
   // Get meeting data for a token
   const getMeetingByToken = async (token: string) => {
     const approval = await getApprovalByToken(token);
     if (!approval) return null;
+
+    // For demo tokens, always return rich demo meeting data
+    if (token.startsWith('demo-ata-token-')) {
+      return { 
+        meeting: {
+          id: approval.meeting_id,
+          title: 'Reunião Ordinária - Comitê de Auditoria',
+          date: '2025-01-15',
+          time: '09:00',
+          type: 'Ordinária',
+          modalidade: 'Presencial',
+          minutes_summary: `Reunião realizada no dia 15 de janeiro de 2025 com a presença de todos os membros do Comitê de Auditoria. Foram deliberados os seguintes pontos: aprovação das demonstrações financeiras do 4º trimestre de 2024, análise dos controles internos e gestão de riscos, e revisão do plano de auditoria para 2025.`,
+          minutes_full: `ATA DA REUNIÃO ORDINÁRIA DO COMITÊ DE AUDITORIA
+
+1. ABERTURA
+Aos quinze dias do mês de janeiro de dois mil e vinte e cinco, às nove horas, reuniu-se o Comitê de Auditoria da Empresa Demo S.A., em sua sede social, com a presença de todos os membros.
+
+2. ORDEM DO DIA
+2.1 Aprovação das demonstrações financeiras do 4º trimestre de 2024
+2.2 Análise dos controles internos e gestão de riscos
+2.3 Revisão do plano de auditoria para 2025
+
+3. DELIBERAÇÕES
+3.1 Por unanimidade, foram aprovadas as demonstrações financeiras do 4º trimestre de 2024, que apresentaram receita líquida de R$ 45,2 milhões e EBITDA de R$ 12,8 milhões.
+
+3.2 Foi apresentado o relatório de controles internos, destacando-se:
+- Implementação de novos controles de acesso aos sistemas financeiros
+- Atualização da política de segregação de funções
+- Conclusão do programa de treinamento em compliance
+
+3.3 O plano de auditoria para 2025 foi revisado e aprovado, contemplando:
+- 4 auditorias programadas nos processos críticos
+- Avaliação trimestral dos riscos corporativos
+- Monitoramento contínuo dos controles de TI
+
+4. ENCERRAMENTO
+Nada mais havendo a tratar, foi encerrada a reunião às onze horas e trinta minutos, da qual eu, secretário(a), lavrei a presente ata que, lida e achada conforme, vai assinada por todos os presentes.`,
+          councils: { name: 'Comitê de Auditoria', organ_type: 'comite' }
+        }, 
+        approval 
+      };
+    }
 
     // Get real meeting data from localStorage
     const stored = localStorage.getItem('annual_council_schedule');
