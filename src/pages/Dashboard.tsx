@@ -172,23 +172,23 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* COLUNA ESQUERDA: Resumo Executivo */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Gestão de Riscos - Indicadores Executivos</h3>
+                  <h3 className="text-base font-semibold text-foreground">Gestão de Riscos - Indicadores Executivos</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-100 dark:border-blue-900">
                       <div className="text-3xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
-                      <div className="text-xs text-blue-600 font-medium mt-1">Total de Riscos</div>
+                      <div className="text-sm text-blue-600 font-medium mt-1">Total de Riscos</div>
                     </div>
                     <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-100 dark:border-red-900">
                       <div className="text-3xl font-bold text-red-600">{riskSummary.criticalRisks}</div>
-                      <div className="text-xs text-red-600 font-medium mt-1">Críticos</div>
+                      <div className="text-sm text-red-600 font-medium mt-1">Críticos</div>
                     </div>
                     <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-100 dark:border-green-900">
                       <div className="text-3xl font-bold text-green-600">{riskSummary.mitigationPlans}</div>
-                      <div className="text-xs text-green-600 font-medium mt-1">Com Mitigação</div>
+                      <div className="text-sm text-green-600 font-medium mt-1">Com Mitigação</div>
                     </div>
                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg border border-yellow-100 dark:border-yellow-900">
                       <div className="text-3xl font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
-                      <div className="text-xs text-yellow-600 font-medium mt-1">Sem Mitigação</div>
+                      <div className="text-sm text-yellow-600 font-medium mt-1">Sem Mitigação</div>
                     </div>
                   </div>
                 </div>
@@ -197,26 +197,26 @@ const Dashboard = () => {
                 <div className="space-y-4 lg:border-l lg:pl-6">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-primary" />
-                    <h3 className="text-sm font-semibold text-foreground">Visão Gerencial - Indicadores Executivos</h3>
+                    <h3 className="text-base font-semibold text-foreground">Visão Gerencial - Indicadores Executivos</h3>
                   </div>
                   
                   {/* KPIs de Tarefas - 4 cards horizontais */}
-                  <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
                       <div className="text-xl font-bold text-foreground">{taskMetrics.total}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium">Total Criadas</div>
+                      <div className="text-xs text-muted-foreground font-medium">Total Criadas</div>
                     </div>
                     <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg">
                       <div className="text-xl font-bold text-green-600">{taskMetrics.completed}</div>
-                      <div className="text-[10px] text-green-600 font-medium">Resolvidas</div>
+                      <div className="text-xs text-green-600 font-medium">Resolvidas</div>
                     </div>
                     <div className="text-center p-3 bg-orange-50 dark:bg-orange-950/50 rounded-lg">
                       <div className="text-xl font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
-                      <div className="text-[10px] text-orange-600 font-medium">Pendentes</div>
+                      <div className="text-xs text-orange-600 font-medium">Pendentes</div>
                     </div>
                     <div className="text-center p-3 bg-primary/10 rounded-lg">
                       <div className="text-xl font-bold text-primary">{taskMetrics.resolutionRate}%</div>
-                      <div className="text-[10px] text-primary font-medium">Taxa Resolução</div>
+                      <div className="text-xs text-primary font-medium">Taxa Resolução</div>
                     </div>
                   </div>
 
@@ -224,20 +224,20 @@ const Dashboard = () => {
                   <div className="mt-4">
                     <div className="flex items-center gap-2 mb-3">
                       <FileSignature className="h-4 w-4 text-muted-foreground" />
-                      <h4 className="text-xs font-medium text-muted-foreground">ATAs Pendentes de Aprovação/Assinatura</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground">ATAs Pendentes de Aprovação/Assinatura</h4>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg border border-yellow-200 dark:border-yellow-900">
                         <div className="text-2xl font-bold text-yellow-600">{ataApprovalMetrics.aguardandoAprovacao}</div>
-                        <div className="text-[10px] text-yellow-600 font-medium">Aguardando Aprovação</div>
+                        <div className="text-xs text-yellow-600 font-medium">Aguardando Aprovação</div>
                       </div>
                       <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-900">
                         <div className="text-2xl font-bold text-blue-600">{ataApprovalMetrics.aguardandoAssinatura}</div>
-                        <div className="text-[10px] text-blue-600 font-medium">Aguardando Assinatura</div>
+                        <div className="text-xs text-blue-600 font-medium">Aguardando Assinatura</div>
                       </div>
                       <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-900">
                         <div className="text-2xl font-bold text-green-600">{ataApprovalMetrics.finalizadas}</div>
-                        <div className="text-[10px] text-green-600 font-medium">Finalizadas</div>
+                        <div className="text-xs text-green-600 font-medium">Finalizadas</div>
                       </div>
                     </div>
                   </div>
@@ -259,26 +259,23 @@ const Dashboard = () => {
                   <CardTitle className="text-lg">Maturidade de Governança</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 {latestGovernanceAssessment ? <>
-                    {/* Header com Score + Tendência */}
-                    
-
                     {/* KPIs com Progress Bars */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 5).map(dim => <div key={dim.name} className="flex items-center gap-3">
-                          <span className="text-sm w-28 truncate text-muted-foreground">{dim.name}</span>
-                          <Progress value={dim.score * 20} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
-                          <span className="text-sm font-bold w-8 text-blue-600">{dim.score.toFixed(1)}</span>
+                          <span className="text-base w-32 truncate text-muted-foreground">{dim.name}</span>
+                          <Progress value={dim.score * 20} className="flex-1 h-3 [&>div]:bg-blue-500" />
+                          <span className="text-base font-bold w-10 text-blue-600">{dim.score.toFixed(1)}</span>
                         </div>)}
                     </div>
 
                     {/* Botões de Ação */}
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => navigateTo("/maturity")}>
+                    <div className="flex gap-3 mt-6">
+                      <Button variant="outline" className="flex-1" onClick={() => navigateTo("/maturity")}>
                         Ver Detalhes
                       </Button>
-                      <Button size="sm" className="flex-1 text-xs bg-blue-600 hover:bg-blue-700" onClick={() => navigateTo("/maturity-quiz")}>
+                      <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => navigateTo("/maturity-quiz")}>
                         Nova Avaliação
                       </Button>
                     </div>
@@ -300,43 +297,40 @@ const Dashboard = () => {
                   <CardTitle className="text-lg">Maturidade ESG</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? <>
-                    {/* Header com Score + Tendência */}
-                    
-
                     {/* KPIs com Progress Bars */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {latestESGAssessment.pillarScores && <>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm w-28 text-muted-foreground">Ambiental</span>
-                            <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-green-500" />
-                            <span className="text-sm font-bold w-8 text-green-600">{((latestESGAssessment.pillarScores.environmental?.percentage || 0) / 20).toFixed(1)}</span>
+                            <span className="text-base w-32 text-muted-foreground">Ambiental</span>
+                            <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-3 [&>div]:bg-green-500" />
+                            <span className="text-base font-bold w-10 text-green-600">{((latestESGAssessment.pillarScores.environmental?.percentage || 0) / 20).toFixed(1)}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm w-28 text-muted-foreground">Social</span>
-                            <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
-                            <span className="text-sm font-bold w-8 text-blue-600">{((latestESGAssessment.pillarScores.social?.percentage || 0) / 20).toFixed(1)}</span>
+                            <span className="text-base w-32 text-muted-foreground">Social</span>
+                            <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-3 [&>div]:bg-blue-500" />
+                            <span className="text-base font-bold w-10 text-blue-600">{((latestESGAssessment.pillarScores.social?.percentage || 0) / 20).toFixed(1)}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm w-28 text-muted-foreground">Governança</span>
-                            <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-purple-500" />
-                            <span className="text-sm font-bold w-8 text-purple-600">{((latestESGAssessment.pillarScores.governance?.percentage || 0) / 20).toFixed(1)}</span>
+                            <span className="text-base w-32 text-muted-foreground">Governança</span>
+                            <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-3 [&>div]:bg-purple-500" />
+                            <span className="text-base font-bold w-10 text-purple-600">{((latestESGAssessment.pillarScores.governance?.percentage || 0) / 20).toFixed(1)}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm w-28 text-muted-foreground">Estratégia</span>
-                            <Progress value={latestESGAssessment.pillarScores.strategy?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-orange-500" />
-                            <span className="text-sm font-bold w-8 text-orange-600">{((latestESGAssessment.pillarScores.strategy?.percentage || 0) / 20).toFixed(1)}</span>
+                            <span className="text-base w-32 text-muted-foreground">Estratégia</span>
+                            <Progress value={latestESGAssessment.pillarScores.strategy?.percentage || 0} className="flex-1 h-3 [&>div]:bg-orange-500" />
+                            <span className="text-base font-bold w-10 text-orange-600">{((latestESGAssessment.pillarScores.strategy?.percentage || 0) / 20).toFixed(1)}</span>
                           </div>
                         </>}
                     </div>
 
                     {/* Botões de Ação */}
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => navigateTo("/dados-esg")}>
+                    <div className="flex gap-3 mt-6">
+                      <Button variant="outline" className="flex-1" onClick={() => navigateTo("/dados-esg")}>
                         Ver Detalhes
                       </Button>
-                      <Button size="sm" className="flex-1 text-xs bg-green-600 hover:bg-green-700" onClick={() => navigateTo("/dados-esg")}>
+                      <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => navigateTo("/dados-esg")}>
                         Nova Avaliação
                       </Button>
                     </div>
