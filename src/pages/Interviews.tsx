@@ -367,7 +367,7 @@ export default function Interviews() {
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
-        <Header title={`Entrevistas (${counts.total} entrevistados)`} />
+        <Header title="Entrevistas" />
 
         <main className="flex-1 overflow-auto">
           <div className="p-6">
