@@ -31,15 +31,26 @@ export const useATAApprovals = (meetingId?: string) => {
   const { toast } = useToast();
 
   const fetchApprovals = useCallback(async () => {
-    if (!meetingId) return;
+    if (!meetingId) {
+      console.log("⚠️ fetchApprovals: No meetingId provided");
+      return;
+    }
     
     setLoading(true);
+    console.log(`🔍 fetchApprovals: Loading approvals for meeting ${meetingId}`);
+    
     const allApprovals = getStoredApprovals();
+    console.log(`📋 Total approvals in storage: ${allApprovals.length}`);
+    
     const meetingApprovals = allApprovals.filter(a => a.meeting_id === meetingId);
+    console.log(`✅ Found ${meetingApprovals.length} approvals for meeting ${meetingId}`);
+    
     setApprovals(meetingApprovals);
     
     const statusMap = getATAStatusMap();
-    setAtaStatus(statusMap[meetingId] || null);
+    const status = statusMap[meetingId] || null;
+    console.log(`📊 ATA status for ${meetingId}: ${status || 'not set'}`);
+    setAtaStatus(status);
     
     setLoading(false);
   }, [meetingId]);
