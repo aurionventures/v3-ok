@@ -12,7 +12,6 @@ import MaturityRadarChart from "@/components/MaturityRadarChart";
 import ESGPillarChart from "@/components/ESGPillarChart";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
-
 import { toast } from "@/hooks/use-toast";
 import { getCurrentMaturityAssessment, convertStoredDataToRadarData } from "@/utils/maturityStorage";
 import { loadLatestESGAssessment } from "@/utils/esgMaturityCalculator";
@@ -26,12 +25,16 @@ import { calculateRiskStats, calculateRiskCategoryStats } from "@/utils/riskCalc
 // Calculate real-time risk statistics
 const riskSummary = calculateRiskStats(governanceRisks);
 const riskCategories = calculateRiskCategoryStats(governanceRisks);
-
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { actions, loading: loadingActions } = useAllMeetingActions();
-  
+  const {
+    user
+  } = useAuth();
+  const {
+    actions,
+    loading: loadingActions
+  } = useAllMeetingActions();
+
   // Load latest assessments
   const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
   const [latestESGAssessment, setLatestESGAssessment] = React.useState<any>(null);
@@ -43,9 +46,17 @@ const Dashboard = () => {
     const inProgress = actions.filter(a => a.status === 'EM_ANDAMENTO').length;
     const pending = actions.filter(a => a.status === 'PENDENTE').length;
     const completed = actions.filter(a => a.status === 'CONCLUIDA').length;
-    const resolutionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    const pendingRate = total > 0 ? Math.round(((pending + overdue) / total) * 100) : 0;
-    return { total, overdue, inProgress, pending, completed, resolutionRate, pendingRate };
+    const resolutionRate = total > 0 ? Math.round(completed / total * 100) : 0;
+    const pendingRate = total > 0 ? Math.round((pending + overdue) / total * 100) : 0;
+    return {
+      total,
+      overdue,
+      inProgress,
+      pending,
+      completed,
+      resolutionRate,
+      pendingRate
+    };
   }, [actions]);
 
   // Metrics for meetings and ATAs (demo data)
@@ -54,9 +65,16 @@ const Dashboard = () => {
     const meetingsWithAgenda = 12;
     const totalConcluidas = 10;
     const meetingsWithATA = 9;
-    const pautasPercentual = Math.round((meetingsWithAgenda / totalMeetings) * 100);
-    const atasPercentual = totalConcluidas > 0 ? Math.round((meetingsWithATA / totalConcluidas) * 100) : 0;
-    return { totalMeetings, meetingsWithAgenda, totalConcluidas, meetingsWithATA, pautasPercentual, atasPercentual };
+    const pautasPercentual = Math.round(meetingsWithAgenda / totalMeetings * 100);
+    const atasPercentual = totalConcluidas > 0 ? Math.round(meetingsWithATA / totalConcluidas * 100) : 0;
+    return {
+      totalMeetings,
+      meetingsWithAgenda,
+      totalConcluidas,
+      meetingsWithATA,
+      pautasPercentual,
+      atasPercentual
+    };
   }, []);
 
   // ATA approval metrics (demo data)
@@ -65,7 +83,6 @@ const Dashboard = () => {
     aguardandoAssinatura: 1,
     finalizadas: 1
   }), []);
-
   React.useEffect(() => {
     // Load latest Governance assessment
     const governanceAssessment = getCurrentMaturityAssessment();
@@ -104,28 +121,18 @@ const Dashboard = () => {
   const navigateTo = (path: string) => {
     navigate(path);
   };
-
-  return (
-    <div className="flex h-screen bg-background overflow-hidden">
+  return <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Dashboard" />
         <div className="h-[calc(100vh-4rem)] overflow-y-auto p-6">
           {/* Métricas Principais */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <MetricCard
-              title="Score Geral de Maturidade"
-              value="3.6/5.0"
-              description="Melhoria de 0.3 em 3 meses"
-              trend={{ value: 9, isPositive: true }}
-              icon={<BarChart3 className="h-5 w-5" />}
-            />
-            <MetricCard
-              title="Riscos Críticos"
-              value={riskSummary.criticalRisks.toString()}
-              description={`${riskSummary.totalRisks} riscos totais`}
-              icon={<AlertTriangle className="h-5 w-5" />}
-            />
+            <MetricCard title="Score Geral de Maturidade" value="3.6/5.0" description="Melhoria de 0.3 em 3 meses" trend={{
+            value: 9,
+            isPositive: true
+          }} icon={<BarChart3 className="h-5 w-5" />} />
+            <MetricCard title="Riscos Críticos" value={riskSummary.criticalRisks.toString()} description={`${riskSummary.totalRisks} riscos totais`} icon={<AlertTriangle className="h-5 w-5" />} />
             {/* Pautas Definidas com Progress */}
             <Card className="p-6">
               <div className="flex justify-between items-start">
@@ -164,13 +171,7 @@ const Dashboard = () => {
                   <Shield className="h-5 w-5 text-red-600" />
                   <CardTitle className="text-lg">Gestão de Riscos</CardTitle>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateTo("/governance-risk-management")}
-                >
-                  Ver Matriz Completa
-                </Button>
+                
               </div>
             </CardHeader>
             <CardContent className="p-6 pt-0">
@@ -248,12 +249,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Botão Ver Painel */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full gap-2 mt-2"
-                    onClick={() => navigateTo("/secretariat-panel")}
-                  >
+                  <Button variant="outline" size="sm" className="w-full gap-2 mt-2" onClick={() => navigateTo("/secretariat-panel")}>
                     <ListTodo className="h-4 w-4" />
                     Ver Painel de Secretariado
                   </Button>
@@ -272,18 +268,13 @@ const Dashboard = () => {
                     <Building2 className="h-5 w-5 text-blue-600" />
                     <CardTitle className="text-lg">Maturidade de Governança</CardTitle>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigateTo("/maturity")}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigateTo("/maturity")}>
                     Ver Detalhes
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-6 h-[calc(100%-5rem)]">
-                {latestGovernanceAssessment ? (
-                  <div className="space-y-3 h-full">
+                {latestGovernanceAssessment ? <div className="space-y-3 h-full">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
                         {latestGovernanceAssessment.result.pontuacao_total.toFixed(1)}/5.0
@@ -298,19 +289,13 @@ const Dashboard = () => {
                     <div className="flex-1 h-[calc(100%-6rem)]">
                       <MaturityRadarChart data={convertStoredDataToRadarData(latestGovernanceAssessment)} />
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 h-full flex flex-col justify-center">
+                  </div> : <div className="text-center py-8 h-full flex flex-col justify-center">
                     <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 mb-6">Nenhuma avaliação de governança realizada</p>
-                    <Button
-                      onClick={() => navigateTo("/maturity")}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
+                    <Button onClick={() => navigateTo("/maturity")} className="bg-blue-600 hover:bg-blue-700">
                       Iniciar Avaliação de Governança
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
 
@@ -322,18 +307,13 @@ const Dashboard = () => {
                     <Leaf className="h-5 w-5 text-green-600" />
                     <CardTitle className="text-lg">Maturidade ESG</CardTitle>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigateTo("/dados-esg")}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigateTo("/dados-esg")}>
                     Ver Detalhes
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-6 h-[calc(100%-5rem)]">
-                {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
-                  <div className="space-y-3 h-full">
+                {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? <div className="space-y-3 h-full">
                     <div className="text-center p-3 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">
                         {latestESGAssessment.overallScore.toFixed(1)}/5.0
@@ -346,34 +326,22 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <div className="flex-1 h-[calc(100%-6rem)]">
-                      {latestESGAssessment.pillarScores ? (
-                        <ESGPillarChart pillarScores={latestESGAssessment.pillarScores} />
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
+                      {latestESGAssessment.pillarScores ? <ESGPillarChart pillarScores={latestESGAssessment.pillarScores} /> : <div className="flex items-center justify-center h-full text-gray-500">
                           <p className="text-sm">Dados do gráfico não disponíveis</p>
-                        </div>
-                      )}
+                        </div>}
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 h-full flex flex-col justify-center">
+                  </div> : <div className="text-center py-8 h-full flex flex-col justify-center">
                     <Leaf className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 mb-6">Nenhuma avaliação ESG realizada</p>
-                    <Button
-                      onClick={() => navigateTo("/dados-esg")}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
+                    <Button onClick={() => navigateTo("/dados-esg")} className="bg-green-600 hover:bg-green-700">
                       Iniciar Avaliação ESG
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Dashboard;
