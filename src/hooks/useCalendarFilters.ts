@@ -8,6 +8,12 @@ interface CalendarFilters {
   meetingType: string;
 }
 
+// Helper to get ATA status from localStorage
+const getATAStatusMap = (): Record<string, string> => {
+  const stored = localStorage.getItem('meeting_ata_status');
+  return stored ? JSON.parse(stored) : {};
+};
+
 export const useCalendarFilters = (meetings: MeetingSchedule[]) => {
   const [filters, setFilters] = useState<CalendarFilters>({
     organType: 'all',
@@ -17,6 +23,8 @@ export const useCalendarFilters = (meetings: MeetingSchedule[]) => {
   });
 
   const filteredMeetings = useMemo(() => {
+    const ataStatusMap = getATAStatusMap();
+    
     return meetings.filter(meeting => {
       // Filtro por tipo de órgão
       if (filters.organType !== 'all' && meeting.organ_type !== filters.organType) {
@@ -28,9 +36,24 @@ export const useCalendarFilters = (meetings: MeetingSchedule[]) => {
         return false;
       }
       
-      // Filtro por status
-      if (filters.status !== 'all' && meeting.status !== filters.status) {
-        return false;
+      // Filtro por status - incluindo filtros de aprovação de ATA
+      if (filters.status !== 'all') {
+        const meetingAtaStatus = ataStatusMap[meeting.id];
+        
+        if (filters.status === 'Aguardando Aprovação') {
+          return meetingAtaStatus === 'EM_APROVACAO';
+        }
+        if (filters.status === 'Aguardando Assinatura') {
+          return meetingAtaStatus === 'APROVADO';
+        }
+        if (filters.status === 'ATA Finalizada') {
+          return meetingAtaStatus === 'ASSINADO';
+        }
+        
+        // Filtro de status normal
+        if (meeting.status !== filters.status) {
+          return false;
+        }
       }
       
       // Filtro por tipo de reunião

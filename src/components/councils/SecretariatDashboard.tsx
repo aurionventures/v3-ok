@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard, CalendarIcon } from "lucide-react";
+import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard, CalendarIcon, FileSignature, PenTool } from "lucide-react";
 import { PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -48,6 +48,31 @@ export const SecretariatDashboard = ({
   const [organFilter, setOrganFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'overdue' | 'completed'>('all');
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  
+  // ATA Approval Metrics
+  const [ataMetrics, setAtaMetrics] = useState({ pendingApproval: 0, pendingSignature: 0, finalized: 0 });
+  
+  useEffect(() => {
+    const calculateATAMetrics = () => {
+      const ataStatusMap = localStorage.getItem('meeting_ata_status');
+      if (!ataStatusMap) return { pendingApproval: 0, pendingSignature: 0, finalized: 0 };
+      
+      const statusMap = JSON.parse(ataStatusMap);
+      let pendingApproval = 0;
+      let pendingSignature = 0;
+      let finalized = 0;
+      
+      Object.values(statusMap).forEach((status: any) => {
+        if (status === 'EM_APROVACAO') pendingApproval++;
+        if (status === 'APROVADO') pendingSignature++;
+        if (status === 'ASSINADO') finalized++;
+      });
+      
+      return { pendingApproval, pendingSignature, finalized };
+    };
+    
+    setAtaMetrics(calculateATAMetrics());
+  }, []);
 
   const urgencyCounts = getUrgencyCounts();
 
@@ -298,12 +323,56 @@ export const SecretariatDashboard = ({
                 <CardContent>
                   <div className="text-3xl font-bold text-purple-600">{metrics.resolutionRate}%</div>
                   <Progress value={metrics.resolutionRate} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {metrics.resolved} de {metrics.total} concluídas
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">Eficiência da equipe</p>
                 </CardContent>
               </Card>
             </div>
+
+            {/* ATAs Pendentes Card */}
+            <Card className="border-amber-200 bg-amber-50/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <FileSignature className="h-4 w-4 text-amber-600" />
+                  ATAs Pendentes de Aprovação/Assinatura
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-amber-100 rounded-lg">
+                    <div className="text-2xl font-bold text-amber-700">{ataMetrics.pendingApproval}</div>
+                    <p className="text-xs text-amber-600">Aguardando Aprovação</p>
+                  </div>
+                  <div className="text-center p-3 bg-blue-100 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-700">{ataMetrics.pendingSignature}</div>
+                    <p className="text-xs text-blue-600">Aguardando Assinatura</p>
+                  </div>
+                  <div className="text-center p-3 bg-green-100 rounded-lg">
+                    <div className="text-2xl font-bold text-green-700">{ataMetrics.finalized}</div>
+                    <p className="text-xs text-green-600">Finalizadas</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 gap-2"
+                    onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Aprova%C3%A7%C3%A3o'}
+                  >
+                    <AlertCircle className="h-3 w-3" />
+                    Ver Pendentes
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 gap-2"
+                    onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Assinatura'}
+                  >
+                    <PenTool className="h-3 w-3" />
+                    Ver Assinaturas
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* ====================== VISÃO ESTRATÉGICA ====================== */}

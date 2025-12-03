@@ -313,18 +313,56 @@ export const useATAApprovals = (meetingId?: string) => {
     const approval = await getApprovalByToken(token);
     if (!approval) return null;
 
-    // Return mock meeting data for demo
+    // Get real meeting data from localStorage
+    const stored = localStorage.getItem('annual_council_schedule');
+    if (!stored) {
+      return { 
+        meeting: {
+          id: approval.meeting_id,
+          title: 'Reunião de Demonstração',
+          date: new Date().toISOString().split('T')[0],
+          time: '10:00',
+          type: 'Ordinária',
+          modalidade: 'Presencial',
+          minutes_summary: 'Resumo executivo da reunião.',
+          minutes_full: 'Conteúdo completo da ATA.',
+          councils: { name: 'Conselho de Administração', organ_type: 'conselho' }
+        }, 
+        approval 
+      };
+    }
+    
+    const schedule = JSON.parse(stored);
+    const meeting = schedule.meetings?.find((m: any) => m.id === approval.meeting_id);
+    
+    if (!meeting) {
+      return { 
+        meeting: {
+          id: approval.meeting_id,
+          title: 'Reunião de Demonstração',
+          date: new Date().toISOString().split('T')[0],
+          time: '10:00',
+          type: 'Ordinária',
+          modalidade: 'Presencial',
+          minutes_summary: 'Resumo executivo da reunião.',
+          minutes_full: 'Conteúdo completo da ATA.',
+          councils: { name: 'Conselho de Administração', organ_type: 'conselho' }
+        }, 
+        approval 
+      };
+    }
+    
     return { 
       meeting: {
-        id: approval.meeting_id,
-        title: 'Reunião de Demonstração',
-        date: new Date().toISOString().split('T')[0],
-        time: '10:00',
-        type: 'Ordinária',
-        modalidade: 'Presencial',
-        minutes_summary: 'Resumo executivo da reunião com os principais pontos discutidos e decisões tomadas pelos membros presentes.',
-        minutes_full: 'Conteúdo completo da ATA contendo todos os detalhes da reunião, participantes, deliberações e encaminhamentos acordados durante a sessão.',
-        councils: { name: 'Conselho de Administração', organ_type: 'conselho' }
+        id: meeting.id,
+        title: meeting.title || `Reunião ${meeting.council}`,
+        date: meeting.date,
+        time: meeting.time,
+        type: meeting.type,
+        modalidade: meeting.modalidade,
+        minutes_summary: meeting.ata?.summary || meeting.minutes?.summary || 'Resumo não disponível.',
+        minutes_full: meeting.minutes?.full || meeting.ata?.summary || 'Conteúdo completo não disponível.',
+        councils: { name: meeting.council, organ_type: meeting.organ_type }
       }, 
       approval 
     };

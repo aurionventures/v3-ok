@@ -464,6 +464,21 @@ const AnnualAgenda = () => {
                 <FileCheck className="h-3 w-3" /> ATA Gerada
               </span>
             </SelectItem>
+            <SelectItem value="Aguardando Aprovação">
+              <span className="flex items-center gap-2">
+                <AlertCircle className="h-3 w-3 text-amber-500" /> Aguardando Aprovação
+              </span>
+            </SelectItem>
+            <SelectItem value="Aguardando Assinatura">
+              <span className="flex items-center gap-2">
+                <Scale className="h-3 w-3 text-blue-500" /> Aguardando Assinatura
+              </span>
+            </SelectItem>
+            <SelectItem value="ATA Finalizada">
+              <span className="flex items-center gap-2">
+                <CheckCheck className="h-3 w-3 text-emerald-500" /> ATA Finalizada
+              </span>
+            </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
