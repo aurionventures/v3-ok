@@ -497,9 +497,48 @@ export const useAnnualSchedule = () => {
   }, []);
 
   const initializeDemoATAApprovals = () => {
-    // Check if demo data already exists
+    // Check if SPECIFIC demo data exists (not just any data)
     const existingApprovals = localStorage.getItem('ata_approvals');
-    if (existingApprovals) return;
+    const existingStatusMap = localStorage.getItem('meeting_ata_status');
+    
+    let needsReinit = false;
+    
+    if (existingApprovals) {
+      try {
+        const parsed = JSON.parse(existingApprovals);
+        // Check for a specific demo token to confirm demo data exists
+        const hasDemoData = parsed.some((a: any) => a.magic_link_token === 'demo-ata-token-roberto');
+        if (!hasDemoData) {
+          console.log("⚠️ Existing approvals found but no demo tokens - will reinitialize...");
+          needsReinit = true;
+        }
+      } catch (e) {
+        console.log("⚠️ Invalid approvals data - will reinitialize...");
+        needsReinit = true;
+      }
+    } else {
+      needsReinit = true;
+    }
+    
+    // Also check status map
+    if (existingStatusMap) {
+      try {
+        const statusMap = JSON.parse(existingStatusMap);
+        if (!statusMap['conselho-1'] || !statusMap['comite-1'] || !statusMap['comissao-1']) {
+          console.log("⚠️ Incomplete status map - will reinitialize...");
+          needsReinit = true;
+        }
+      } catch (e) {
+        needsReinit = true;
+      }
+    } else {
+      needsReinit = true;
+    }
+    
+    if (!needsReinit) {
+      console.log("✅ Demo ATA approvals data already exists");
+      return;
+    }
     
     console.log("🔄 Initializing demo ATA approvals data...");
     

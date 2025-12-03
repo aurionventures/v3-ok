@@ -51,16 +51,44 @@ export const ATAApprovalSection = ({ meetingId, hasATA }: ATAApprovalSectionProp
   const approvalProgress = getApprovalProgress();
   const signatureProgress = getSignatureProgress();
 
-  // Fetch meeting participants
+  // Fetch meeting participants - from localStorage (demo) or Supabase
   useEffect(() => {
     const fetchParticipants = async () => {
+      console.log(`🔍 ATAApprovalSection: Fetching participants for meeting ${meetingId}`);
+      
+      // First try to get from localStorage schedule (demo data)
+      const stored = localStorage.getItem('annual_council_schedule');
+      if (stored) {
+        try {
+          const schedule = JSON.parse(stored);
+          const meeting = schedule.meetings?.find((m: any) => m.id === meetingId);
+          if (meeting?.participants && meeting.participants.length > 0) {
+            const formattedParticipants = meeting.participants.map((p: any) => ({
+              id: p.id,
+              external_name: p.name,
+              external_email: p.email,
+              role: p.role
+            }));
+            console.log(`✅ Found ${formattedParticipants.length} participants from localStorage`);
+            setParticipants(formattedParticipants);
+            return;
+          }
+        } catch (e) {
+          console.log("⚠️ Error parsing localStorage schedule");
+        }
+      }
+      
+      // Fallback to Supabase
       const { data } = await supabase
         .from('meeting_participants')
         .select('id, external_name, external_email, role')
         .eq('meeting_id', meetingId);
       
-      if (data) {
+      if (data && data.length > 0) {
+        console.log(`✅ Found ${data.length} participants from Supabase`);
         setParticipants(data);
+      } else {
+        console.log("⚠️ No participants found");
       }
     };
     
