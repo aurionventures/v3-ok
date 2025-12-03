@@ -2,18 +2,16 @@ import React, { useState, useEffect } from "react";
 import { BarChart3, TrendingUp, Eye, Calendar, ArrowUpRight, ArrowDownRight, Minus, Clock, User, ChevronDown, ChevronUp } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
-import MaturityInsights from "@/components/MaturityInsights";
-import MaturityGlobalIndicator from "@/components/MaturityGlobalIndicator";
-import SectorRanking from "@/components/SectorRanking";
 import MaturityTimeline from "@/components/MaturityTimeline";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { mockHistoricalAssessments, getHistoricalTrend } from "@/data/mockHistoricalData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getCurrentMaturityAssessment, getMaturityHistory, convertStoredDataToRadarData, StoredMaturityAssessment } from "@/utils/maturityStorage";
@@ -160,6 +158,8 @@ const formatDate = (date: Date) => {
 };
 const Maturity = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "results";
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const [showActivityLogs, setShowActivityLogs] = useState(false);
@@ -169,6 +169,7 @@ const Maturity = () => {
   const [progressData, setProgressData] = useState<any[]>([]);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   const [timelineData, setTimelineData] = useState<any[]>([]);
+  const historicalTrend = getHistoricalTrend();
   useEffect(() => {
     // Load current assessment
     const currentAssessment = getCurrentMaturityAssessment();
@@ -251,105 +252,144 @@ const Maturity = () => {
   return <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Maturidade" />
+        <Header title="Maturidade de Governança" />
         <div className="flex-1 overflow-y-auto p-6">
-          <Card className="mb-6">
-            <CardContent className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-legacy-500">Maturidade em Governança
-              </h2>
-                  <Button onClick={() => navigate("/data-input")}>Nova Avaliação</Button>
-                </div>
-                <div className="h-96 mb-4">
-                  {maturityData && maturityData.length > 0 ? <MaturityRadarChart data={maturityData} /> : <div className="flex items-center justify-center h-full text-gray-500">
-                      <div className="text-center">
-                        <p>Carregando dados de maturidade...</p>
-                        <p className="text-sm mt-1">Aguarde enquanto processamos as informações</p>
-                      </div>
-                    </div>}
-                </div>
-                <div className="flex justify-center gap-6 text-sm text-gray-600 mb-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-purple-500 rounded opacity-60"></div>
-                    <span>Sua Empresa</span>
+          <Tabs defaultValue={defaultTab} className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="results">Maturidade e Histórico</TabsTrigger>
+              <TabsTrigger value="new-assessment">Nova Avaliação</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="results" className="space-y-6">
+              {/* Radar Chart Card */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-legacy-500">Maturidade em Governança</h2>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-1 border-2 border-gray-500 border-dashed"></div>
-                    <span>Média do Setor</span>
-                  </div>
-                </div>
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                {maturityData.map(item => {
-                const maturity = getMaturityLevel(item.score);
-                return <div key={item.name} className="text-center p-3 border rounded-md">
-                      <div className="text-sm font-medium text-gray-500 mb-1">
-                        {item.name}
-                      </div>
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <div className={`text-xl font-semibold text-legacy-purple-500`}>
-                          {item.score}
+                  <div className="h-80 mb-4">
+                    {maturityData && maturityData.length > 0 ? <MaturityRadarChart data={maturityData} /> : <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="text-center">
+                          <p>Carregando dados de maturidade...</p>
+                          <p className="text-sm mt-1">Aguarde enquanto processamos as informações</p>
                         </div>
-                        <Badge className={`${maturity.color} hover:${maturity.color}`}>
-                          {maturity.level}
-                        </Badge>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Setor: {item.sectorAverage} | Gap: {item.score - item.sectorAverage > 0 ? '+' : ''}{(item.score - item.sectorAverage).toFixed(1)}
-                      </div>
-                    </div>;
-              })}
-              </div>
-              <div className="mt-6 flex justify-end space-x-2">
-                <Button onClick={() => navigate("/maturity-quiz")} className="bg-legacy-500 hover:bg-legacy-600">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Iniciar Nova Avaliação
-                </Button>
-                <Button variant="outline" onClick={() => setShowHistoricalData(!showHistoricalData)}>
-                  {showHistoricalData ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
-                  {showHistoricalData ? 'Ocultar Histórico' : 'Ver Histórico'}
-                </Button>
-              </div>
+                      </div>}
+                  </div>
+                  <div className="flex justify-center gap-6 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-purple-500 rounded opacity-60"></div>
+                      <span>Sua Empresa</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-1 border-2 border-gray-500 border-dashed"></div>
+                      <span>Média do Setor</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    {maturityData.map(item => {
+                      const maturity = getMaturityLevel(item.score);
+                      return <div key={item.name} className="text-center p-3 border rounded-md">
+                        <div className="text-sm font-medium text-gray-500 mb-1">{item.name}</div>
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <div className="text-xl font-semibold text-legacy-purple-500">{item.score}</div>
+                          <Badge className={`${maturity.color} hover:${maturity.color}`}>{maturity.level}</Badge>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Setor: {item.sectorAverage} | Gap: {item.score - item.sectorAverage > 0 ? '+' : ''}{(item.score - item.sectorAverage).toFixed(1)}
+                        </div>
+                      </div>;
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
 
-            </CardContent>
-          </Card>
+              {/* Gráfico de Evolução */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="h-5 w-5" />
+                    <span>Evolução da Maturidade</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={historicalTrend}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="period" fontSize={12} />
+                      <YAxis domain={[0, 5]} fontSize={12} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-          {/* Timeline de Maturidade */}
-          <MaturityTimeline data={timelineData} />
-
-          {/* Indicador Global */}
-          <div className="mb-6">
-            <MaturityGlobalIndicator data={maturityData} />
-          </div>
-
-          {/* Ranking Setorial */}
-          <div className="mb-6">
-            <SectorRanking currentCompanyScore={maturityData.reduce((acc, item) => acc + item.score, 0) / maturityData.length} sector="Tecnologia" />
-          </div>
-
-          {/* Painel de Insights */}
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-legacy-500">
-                  Insights Estratégicos
-                </h2>
-              </div>
-              <MaturityInsights data={maturityData} />
-            </CardContent>
-          </Card>
-          
-          {/* Historical Data Section - Expandable */}
-          {showHistoricalData && <>
-              <Card className="mb-6">
+              {/* Timeline de Maturidade */}
+              <MaturityTimeline data={timelineData} />
+              
+              {/* Histórico de Avaliações */}
+              <Card>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold text-legacy-500">
-                      Atividades Recentes
-                    </h2>
+                    <h2 className="text-xl font-semibold text-legacy-500">Histórico de Avaliações</h2>
+                    <Button variant="outline" onClick={() => setShowHistoricalData(!showHistoricalData)}>
+                      {showHistoricalData ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
+                      {showHistoricalData ? 'Ocultar Atividades' : 'Ver Atividades'}
+                    </Button>
                   </div>
                   
-                  <div className="space-y-4">
-                    {activityLogs.map(log => <div key={log.id} className="flex items-start space-x-4 border-b pb-4 last:border-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Período</TableHead>
+                        <TableHead>Pontuação Geral</TableHead>
+                        <TableHead>Estágio IBGC</TableHead>
+                        <TableHead>Evolução</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {historyData.map((assessment, index) => {
+                        const trend = getScoreTrend(index);
+                        return <TableRow key={assessment.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleOpenDetails(assessment)}>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-legacy-purple-500" />
+                              {assessment.date}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{(assessment.overall * 20).toFixed(0)}%</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{assessment.stage}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {trend ? <div className="flex items-center">
+                              {trend.icon}
+                              <span className={`ml-1 ${trend.text.startsWith('+') ? 'text-green-600' : trend.text === '0.0' ? 'text-gray-600' : 'text-red-600'}`}>
+                                {trend.text}
+                              </span>
+                            </div> : <span>-</span>}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" onClick={e => { e.stopPropagation(); handleOpenDetails(assessment); }}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver Detalhes
+                            </Button>
+                          </TableCell>
+                        </TableRow>;
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Atividades Recentes - Expandable */}
+              {showHistoricalData && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold text-legacy-500 mb-6">Atividades Recentes</h2>
+                    <div className="space-y-4">
+                      {activityLogs.map(log => <div key={log.id} className="flex items-start space-x-4 border-b pb-4 last:border-0">
                         <Avatar className="h-10 w-10 mt-1">
                           <AvatarFallback className="bg-legacy-500 text-white">{log.userInitials}</AvatarFallback>
                         </Avatar>
@@ -365,68 +405,32 @@ const Maturity = () => {
                           {log.details && <p className="text-sm text-gray-500 mt-1">{log.details}</p>}
                         </div>
                       </div>)}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="new-assessment">
+              <Card>
+                <CardContent className="p-8">
+                  <div className="text-center max-w-2xl mx-auto">
+                    <BarChart3 className="h-16 w-16 mx-auto mb-6 text-legacy-500" />
+                    <h2 className="text-2xl font-semibold text-legacy-500 mb-4">
+                      Avaliação de Maturidade de Governança
+                    </h2>
+                    <p className="text-gray-600 mb-8">
+                      Avalie a maturidade da governança corporativa da sua organização com base em diretrizes de boas práticas de governança corporativa.
+                    </p>
+                    <Button onClick={() => navigate("/maturity-quiz")} size="lg" className="w-full md:w-auto px-8">
+                      <BarChart3 className="h-5 w-5 mr-2" />
+                      Iniciar Avaliação de Governança
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold text-legacy-500">
-                      Histórico de Avaliações
-                    </h2>
-                  </div>
-                  
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Período</TableHead>
-                        <TableHead>Pontuação Geral</TableHead>
-                        <TableHead>Estágio IBGC</TableHead>
-                        <TableHead>Evolução</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {historyData.map((assessment, index) => {
-                    const trend = getScoreTrend(index);
-                    return <TableRow key={assessment.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleOpenDetails(assessment)}>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Calendar className="h-4 w-4 mr-2 text-legacy-purple-500" />
-                                {assessment.date}
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">{(assessment.overall * 20).toFixed(0)}%</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {assessment.stage}
-                              </Badge>
-                            </TableCell>
-                             <TableCell>
-                               {trend ? <div className="flex items-center">
-                                   {trend.icon}
-                                   <span className={`ml-1 ${trend.text.startsWith('+') ? 'text-green-600' : trend.text === '0.0' ? 'text-gray-600' : 'text-red-600'}`}>
-                                     {trend.text}
-                                   </span>
-                                 </div> : <span>-</span>}
-                             </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" onClick={e => {
-                          e.stopPropagation();
-                          handleOpenDetails(assessment);
-                        }}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Detalhes
-                          </Button>
-                        </TableCell>
-                      </TableRow>;
-                  })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </>}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 

@@ -37,7 +37,8 @@ import {
   Send, 
   FolderOpen,
   TrendingUp,
-  Briefcase
+  Briefcase,
+  Lightbulb
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -135,12 +136,6 @@ const Sidebar = () => {
           href: "/cap-table",
           name: "Cap Table",
           moduleId: "cap-table"
-        },
-        {
-          icon: <BarChart3 className="h-5 w-5" />,
-          href: "/data-input",
-          name: "Avaliação de Governança",
-          moduleId: "maturity"
         },
         {
           icon: <CheckCircle className="h-5 w-5" />,
@@ -283,6 +278,18 @@ const Sidebar = () => {
           href: "/market-intelligence",
           name: "Inteligência de Mercado",
           moduleId: "market-intelligence"
+        },
+        {
+          icon: <Target className="h-5 w-5" />,
+          href: "/benchmarking",
+          name: "Benchmarking Global",
+          moduleId: "benchmarking"
+        },
+        {
+          icon: <Lightbulb className="h-5 w-5" />,
+          href: "/insights",
+          name: "Insights Estratégicos",
+          moduleId: "insights"
         }
       ]
     },
