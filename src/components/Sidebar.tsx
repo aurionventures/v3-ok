@@ -253,16 +253,23 @@ const Sidebar = () => {
           moduleId: "governance-risks"
         },
         {
-          icon: <Leaf className="h-5 w-5" />,
-          href: "/esg",
-          name: "ESG",
-          moduleId: "esg"
-        },
-        {
           icon: <ActivitySquare className="h-5 w-5" />,
           href: "/activities",
           name: "Atividades",
           moduleId: null
+        }
+      ]
+    },
+    {
+      phase: "ESG",
+      icon: <Leaf className="h-4 w-4" />,
+      color: "text-emerald-400",
+      items: [
+        {
+          icon: <Leaf className="h-5 w-5" />,
+          href: "/esg",
+          name: "Monitoramento ESG",
+          moduleId: "esg"
         }
       ]
     },
