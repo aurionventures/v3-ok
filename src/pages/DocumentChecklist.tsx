@@ -309,7 +309,7 @@ export default function DocumentChecklist() {
   const [divergencesModalOpen, setDivergencesModalOpen] = useState(false);
   const [correctionsModalOpen, setCorrectionsModalOpen] = useState(false);
   const [selectedIssueDoc, setSelectedIssueDoc] = useState<UploadedDocument | null>(null);
-  const [librarySubTab, setLibrarySubTab] = useState('upload');
+  const [librarySubTab, setLibrarySubTab] = useState('library');
 
   // Get active tab from URL
   const activeTab = searchParams.get('tab') || 'checklist';
@@ -532,79 +532,40 @@ export default function DocumentChecklist() {
                   </CardContent>
                 </Card>
 
+                {/* Upload por Categoria - Sempre visível na Biblioteca */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upload por Categoria</CardTitle>
+                    <p className="text-muted-foreground">Selecione a categoria e faça upload dos documentos para análise automática</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {documentCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {selectedCategory && selectedCategory !== 'all' && (
+                      <FileUpload 
+                        onFileUpload={(files) => handleFileUpload(files, selectedCategory)}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Library Sub-Tabs */}
                 <Tabs value={librarySubTab} onValueChange={setLibrarySubTab} className="space-y-6">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="upload">Upload</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="library">Documentos</TabsTrigger>
                     <TabsTrigger value="analysis">Análises</TabsTrigger>
                   </TabsList>
-
-                  {/* Upload Sub-Tab */}
-                  <TabsContent value="upload">
-                    <div className="space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Upload por Categoria</CardTitle>
-                          <p className="text-muted-foreground">Selecione a categoria e faça upload dos documentos para análise automática</p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma categoria" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {documentCategories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {category}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          
-                          {selectedCategory && selectedCategory !== 'all' && (
-                            <FileUpload 
-                              onFileUpload={(files) => handleFileUpload(files, selectedCategory)}
-                            />
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {documents.length > 0 && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Documentos Recentes</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              {documents.slice(0, 5).map((doc) => (
-                                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                  <div className="flex items-center space-x-3">
-                                    <FileText className="h-8 w-8 text-primary" />
-                                    <div>
-                                      <div className="font-medium">{doc.name}</div>
-                                      <div className="text-sm text-muted-foreground">{doc.category}</div>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    {getStatusIcon(doc.status)}
-                                    {getStatusBadge(doc.status)}
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => setViewDocument(doc)}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </div>
-                  </TabsContent>
 
                   {/* Library Sub-Tab */}
                   <TabsContent value="library">
