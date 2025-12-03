@@ -157,7 +157,7 @@ const Sidebar = () => {
         {
           icon: <BookText className="h-5 w-5" />,
           href: "/legacy",
-          name: "Legado",
+          name: "Legado e Rituais",
           moduleId: null
         }
       ]
