@@ -35,7 +35,6 @@ import {
   Building2, 
   User, 
   Send, 
-  FolderOpen,
   TrendingUp,
   Briefcase,
   Lightbulb
@@ -162,12 +161,6 @@ const Sidebar = () => {
           name: "Checklist",
           moduleId: "document-checklist",
           priority: true
-        },
-        {
-          icon: <FolderOpen className="h-5 w-5" />,
-          href: "/documents",
-          name: "Biblioteca",
-          moduleId: "documents"
         },
         {
           icon: <ActivitySquare className="h-5 w-5" />,

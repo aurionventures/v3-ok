@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
-  Leaf, Settings, Shield, Users, Database, BookOpen, BookText, 
+  Leaf, Settings, Shield, Users, BookOpen, BookText, 
   Activity, Building, Bot, DollarSign, PieChart, CheckCircle, 
   Clock, AlertCircle, Zap, Target, Map, Play, Send, TrendingUp
 } from "lucide-react";
@@ -113,20 +113,6 @@ export function AppSidebar() {
       ]
     },
     {
-      phase: "Fundação",
-      icon: Users,
-      color: "text-green-400",
-      items: [
-        {
-          icon: FileText,
-          href: "/document-management",
-          name: "Gestão de Documentos",
-          moduleId: "document-management",
-          priority: true
-        }
-      ]
-    },
-    {
       phase: "Preparação",
       icon: BookOpen,
       color: "text-blue-400",
@@ -134,15 +120,8 @@ export function AppSidebar() {
         {
           icon: FileText,
           href: "/document-checklist",
-          name: "Checklist de Documentos",
+          name: "Checklist",
           moduleId: "document-checklist",
-          priority: true
-        },
-        {
-          icon: Database,
-          href: "/document-upload",
-          name: "Upload de Documentos",
-          moduleId: "document-upload",
           priority: true
         },
         {
@@ -154,7 +133,7 @@ export function AppSidebar() {
         {
           icon: BarChart3,
           href: "/initial-report",
-          name: "Relatório Inicial",
+          name: "Análise e Ações",
           moduleId: "initial-report"
         }
       ]
