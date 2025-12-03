@@ -23,7 +23,8 @@ import Settings from "./pages/Settings";
 import Activities from "./pages/Activities";
 import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
-import DataInput from "./pages/DataInput";
+import Benchmarking from "./pages/Benchmarking";
+import Insights from "./pages/Insights";
 import Monitoring from "./pages/Monitoring";
 import DadosESG from "./pages/DadosESG";
 import GovernanceAssistant from "./components/GovernanceAssistant";
@@ -328,9 +329,21 @@ const App = () => (
           />
           <Route 
             path="/data-input" 
+            element={<Navigate to="/maturity?tab=new-assessment" replace />}
+          />
+          <Route 
+            path="/benchmarking" 
             element={
               <ProtectedRoute >
-                <DataInput />
+                <Benchmarking />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/insights" 
+            element={
+              <ProtectedRoute >
+                <Insights />
               </ProtectedRoute>
             } 
           />
