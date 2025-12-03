@@ -264,18 +264,13 @@ const Dashboard = () => {
                     {/* Header com Score + Tendência */}
                     
 
-                    {/* Layout 2 colunas: Gráfico + KPIs */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="h-[160px]">
-                        <MaturityRadarChart data={convertStoredDataToRadarData(latestGovernanceAssessment)} />
-                      </div>
-                      <div className="space-y-2">
-                        {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 5).map(dim => <div key={dim.name} className="flex items-center gap-2">
-                            <span className="text-[10px] w-16 truncate text-muted-foreground">{dim.name}</span>
-                            <Progress value={dim.score * 20} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
-                            <span className="text-[10px] font-bold w-6 text-blue-600">{dim.score.toFixed(1)}</span>
-                          </div>)}
-                      </div>
+                    {/* KPIs com Progress Bars */}
+                    <div className="space-y-3">
+                      {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 5).map(dim => <div key={dim.name} className="flex items-center gap-3">
+                          <span className="text-sm w-28 truncate text-muted-foreground">{dim.name}</span>
+                          <Progress value={dim.score * 20} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
+                          <span className="text-sm font-bold w-8 text-blue-600">{dim.score.toFixed(1)}</span>
+                        </div>)}
                     </div>
 
                     {/* Botões de Ação */}
@@ -310,37 +305,30 @@ const Dashboard = () => {
                     {/* Header com Score + Tendência */}
                     
 
-                    {/* Layout 2 colunas: Gráfico + KPIs */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="h-[140px]">
-                        {latestESGAssessment.pillarScores ? <ESGPillarChart pillarScores={latestESGAssessment.pillarScores} /> : <div className="flex items-center justify-center h-full text-muted-foreground">
-                            <p className="text-xs">Dados não disponíveis</p>
-                          </div>}
-                      </div>
-                      <div className="space-y-2">
-                        {latestESGAssessment.pillarScores && <>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] w-16 text-muted-foreground">Ambiental</span>
-                              <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-green-500" />
-                              <span className="text-[10px] font-bold w-6 text-green-600">{((latestESGAssessment.pillarScores.environmental?.percentage || 0) / 20).toFixed(1)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] w-16 text-muted-foreground">Social</span>
-                              <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
-                              <span className="text-[10px] font-bold w-6 text-blue-600">{((latestESGAssessment.pillarScores.social?.percentage || 0) / 20).toFixed(1)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] w-16 text-muted-foreground">Governança</span>
-                              <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-purple-500" />
-                              <span className="text-[10px] font-bold w-6 text-purple-600">{((latestESGAssessment.pillarScores.governance?.percentage || 0) / 20).toFixed(1)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] w-16 text-muted-foreground">Estratégia</span>
-                              <Progress value={latestESGAssessment.pillarScores.strategy?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-orange-500" />
-                              <span className="text-[10px] font-bold w-6 text-orange-600">{((latestESGAssessment.pillarScores.strategy?.percentage || 0) / 20).toFixed(1)}</span>
-                            </div>
-                          </>}
-                      </div>
+                    {/* KPIs com Progress Bars */}
+                    <div className="space-y-3">
+                      {latestESGAssessment.pillarScores && <>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm w-28 text-muted-foreground">Ambiental</span>
+                            <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-green-500" />
+                            <span className="text-sm font-bold w-8 text-green-600">{((latestESGAssessment.pillarScores.environmental?.percentage || 0) / 20).toFixed(1)}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm w-28 text-muted-foreground">Social</span>
+                            <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
+                            <span className="text-sm font-bold w-8 text-blue-600">{((latestESGAssessment.pillarScores.social?.percentage || 0) / 20).toFixed(1)}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm w-28 text-muted-foreground">Governança</span>
+                            <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-purple-500" />
+                            <span className="text-sm font-bold w-8 text-purple-600">{((latestESGAssessment.pillarScores.governance?.percentage || 0) / 20).toFixed(1)}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm w-28 text-muted-foreground">Estratégia</span>
+                            <Progress value={latestESGAssessment.pillarScores.strategy?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-orange-500" />
+                            <span className="text-sm font-bold w-8 text-orange-600">{((latestESGAssessment.pillarScores.strategy?.percentage || 0) / 20).toFixed(1)}</span>
+                          </div>
+                        </>}
                     </div>
 
                     {/* Botões de Ação */}
