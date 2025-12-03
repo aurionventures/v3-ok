@@ -105,12 +105,6 @@ export function AppSidebar() {
           moduleId: "maturity-results"
         },
         {
-          icon: Leaf,
-          href: "/dados-esg",
-          name: "Maturidade ESG",
-          moduleId: "esg"
-        },
-        {
           icon: BookText,
           href: "/legacy",
           name: "Legado e Rituais",
@@ -219,7 +213,7 @@ export function AppSidebar() {
         {
           icon: Leaf,
           href: "/esg",
-          name: "ESG",
+          name: "Maturidade ESG",
           moduleId: "esg"
         },
         {

@@ -144,12 +144,6 @@ const Sidebar = () => {
           moduleId: "maturity-results"
         },
         {
-          icon: <Leaf className="h-5 w-5" />,
-          href: "/dados-esg",
-          name: "Maturidade ESG",
-          moduleId: "esg"
-        },
-        {
           icon: <BookText className="h-5 w-5" />,
           href: "/legacy",
           name: "Legado e Rituais",
@@ -263,7 +257,7 @@ const Sidebar = () => {
         {
           icon: <Leaf className="h-5 w-5" />,
           href: "/esg",
-          name: "Monitoramento ESG",
+          name: "Maturidade ESG",
           moduleId: "esg"
         }
       ]

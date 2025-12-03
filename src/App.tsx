@@ -349,11 +349,7 @@ const App = () => (
           />
           <Route 
             path="/dados-esg" 
-            element={
-              <ProtectedRoute >
-                <DadosESG />
-              </ProtectedRoute>
-            } 
+            element={<Navigate to="/esg?tab=new-assessment" replace />}
           />
           <Route 
             path="/onboarding" 
