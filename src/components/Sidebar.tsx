@@ -230,12 +230,6 @@ const Sidebar = () => {
           href: "/submit-projects",
           name: "Submeter Projetos",
           moduleId: "submit-projects"
-        },
-        {
-          icon: <Calendar className="h-5 w-5" />,
-          href: "/rituals",
-          name: "Rituais",
-          moduleId: "rituals"
         }
       ]
     },
