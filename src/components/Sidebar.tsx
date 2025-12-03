@@ -271,12 +271,6 @@ const Sidebar = () => {
           href: "/benchmarking",
           name: "Benchmarking Global",
           moduleId: "benchmarking"
-        },
-        {
-          icon: <Lightbulb className="h-5 w-5" />,
-          href: "/insights",
-          name: "Insights Estratégicos",
-          moduleId: "insights"
         }
       ]
     },
