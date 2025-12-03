@@ -101,7 +101,7 @@ export function AppSidebar() {
         {
           icon: CheckCircle,
           href: "/maturity",
-          name: "Resultados Governança",
+          name: "Maturidade de Governança",
           moduleId: "maturity-results"
         },
         {

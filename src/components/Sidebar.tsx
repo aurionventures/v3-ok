@@ -145,7 +145,7 @@ const Sidebar = () => {
         {
           icon: <CheckCircle className="h-5 w-5" />,
           href: "/maturity",
-          name: "Resultados Governança",
+          name: "Maturidade de Governança",
           moduleId: "maturity-results"
         },
         {
