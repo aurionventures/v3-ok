@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Eye, Calendar, ArrowUpRight, ArrowDownRight, Minus, Clock, User, ChevronDown, ChevronUp } from "lucide-react";
+import { BarChart3, TrendingUp, Eye, Calendar, ArrowUpRight, ArrowDownRight, Minus, Clock, User, ChevronDown, ChevronUp, FileText, Lightbulb, Target, Download } from "lucide-react";
+import { generateGovernancePDFReport } from "@/components/GovernancePDFReport";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
 import MaturityTimeline from "@/components/MaturityTimeline";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { mockHistoricalAssessments, getHistoricalTrend } from "@/data/mockHistoricalData";
+import { mockHistoricalAssessments, getHistoricalTrend, HistoricalAssessment } from "@/data/mockHistoricalData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getCurrentMaturityAssessment, getMaturityHistory, convertStoredDataToRadarData, StoredMaturityAssessment } from "@/utils/maturityStorage";
 
@@ -418,60 +419,160 @@ const Maturity = () => {
       </div>
 
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="sm:max-w-[625px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Avaliação de Maturidade - {selectedAssessment?.date}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <FileText className="h-5 w-5 text-primary" />
+              Relatório de Maturidade IBGC - {selectedAssessment?.date}
+            </DialogTitle>
             <DialogDescription>
-              Detalhes da avaliação de maturidade para o período {selectedAssessment?.date}
+              Análise completa de governança corporativa
             </DialogDescription>
           </DialogHeader>
           
-          {selectedAssessment && <div className="py-4">
-              <div className="mb-4">
-                <div className="text-lg font-medium flex items-center">
-                  Pontuação Geral: 
-                  <span className="text-legacy-purple-600 ml-2">{selectedAssessment.overall.toFixed(1)}</span>
-                  <Badge className={`ml-2 ${getMaturityLevel(selectedAssessment.overall).color}`}>
-                    {getMaturityLevel(selectedAssessment.overall).level}
-                  </Badge>
+          {selectedAssessment && (() => {
+            // Find the full assessment data from mockHistoricalAssessments
+            const fullAssessment = mockHistoricalAssessments.find(a => a.period === selectedAssessment.date);
+            const scorePercent = selectedAssessment.overall * 20;
+            
+            const getStageDescription = (stage: string) => {
+              const descriptions: Record<string, string> = {
+                "Básico": "Empresa em estágio inicial de governança. Foco em formalização de estruturas básicas e processos decisórios.",
+                "Intermediário": "Boa evolução em governança. Continuar aprimorando controles e transparência.",
+                "Sólido": "Maturidade sólida em governança. Foque em otimização e práticas avançadas.",
+                "Avançado": "Excelência em governança corporativa. Referência para o setor."
+              };
+              return descriptions[stage] || "Avaliação em andamento.";
+            };
+            
+            return (
+              <div className="py-4 space-y-6">
+                {/* Score Card */}
+                <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 border border-primary/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">Pontuação Geral</h3>
+                    <Badge variant="outline" className="text-base px-3 py-1">
+                      {selectedAssessment.stage}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-4xl font-bold text-primary">{scorePercent.toFixed(0)}%</span>
+                    <Badge className={`${getMaturityLevel(selectedAssessment.overall).color} hover:${getMaturityLevel(selectedAssessment.overall).color}`}>
+                      {getMaturityLevel(selectedAssessment.overall).level}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {getStageDescription(selectedAssessment.stage)}
+                  </p>
+                </div>
+                
+                {/* Dimensões Grid */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Desempenho por Dimensão
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {selectedAssessment.details.map((detail: any) => {
+                      const maturity = getMaturityLevel(detail.score);
+                      return (
+                        <div key={detail.name} className="border rounded-lg p-3 text-center bg-card">
+                          <div className="text-xs font-medium text-muted-foreground mb-2 line-clamp-2 h-8">
+                            {detail.name}
+                          </div>
+                          <div className="text-2xl font-bold text-primary mb-1">
+                            {detail.score.toFixed(1)}
+                          </div>
+                          <div className="text-xs text-muted-foreground mb-2">/5.0</div>
+                          <Badge className={`${maturity.color} hover:${maturity.color} text-xs`}>
+                            {maturity.level}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Insights */}
+                {fullAssessment?.keyInsights && fullAssessment.keyInsights.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-yellow-500" />
+                      Principais Insights
+                    </h3>
+                    <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                      <ul className="space-y-2">
+                        {fullAssessment.keyInsights.map((insight, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm">
+                            <span className="text-yellow-600 mt-1">•</span>
+                            <span>{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Recomendações */}
+                {fullAssessment?.recommendations && fullAssessment.recommendations.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-blue-500" />
+                      Recomendações Prioritárias
+                    </h3>
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                      <ul className="space-y-2">
+                        {fullAssessment.recommendations.map((rec, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm">
+                            <span className="text-blue-600 mt-1">{index + 1}.</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Próximos Passos */}
+                {fullAssessment?.nextSteps && fullAssessment.nextSteps.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Target className="h-5 w-5 text-green-500" />
+                      Próximos Passos
+                    </h3>
+                    <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                      <ul className="space-y-2">
+                        {fullAssessment.nextSteps.map((step, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm">
+                            <span className="text-green-600 mt-1">→</span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button 
+                    onClick={async () => {
+                      if (fullAssessment) {
+                        await generateGovernancePDFReport(fullAssessment);
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar PDF
+                  </Button>
+                  <Button variant="outline" onClick={() => setOpenDialog(false)} className="flex-1">
+                    Fechar
+                  </Button>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {selectedAssessment.details.map((detail: any) => {
-              const maturity = getMaturityLevel(detail.score);
-              return <div key={detail.name} className="border rounded-md p-3">
-                      <div className="text-sm font-medium text-gray-500">{detail.name}</div>
-                      <div className="flex items-center mt-1">
-                        <div className="text-lg font-medium text-legacy-purple-500 mr-2">
-                          {detail.score.toFixed(1)}
-                        </div>
-                        <Badge className={`${maturity.color} hover:${maturity.color}`}>
-                          {maturity.level}
-                        </Badge>
-                      </div>
-                    </div>;
-            })}
-              </div>
-              
-              <div className="mt-6">
-                <h4 className="text-sm font-semibold mb-2">Comentários da Avaliação</h4>
-                <p className="text-sm text-gray-600 border rounded-md p-3 bg-gray-50">
-                  {selectedAssessment.id === 1 ? "Houve progresso significativo na estrutura formal e participação familiar. O processo sucessório ainda precisa ser melhor definido." : "Avaliação referente ao período indicado. Verificar áreas com pontuações mais baixas para desenvolvimento de ações de melhoria."}
-                </p>
-              </div>
-              
-              {/* Add activity information to the dialog */}
-              <div className="mt-6">
-                <h4 className="text-sm font-semibold mb-2">Informações de Atividade</h4>
-                {activityLogs.find(log => log.details?.includes(selectedAssessment.overall.toFixed(1))) ? <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <User className="h-4 w-4" />
-                    <span>
-                      Atualizado por {activityLogs.find(log => log.details?.includes(selectedAssessment.overall.toFixed(1)))?.user}
-                    </span>
-                  </div> : <p className="text-sm text-gray-600">Informações de atividade não disponíveis</p>}
-              </div>
-            </div>}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>;
