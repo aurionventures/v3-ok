@@ -259,7 +259,7 @@ export const SecretariatDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="tasks" className="gap-2">
             <ListTodo className="h-4 w-4" />
-            Tarefas Pendentes
+            Gestão de Tarefas
           </TabsTrigger>
           <TabsTrigger value="guests" className="gap-2">
             <UserCheck className="h-4 w-4" />
