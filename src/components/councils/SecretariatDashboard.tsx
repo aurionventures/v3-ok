@@ -19,26 +19,25 @@ import { ATALibrary } from "./ATALibrary";
 import { GuestDocumentApproval } from "./GuestDocumentApproval";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
 import { cn } from "@/lib/utils";
-
 interface SecretariatDashboardProps {
   onOpenConvocations?: () => void;
   onOpenMaterials?: () => void;
   onViewMeeting?: (meetingId: string) => void;
 }
-
-export const SecretariatDashboard = ({ 
-  onOpenConvocations, 
+export const SecretariatDashboard = ({
+  onOpenConvocations,
   onOpenMaterials,
-  onViewMeeting 
+  onViewMeeting
 }: SecretariatDashboardProps) => {
-  const { toast } = useToast();
-  const { 
-    actions, 
-    loading, 
+  const {
+    toast
+  } = useToast();
+  const {
+    actions,
+    loading,
     completeAction,
-    getUrgencyCounts 
+    getUrgencyCounts
   } = useAllMeetingActions();
-  
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewTasks, setPreviewTasks] = useState<any[]>([]);
@@ -47,33 +46,45 @@ export const SecretariatDashboard = ({
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [organFilter, setOrganFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'overdue' | 'completed'>('all');
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
-  
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined
+  });
+
   // ATA Approval Metrics
-  const [ataMetrics, setAtaMetrics] = useState({ pendingApproval: 0, pendingSignature: 0, finalized: 0 });
-  
+  const [ataMetrics, setAtaMetrics] = useState({
+    pendingApproval: 0,
+    pendingSignature: 0,
+    finalized: 0
+  });
   useEffect(() => {
     const calculateATAMetrics = () => {
       const ataStatusMap = localStorage.getItem('meeting_ata_status');
-      if (!ataStatusMap) return { pendingApproval: 0, pendingSignature: 0, finalized: 0 };
-      
+      if (!ataStatusMap) return {
+        pendingApproval: 0,
+        pendingSignature: 0,
+        finalized: 0
+      };
       const statusMap = JSON.parse(ataStatusMap);
       let pendingApproval = 0;
       let pendingSignature = 0;
       let finalized = 0;
-      
       Object.values(statusMap).forEach((status: any) => {
         if (status === 'EM_APROVACAO') pendingApproval++;
         if (status === 'APROVADO') pendingSignature++;
         if (status === 'ASSINADO') finalized++;
       });
-      
-      return { pendingApproval, pendingSignature, finalized };
+      return {
+        pendingApproval,
+        pendingSignature,
+        finalized
+      };
     };
-    
     setAtaMetrics(calculateATAMetrics());
   }, []);
-
   const urgencyCounts = getUrgencyCounts();
 
   // Calculate metrics
@@ -81,10 +92,14 @@ export const SecretariatDashboard = ({
     const total = actions.length;
     const resolved = actions.filter(a => a.status === 'CONCLUIDA').length;
     const pending = actions.filter(a => a.status !== 'CONCLUIDA').length;
-    const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
-    return { total, resolved, pending, resolutionRate };
+    const resolutionRate = total > 0 ? Math.round(resolved / total * 100) : 0;
+    return {
+      total,
+      resolved,
+      pending,
+      resolutionRate
+    };
   };
-
   const getMetricsByOrganType = (type: string) => {
     const filtered = actions.filter(a => a.meetings?.councils?.organ_type === type);
     const total = filtered.length;
@@ -96,10 +111,16 @@ export const SecretariatDashboard = ({
       return dueDate < today && a.status !== 'CONCLUIDA';
     }).length;
     const inProgress = filtered.filter(a => a.status === 'EM_ANDAMENTO').length;
-    const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
-    return { total, resolved, pending, overdue, inProgress, resolutionRate };
+    const resolutionRate = total > 0 ? Math.round(resolved / total * 100) : 0;
+    return {
+      total,
+      resolved,
+      pending,
+      overdue,
+      inProgress,
+      resolutionRate
+    };
   };
-
   const metrics = calculateMetrics();
   const councilMetrics = getMetricsByOrganType('conselho');
   const committeeMetrics = getMetricsByOrganType('comite');
@@ -110,29 +131,43 @@ export const SecretariatDashboard = ({
   const inProgress = actions.filter(a => a.status === 'EM_ANDAMENTO');
   const overdue = actions.filter(a => a.status === 'ATRASADA');
   const completed = actions.filter(a => a.status === 'CONCLUIDA');
-
-  const statusChartData = [
-    { name: 'Resolvidas', value: completed.length, color: '#22c55e' },
-    { name: 'Pendentes', value: pendingOnTime.length, color: '#3b82f6' },
-    { name: 'Em Andamento', value: inProgress.length, color: '#a855f7' },
-    { name: 'Atrasadas', value: overdue.length, color: '#ef4444' },
-  ].filter(item => item.value > 0);
-
-  const organChartData = actions
-    .filter(action => action.meetings?.councils?.name) // Filter out actions without organ
-    .reduce((acc, action) => {
-      const organName = action.meetings!.councils!.name;
-      const organType = action.meetings!.councils!.organ_type || 'outros';
-      const existing = acc.find(item => item.name === organName);
-      if (existing) {
-        existing.tasks += 1;
-      } else {
-        acc.push({ name: organName, tasks: 1, organType });
-      }
-      return acc;
-    }, [] as { name: string; tasks: number; organType: string }[])
-    .sort((a, b) => b.tasks - a.tasks)
-    .slice(0, 8);
+  const statusChartData = [{
+    name: 'Resolvidas',
+    value: completed.length,
+    color: '#22c55e'
+  }, {
+    name: 'Pendentes',
+    value: pendingOnTime.length,
+    color: '#3b82f6'
+  }, {
+    name: 'Em Andamento',
+    value: inProgress.length,
+    color: '#a855f7'
+  }, {
+    name: 'Atrasadas',
+    value: overdue.length,
+    color: '#ef4444'
+  }].filter(item => item.value > 0);
+  const organChartData = actions.filter(action => action.meetings?.councils?.name) // Filter out actions without organ
+  .reduce((acc, action) => {
+    const organName = action.meetings!.councils!.name;
+    const organType = action.meetings!.councils!.organ_type || 'outros';
+    const existing = acc.find(item => item.name === organName);
+    if (existing) {
+      existing.tasks += 1;
+    } else {
+      acc.push({
+        name: organName,
+        tasks: 1,
+        organType
+      });
+    }
+    return acc;
+  }, [] as {
+    name: string;
+    tasks: number;
+    organType: string;
+  }[]).sort((a, b) => b.tasks - a.tasks).slice(0, 8);
 
   // Transform real actions to display format
   const pendingTasks = actions.map(action => ({
@@ -141,21 +176,15 @@ export const SecretariatDashboard = ({
     organName: action.meetings?.councils?.name || 'N/A',
     organType: action.meetings?.councils?.organ_type as 'conselho' | 'comite' | 'comissao',
     dueDate: new Date(action.due_date),
-    priority: action.priority === 'ALTA' ? 'high' as const : 
-              action.priority === 'MEDIA' ? 'medium' as const : 'low' as const,
+    priority: action.priority === 'ALTA' ? 'high' as const : action.priority === 'MEDIA' ? 'medium' as const : 'low' as const,
     responsible: action.responsible_external_name || 'Não atribuído',
     responsibleEmail: action.responsible_external_email,
     status: action.status,
-    meetingId: action.meeting_id,
+    meetingId: action.meeting_id
   }));
-
-  const filteredByOrgan = organFilter === 'all' 
-    ? pendingTasks 
-    : pendingTasks.filter(task => task.organType === organFilter);
-
+  const filteredByOrgan = organFilter === 'all' ? pendingTasks : pendingTasks.filter(task => task.organType === organFilter);
   const getFilteredByStatus = (tasks: typeof pendingTasks) => {
     const today = new Date().toISOString().split('T')[0];
-    
     switch (statusFilter) {
       case 'pending':
         return tasks.filter(t => t.status === 'PENDENTE' && t.dueDate.toISOString().split('T')[0] >= today);
@@ -169,10 +198,8 @@ export const SecretariatDashboard = ({
         return tasks;
     }
   };
-
   const getFilteredByDateRange = (tasks: typeof pendingTasks) => {
     if (!dateRange.from && !dateRange.to) return tasks;
-    
     return tasks.filter(task => {
       const taskDate = task.dueDate;
       if (dateRange.from && dateRange.to) {
@@ -187,56 +214,43 @@ export const SecretariatDashboard = ({
       return true;
     });
   };
-
   const filteredByStatus = getFilteredByStatus(filteredByOrgan);
   const filteredTasks = getFilteredByDateRange(filteredByStatus);
-
   const handleOpenPreview = (type: 'all' | 'conselho' | 'comite' | 'comissao') => {
-    const filtered = type === 'all' 
-      ? pendingTasks 
-      : pendingTasks.filter(task => task.organType === type);
-
+    const filtered = type === 'all' ? pendingTasks : pendingTasks.filter(task => task.organType === type);
     const mapped = filtered.map(task => ({
       id: task.id,
       description: task.task,
-      priority: task.priority === 'high' ? 'ALTA' as const : 
-                task.priority === 'medium' ? 'MEDIA' as const : 'BAIXA' as const,
+      priority: task.priority === 'high' ? 'ALTA' as const : task.priority === 'medium' ? 'MEDIA' as const : 'BAIXA' as const,
       due_date: task.dueDate.toISOString().split('T')[0],
       organType: task.organType,
       organName: task.organName,
       responsibleName: task.responsible,
-      responsibleEmail: task.responsibleEmail,
+      responsibleEmail: task.responsibleEmail
     }));
-
     setPreviewTasks(mapped);
     setPreviewOrganType(type === 'all' ? undefined : type);
     setPreviewModalOpen(true);
   };
-
   const handleCompleteTask = async (taskId: string) => {
     await completeAction(taskId);
   };
-
   const handleOpenTaskDetail = (task: typeof pendingTasks[0]) => {
     setSelectedTask(task);
     setTaskDetailModalOpen(true);
   };
-
   const getUrgencyColor = (dueDate: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const due = new Date(dueDate);
     due.setHours(0, 0, 0, 0);
     const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
     if (diffDays < 0) return 'border-l-4 border-red-500 bg-red-50';
     if (diffDays === 0) return 'border-l-4 border-orange-500 bg-orange-50';
     if (diffDays <= 3) return 'border-l-4 border-yellow-500 bg-yellow-50';
     return 'border-l-4 border-green-500 bg-white';
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <Tabs defaultValue="library" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="library" className="gap-2">
@@ -306,9 +320,9 @@ export const SecretariatDashboard = ({
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-orange-600">{metrics.pending}</div>
-                  <Progress value={(metrics.pending / metrics.total) * 100} className="mt-2" />
+                  <Progress value={metrics.pending / metrics.total * 100} className="mt-2" />
                   <p className="text-xs text-muted-foreground mt-2">
-                    {Math.round((metrics.pending / metrics.total) * 100)}% do total
+                    {Math.round(metrics.pending / metrics.total * 100)}% do total
                   </p>
                 </CardContent>
               </Card>
@@ -352,21 +366,11 @@ export const SecretariatDashboard = ({
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 gap-2"
-                    onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Aprova%C3%A7%C3%A3o'}
-                  >
+                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Aprova%C3%A7%C3%A3o'}>
                     <AlertCircle className="h-3 w-3" />
                     Ver Pendentes
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 gap-2"
-                    onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Assinatura'}
-                  >
+                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Assinatura'}>
                     <PenTool className="h-3 w-3" />
                     Ver Assinaturas
                   </Button>
@@ -394,33 +398,25 @@ export const SecretariatDashboard = ({
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
-                      <Pie
-                        data={statusChartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {statusChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
+                      <Pie data={statusChartData} cx="50%" cy="50%" labelLine={false} label={({
+                      name,
+                      percent
+                    }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                        {statusChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                       </Pie>
                       <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="mt-4 space-y-2">
-                    {statusChartData.map((item) => (
-                      <div key={item.name} className="flex items-center justify-between text-sm">
+                    {statusChartData.map(item => <div key={item.name} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                          <div className="w-3 h-3 rounded-full" style={{
+                        backgroundColor: item.color
+                      }} />
                           <span>{item.name}</span>
                         </div>
                         <span className="font-semibold">{item.value}</span>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </CardContent>
               </Card>
@@ -434,38 +430,42 @@ export const SecretariatDashboard = ({
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={organChartData} margin={{ bottom: 80, top: 20, left: 10, right: 10 }}>
+                    <BarChart data={organChartData} margin={{
+                    bottom: 80,
+                    top: 20,
+                    left: 10,
+                    right: 10
+                  }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        interval={0}
-                        style={{ fontSize: '11px' }}
-                        tick={{ fill: 'hsl(var(--foreground))' }}
-                      />
-                      <YAxis 
-                        label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', style: { fontSize: '12px' } }}
-                        tick={{ fill: 'hsl(var(--foreground))' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--popover))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px',
-                          padding: '8px'
-                        }}
-                        formatter={(value: any) => [`${value} tarefa${value !== 1 ? 's' : ''}`, 'Total']}
-                      />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} interval={0} style={{
+                      fontSize: '11px'
+                    }} tick={{
+                      fill: 'hsl(var(--foreground))'
+                    }} />
+                      <YAxis label={{
+                      value: 'Quantidade',
+                      angle: -90,
+                      position: 'insideLeft',
+                      style: {
+                        fontSize: '12px'
+                      }
+                    }} tick={{
+                      fill: 'hsl(var(--foreground))'
+                    }} />
+                      <Tooltip contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      padding: '8px'
+                    }} formatter={(value: any) => [`${value} tarefa${value !== 1 ? 's' : ''}`, 'Total']} />
                       <Bar dataKey="tasks" radius={[8, 8, 0, 0]}>
                         {organChartData.map((entry, index) => {
-                          let fillColor = 'hsl(var(--primary))';
-                          if (entry.organType === 'conselho') fillColor = '#3b82f6';
-                          if (entry.organType === 'comite') fillColor = '#10b981';
-                          if (entry.organType === 'comissao') fillColor = '#f97316';
-                          return <Cell key={`cell-${index}`} fill={fillColor} />;
-                        })}
+                        let fillColor = 'hsl(var(--primary))';
+                        if (entry.organType === 'conselho') fillColor = '#3b82f6';
+                        if (entry.organType === 'comite') fillColor = '#10b981';
+                        if (entry.organType === 'comissao') fillColor = '#f97316';
+                        return <Cell key={`cell-${index}`} fill={fillColor} />;
+                      })}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -661,7 +661,7 @@ export const SecretariatDashboard = ({
                 <CardTitle className="flex items-center gap-2">
                   <ListTodo className="h-5 w-5 text-blue-500" />
                   Tarefas Pendentes
-                  <Badge variant="secondary">{filteredTasks.length}</Badge>
+                  <Badge variant="secondary">{filteredTasks.length}</Badge><Badge variant="secondary">{filteredTasks.length}</Badge>
                 </CardTitle>
                 <CardDescription>
                   {loading ? 'Carregando...' : 'Ações que requerem sua atenção'}
@@ -721,42 +721,26 @@ export const SecretariatDashboard = ({
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "justify-start text-left font-normal",
-                          !dateRange.from && !dateRange.to && "text-muted-foreground"
-                        )}
-                      >
+                      <Button variant="outline" className={cn("justify-start text-left font-normal", !dateRange.from && !dateRange.to && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.from ? (
-                          dateRange.to ? (
-                            <>
+                        {dateRange.from ? dateRange.to ? <>
                               {format(dateRange.from, "dd/MM")} - {format(dateRange.to, "dd/MM")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "dd/MM/yyyy")
-                          )
-                        ) : (
-                          <span>Filtrar por período</span>
-                        )}
+                            </> : format(dateRange.from, "dd/MM/yyyy") : <span>Filtrar por período</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <div className="p-3 space-y-2">
-                        <Calendar
-                          mode="range"
-                          selected={{ from: dateRange.from, to: dateRange.to }}
-                          onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                          numberOfMonths={2}
-                          locale={ptBR}
-                          className="pointer-events-auto"
-                        />
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => setDateRange({ from: undefined, to: undefined })}
-                        >
+                        <Calendar mode="range" selected={{
+                          from: dateRange.from,
+                          to: dateRange.to
+                        }} onSelect={range => setDateRange({
+                          from: range?.from,
+                          to: range?.to
+                        })} numberOfMonths={2} locale={ptBR} className="pointer-events-auto" />
+                        <Button variant="outline" className="w-full" onClick={() => setDateRange({
+                          from: undefined,
+                          to: undefined
+                        })}>
                           Limpar filtro
                         </Button>
                       </div>
@@ -774,23 +758,13 @@ export const SecretariatDashboard = ({
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-blue-100 hover:border-blue-400 transition-all"
-                        onClick={() => handleOpenPreview('all')}
-                      >
+                      <Button variant="outline" size="sm" className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-blue-100 hover:border-blue-400 transition-all" onClick={() => handleOpenPreview('all')}>
                         <FileText className="h-5 w-5 text-blue-600" />
                         <span className="text-xs font-medium">Todas Tarefas</span>
                         <Badge variant="secondary" className="text-xs">{pendingTasks.length}</Badge>
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-blue-100 hover:border-blue-400 transition-all"
-                        onClick={() => handleOpenPreview('conselho')}
-                      >
+                      <Button variant="outline" size="sm" className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-blue-100 hover:border-blue-400 transition-all" onClick={() => handleOpenPreview('conselho')}>
                         <Building2 className="h-5 w-5 text-blue-600" />
                         <span className="text-xs font-medium">Conselhos</span>
                         <Badge variant="secondary" className="text-xs">
@@ -798,12 +772,7 @@ export const SecretariatDashboard = ({
                         </Badge>
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-green-100 hover:border-green-400 transition-all"
-                        onClick={() => handleOpenPreview('comite')}
-                      >
+                      <Button variant="outline" size="sm" className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-green-100 hover:border-green-400 transition-all" onClick={() => handleOpenPreview('comite')}>
                         <Users className="h-5 w-5 text-green-600" />
                         <span className="text-xs font-medium">Comitês</span>
                         <Badge variant="secondary" className="text-xs">
@@ -811,12 +780,7 @@ export const SecretariatDashboard = ({
                         </Badge>
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-amber-100 hover:border-amber-400 transition-all"
-                        onClick={() => handleOpenPreview('comissao')}
-                      >
+                      <Button variant="outline" size="sm" className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-amber-100 hover:border-amber-400 transition-all" onClick={() => handleOpenPreview('comissao')}>
                         <Briefcase className="h-5 w-5 text-amber-600" />
                         <span className="text-xs font-medium">Comissões</span>
                         <Badge variant="secondary" className="text-xs">
@@ -824,12 +788,7 @@ export const SecretariatDashboard = ({
                         </Badge>
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-purple-100 hover:border-purple-400 transition-all"
-                        onClick={() => setReportModalOpen(true)}
-                      >
+                      <Button variant="outline" size="sm" className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-purple-100 hover:border-purple-400 transition-all" onClick={() => setReportModalOpen(true)}>
                         <Settings className="h-5 w-5 text-purple-600" />
                         <span className="text-xs font-medium">Personalizado</span>
                       </Button>
@@ -838,53 +797,37 @@ export const SecretariatDashboard = ({
                 </Card>
 
                 {/* Tasks List */}
-                {loading ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                {loading ? <div className="text-center py-8 text-muted-foreground">
                     <p>Carregando tarefas...</p>
-                  </div>
-                ) : filteredTasks.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  </div> : filteredTasks.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                     <p>Nenhuma tarefa encontrada para este filtro</p>
-                  </div>
-                ) : (
-                  filteredTasks.map((task) => (
-                    <div 
-                      key={task.id} 
-                      className={`flex items-start justify-between gap-4 p-4 rounded-lg transition-colors cursor-pointer hover:opacity-80 ${getUrgencyColor(task.dueDate)}`}
-                      onClick={() => handleOpenTaskDetail(task)}
-                    >
+                  </div> : filteredTasks.map(task => <div key={task.id} className={`flex items-start justify-between gap-4 p-4 rounded-lg transition-colors cursor-pointer hover:opacity-80 ${getUrgencyColor(task.dueDate)}`} onClick={() => handleOpenTaskDetail(task)}>
                       <div className="flex-1 space-y-2">
                         <p className="text-sm font-medium leading-none">{task.task}</p>
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline" className="text-xs">
                             {task.organName}
                           </Badge>
-                          {task.responsible && (
-                            <Badge variant="secondary" className="text-xs">
+                          {task.responsible && <Badge variant="secondary" className="text-xs">
                               {task.responsible}
-                            </Badge>
-                          )}
+                            </Badge>}
                           <span className="text-xs text-muted-foreground">
-                            Prazo: {format(task.dueDate, "dd 'de' MMMM", { locale: ptBR })}
+                            Prazo: {format(task.dueDate, "dd 'de' MMMM", {
+                          locale: ptBR
+                        })}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenTaskDetail(task);
-                          }}
-                        >
+                        <Button size="sm" variant="outline" onClick={e => {
+                      e.stopPropagation();
+                      handleOpenTaskDetail(task);
+                    }}>
                           <Eye className="h-4 w-4 mr-1" />
                           Ver e Editar
                         </Button>
                       </div>
-                    </div>
-                  ))
-                )}
+                    </div>)}
               </div>
             </CardContent>
           </Card>
@@ -896,36 +839,21 @@ export const SecretariatDashboard = ({
         </TabsContent>
       </Tabs>
 
-      <PendingTasksReportModal 
-        open={reportModalOpen}
-        onOpenChange={setReportModalOpen}
-        tasks={pendingTasks.map(task => ({
-          id: task.id,
-          task: task.task,
-          description: task.task,
-          priority: task.priority,
-          due_date: task.dueDate.toISOString().split('T')[0],
-          dueDate: task.dueDate,
-          organType: task.organType,
-          organName: task.organName,
-          responsibleName: task.responsible,
-          responsibleEmail: task.responsibleEmail,
-        }))}
-      />
+      <PendingTasksReportModal open={reportModalOpen} onOpenChange={setReportModalOpen} tasks={pendingTasks.map(task => ({
+      id: task.id,
+      task: task.task,
+      description: task.task,
+      priority: task.priority,
+      due_date: task.dueDate.toISOString().split('T')[0],
+      dueDate: task.dueDate,
+      organType: task.organType,
+      organName: task.organName,
+      responsibleName: task.responsible,
+      responsibleEmail: task.responsibleEmail
+    }))} />
 
-      <PendingTasksPreviewModal
-        open={previewModalOpen}
-        onOpenChange={setPreviewModalOpen}
-        tasks={previewTasks}
-        selectedOrganType={previewOrganType}
-      />
+      <PendingTasksPreviewModal open={previewModalOpen} onOpenChange={setPreviewModalOpen} tasks={previewTasks} selectedOrganType={previewOrganType} />
 
-      <TaskDetailModal
-        open={taskDetailModalOpen}
-        onOpenChange={setTaskDetailModalOpen}
-        task={selectedTask}
-        onComplete={handleCompleteTask}
-      />
-    </div>
-  );
+      <TaskDetailModal open={taskDetailModalOpen} onOpenChange={setTaskDetailModalOpen} task={selectedTask} onComplete={handleCompleteTask} />
+    </div>;
 };
