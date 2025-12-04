@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Settings, Building, DollarSign } from "lucide-react";
+import { LayoutDashboard, Settings, Building, DollarSign, Rocket, Building2, Globe, TrendingUp, Crown, Sparkles, Leaf, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
@@ -9,12 +9,29 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar
 } from "@/components/ui/sidebar";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { CompanySize, GovernancePlan, COMPANY_SIZE_LABELS, PLAN_LABELS } from "@/types/organization";
+
+const SIZE_ICONS: Record<CompanySize, typeof Rocket> = {
+  startup: Rocket,
+  small: Building,
+  medium: Building2,
+  large: Globe,
+  listed: TrendingUp,
+};
+
+const PLAN_CONFIG: Record<GovernancePlan, { icon: typeof Crown; color: string }> = {
+  core: { icon: Check, color: "bg-slate-500" },
+  governance_plus: { icon: Sparkles, color: "bg-blue-500" },
+  people_esg: { icon: Leaf, color: "bg-emerald-500" },
+  legacy_360: { icon: Crown, color: "bg-amber-500" },
+};
 
 export function AppSidebar() {
   const { pathname } = useLocation();
@@ -33,6 +50,10 @@ export function AppSidebar() {
   ];
 
   const visibleSections = getVisibleSections();
+  
+  const SizeIcon = organization ? SIZE_ICONS[organization.companySize] : Building2;
+  const planConfig = organization ? PLAN_CONFIG[organization.plan] : PLAN_CONFIG.core;
+  const PlanIcon = planConfig.icon;
 
   return (
     <Sidebar>
@@ -115,6 +136,33 @@ export function AppSidebar() {
           ))
         )}
       </SidebarContent>
+      
+      {!isAdminRoute && organization && (
+        <SidebarFooter className="border-t border-sidebar-border p-3">
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className={cn("p-1.5 rounded-md", planConfig.color)}>
+                <PlanIcon className="h-4 w-4 text-white" />
+              </div>
+            </div>
+          ) : (
+            <Link to="/settings" className="block hover:bg-sidebar-accent rounded-lg p-2 transition-colors">
+              <div className="flex items-center gap-2 mb-2">
+                <SizeIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {COMPANY_SIZE_LABELS[organization.companySize]}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={cn("text-xs", planConfig.color, "text-white border-0")}>
+                  <PlanIcon className="h-3 w-3 mr-1" />
+                  {PLAN_LABELS[organization.plan]}
+                </Badge>
+              </div>
+            </Link>
+          )}
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }
