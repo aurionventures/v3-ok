@@ -23,6 +23,98 @@ export interface SidebarSection {
   items: SidebarItem[];
 }
 
+// Descrições de módulos para o UpgradeModal
+export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits: string[] }> = {
+  start: {
+    description: 'Guia inicial para começar a usar a plataforma de governança.',
+    benefits: ['Orientação passo a passo', 'Checklist de primeiros passos', 'Links rápidos para configurações essenciais']
+  },
+  dashboard: {
+    description: 'Painel central com visão geral de todos os indicadores de governança.',
+    benefits: ['Métricas em tempo real', 'Alertas de pendências', 'Visão consolidada da governança']
+  },
+  settings: {
+    description: 'Configure preferências da plataforma e gerencie seu plano.',
+    benefits: ['Personalização da experiência', 'Gestão de usuários', 'Configurações de notificações']
+  },
+  structure: {
+    description: 'Gerencie a estrutura societária e hierarquia da empresa.',
+    benefits: ['Visualização clara da estrutura', 'Gestão de sócios e quotistas', 'Histórico de alterações']
+  },
+  cap_table: {
+    description: 'Controle participações societárias e distribuição de capital.',
+    benefits: ['Gestão de participações', 'Simulações de diluição', 'Histórico de rodadas']
+  },
+  gov_maturity: {
+    description: 'Avalie e acompanhe a maturidade de governança da empresa.',
+    benefits: ['Diagnóstico IBGC', 'Comparativo setorial', 'Plano de evolução']
+  },
+  legacy_rituals: {
+    description: 'Documente legado familiar e rituais de governança.',
+    benefits: ['Preservação de valores', 'Rituais documentados', 'Transmissão intergeracional']
+  },
+  checklist: {
+    description: 'Checklist de documentos essenciais para governança.',
+    benefits: ['Organização documental', 'Status de conformidade', 'Alertas de vencimento']
+  },
+  interviews: {
+    description: 'Gerencie entrevistas de diagnóstico de governança.',
+    benefits: ['Agenda de entrevistas', 'Transcrições e análises', 'Insights consolidados']
+  },
+  analysis_actions: {
+    description: 'Relatório inicial com análises e plano de ação.',
+    benefits: ['Diagnóstico completo', 'Recomendações prioritárias', 'Plano de implementação']
+  },
+  annual_agenda: {
+    description: 'Planeje e gerencie a agenda anual de reuniões.',
+    benefits: ['Calendário integrado', 'Convocações automáticas', 'Controle de frequência']
+  },
+  gov_config: {
+    description: 'Configure órgãos de governança da empresa.',
+    benefits: ['Criação de conselhos e comitês', 'Definição de competências', 'Gestão de membros']
+  },
+  secretariat: {
+    description: 'Painel completo para gestão da secretaria de governança.',
+    benefits: ['Gestão de tarefas', 'Controle de ATAs', 'Relatórios de pendências']
+  },
+  councils: {
+    description: 'Acesso direto aos conselhos configurados.',
+    benefits: ['Visualização de membros', 'Histórico de reuniões', 'Documentos do órgão']
+  },
+  project_submission: {
+    description: 'Submeta projetos para deliberação dos órgãos.',
+    benefits: ['Fluxo de aprovação', 'Rastreamento de status', 'Histórico de decisões']
+  },
+  leadership_performance: {
+    description: 'Gestão de pessoas e desempenho de liderança.',
+    benefits: ['Avaliação de competências', 'Planos de desenvolvimento', 'Sucessão de líderes']
+  },
+  risks: {
+    description: 'Identifique e gerencie riscos de governança.',
+    benefits: ['Matriz de riscos', 'Planos de mitigação', 'Monitoramento contínuo']
+  },
+  activities: {
+    description: 'Histórico de atividades e logs da plataforma.',
+    benefits: ['Auditoria completa', 'Filtros avançados', 'Exportação de dados']
+  },
+  esg_maturity: {
+    description: 'Avalie a maturidade ESG e gere relatórios de sustentabilidade.',
+    benefits: ['Diagnóstico ambiental, social e governança', 'Benchmarking ESG', 'Relatórios para stakeholders']
+  },
+  market_intel: {
+    description: 'Inteligência de mercado com análise de ameaças e oportunidades.',
+    benefits: ['Monitoramento de concorrentes', 'Tendências do setor', 'Sugestões de pauta automáticas']
+  },
+  benchmarking: {
+    description: 'Compare sua governança com empresas do setor.',
+    benefits: ['Ranking setorial', 'Indicadores comparativos', 'Melhores práticas']
+  },
+  ai_agents: {
+    description: 'Agentes de IA para automação de processos de governança.',
+    benefits: ['Geração automática de ATAs', 'Análise de documentos', 'Recomendações inteligentes']
+  }
+};
+
 export const SIDEBAR_SECTIONS: SidebarSection[] = [
   {
     key: 'inicio',
