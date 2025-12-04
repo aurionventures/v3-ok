@@ -439,7 +439,7 @@ export default function DocumentChecklist() {
                   {checklist.map((category, categoryIndex) => <ChecklistCategoryCard key={category.id} category={category} categoryIndex={categoryIndex} progress={getCategoryProgress(category)} onItemCheck={handleItemChecked} onStatusChange={handleItemStatusChange} onUploadRedirect={handleUploadRedirect} />)}
                 </div>
 
-                <ChecklistActions onNavigateToDashboard={() => navigate('/dashboard')} onNavigateToUpload={() => handleTabChange('biblioteca')} onNavigateToInterviews={() => navigate('/interviews')} />
+                
               </TabsContent>
 
               {/* Library Tab */}
