@@ -29,8 +29,11 @@ import {
   AlertTriangle,
   Loader2,
   BarChart3,
-  FileEdit
+  FileEdit,
+  Plus,
+  FolderPlus
 } from 'lucide-react';
+import { Label } from "@/components/ui/label";
 import FileUpload from '@/components/FileUpload';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -45,7 +48,8 @@ const documentCategories = [
   'Política de Compliance',
   'Política de Riscos',
   'Regimento Interno',
-  'Outros Documentos'
+  'Outros Documentos',
+  'Documentos Personalizados'
 ];
 
 // Document status helpers
@@ -296,8 +300,14 @@ export default function DocumentChecklist() {
     handleItemCheck,
     handleStatusChange,
     getCategoryProgress, 
-    getAISuggestions 
+    getAISuggestions,
+    addCustomItem
   } = useDocumentChecklist();
+
+  // Custom document modal state
+  const [showCustomDocModal, setShowCustomDocModal] = useState(false);
+  const [customDocName, setCustomDocName] = useState('');
+  const [customDocFile, setCustomDocFile] = useState<File | null>(null);
 
   const progress = calculateProgress();
 
@@ -470,6 +480,23 @@ export default function DocumentChecklist() {
               <TabsContent value="checklist" className="space-y-6">
                 <ChecklistProgressCard progress={progress} />
                 <AISuggestionsCard suggestions={getAISuggestions(progress.completionPercentage)} />
+                
+                {/* Button for custom documents */}
+                <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                  <CardContent className="flex flex-col sm:flex-row items-center justify-center gap-4 py-6">
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                      onClick={() => setShowCustomDocModal(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Adicionar Documento Personalizado
+                    </Button>
+                    <p className="text-sm text-muted-foreground text-center sm:text-left">
+                      Adicione documentos que não constam no checklist padrão
+                    </p>
+                  </CardContent>
+                </Card>
                 
                 <div className="grid gap-6">
                   {checklist.map((category, categoryIndex) => (
@@ -909,6 +936,91 @@ export default function DocumentChecklist() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Document Modal */}
+      <Dialog open={showCustomDocModal} onOpenChange={setShowCustomDocModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderPlus className="h-5 w-5 text-primary" />
+              Adicionar Documento Personalizado
+            </DialogTitle>
+            <DialogDescription>
+              Adicione documentos que não constam no checklist padrão. O documento será salvo na categoria "Documentos Personalizados".
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="custom-doc-name">Nome do Documento</Label>
+              <Input
+                id="custom-doc-name"
+                placeholder="Ex: Contrato de Licença de Software"
+                value={customDocName}
+                onChange={(e) => setCustomDocName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Arquivo (opcional)</Label>
+              <FileUpload
+                onFileUpload={(files) => {
+                  if (files.length > 0) {
+                    setCustomDocFile(files[0]);
+                    if (!customDocName) {
+                      setCustomDocName(files[0].name.replace(/\.[^/.]+$/, ''));
+                    }
+                  }
+                }}
+              />
+              {customDocFile && (
+                <p className="text-sm text-muted-foreground">
+                  Arquivo selecionado: {customDocFile.name}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowCustomDocModal(false);
+                setCustomDocName('');
+                setCustomDocFile(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!customDocName.trim()) {
+                  toast.error("Por favor, informe o nome do documento.");
+                  return;
+                }
+                
+                // Add to checklist
+                addCustomItem(customDocName);
+                
+                // If file was uploaded, add to library
+                if (customDocFile) {
+                  await handleFileUpload([customDocFile], 'Documentos Personalizados');
+                }
+                
+                toast.success(`"${customDocName}" adicionado ao checklist com sucesso!`);
+                
+                // Reset and close
+                setShowCustomDocModal(false);
+                setCustomDocName('');
+                setCustomDocFile(null);
+              }}
+              disabled={!customDocName.trim()}
+            >
+              Adicionar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -7,7 +7,8 @@ import {
   Users,
   AlertCircle,
   AlertTriangle,
-  BarChart3
+  BarChart3,
+  FolderPlus
 } from "lucide-react";
 
 const STORAGE_KEY = 'document-checklist';
@@ -19,7 +20,8 @@ const iconMap = {
   familia: Users,
   compliance: AlertCircle,
   riscos: AlertTriangle,
-  financeiro: BarChart3
+  financeiro: BarChart3,
+  personalizado: FolderPlus
 };
 
 export const useDocumentChecklist = () => {
@@ -104,12 +106,46 @@ export const useDocumentChecklist = () => {
     }
   };
 
+  const addCustomItem = (itemName: string) => {
+    const customCategoryIndex = checklist.findIndex(c => c.id === 'personalizado');
+    
+    if (customCategoryIndex === -1) {
+      // Create "Documentos Personalizados" category if it doesn't exist
+      const newCategory: ChecklistCategory = {
+        id: 'personalizado',
+        name: 'Documentos Personalizados',
+        icon: FolderPlus,
+        color: 'text-cyan-500',
+        items: [{ 
+          id: `custom-${Date.now()}`, 
+          name: itemName, 
+          checked: true, 
+          hasDocument: true, 
+          status: null 
+        }]
+      };
+      setChecklist([...checklist, newCategory]);
+    } else {
+      // Add to existing category
+      const newChecklist = [...checklist];
+      newChecklist[customCategoryIndex].items.push({
+        id: `custom-${Date.now()}`,
+        name: itemName,
+        checked: true,
+        hasDocument: true,
+        status: null
+      });
+      setChecklist(newChecklist);
+    }
+  };
+
   return {
     checklist,
     calculateProgress,
     handleItemCheck,
     handleStatusChange,
     getCategoryProgress,
-    getAISuggestions
+    getAISuggestions,
+    addCustomItem
   };
 };
