@@ -168,7 +168,7 @@ const Index = () => {
             
             
             <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight font-heading">
-              Revolucione a Governança Familiar em{" "}
+              Revolucione a Governança em{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">6 Semanas</span>{" "}
               e Garanta a Perpetuidade do Seu Legado.
             </h1>
