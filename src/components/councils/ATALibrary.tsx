@@ -489,7 +489,6 @@ export const ATALibrary = () => {
             <CardTitle className="flex items-center gap-2">
               <Library className="h-5 w-5 text-primary" />
               Bibliotecas de ATAs
-              <Badge variant="secondary">{displayedATAs.length}</Badge>
             </CardTitle>
             <CardDescription className="mt-1">
               Pesquise e visualize todas as Atas de Reunião geradas
