@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, 
-  Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, 
-  Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, 
-  FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search,
-  Globe, AlertTriangle, LineChart, Bot
-} from "lucide-react";
+import { Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search, Globe, AlertTriangle, LineChart, Bot } from "lucide-react";
 import DiagnosticModal from "@/components/DiagnosticModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import legacyLogo from "@/assets/legacy-logo-new.png";
-
 const Index = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -27,7 +20,6 @@ const Index = () => {
     phone: "",
     role: ""
   });
-
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("Solicitação enviada! Entraremos em contato em até 24h.");
@@ -39,137 +31,120 @@ const Index = () => {
       role: ""
     });
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
   };
-
   const handleWhatsAppDemo = () => {
     window.open("https://wa.me/5547991622220?text=Olá! Gostaria de solicitar uma demonstração personalizada da Legacy.", "_blank");
   };
 
   // Instituições de autoridade
-  const authorityInstitutions = [
-    { name: "IBGC", description: "Instituto Brasileiro de Governança Corporativa" },
-    { name: "CVM", description: "Comissão de Valores Mobiliários" },
-    { name: "B3 Novo Mercado", description: "Mais alto nível de governança" },
-    { name: "ISO 37000", description: "Padrão internacional de governança" }
-  ];
+  const authorityInstitutions = [{
+    name: "IBGC",
+    description: "Instituto Brasileiro de Governança Corporativa"
+  }, {
+    name: "CVM",
+    description: "Comissão de Valores Mobiliários"
+  }, {
+    name: "B3 Novo Mercado",
+    description: "Mais alto nível de governança"
+  }, {
+    name: "ISO 37000",
+    description: "Padrão internacional de governança"
+  }];
 
   // Tripé Legacy - 3 Pilares
-  const legacyPillars = [
-    {
-      icon: Zap,
-      title: "Automação e Velocidade",
-      subtitle: "Governança Operando no Ritmo do Negócio",
-      description: "Elimine fricções: reuniões, pautas, materiais, ATAs, registros, assinaturas e delegações em um fluxo único, padronizado e auditável.",
-      highlight: "De minutos para segundos",
-      modules: ["Secretariado Digital", "Agenda Anual de Governança", "ATAs e Assinaturas", "Gestão de Tarefas e Pautas"],
-      color: "from-blue-500 to-cyan-500",
-      iconBg: "bg-blue-500/10",
-      iconColor: "text-blue-500"
-    },
-    {
-      icon: Users,
-      title: "Liderança, Performance e Accountability",
-      subtitle: "Governança de Pessoas Conectada à Estratégia",
-      description: "Mapeie responsáveis, atribuições, comitês e metas estratégicas. Acompanhe evolução de lideranças com indicadores claros.",
-      highlight: "Ciclos de avaliação integrados",
-      modules: ["Desenvolvimento & PDI", "Comitês e Responsabilidades", "Métricas de Entrega", "Cultura & Rituais Corporativos"],
-      color: "from-emerald-500 to-green-500",
-      iconBg: "bg-emerald-500/10",
-      iconColor: "text-emerald-500"
-    },
-    {
-      icon: Brain,
-      title: "Inteligência e Decisão Contínua",
-      subtitle: "IA para Decisão, Não Só para Organização",
-      description: "Dashboards vivos e análises acionáveis: riscos, ESG, maturidade, benchmarking e mercado. A IA orienta a decisão, não apenas informa.",
-      highlight: "Governança preditiva",
-      modules: ["Gestão de Riscos e Auditoria", "Maturidade ESG e Governança", "Inteligência de Mercado", "Agentes de IA para Decisão"],
-      color: "from-purple-500 to-violet-500",
-      iconBg: "bg-purple-500/10",
-      iconColor: "text-purple-500"
-    }
-  ];
+  const legacyPillars = [{
+    icon: Zap,
+    title: "Automação e Velocidade",
+    subtitle: "Governança Operando no Ritmo do Negócio",
+    description: "Elimine fricções: reuniões, pautas, materiais, ATAs, registros, assinaturas e delegações em um fluxo único, padronizado e auditável.",
+    highlight: "De minutos para segundos",
+    modules: ["Secretariado Digital", "Agenda Anual de Governança", "ATAs e Assinaturas", "Gestão de Tarefas e Pautas"],
+    color: "from-blue-500 to-cyan-500",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-500"
+  }, {
+    icon: Users,
+    title: "Liderança, Performance e Accountability",
+    subtitle: "Governança de Pessoas Conectada à Estratégia",
+    description: "Mapeie responsáveis, atribuições, comitês e metas estratégicas. Acompanhe evolução de lideranças com indicadores claros.",
+    highlight: "Ciclos de avaliação integrados",
+    modules: ["Desenvolvimento & PDI", "Comitês e Responsabilidades", "Métricas de Entrega", "Cultura & Rituais Corporativos"],
+    color: "from-emerald-500 to-green-500",
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-500"
+  }, {
+    icon: Brain,
+    title: "Inteligência e Decisão Contínua",
+    subtitle: "IA para Decisão, Não Só para Organização",
+    description: "Dashboards vivos e análises acionáveis: riscos, ESG, maturidade, benchmarking e mercado. A IA orienta a decisão, não apenas informa.",
+    highlight: "Governança preditiva",
+    modules: ["Gestão de Riscos e Auditoria", "Maturidade ESG e Governança", "Inteligência de Mercado", "Agentes de IA para Decisão"],
+    color: "from-purple-500 to-violet-500",
+    iconBg: "bg-purple-500/10",
+    iconColor: "text-purple-500"
+  }];
 
   // Legacy AI Highlights
-  const aiHighlights = [
-    {
-      icon: FileSearch,
-      title: "Análise Executiva de Documentos",
-      description: "Contrato, política, regimento, minuta ou compliance: suba o arquivo e receba resumo executivo orientado à decisão, lista de riscos, pendências e recomendações de mitigação.",
-      benefit: "Sem ruído, sem leitura manual exaustiva"
-    },
-    {
-      icon: Globe,
-      title: "Inteligência de Mercado e Cenários",
-      badge: "Premium",
-      description: "Configure setor, geografia, concorrência e tendências. A IA entrega em tempo real: Matriz Ameaças x Oportunidades, movimentos competitivos e alertas regulatórios.",
-      benefit: "Governança antecipatória, não retroativa"
-    },
-    {
-      icon: MessageSquare,
-      title: "Busca Conversacional Estratégica",
-      description: "Pergunte como fala com seu conselho: 'Mostre decisões críticas sobre cybersecurity nos últimos 18 meses.' A IA encontra, cruza, interpreta e exibe ATAs, deliberações, políticas e mais.",
-      benefit: "Transforme acervo em inteligência"
-    }
-  ];
+  const aiHighlights = [{
+    icon: FileSearch,
+    title: "Análise Executiva de Documentos",
+    description: "Contrato, política, regimento, minuta ou compliance: suba o arquivo e receba resumo executivo orientado à decisão, lista de riscos, pendências e recomendações de mitigação.",
+    benefit: "Sem ruído, sem leitura manual exaustiva"
+  }, {
+    icon: Globe,
+    title: "Inteligência de Mercado e Cenários",
+    badge: "Premium",
+    description: "Configure setor, geografia, concorrência e tendências. A IA entrega em tempo real: Matriz Ameaças x Oportunidades, movimentos competitivos e alertas regulatórios.",
+    benefit: "Governança antecipatória, não retroativa"
+  }, {
+    icon: MessageSquare,
+    title: "Busca Conversacional Estratégica",
+    description: "Pergunte como fala com seu conselho: 'Mostre decisões críticas sobre cybersecurity nos últimos 18 meses.' A IA encontra, cruza, interpreta e exibe ATAs, deliberações, políticas e mais.",
+    benefit: "Transforme acervo em inteligência"
+  }];
 
   // Security Highlights
-  const securityHighlights = [
-    {
-      icon: Eye,
-      title: "Auditoria e Rastreabilidade Total",
-      description: "Registro imutável, detalhado e cronológico de toda ação: login, permissões, pautas, ATAs, votos, assinaturas, alterações e anexos.",
-      highlight: "Cada decisão é passível de prova e validação"
-    },
-    {
-      icon: ShieldCheck,
-      title: "Conformidade ESG e Regulatória",
-      description: "Maturidade ESG integrada com avaliações, indicadores e relatórios alinhados a frameworks regulatórios. KPIs auditáveis e exportáveis.",
-      highlight: "Governança preparada para supervisão"
-    },
-    {
-      icon: Fingerprint,
-      title: "Acesso Seguro e Controles de Identidade",
-      description: "2FA, tokens de sessão, magic links seguros, perfis de acesso granular por órgão, pauta e documento. Confidencialidade rastreável.",
-      highlight: "Proteção não é barreira — é protocolo"
-    }
-  ];
-
-  const faqData = [
-    {
-      question: "O que é governança corporativa?",
-      answer: "Governança corporativa é o conjunto de práticas, políticas e estruturas que orientam a gestão e o controle de uma empresa. Para empresas familiares, envolve a criação de órgãos de governança, definição de papéis e responsabilidades, e estabelecimento de processos decisórios transparentes que garantem a continuidade e o crescimento sustentável do negócio."
-    },
-    {
-      question: "Como a Legacy pode ajudar minha empresa?",
-      answer: "A Legacy oferece uma plataforma tecnológica completa que digitaliza e organiza todos os aspectos da governança empresarial. Através de diagnósticos automatizados, relatórios executivos, gestão de conselhos e monitoramento contínuo, ajudamos sua empresa a estruturar processos, reduzir riscos e preparar-se para o futuro."
-    },
-    {
-      question: "Qual o tempo necessário para estruturar a governança?",
-      answer: "Com a Legacy, o processo de estruturação que tipicamente levava 9+ meses agora pode ser implementado em apenas 6 semanas. Começamos com um diagnóstico gratuito que identifica as principais necessidades, seguido de um plano personalizado com marcos e prazos específicos para sua realidade."
-    },
-    {
-      question: "A plataforma atende empresas de todos os portes?",
-      answer: "Sim! Nossa solução é escalável e atende desde startups e empresas familiares de médio porte até grandes corporações e companhias listadas. A plataforma se adapta à complexidade e necessidades específicas de cada organização."
-    },
-    {
-      question: "Como garantir a continuidade da empresa familiar?",
-      answer: "A continuidade requer planejamento sucessório estruturado, preparação das próximas gerações, definição clara de valores familiares e criação de órgãos de governança eficazes. Nossa plataforma oferece ferramentas específicas para gestão sucessória, desenvolvimento de herdeiros e monitoramento da evolução da maturidade da governança."
-    },
-    {
-      question: "Quais são os principais riscos de não ter governança?",
-      answer: "Empresas sem governança estruturada enfrentam riscos como conflitos familiares, decisões centralizadas inadequadas, falta de transparência, dificuldades na sucessão e perda de competitividade. Estatísticas mostram que 90% das empresas familiares não chegam à terceira geração, sendo a ausência de governança uma das principais causas."
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  const securityHighlights = [{
+    icon: Eye,
+    title: "Auditoria e Rastreabilidade Total",
+    description: "Registro imutável, detalhado e cronológico de toda ação: login, permissões, pautas, ATAs, votos, assinaturas, alterações e anexos.",
+    highlight: "Cada decisão é passível de prova e validação"
+  }, {
+    icon: ShieldCheck,
+    title: "Conformidade ESG e Regulatória",
+    description: "Maturidade ESG integrada com avaliações, indicadores e relatórios alinhados a frameworks regulatórios. KPIs auditáveis e exportáveis.",
+    highlight: "Governança preparada para supervisão"
+  }, {
+    icon: Fingerprint,
+    title: "Acesso Seguro e Controles de Identidade",
+    description: "2FA, tokens de sessão, magic links seguros, perfis de acesso granular por órgão, pauta e documento. Confidencialidade rastreável.",
+    highlight: "Proteção não é barreira — é protocolo"
+  }];
+  const faqData = [{
+    question: "O que é governança corporativa?",
+    answer: "Governança corporativa é o conjunto de práticas, políticas e estruturas que orientam a gestão e o controle de uma empresa. Para empresas familiares, envolve a criação de órgãos de governança, definição de papéis e responsabilidades, e estabelecimento de processos decisórios transparentes que garantem a continuidade e o crescimento sustentável do negócio."
+  }, {
+    question: "Como a Legacy pode ajudar minha empresa?",
+    answer: "A Legacy oferece uma plataforma tecnológica completa que digitaliza e organiza todos os aspectos da governança empresarial. Através de diagnósticos automatizados, relatórios executivos, gestão de conselhos e monitoramento contínuo, ajudamos sua empresa a estruturar processos, reduzir riscos e preparar-se para o futuro."
+  }, {
+    question: "Qual o tempo necessário para estruturar a governança?",
+    answer: "Com a Legacy, o processo de estruturação que tipicamente levava 9+ meses agora pode ser implementado em apenas 6 semanas. Começamos com um diagnóstico gratuito que identifica as principais necessidades, seguido de um plano personalizado com marcos e prazos específicos para sua realidade."
+  }, {
+    question: "A plataforma atende empresas de todos os portes?",
+    answer: "Sim! Nossa solução é escalável e atende desde startups e empresas familiares de médio porte até grandes corporações e companhias listadas. A plataforma se adapta à complexidade e necessidades específicas de cada organização."
+  }, {
+    question: "Como garantir a continuidade da empresa familiar?",
+    answer: "A continuidade requer planejamento sucessório estruturado, preparação das próximas gerações, definição clara de valores familiares e criação de órgãos de governança eficazes. Nossa plataforma oferece ferramentas específicas para gestão sucessória, desenvolvimento de herdeiros e monitoramento da evolução da maturidade da governança."
+  }, {
+    question: "Quais são os principais riscos de não ter governança?",
+    answer: "Empresas sem governança estruturada enfrentam riscos como conflitos familiares, decisões centralizadas inadequadas, falta de transparência, dificuldades na sucessão e perda de competitividade. Estatísticas mostram que 90% das empresas familiares não chegam à terceira geração, sendo a ausência de governança uma das principais causas."
+  }];
+  return <div className="min-h-screen bg-background">
       {/* Professional Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -190,10 +165,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_25%,rgba(255,255,255,0.02)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.02)_75%)] bg-[length:60px_60px]" />
         <div className="relative container mx-auto px-6 py-24 lg:py-32">
           <div className="max-w-5xl mx-auto text-center text-white">
-            <Badge className="mb-6 bg-accent/20 text-accent border-accent/30 text-sm px-4 py-1">
-              <Sparkles className="h-3 w-3 mr-2" />
-              Sistema Operacional de Governança
-            </Badge>
+            
             
             <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight font-heading">
               Revolucione a Governança Familiar em{" "}
@@ -208,20 +180,12 @@ const Index = () => {
             
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-xl mx-auto">
-              <Button 
-                size="lg" 
-                className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => navigate('/standalone-quiz')}
-              >
+              <Button size="lg" className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300" onClick={() => navigate('/standalone-quiz')}>
                 <Play className="h-5 w-5 mr-2" />
                 Fazer Diagnóstico Gratuito
               </Button>
               
-              <Button 
-                size="lg" 
-                className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={handleWhatsAppDemo}
-              >
+              <Button size="lg" className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300" onClick={handleWhatsAppDemo}>
                 <Phone className="h-5 w-5 mr-2" />
                 Solicitar Demonstração
               </Button>
@@ -247,8 +211,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {authorityInstitutions.map((institution, index) => (
-                <Card key={index} className="text-center p-6 border-2 hover:border-accent/30 hover:shadow-lg transition-all duration-300 bg-card">
+              {authorityInstitutions.map((institution, index) => <Card key={index} className="text-center p-6 border-2 hover:border-accent/30 hover:shadow-lg transition-all duration-300 bg-card">
                   <CardContent className="p-0">
                     <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Award className="h-7 w-7 text-primary" />
@@ -256,8 +219,7 @@ const Index = () => {
                     <h3 className="font-bold text-lg text-foreground mb-1">{institution.name}</h3>
                     <p className="text-xs text-muted-foreground">{institution.description}</p>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
         </div>
@@ -268,10 +230,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-6 bg-primary/10 text-primary border-primary/20">
-                <Target className="h-3 w-3 mr-1" />
-                O Desafio
-              </Badge>
+              
               <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-foreground">
                 O Desafio da Governança Moderna: Por que a maioria das empresas{" "}
                 <span className="text-primary">não sustenta crescimento</span> e alinhamento estratégico?
@@ -293,12 +252,10 @@ const Index = () => {
                     compliance, ESG e desenvolvimento de lideranças impede a escalabilidade real das organizações.
                   </p>
                   <ul className="space-y-3">
-                    {["Decisões dispersas em e-mails", "Governança manual e reativa", "Sem rastreabilidade de deliberações", "Compliance desconectado da estratégia"].map((item, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {["Decisões dispersas em e-mails", "Governança manual e reativa", "Sem rastreabilidade de deliberações", "Compliance desconectado da estratégia"].map((item, i) => <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
                         {item}
-                      </li>
-                    ))}
+                      </li>)}
                   </ul>
                 </CardContent>
               </Card>
@@ -317,12 +274,10 @@ const Index = () => {
                     accountability em um único <strong className="text-accent">Sistema Operacional de Governança</strong>.
                   </p>
                   <ul className="space-y-3">
-                    {["Integrada", "Contínua", "Mensurada", "Preditiva"].map((item, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    {["Integrada", "Contínua", "Mensurada", "Preditiva"].map((item, i) => <li key={i} className="flex items-center gap-2 text-sm font-medium text-foreground">
                         <CheckCircle className="h-4 w-4 text-accent" />
                         Governança {item}
-                      </li>
-                    ))}
+                      </li>)}
                   </ul>
                 </CardContent>
               </Card>
@@ -342,10 +297,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-6 bg-accent/10 text-accent border-accent/20">
-                <Sparkles className="h-3 w-3 mr-1" />
-                O Tripé Legacy
-              </Badge>
+              
               <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
                 Três Pilares que Transformam a Governança
               </h2>
@@ -355,8 +307,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {legacyPillars.map((pillar, index) => (
-                <Card key={index} className="relative overflow-hidden border-2 hover:border-accent/30 hover:shadow-xl transition-all duration-300 group">
+              {legacyPillars.map((pillar, index) => <Card key={index} className="relative overflow-hidden border-2 hover:border-accent/30 hover:shadow-xl transition-all duration-300 group">
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${pillar.color}`} />
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-3 mb-3">
@@ -374,16 +325,13 @@ const Index = () => {
                     </p>
                     <div className="space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Módulos de Suporte:</p>
-                      {pillar.modules.map((module, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
+                      {pillar.modules.map((module, i) => <div key={i} className="flex items-center gap-2 text-sm">
                           <CheckCircle className={`h-3.5 w-3.5 ${pillar.iconColor}`} />
                           <span>{module}</span>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
         </div>
@@ -394,10 +342,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-6 bg-primary/10 text-primary border-primary/20">
-                <Bot className="h-3 w-3 mr-1" />
-                Legacy AI
-              </Badge>
+              
               <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
                 A Inteligência Artificial que Eleva a Governança ao{" "}
                 <span className="text-accent">Nível Estratégico</span>
@@ -411,13 +356,10 @@ const Index = () => {
 
             {/* AI Highlights */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              {aiHighlights.map((highlight, index) => (
-                <Card key={index} className="relative border-2 hover:border-primary/30 hover:shadow-xl transition-all duration-300 bg-card">
-                  {highlight.badge && (
-                    <Badge className="absolute -top-2 right-4 bg-accent text-primary-foreground text-xs">
+              {aiHighlights.map((highlight, index) => <Card key={index} className="relative border-2 hover:border-primary/30 hover:shadow-xl transition-all duration-300 bg-card">
+                  {highlight.badge && <Badge className="absolute -top-2 right-4 bg-accent text-primary-foreground text-xs">
                       {highlight.badge}
-                    </Badge>
-                  )}
+                    </Badge>}
                   <CardHeader>
                     <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
                       <highlight.icon className="h-7 w-7 text-primary" />
@@ -433,8 +375,7 @@ const Index = () => {
                       {highlight.benefit}
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
 
             {/* AI Message */}
@@ -456,10 +397,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-6 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                <Shield className="h-3 w-3 mr-1" />
-                Segurança e Compliance
-              </Badge>
+              
               <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
                 Segurança, Rastreabilidade e Compliance:{" "}
                 <span className="text-emerald-600">O Padrão Legacy</span>
@@ -471,8 +409,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              {securityHighlights.map((highlight, index) => (
-                <Card key={index} className="border-2 hover:border-emerald-500/30 hover:shadow-xl transition-all duration-300">
+              {securityHighlights.map((highlight, index) => <Card key={index} className="border-2 hover:border-emerald-500/30 hover:shadow-xl transition-all duration-300">
                   <CardHeader>
                     <div className="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4">
                       <highlight.icon className="h-7 w-7 text-emerald-600" />
@@ -488,8 +425,7 @@ const Index = () => {
                       {highlight.highlight}
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
 
             {/* Security Authority Message */}
@@ -508,10 +444,7 @@ const Index = () => {
         <div className="container mx-auto px-6">
           {/* Header */}
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <Badge className="mb-6 bg-accent/10 text-accent border-accent/20">
-              <Star className="h-3 w-3 mr-1" />
-              Planos Legacy
-            </Badge>
+            
             <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-foreground">
               Planos criados para cada etapa da{" "}
               <span className="text-accent">governança</span>
@@ -545,14 +478,14 @@ const Index = () => {
                   <span className="text-3xl font-bold text-foreground">(Consultar)</span>
                 </div>
                 <ul className="space-y-3 mb-6 flex-1">
-                  {["Dashboard principal", "Atas e reuniões com assinatura eletrônica", "Checklist documental básico", "Agenda simples", "Estrutura societária inicial", "Biblioteca de documentos"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
+                  {["Dashboard principal", "Atas e reuniões com assinatura eletrônica", "Checklist documental básico", "Agenda simples", "Estrutura societária inicial", "Biblioteca de documentos"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                       <span>{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
-                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({
+                behavior: 'smooth'
+              })}>
                   Assinar Agora
                 </Button>
               </CardContent>
@@ -580,14 +513,14 @@ const Index = () => {
                 </div>
                 <p className="text-xs font-medium text-green-600 mb-3">Inclui tudo do Startup, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
-                  {["Estrutura societária completa", "Maturidade de governança", "Checklist com IA", "Biblioteca com análise automática", "Agenda anual completa"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
+                  {["Estrutura societária completa", "Maturidade de governança", "Checklist com IA", "Biblioteca com análise automática", "Agenda anual completa"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                       <span>{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
-                <Button className="w-full bg-green-500 hover:bg-green-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Button className="w-full bg-green-500 hover:bg-green-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({
+                behavior: 'smooth'
+              })}>
                   Assinar Agora
                 </Button>
               </CardContent>
@@ -621,14 +554,14 @@ const Index = () => {
                 </div>
                 <p className="text-xs font-medium text-accent mb-3">Inclui tudo do Pequena, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
-                  {["Entrevistas estruturadas", "Relatório executivo do diagnóstico", "Configuração completa de conselhos", "Painel de secretariado", "Submissão e análise de projetos"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
+                  {["Entrevistas estruturadas", "Relatório executivo do diagnóstico", "Configuração completa de conselhos", "Painel de secretariado", "Submissão e análise de projetos"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-accent mt-0.5 shrink-0" />
                       <span>{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
-                <Button className="w-full bg-accent hover:bg-accent/90 text-primary-foreground" onClick={() => document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Button className="w-full bg-accent hover:bg-accent/90 text-primary-foreground" onClick={() => document.getElementById('contato')?.scrollIntoView({
+                behavior: 'smooth'
+              })}>
                   Assinar Agora
                 </Button>
               </CardContent>
@@ -656,14 +589,14 @@ const Index = () => {
                 </div>
                 <p className="text-xs font-medium text-purple-600 mb-3">Inclui tudo do Média, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
-                  {["Gestão de Pessoas em Governança", "Sucessores e posições-chave", "PDI e trilhas", "Gestão de riscos completa", "ESG básico", "Logs avançados"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
+                  {["Gestão de Pessoas em Governança", "Sucessores e posições-chave", "PDI e trilhas", "Gestão de riscos completa", "ESG básico", "Logs avançados"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
                       <span>{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
-                <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({
+                behavior: 'smooth'
+              })}>
                   Assinar Agora
                 </Button>
               </CardContent>
@@ -697,14 +630,14 @@ const Index = () => {
                 </div>
                 <p className="text-xs font-medium text-primary mb-3">Inclui tudo do Grande, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
-                  {["ESG avançado (CVM 193)", "Inteligência de Mercado completa", "Agentes de IA especializados", "Multi-CNPJ / multi-empresa", "Auditoria corporativa", "Governança multinível"].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
+                  {["ESG avançado (CVM 193)", "Inteligência de Mercado completa", "Agentes de IA especializados", "Multi-CNPJ / multi-empresa", "Auditoria corporativa", "Governança multinível"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span>{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => document.getElementById('contato')?.scrollIntoView({
+                behavior: 'smooth'
+              })}>
                   Fale Conosco
                 </Button>
               </CardContent>
@@ -741,63 +674,28 @@ const Index = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome Completo *</Label>
-                      <Input 
-                        id="name" 
-                        name="name" 
-                        value={formData.name} 
-                        onChange={handleInputChange} 
-                        required 
-                        placeholder="Seu nome completo" 
-                      />
+                      <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required placeholder="Seu nome completo" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">E-mail Corporativo *</Label>
-                      <Input 
-                        id="email" 
-                        name="email" 
-                        type="email" 
-                        value={formData.email} 
-                        onChange={handleInputChange} 
-                        required 
-                        placeholder="seu@empresa.com.br" 
-                      />
+                      <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} required placeholder="seu@empresa.com.br" />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="organization">Organização *</Label>
-                      <Input 
-                        id="organization" 
-                        name="organization" 
-                        value={formData.organization} 
-                        onChange={handleInputChange} 
-                        required 
-                        placeholder="Nome da empresa" 
-                      />
+                      <Input id="organization" name="organization" value={formData.organization} onChange={handleInputChange} required placeholder="Nome da empresa" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone / WhatsApp *</Label>
-                      <Input 
-                        id="phone" 
-                        name="phone" 
-                        value={formData.phone} 
-                        onChange={handleInputChange} 
-                        required
-                        placeholder="(11) 99999-9999" 
-                      />
+                      <Input id="phone" name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="(11) 99999-9999" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="role">Cargo / Função (opcional)</Label>
-                    <Input 
-                      id="role" 
-                      name="role" 
-                      value={formData.role} 
-                      onChange={handleInputChange} 
-                      placeholder="Ex: CEO, CFO, Diretor de Governança..." 
-                    />
+                    <Input id="role" name="role" value={formData.role} onChange={handleInputChange} placeholder="Ex: CEO, CFO, Diretor de Governança..." />
                   </div>
                   
                   <Button type="submit" size="lg" className="w-full bg-accent hover:bg-accent/90 text-primary-foreground text-lg py-6">
@@ -830,16 +728,14 @@ const Index = () => {
             </div>
             
             <Accordion type="single" collapsible className="space-y-4">
-              {faqData.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border border-border rounded-lg">
+              {faqData.map((faq, index) => <AccordionItem key={index} value={`item-${index}`} className="border border-border rounded-lg">
                   <AccordionTrigger className="text-left font-semibold text-lg px-6 py-4 hover:no-underline">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed px-6 pb-4">
                     {faq.answer}
                   </AccordionContent>
-                </AccordionItem>
-              ))}
+                </AccordionItem>)}
             </Accordion>
           </div>
         </div>
@@ -897,8 +793,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
