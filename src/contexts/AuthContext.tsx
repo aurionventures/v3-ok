@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { mockUsers } from "@/utils/mockUsers";
+import { mockUsers, MockUser } from "@/utils/mockUsers";
+import { Organization } from "@/types/organization";
 
 export interface AuthUser {
   id: string;
@@ -8,6 +9,7 @@ export interface AuthUser {
   name: string;
   role: string;
   company?: string;
+  organization?: Organization;
 }
 
 interface AuthContextType {
@@ -30,8 +32,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(newUser);
     if (newUser) {
       localStorage.setItem('authUser', JSON.stringify(newUser));
+      // Também persistir organization se existir
+      if (newUser.organization) {
+        localStorage.setItem('organization', JSON.stringify(newUser.organization));
+      }
     } else {
       localStorage.removeItem('authUser');
+      localStorage.removeItem('organization');
     }
   };
 
@@ -61,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: mockUser.name,
         role: mockUser.role,
         company: mockUser.company,
+        organization: mockUser.organization,
       };
       
       setUserWithPersistence(authUser);

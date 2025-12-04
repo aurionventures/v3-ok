@@ -1,13 +1,6 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { 
-  ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
-  Leaf, Settings, Shield, Users, BookOpen, BookText, 
-  Activity, Building, Bot, DollarSign, PieChart, CheckCircle, 
-  Clock, AlertCircle, Zap, Target, Map, Play, Send, TrendingUp
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LayoutDashboard, Settings, Building, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
@@ -21,285 +14,107 @@ import {
   SidebarMenuItem,
   useSidebar
 } from "@/components/ui/sidebar";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { getVisibleSections, organization } = useModuleAccess();
   
   const isAdminRoute = pathname.startsWith("/admin");
   
   // Admin menu items
   const adminMenuItems = [
-    {
-      icon: LayoutDashboard,
-      href: "/admin",
-      name: "Dashboard"
-    },
-    {
-      icon: Building,
-      href: "/admin/companies",
-      name: "Empresas"
-    },
-    {
-      icon: DollarSign,
-      href: "/admin/finances",
-      name: "Finanças"
-    },
-    {
-      icon: Settings,
-      href: "/admin/settings",
-      name: "Configurações"
-    }
+    { icon: LayoutDashboard, href: "/admin", name: "Dashboard" },
+    { icon: Building, href: "/admin/companies", name: "Empresas" },
+    { icon: DollarSign, href: "/admin/finances", name: "Finanças" },
+    { icon: Settings, href: "/admin/settings", name: "Configurações" }
   ];
 
-  // Company menu items organized by phases
-  const menuPhases = [
-    {
-      phase: "Início",
-      icon: Target,
-      color: "text-blue-400",
-      items: [
-        {
-          icon: Play,
-          href: "/start",
-          name: "Comece Aqui",
-          moduleId: null,
-          priority: true
-        },
-        {
-          icon: LayoutDashboard,
-          href: "/dashboard",
-          name: "Dashboard",
-          moduleId: null
-        },
-        {
-          icon: Settings,
-          href: "/settings",
-          name: "Configurações",
-          moduleId: "settings"
-        },
-      ]
-    },
-    {
-      phase: "PARAMETRIZAÇÃO",
-      icon: Zap,
-      color: "text-green-400",
-      items: [
-        {
-          icon: Users,
-          href: "/shareholder-structure",
-          name: "Estrutura Societária",
-          moduleId: "shareholder-structure"
-        },
-        {
-          icon: BarChart3,
-          href: "/data-input",
-          name: "Avaliação de Governança",
-          moduleId: "maturity"
-        },
-        {
-          icon: CheckCircle,
-          href: "/maturity",
-          name: "Maturidade de Governança",
-          moduleId: "maturity-results"
-        },
-        {
-          icon: BookText,
-          href: "/legacy",
-          name: "Legado e Rituais",
-          moduleId: null
-        }
-      ]
-    },
-    {
-      phase: "Preparação",
-      icon: BookOpen,
-      color: "text-blue-400",
-      items: [
-        {
-          icon: FileText,
-          href: "/document-checklist",
-          name: "Checklist",
-          moduleId: "document-checklist",
-          priority: true
-        },
-        {
-          icon: ActivitySquare,
-          href: "/interviews",
-          name: "Entrevistas",
-          moduleId: "interviews"
-        },
-        {
-          icon: BarChart3,
-          href: "/initial-report",
-          name: "Análise e Ações",
-          moduleId: "initial-report"
-        }
-      ]
-    },
-    {
-      phase: "Estruturação",
-      icon: Shield,
-      color: "text-purple-400",
-      items: [
-        {
-          icon: Calendar,
-          href: "/annual-agenda",
-          name: "Agenda Anual",
-          moduleId: "annual-agenda",
-          priority: true
-        },
-        {
-          icon: Shield,
-          href: "/councils",
-          name: "Conselhos",
-          moduleId: "councils"
-        },
-        {
-          icon: Send,
-          href: "/submit-projects",
-          name: "Submeter Projetos",
-          moduleId: "submit-projects"
-        }
-      ]
-    },
-    {
-      phase: "Desenvolvimento",
-      icon: Activity,
-      color: "text-orange-400",
-      items: [
-        {
-          icon: Users,
-          href: "/people-management",
-          name: "Gestão de Pessoas & Governança",
-          moduleId: "people-management",
-          priority: true
-        }
-      ]
-    },
-    {
-      phase: "Monitoramento",
-      icon: AlertCircle,
-      color: "text-red-400",
-      items: [
-        {
-          icon: Shield,
-          href: "/governance-risk-management",
-          name: "Gestão de Riscos de Governança",
-          moduleId: "governance-risks"
-        },
-        {
-          icon: Leaf,
-          href: "/esg",
-          name: "Maturidade ESG",
-          moduleId: "esg"
-        },
-        {
-          icon: ActivitySquare,
-          href: "/activities",
-          name: "Atividades",
-          moduleId: null
-        }
-      ]
-    },
-    {
-      phase: "Inteligência de Mercado",
-      icon: TrendingUp,
-      color: "text-cyan-400",
-      items: [
-        {
-          icon: TrendingUp,
-          href: "/market-intelligence",
-          name: "Inteligência de Mercado",
-          moduleId: "market-intelligence"
-        }
-      ]
-    },
-    {
-      phase: "Otimização",
-      icon: Zap,
-      color: "text-yellow-400",
-      items: [
-        {
-          icon: Bot,
-          href: "/ai-agents",
-          name: "Agentes de IA",
-          moduleId: "ai-config"
-        }
-      ]
-    }
-  ];
+  const visibleSections = getVisibleSections();
 
   return (
-    <>
-      <Sidebar>
-        <SidebarHeader className="border-b border-sidebar-border">
-          <div className="flex items-center justify-between p-2">
-            <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2">
-              <img 
-                src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png" 
-                alt="Legacy" 
-                className="h-8 w-auto brightness-0 invert"
-              />
-            </Link>
-          </div>
-        </SidebarHeader>
+    <Sidebar>
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex items-center justify-between p-2">
+          <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2">
+            <img 
+              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png" 
+              alt="Legacy" 
+              className="h-8 w-auto brightness-0 invert"
+            />
+          </Link>
+        </div>
+      </SidebarHeader>
 
-        <SidebarContent>
-          {isAdminRoute ? (
-            <SidebarGroup>
-              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+      <SidebarContent>
+        {isAdminRoute ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminMenuItems.map(item => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.href || (item.href === "/admin/companies" && pathname.startsWith("/admin/companies"))}
+                    >
+                      <Link to={item.href}>
+                        <item.icon className="h-5 w-5" />
+                        {!collapsed && <span>{item.name}</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          visibleSections.map((section) => (
+            <SidebarGroup key={section.key}>
+              <SidebarGroupLabel className={cn("flex items-center gap-2 text-sm font-semibold", section.color)}>
+                <section.icon className="h-4 w-4" />
+                {!collapsed && (
+                  <>
+                    {section.label}
+                    {section.premium && (
+                      <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0 h-4 border-current">
+                        Premium
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {adminMenuItems.map(item => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href || (item.href === "/admin/companies" && pathname.startsWith("/admin/companies"))}
-                      >
-                        <Link to={item.href}>
-                          <item.icon className="h-5 w-5" />
-                          {!collapsed && <span>{item.name}</span>}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {section.items.map(item => {
+                    const isActive = pathname === item.path;
+                    
+                    return (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <Link to={item.path} className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                              <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
+                              {!collapsed && <span className="flex-1">{item.label}</span>}
+                            </div>
+                            {!collapsed && item.premium && (
+                              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3">
+                                Add-on
+                              </Badge>
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          ) : (
-            menuPhases.map((phase, phaseIndex) => (
-              <SidebarGroup key={phase.phase}>
-                <SidebarGroupLabel className={cn("flex items-center gap-2 text-sm font-semibold", phase.color)}>
-                  <phase.icon className="h-4 w-4" />
-                  {!collapsed && phase.phase}
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {phase.items.map(item => {
-                      const isActive = pathname === item.href;
-                      
-                      return (
-                        <SidebarMenuItem key={item.href}>
-                          <SidebarMenuButton asChild isActive={isActive}>
-                            <Link to={item.href} className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
-                    <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
-                    {!collapsed && <span className="flex-1">{item.name}</span>}
-                  </div>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))
-          )}
-        </SidebarContent>
-      </Sidebar>
-    </>
+          ))
+        )}
+      </SidebarContent>
+    </Sidebar>
   );
 }
