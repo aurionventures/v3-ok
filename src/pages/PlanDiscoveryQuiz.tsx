@@ -147,9 +147,9 @@ export default function PlanDiscoveryQuiz() {
           description: "Preparando sua plataforma...",
         });
         
-        // Small delay for UX then redirect directly to plan activation
+        // Small delay for UX then redirect to plan result
         setTimeout(() => {
-          navigate('/plan-activation');
+          navigate('/plan-result');
         }, 800);
         
       } catch (err) {

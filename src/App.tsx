@@ -65,6 +65,13 @@ import TaskAccess from "./pages/TaskAccess";
 import ATAApproval from "./pages/ATAApproval";
 import ATAPendingManagement from "./pages/ATAPendingManagement";
 import MemberPortal from "./pages/MemberPortal";
+import PlanResult from "./pages/PlanResult";
+import Checkout from "./pages/Checkout";
+import Payment from "./pages/Payment";
+import PaymentConfirmed from "./pages/PaymentConfirmed";
+import EmailConfirmation from "./pages/EmailConfirmation";
+import DemoLogin from "./pages/DemoLogin";
+import InitialSetup from "./pages/InitialSetup";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AuditLogs from "./pages/AuditLogs";
@@ -149,6 +156,13 @@ const App = () => (
           <Route path="/diagnostic-quiz" element={<StandaloneQuiz />} />
           <Route path="/standalone-quiz" element={<StandaloneQuiz />} />
           <Route path="/plan-discovery" element={<PlanDiscoveryQuiz />} />
+          <Route path="/plan-result" element={<PlanResult />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment-confirmed" element={<PaymentConfirmed />} />
+          <Route path="/email-confirmation" element={<EmailConfirmation />} />
+          <Route path="/demo-login" element={<DemoLogin />} />
+          <Route path="/initial-setup" element={<InitialSetup />} />
           <Route path="/guest-access/:token" element={<GuestAccess />} />
           <Route path="/task-access/:token" element={<TaskAccess />} />
           <Route path="/ata-approval/:token" element={<ATAApproval />} />
