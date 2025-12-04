@@ -439,207 +439,61 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Plans Section */}
+      {/* Plan Discovery Quiz CTA Section */}
       <section id="planos" className="py-24 bg-gradient-to-br from-muted/30 via-background to-muted/30">
         <div className="container mx-auto px-6">
-          {/* Header */}
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-foreground">
-              Planos criados para cada etapa da{" "}
-              <span className="text-accent">governança</span>
-            </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              A Legacy evolui junto com a sua empresa. Cada plano foi desenvolvido para refletir o nível de complexidade, 
-              responsabilidade e maturidade exigido conforme o tamanho e o estágio de desenvolvimento do negócio.
-            </p>
-          </div>
+          <div className="max-w-3xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
+                Planos criados para cada etapa da{" "}
+                <span className="text-accent">governança</span>
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                A Legacy evolui junto com a sua empresa. Descubra qual plano é ideal para o seu momento.
+              </p>
+            </div>
 
-          {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {/* Startup */}
-            <Card className="relative flex flex-col border-border/50 bg-gradient-to-br from-card to-blue-500/5 hover:border-blue-500/30 hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                    <Rocket className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <CardTitle className="text-xl">Startup</CardTitle>
+            {/* Quiz CTA Card */}
+            <Card className="relative overflow-hidden border-2 border-accent/30 bg-gradient-to-br from-card via-accent/5 to-card shadow-xl">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-primary to-accent" />
+              <CardContent className="p-10 text-center">
+                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Target className="h-8 w-8 text-accent" />
                 </div>
-                <Badge variant="outline" className="w-fit text-xs bg-blue-500/10 text-blue-600 border-blue-500/20">
-                  até R$ 4,8 milhões/ano
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Para negócios em estágio inicial e investidas que precisam estruturar sua governança desde cedo.
+                
+                <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
+                  Descubra qual o plano ideal para sua governança
+                </h3>
+                
+                <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+                  Faça o teste aqui, leva menos de 1 minuto
                 </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
-                </div>
-                <ul className="space-y-3 mb-6 flex-1">
-                  {["Dashboard principal", "Atas e reuniões com assinatura eletrônica", "Checklist documental básico", "Agenda simples", "Estrutura societária inicial", "Biblioteca de documentos"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>)}
-                </ul>
-                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({
-                behavior: 'smooth'
-              })}>
-                  Assinar Agora
+                
+                <Button 
+                  size="lg" 
+                  className="bg-accent hover:bg-accent/90 text-primary-foreground text-lg px-10 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 mb-8"
+                  onClick={() => navigate('/plan-discovery')}
+                >
+                  <Rocket className="h-5 w-5 mr-2" />
+                  Fazer o Quiz Agora
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Pequena Empresa */}
-            <Card className="relative flex flex-col border-border/50 bg-gradient-to-br from-card to-green-500/5 hover:border-green-500/30 hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <Building className="h-5 w-5 text-green-500" />
+                
+                {/* Micro-benefits */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <span>6 perguntas rápidas</span>
                   </div>
-                  <CardTitle className="text-xl">Pequena Empresa</CardTitle>
-                </div>
-                <Badge variant="outline" className="w-fit text-xs bg-green-500/10 text-green-600 border-green-500/20">
-                  R$ 4,8M a R$ 30M/ano
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Para empresas que já iniciaram a formalização e precisam ganhar estrutura e controle.
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
-                </div>
-                <p className="text-xs font-medium text-green-600 mb-3">Inclui tudo do Startup, mais:</p>
-                <ul className="space-y-3 mb-6 flex-1">
-                  {["Estrutura societária completa", "Maturidade de governança", "Checklist com IA", "Biblioteca com análise automática", "Agenda anual completa"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>)}
-                </ul>
-                <Button className="w-full bg-green-500 hover:bg-green-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({
-                behavior: 'smooth'
-              })}>
-                  Assinar Agora
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Média Empresa - Highlighted */}
-            <Card className="relative flex flex-col border-2 border-accent bg-gradient-to-br from-card to-accent/10 hover:shadow-2xl transition-all duration-300 scale-[1.02]">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-accent text-primary-foreground shadow-lg">
-                  <Star className="h-3 w-3 mr-1" />
-                  Mais Popular
-                </Badge>
-              </div>
-              <CardHeader className="pb-4 pt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-accent" />
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <span>Recomendação personalizada</span>
                   </div>
-                  <CardTitle className="text-xl">Média Empresa</CardTitle>
-                </div>
-                <Badge variant="outline" className="w-fit text-xs bg-accent/10 text-accent border-accent/30">
-                  R$ 30M a R$ 300M/ano
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Para empresas em profissionalização acelerada com conselhos ou múltiplos órgãos.
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
-                </div>
-                <p className="text-xs font-medium text-accent mb-3">Inclui tudo do Pequena, mais:</p>
-                <ul className="space-y-3 mb-6 flex-1">
-                  {["Entrevistas estruturadas", "Relatório executivo do diagnóstico", "Configuração completa de conselhos", "Painel de secretariado", "Submissão e análise de projetos"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>)}
-                </ul>
-                <Button className="w-full bg-accent hover:bg-accent/90 text-primary-foreground" onClick={() => document.getElementById('contato')?.scrollIntoView({
-                behavior: 'smooth'
-              })}>
-                  Assinar Agora
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Grande Empresa */}
-            <Card className="relative flex flex-col border-border/50 bg-gradient-to-br from-card to-purple-500/5 hover:border-purple-500/30 hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-purple-500" />
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <span>Contato direto com especialista</span>
                   </div>
-                  <CardTitle className="text-xl">Grande Empresa</CardTitle>
                 </div>
-                <Badge variant="outline" className="w-fit text-xs bg-purple-500/10 text-purple-600 border-purple-500/20">
-                  R$ 300M a R$ 4,8B/ano
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Para empresas com governança madura, sucessão ativa e múltiplas camadas executivas.
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
-                </div>
-                <p className="text-xs font-medium text-purple-600 mb-3">Inclui tudo do Média, mais:</p>
-                <ul className="space-y-3 mb-6 flex-1">
-                  {["Gestão de Pessoas em Governança", "Sucessores e posições-chave", "PDI e trilhas", "Gestão de riscos completa", "ESG básico", "Logs avançados"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>)}
-                </ul>
-                <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" onClick={() => document.getElementById('contato')?.scrollIntoView({
-                behavior: 'smooth'
-              })}>
-                  Assinar Agora
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Empresa Listada */}
-            <Card className="relative flex flex-col border-border/50 bg-gradient-to-br from-card to-primary/5 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-primary text-primary-foreground">
-                  <Crown className="h-3 w-3 mr-1" />
-                  Enterprise
-                </Badge>
-              </div>
-              <CardHeader className="pb-4 pt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Crown className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-xl">Empresa Listada</CardTitle>
-                </div>
-                <Badge variant="outline" className="w-fit text-xs bg-primary/10 text-primary border-primary/20">
-                  acima de R$ 4,8B/ano
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Para companhias abertas e grupos multissocietários de grande escala.
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
-                </div>
-                <p className="text-xs font-medium text-primary mb-3">Inclui tudo do Grande, mais:</p>
-                <ul className="space-y-3 mb-6 flex-1">
-                  {["ESG avançado (CVM 193)", "Inteligência de Mercado completa", "Agentes de IA especializados", "Multi-CNPJ / multi-empresa", "Auditoria corporativa", "Governança multinível"].map((feature, i) => <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>)}
-                </ul>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => document.getElementById('contato')?.scrollIntoView({
-                behavior: 'smooth'
-              })}>
-                  Fale Conosco
-                </Button>
               </CardContent>
             </Card>
           </div>
