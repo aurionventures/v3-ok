@@ -366,13 +366,13 @@ export const SecretariatDashboard = ({
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Aprova%C3%A7%C3%A3o'}>
+                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => window.location.href = '/ata-pending?tab=approvals'}>
                     <AlertCircle className="h-3 w-3" />
-                    Ver Pendentes
+                    Pendentes de Aprovação
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => window.location.href = '/annual-agenda?status=Aguardando%20Assinatura'}>
+                  <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => window.location.href = '/ata-pending?tab=signatures'}>
                     <PenTool className="h-3 w-3" />
-                    Ver Assinaturas
+                    Pendentes de Assinaturas
                   </Button>
                 </div>
               </CardContent>
