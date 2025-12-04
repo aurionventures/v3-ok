@@ -94,8 +94,7 @@ export const PLAN_DATA: Record<PlanId, {
       'Diagnóstico de maturidade em governança',
       'Estruturação básica de órgãos',
       'Modelo de atas e documentos',
-      'Suporte via chat',
-      'Até 3 usuários'
+      'Suporte via chat'
     ],
     corHex: '#6366f1',
     iconName: 'Rocket'
@@ -111,7 +110,6 @@ export const PLAN_DATA: Record<PlanId, {
       'Gestão completa de reuniões',
       'Secretariado digital',
       'Gestão de pendências',
-      'Até 10 usuários',
       'Suporte prioritário'
     ],
     corHex: '#3b82f6',
@@ -128,7 +126,6 @@ export const PLAN_DATA: Record<PlanId, {
       'Múltiplos conselhos e comitês',
       'Gestão de riscos básica',
       'Avaliação de performance de órgãos',
-      'Até 25 usuários',
       'Consultoria trimestral'
     ],
     corHex: '#10b981',
