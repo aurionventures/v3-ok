@@ -87,3 +87,40 @@ export const useUserActivitySummary = (userId: string) => {
     }
   });
 };
+
+interface CreateAuditLogParams {
+  action: string;
+  entity_type: string;
+  entity_id?: string;
+  old_values?: any;
+  new_values?: any;
+  metadata?: any;
+}
+
+export const useCreateAuditLog = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: CreateAuditLogParams) => {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .insert({
+          action: params.action,
+          entity_type: params.entity_type,
+          entity_id: params.entity_id,
+          old_values: params.old_values,
+          new_values: params.new_values,
+          metadata: params.metadata,
+          success: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+    }
+  });
+};

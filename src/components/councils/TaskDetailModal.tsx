@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useCreateAuditLog } from "@/hooks/useAuditLogs";
 
 interface TaskDetailModalProps {
   open: boolean;
@@ -28,6 +29,7 @@ interface TaskDetailModalProps {
 
 export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDetailModalProps) => {
   const { toast } = useToast();
+  const createAuditLog = useCreateAuditLog();
 
   if (!task) return null;
 
@@ -117,6 +119,15 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
 
       if (error) throw error;
 
+      // Log da ação
+      createAuditLog.mutate({
+        action: 'ENVIO_EMAIL_ALERTA',
+        entity_type: 'meeting_actions',
+        entity_id: task.id,
+        new_values: { email: task.responsibleEmail, task: task.task },
+        metadata: { organ: task.organName, responsible: task.responsible }
+      });
+
       toast({
         title: "Alerta enviado por e-mail",
         description: `Notificação enviada para ${task.responsibleEmail}`,
@@ -146,7 +157,7 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
         type: 'PENDENCIA_COBRANCA',
         channel: 'WHATSAPP',
         title: `Alerta: Tarefa Pendente - ${task.organName}`,
-        message: `🔔 *Alerta de Pendência*\n\n*Tarefa:* ${task.task}\n*Órgão:* ${task.organName}\n*Prazo:* ${format(task.dueDate, 'dd/MM/yyyy', { locale: ptBR })}\n*Prioridade:* ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}\n\nPor favor, tome as ações necessárias.`,
+        message: `*Alerta de Pendência*\n\n*Tarefa:* ${task.task}\n*Órgão:* ${task.organName}\n*Prazo:* ${format(task.dueDate, 'dd/MM/yyyy', { locale: ptBR })}\n*Prioridade:* ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}\n\nPor favor, tome as ações necessárias.`,
         status: 'PENDENTE',
         scheduled_at: new Date().toISOString(),
         context: {
@@ -159,6 +170,15 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
       });
 
       if (error) throw error;
+
+      // Log da ação
+      createAuditLog.mutate({
+        action: 'ENVIO_WHATSAPP_ALERTA',
+        entity_type: 'meeting_actions',
+        entity_id: task.id,
+        new_values: { responsible: task.responsible, task: task.task },
+        metadata: { organ: task.organName, channel: 'WHATSAPP' }
+      });
 
       toast({
         title: "Alerta enviado via WhatsApp",
@@ -174,6 +194,16 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
   };
 
   const handleCompleteTask = async () => {
+    // Log da conclusão
+    createAuditLog.mutate({
+      action: 'CONCLUSAO_TAREFA',
+      entity_type: 'meeting_actions',
+      entity_id: task.id,
+      old_values: { status: task.status },
+      new_values: { status: 'CONCLUIDA' },
+      metadata: { task: task.task, organ: task.organName, responsible: task.responsible }
+    });
+
     await onComplete(task.id);
     onOpenChange(false);
   };
@@ -202,6 +232,15 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
     
     // Copiar para área de transferência
     navigator.clipboard.writeText(demoLink);
+    
+    // Log da ação
+    createAuditLog.mutate({
+      action: 'GERACAO_LINK_ACESSO',
+      entity_type: 'meeting_actions',
+      entity_id: task.id,
+      new_values: { link_generated: true },
+      metadata: { responsible: task.responsible, task: task.task }
+    });
     
     toast({
       title: "Link copiado!",
