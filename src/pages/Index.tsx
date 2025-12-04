@@ -219,8 +219,7 @@ const Index = () => {
               
               <Button 
                 size="lg" 
-                variant="outline" 
-                className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 h-auto rounded-xl"
+                className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 onClick={handleWhatsAppDemo}
               >
                 <Phone className="h-5 w-5 mr-2" />
