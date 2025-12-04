@@ -1,34 +1,28 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
   ArrowRight, 
-  Building2, 
   Check, 
   MessageCircle,
-  Rocket,
-  Building,
-  Globe,
-  TrendingUp,
   Users,
   Shield,
   Target,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import {
   QuizAnswers,
   ContactInfo,
   RevenueRange,
   getRecommendedPlan,
-  generateWhatsAppLink,
-  PLAN_DATA,
   REVENUE_LABELS,
   COUNCIL_LABELS,
   SUCCESSION_LABELS,
@@ -36,17 +30,10 @@ import {
   EMPLOYEES_LABELS
 } from '@/utils/planRecommendation';
 
-const PLAN_ICONS = {
-  Rocket: Rocket,
-  Building: Building,
-  Building2: Building2,
-  Globe: Globe,
-  TrendingUp: TrendingUp
-};
+// Removed 'resultado' step - now redirects directly to plan-activation
+type Step = 'faturamento' | 'conselho' | 'sucessao' | 'esg' | 'colaboradores' | 'contato';
 
-type Step = 'faturamento' | 'conselho' | 'sucessao' | 'esg' | 'colaboradores' | 'contato' | 'resultado';
-
-const STEPS: Step[] = ['faturamento', 'conselho', 'sucessao', 'esg', 'colaboradores', 'contato', 'resultado'];
+const STEPS: Step[] = ['faturamento', 'conselho', 'sucessao', 'esg', 'colaboradores', 'contato'];
 
 // Salvar lead no localStorage (fallback até as tabelas serem criadas)
 function saveQuizResponse(data: {
@@ -87,6 +74,7 @@ function saveQuizResponse(data: {
 
 export default function PlanDiscoveryQuiz() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>('faturamento');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -97,8 +85,6 @@ export default function PlanDiscoveryQuiz() {
     contatoEmail: '',
     contatoWhatsapp: ''
   });
-  
-  const [recommendedPlan, setRecommendedPlan] = useState<string | null>(null);
   
   const currentStepIndex = STEPS.indexOf(currentStep);
   const progress = ((currentStepIndex) / (STEPS.length - 1)) * 100;
@@ -129,9 +115,8 @@ export default function PlanDiscoveryQuiz() {
         // Calculate recommended plan
         const fullAnswers = answers as QuizAnswers;
         const planId = getRecommendedPlan(fullAnswers);
-        setRecommendedPlan(planId);
         
-        // Save to localStorage (tabelas serão criadas depois)
+        // Save quiz response data
         saveQuizResponse({
           empresaNome: contact.empresaNome,
           contatoNome: contact.contatoNome,
@@ -145,15 +130,35 @@ export default function PlanDiscoveryQuiz() {
           planoRecomendado: planId
         });
         
-        setCurrentStep('resultado');
+        // Create automatic demo client session
+        const mockUser = {
+          id: crypto.randomUUID(),
+          email: contact.contatoEmail,
+          name: contact.contatoNome,
+          role: 'cliente' as const,
+          empresa: contact.empresaNome
+        };
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        localStorage.setItem('auth_role', 'cliente');
+        localStorage.setItem('onboarding_completed', 'false');
+        
+        toast({
+          title: "Plano recomendado com sucesso!",
+          description: "Preparando sua plataforma...",
+        });
+        
+        // Small delay for UX then redirect directly to plan activation
+        setTimeout(() => {
+          navigate('/plan-activation');
+        }, 800);
+        
       } catch (err) {
         console.error('Error in quiz submission:', err);
-        // Still show result even if save fails
-        const fullAnswers = answers as QuizAnswers;
-        const planId = getRecommendedPlan(fullAnswers);
-        setRecommendedPlan(planId);
-        setCurrentStep('resultado');
-      } finally {
+        toast({
+          title: "Erro ao processar",
+          description: "Tente novamente.",
+          variant: "destructive"
+        });
         setIsSubmitting(false);
       }
     } else {
@@ -172,9 +177,6 @@ export default function PlanDiscoveryQuiz() {
       navigate('/');
     }
   };
-  
-  const plan = recommendedPlan ? PLAN_DATA[recommendedPlan as keyof typeof PLAN_DATA] : null;
-  const PlanIcon = plan ? PLAN_ICONS[plan.iconName as keyof typeof PLAN_ICONS] : Building2;
   
   const renderStep = () => {
     switch (currentStep) {
@@ -404,84 +406,6 @@ export default function PlanDiscoveryQuiz() {
           </div>
         );
         
-      case 'resultado':
-        if (!plan) return null;
-        
-        const whatsappLink = generateWhatsAppLink(
-          plan.nome,
-          contact,
-          REVENUE_LABELS[answers.faturamentoFaixa as RevenueRange]
-        );
-        
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-4">
-              <div 
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                style={{ backgroundColor: `${plan.corHex}20` }}
-              >
-                <PlanIcon className="h-8 w-8" style={{ color: plan.corHex }} />
-              </div>
-              
-              <div>
-                <p className="text-muted-foreground mb-2">Seu plano ideal é:</p>
-                <h1 className="text-3xl font-bold" style={{ color: plan.corHex }}>
-                  {plan.nome}
-                </h1>
-                <Badge 
-                  className="mt-2 text-white"
-                  style={{ backgroundColor: plan.corHex }}
-                >
-                  {plan.precoMensal}/mês
-                </Badge>
-              </div>
-              
-              <p className="text-muted-foreground max-w-md mx-auto">
-                {plan.descricaoResumida}
-              </p>
-            </div>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">O que está incluso:</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {plan.bullets.map((bullet, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span>{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            
-            <div className="flex flex-col gap-3">
-              <Button 
-                size="lg" 
-                className="w-full text-lg py-6 bg-[#25D366] hover:bg-[#20BD5A]"
-                onClick={() => window.open(whatsappLink, '_blank')}
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                Contratar agora pelo WhatsApp
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => navigate('/')}
-              >
-                Voltar para o site
-              </Button>
-            </div>
-            
-            <p className="text-center text-sm text-muted-foreground">
-              Ao clicar, você será redirecionado para o WhatsApp da equipe Legacy para finalizar sua contratação.
-            </p>
-          </div>
-        );
-        
       default:
         return null;
     }
@@ -497,25 +421,31 @@ export default function PlanDiscoveryQuiz() {
         </div>
         
         {/* Progress */}
-        {currentStep !== 'resultado' && (
-          <div className="mb-8">
-            <div className="flex justify-between text-sm text-muted-foreground mb-2">
-              <span>Passo {currentStepIndex + 1} de {STEPS.length - 1}</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
+        <div className="mb-8">
+          <div className="flex justify-between text-sm text-muted-foreground mb-2">
+            <span>Passo {currentStepIndex + 1} de {STEPS.length}</span>
+            <span>{Math.round(progress)}%</span>
           </div>
-        )}
+          <Progress value={progress} className="h-2" />
+        </div>
         
         {/* Content */}
         <Card>
           <CardContent className="pt-6">
-            {renderStep()}
+            {isSubmitting ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                <p className="text-lg font-medium">Preparando sua plataforma...</p>
+                <p className="text-muted-foreground text-sm">Calculando o plano ideal para sua empresa</p>
+              </div>
+            ) : (
+              renderStep()
+            )}
           </CardContent>
         </Card>
         
         {/* Navigation */}
-        {currentStep !== 'resultado' && (
+        {!isSubmitting && (
           <div className="flex justify-between mt-6">
             <Button 
               variant="ghost" 
