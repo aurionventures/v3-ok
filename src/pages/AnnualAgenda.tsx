@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { 
   Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings, Filter,
   Building2, Users, UserCog, CalendarCheck, FileText, Send, CheckCheck, 
@@ -35,6 +36,8 @@ import { MeetingParticipant } from "@/types/annualSchedule";
 import { useMeetingNotifications } from "@/hooks/useMeetingNotifications";
 
 const AnnualAgenda = () => {
+  const [searchParams] = useSearchParams();
+  const initialStatus = searchParams.get("status") || "all";
   const { toast } = useToast();
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingSchedule | null>(null);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
@@ -75,8 +78,8 @@ const AnnualAgenda = () => {
   const { createMeeting, loading: creatingMeeting } = useMeetings();
   const { sendMeetingInvites, sendGuestInviteWithMagicLink } = useMeetingNotifications();
   
-  // Filters
-  const { filters, setFilters, filteredMeetings } = useCalendarFilters(schedule?.meetings || []);
+  // Filters - use URL status parameter if provided
+  const { filters, setFilters, filteredMeetings } = useCalendarFilters(schedule?.meetings || [], initialStatus);
   const { organs } = useGovernanceOrgans(filters.organType !== 'all' ? (filters.organType as any) : undefined);
 
   // Debug log
