@@ -142,7 +142,7 @@ const samplePDIs = [
     id: '1',
     personId: '1', // Ana Silva
     personName: 'Ana Silva',
-    personCategory: 'Herdeiro',
+    personCategory: 'Sucessor',
     currentRole: 'Gerente Regional',
     targetRole: 'CEO',
     goals: [
