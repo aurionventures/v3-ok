@@ -60,6 +60,7 @@ import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
 import GuestAccess from "./pages/GuestAccess";
 import TaskAccess from "./pages/TaskAccess";
 import ATAApproval from "./pages/ATAApproval";
+import ATAPendingManagement from "./pages/ATAPendingManagement";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AuditLogs from "./pages/AuditLogs";
@@ -188,6 +189,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <SecretariatPanel />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/ata-pending" 
+            element={
+              <ProtectedRoute >
+                <ATAPendingManagement />
               </ProtectedRoute>
             } 
           />
