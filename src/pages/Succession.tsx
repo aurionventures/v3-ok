@@ -271,7 +271,7 @@ const Succession = () => {
 
               <Tabs defaultValue="heirs" onValueChange={setSelectedTab}>
                 <TabsList className="mb-4">
-                  <TabsTrigger value="heirs">Herdeiros</TabsTrigger>
+                  <TabsTrigger value="heirs">Sucessão</TabsTrigger>
                   <TabsTrigger value="requirements">Requisitos de Sucessão</TabsTrigger>
                   <TabsTrigger value="training">Desenvolvimento</TabsTrigger>
                   <TabsTrigger value="documents">Documentos</TabsTrigger>
