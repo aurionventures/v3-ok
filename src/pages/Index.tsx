@@ -543,8 +543,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-foreground">R$ 2.990</span>
-                  <span className="text-muted-foreground"> / mês</span>
+                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
                 </div>
                 <ul className="space-y-3 mb-6 flex-1">
                   {["Dashboard principal", "Atas e reuniões com assinatura eletrônica", "Checklist documental básico", "Agenda simples", "Estrutura societária inicial", "Biblioteca de documentos"].map((feature, i) => (
@@ -578,8 +577,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-foreground">R$ 4.990</span>
-                  <span className="text-muted-foreground"> / mês</span>
+                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
                 </div>
                 <p className="text-xs font-medium text-green-600 mb-3">Inclui tudo do Startup, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
@@ -620,8 +618,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-foreground">R$ 9.900</span>
-                  <span className="text-muted-foreground"> / mês</span>
+                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
                 </div>
                 <p className="text-xs font-medium text-accent mb-3">Inclui tudo do Pequena, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
@@ -656,8 +653,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-foreground">R$ 19.900</span>
-                  <span className="text-muted-foreground"> / mês</span>
+                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
                 </div>
                 <p className="text-xs font-medium text-purple-600 mb-3">Inclui tudo do Média, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
@@ -698,10 +694,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
                 <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">A partir de</span>
-                  <br />
-                  <span className="text-4xl font-bold text-foreground">R$ 39.900</span>
-                  <span className="text-muted-foreground"> / mês</span>
+                  <span className="text-3xl font-bold text-foreground">(Consultar)</span>
                 </div>
                 <p className="text-xs font-medium text-primary mb-3">Inclui tudo do Grande, mais:</p>
                 <ul className="space-y-3 mb-6 flex-1">
