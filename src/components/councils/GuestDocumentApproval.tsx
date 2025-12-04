@@ -351,7 +351,6 @@ export const GuestDocumentApproval = () => {
         <CardTitle className="flex items-center gap-2">
           <UserCheck className="h-5 w-5 text-purple-600" />
           Aprovação de Documentos de Convidados
-          <Badge variant="secondary">{pendingDocuments.length}</Badge>
         </CardTitle>
         <CardDescription>
           Revise e aprove materiais enviados por convidados para as reuniões
