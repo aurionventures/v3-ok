@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { mockUsers, MockUser } from "@/utils/mockUsers";
-import { Organization } from "@/types/organization";
+import { Organization, OrganizationUserRole } from "@/types/organization";
 
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
   role: string;
+  orgRole?: OrganizationUserRole; // Papel dentro da organização
   company?: string;
+  councilMemberships?: string[]; // Órgãos que participa (para membros)
   organization?: Organization;
 }
 
@@ -67,7 +69,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: mockUser.email,
         name: mockUser.name,
         role: mockUser.role,
+        orgRole: mockUser.orgRole,
         company: mockUser.company,
+        councilMemberships: mockUser.councilMemberships,
         organization: mockUser.organization,
       };
       

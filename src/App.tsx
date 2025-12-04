@@ -64,6 +64,7 @@ import GuestAccess from "./pages/GuestAccess";
 import TaskAccess from "./pages/TaskAccess";
 import ATAApproval from "./pages/ATAApproval";
 import ATAPendingManagement from "./pages/ATAPendingManagement";
+import MemberPortal from "./pages/MemberPortal";
 import NotificationSettings from "./pages/NotificationSettings";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AuditLogs from "./pages/AuditLogs";
@@ -151,6 +152,14 @@ const App = () => (
           <Route path="/guest-access/:token" element={<GuestAccess />} />
           <Route path="/task-access/:token" element={<TaskAccess />} />
           <Route path="/ata-approval/:token" element={<ATAApproval />} />
+          <Route 
+            path="/member-portal" 
+            element={
+              <ProtectedRoute>
+                <MemberPortal />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/generate-company-token" element={<GenerateCompanyToken />} />
           <Route path="/generate-admin-token" element={<GenerateAdminToken />} />
           <Route path="/generate-partner-token" element={<GeneratePartnerToken />} />

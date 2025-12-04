@@ -1,7 +1,8 @@
 
 import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Building2 } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Building2, Users } from "lucide-react";
 import { PlanConfigurationTab } from "@/components/settings/PlanConfigurationTab";
+import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +14,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const Settings = () => {
+  const { user } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const isOrgAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   
   const handleSaveSettings = () => {
     toast({
@@ -56,6 +60,12 @@ const Settings = () => {
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
                   </TabsTrigger>
+                  {isOrgAdmin && (
+                    <TabsTrigger value="users">
+                      <Users className="h-4 w-4 mr-2" />
+                      Usuários
+                    </TabsTrigger>
+                  )}
                   <TabsTrigger value="plan">
                     <Building2 className="h-4 w-4 mr-2" />
                     Plano & Módulos
@@ -266,6 +276,12 @@ const Settings = () => {
                     </Button>
                   </div>
                 </TabsContent>
+                
+                {isOrgAdmin && (
+                  <TabsContent value="users">
+                    <UserManagementTab />
+                  </TabsContent>
+                )}
                 
                 <TabsContent value="plan">
                   <PlanConfigurationTab />
