@@ -14,11 +14,11 @@ const getATAStatusMap = (): Record<string, string> => {
   return stored ? JSON.parse(stored) : {};
 };
 
-export const useCalendarFilters = (meetings: MeetingSchedule[]) => {
+export const useCalendarFilters = (meetings: MeetingSchedule[], initialStatus: string = 'all') => {
   const [filters, setFilters] = useState<CalendarFilters>({
     organType: 'all',
     organId: 'all',
-    status: 'all',
+    status: initialStatus,
     meetingType: 'all',
   });
 
