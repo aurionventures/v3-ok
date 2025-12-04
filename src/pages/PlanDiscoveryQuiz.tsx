@@ -70,6 +70,16 @@ function saveQuizResponse(data: {
       status: 'novo'
     });
     localStorage.setItem('quiz_responses', JSON.stringify(existing));
+    
+    // Also save quiz_result for OrganizationContext to use during onboarding
+    localStorage.setItem('quiz_result', JSON.stringify({
+      empresaNome: data.empresaNome,
+      faturamentoFaixa: data.faturamentoFaixa,
+      temConselho: data.temConselho,
+      temSucessao: data.temSucessao,
+      avaliacaoRiscosEsg: data.avaliacaoRiscosEsg,
+      timestamp: new Date().toISOString()
+    }));
   } catch (err) {
     console.error('Error saving quiz response:', err);
   }

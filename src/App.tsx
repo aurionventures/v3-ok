@@ -44,6 +44,7 @@ import CapTable from "./pages/CapTable";
 import MaturityQuiz from "./pages/MaturityQuiz";
 import StandaloneQuiz from "./pages/StandaloneQuiz";
 import PlanDiscoveryQuiz from "./pages/PlanDiscoveryQuiz";
+import PlanActivation from "./pages/PlanActivation";
 import Investors from "./pages/Investors";
 import Onboarding from "./pages/Onboarding";
 import GovernanceHistory from "./pages/GovernanceHistory";
@@ -153,6 +154,16 @@ const App = () => (
           <Route path="/generate-company-token" element={<GenerateCompanyToken />} />
           <Route path="/generate-admin-token" element={<GenerateAdminToken />} />
           <Route path="/generate-partner-token" element={<GeneratePartnerToken />} />
+          
+          {/* Plan Activation (semi-protected - after quiz, before full access) */}
+          <Route 
+            path="/plan-activation" 
+            element={
+              <ProtectedRoute>
+                <PlanActivation />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Cliente Routes */}
           <Route 

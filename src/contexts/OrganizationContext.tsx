@@ -3,6 +3,13 @@ import { Organization, CompanySize, GovernancePlan, ModuleKey } from "@/types/or
 import { getDefaultModules } from "@/utils/moduleMatrix";
 import { useAuth } from "./AuthContext";
 
+interface QuizResult {
+  companySize: CompanySize;
+  plan: GovernancePlan;
+  companyName?: string;
+  timestamp: string;
+}
+
 interface OrganizationContextType {
   organization: Organization | null;
   loading: boolean;
@@ -11,11 +18,41 @@ interface OrganizationContextType {
   updateCompanySize: (size: CompanySize) => void;
   updatePlan: (plan: GovernancePlan) => void;
   toggleModule: (moduleKey: ModuleKey) => void;
+  completeOnboarding: () => void;
+  addModule: (moduleKey: ModuleKey) => void;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'organization';
+const QUIZ_RESULT_KEY = 'quiz_result';
+
+// Map quiz faturamento to company size
+function mapFaturamentoToSize(faturamento: string): CompanySize {
+  switch (faturamento) {
+    case 'ate_4_8m': return 'startup';
+    case '4_8m_30m': return 'small';
+    case '30m_300m': return 'medium';
+    case '300m_4_8b': return 'large';
+    case 'acima_4_8b': return 'listed';
+    default: return 'medium';
+  }
+}
+
+// Map quiz complexity to plan
+function mapQuizToPlan(temConselho: string, temSucessao: string, avaliacaoRiscosEsg: string): GovernancePlan {
+  let complexity = 0;
+  
+  if (temConselho === 'sim') complexity += 1;
+  if (temSucessao === 'sim') complexity += 1;
+  if (avaliacaoRiscosEsg === 'recorrente') complexity += 2;
+  else if (avaliacaoRiscosEsg === 'esporadica') complexity += 1;
+  
+  if (complexity >= 3) return 'legacy_360';
+  if (complexity >= 2) return 'people_esg';
+  if (complexity >= 1) return 'governance_plus';
+  return 'core';
+}
 
 export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const [organization, setOrganizationState] = useState<Organization | null>(null);
@@ -69,15 +106,66 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Inicializar do localStorage ou criar default baseado no user
+  // Completar onboarding
+  const completeOnboarding = () => {
+    if (!organization) return;
+    setOrganization({
+      ...organization,
+      onboardingCompleted: true
+    });
+    // Clear quiz result after activation
+    localStorage.removeItem(QUIZ_RESULT_KEY);
+  };
+
+  // Adicionar módulo (para add-ons)
+  const addModule = (moduleKey: ModuleKey) => {
+    if (!organization) return;
+    if (organization.enabledModules.includes(moduleKey)) return;
+    setOrganization({
+      ...organization,
+      enabledModules: [...organization.enabledModules, moduleKey]
+    });
+  };
+
+  // Inicializar do localStorage, quiz result, ou criar default baseado no user
   useEffect(() => {
     const initializeOrg = () => {
       try {
+        // First check if organization already exists
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-          setOrganizationState(JSON.parse(stored));
-        } else if (user) {
-          // Criar organização default para demo
+          const parsedOrg = JSON.parse(stored);
+          setOrganizationState(parsedOrg);
+          setLoading(false);
+          return;
+        }
+        
+        // Check if there's a quiz result to use
+        const quizResultStr = localStorage.getItem(QUIZ_RESULT_KEY);
+        if (quizResultStr && user) {
+          const quizResult = JSON.parse(quizResultStr);
+          const companySize = mapFaturamentoToSize(quizResult.faturamentoFaixa);
+          const plan = mapQuizToPlan(
+            quizResult.temConselho,
+            quizResult.temSucessao,
+            quizResult.avaliacaoRiscosEsg
+          );
+          
+          const newOrg: Organization = {
+            id: 'org-' + crypto.randomUUID().slice(0, 8),
+            name: quizResult.empresaNome || user.company || 'Minha Empresa',
+            companySize,
+            plan,
+            enabledModules: getDefaultModules(companySize, plan),
+            onboardingCompleted: false // Not completed - needs to go through activation
+          };
+          setOrganization(newOrg);
+          setLoading(false);
+          return;
+        }
+        
+        // Default organization for demo
+        if (user) {
           const defaultOrg: Organization = {
             id: 'org-demo',
             name: user.company || 'Empresa Demo',
@@ -106,7 +194,9 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       hasModule,
       updateCompanySize,
       updatePlan,
-      toggleModule
+      toggleModule,
+      completeOnboarding,
+      addModule
     }}>
       {children}
     </OrganizationContext.Provider>

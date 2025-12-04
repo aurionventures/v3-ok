@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, BarChart3, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import legacyLogo from "@/assets/legacy-logo-new.png";
@@ -21,6 +22,7 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { organization } = useOrganization();
   const { toast } = useToast();
 
 
@@ -36,7 +38,25 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
 
       if (success) {
         toast({ title: "Login bem-sucedido", description: `Bem-vindo ao painel do cliente` });
-        navigate('/dashboard');
+        
+        // Check if onboarding is completed
+        // We need to check localStorage directly since organization might not be updated yet
+        const storedOrg = localStorage.getItem('organization');
+        const quizResult = localStorage.getItem('quiz_result');
+        
+        if (quizResult && (!storedOrg || !JSON.parse(storedOrg).onboardingCompleted)) {
+          // Has quiz result but hasn't completed onboarding
+          navigate('/plan-activation');
+        } else if (storedOrg) {
+          const org = JSON.parse(storedOrg);
+          if (!org.onboardingCompleted) {
+            navigate('/plan-activation');
+          } else {
+            navigate('/dashboard');
+          }
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         toast({ title: "Erro de Login", description: "Email ou senha incorretos.", variant: "destructive" });
       }
