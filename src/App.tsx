@@ -43,6 +43,7 @@ import Companies from "./pages/Companies";
 import CapTable from "./pages/CapTable";
 import MaturityQuiz from "./pages/MaturityQuiz";
 import StandaloneQuiz from "./pages/StandaloneQuiz";
+import PlanDiscoveryQuiz from "./pages/PlanDiscoveryQuiz";
 import Investors from "./pages/Investors";
 import Onboarding from "./pages/Onboarding";
 import GovernanceHistory from "./pages/GovernanceHistory";
@@ -98,6 +99,7 @@ const ConditionalAssistant = () => {
     '/investors',
     '/diagnostic-quiz',
     '/standalone-quiz',
+    '/plan-discovery',
     '/generate-company-token',
     '/generate-admin-token',
     '/generate-partner-token'
@@ -144,6 +146,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/diagnostic-quiz" element={<StandaloneQuiz />} />
           <Route path="/standalone-quiz" element={<StandaloneQuiz />} />
+          <Route path="/plan-discovery" element={<PlanDiscoveryQuiz />} />
           <Route path="/guest-access/:token" element={<GuestAccess />} />
           <Route path="/task-access/:token" element={<TaskAccess />} />
           <Route path="/ata-approval/:token" element={<ATAApproval />} />
