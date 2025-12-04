@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, BarChart3, TrendingUp } from 'lucide-react';
+import { Building2, BarChart3, TrendingUp, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { mockUsers } from '@/utils/mockUsers';
 import legacyLogo from "@/assets/legacy-logo-new.png";
 
 interface LoginClienteProps {
@@ -37,15 +38,22 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
       const success = await login({ email, password, role: 'cliente' });
 
       if (success) {
+        // Find the user to check their org role
+        const loggedUser = mockUsers.find(u => u.email === email && u.role === 'cliente');
+        
         toast({ title: "Login bem-sucedido", description: `Bem-vindo ao painel do cliente` });
         
-        // Check if onboarding is completed
-        // We need to check localStorage directly since organization might not be updated yet
+        // Check if user is a member - redirect to member portal
+        if (loggedUser?.orgRole === 'org_member') {
+          navigate('/member-portal');
+          return;
+        }
+        
+        // Check if onboarding is completed for admins/users
         const storedOrg = localStorage.getItem('organization');
         const quizResult = localStorage.getItem('quiz_result');
         
         if (quizResult && (!storedOrg || !JSON.parse(storedOrg).onboardingCompleted)) {
-          // Has quiz result but hasn't completed onboarding
           navigate('/plan-activation');
         } else if (storedOrg) {
           const org = JSON.parse(storedOrg);
@@ -112,6 +120,15 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
                   placeholder="Digite sua senha"
                 />
               </div>
+              
+              {/* Demo credentials hint */}
+              <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1">
+                <p className="font-medium text-muted-foreground">Credenciais de demonstração:</p>
+                <p><span className="font-medium">Admin:</span> cliente@empresa.com / 123456</p>
+                <p><span className="font-medium">Membro:</span> roberto.alves@empresa.com / membro123</p>
+                <p><span className="font-medium">Usuário:</span> maria.secretaria@empresa.com / user123</p>
+              </div>
+              
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
@@ -151,10 +168,10 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
             </div>
             <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
               <h3 className="font-semibold mb-1 flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Relatórios ESG
+                <Users className="h-4 w-4" />
+                Portal do Membro
               </h3>
-              <p className="text-sm">Visualize relatórios de sustentabilidade e governança</p>
+              <p className="text-sm">Acesso simplificado para conselheiros e membros</p>
             </div>
             <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
               <h3 className="font-semibold mb-1 flex items-center gap-2">

@@ -1,6 +1,35 @@
 // Tipos de porte da empresa
 export type CompanySize = 'startup' | 'small' | 'medium' | 'large' | 'listed';
 
+// Papéis dentro da organização cliente
+export type OrganizationUserRole = 'org_admin' | 'org_user' | 'org_member';
+
+// Interface de usuário dentro da organização
+export interface OrganizationUser {
+  id: string;
+  email: string;
+  name: string;
+  orgRole: OrganizationUserRole;
+  company_id: string;
+  councilMemberships?: string[]; // IDs dos conselhos que participa
+  status: 'active' | 'pending' | 'inactive';
+  lastLogin?: string;
+  createdAt: string;
+}
+
+// Labels para papéis organizacionais
+export const ORG_ROLE_LABELS: Record<OrganizationUserRole, string> = {
+  org_admin: 'Administrador',
+  org_user: 'Usuário',
+  org_member: 'Membro/Conselheiro'
+};
+
+export const ORG_ROLE_DESCRIPTIONS: Record<OrganizationUserRole, string> = {
+  org_admin: 'Acesso total: Dashboard, Configurações, Secretariado, Gestão de Usuários',
+  org_user: 'Acesso limitado: Dashboard e visualização de dados',
+  org_member: 'Portal do Membro: Calendário, Reuniões, ATAs, Aprovações, Assinaturas, Pendências'
+};
+
 // Planos de governança
 export type GovernancePlan = 'core' | 'governance_plus' | 'people_esg' | 'legacy_360';
 
