@@ -287,8 +287,8 @@ const Maturity = () => {
                   </div>
                   <div className="grid grid-cols-3 gap-4 mt-4">
                     {maturityData.map(item => {
-                      const maturity = getMaturityLevel(item.score);
-                      return <div key={item.name} className="text-center p-3 border rounded-md">
+                    const maturity = getMaturityLevel(item.score);
+                    return <div key={item.name} className="text-center p-3 border rounded-md">
                         <div className="text-sm font-medium text-gray-500 mb-1">{item.name}</div>
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <div className="text-xl font-semibold text-legacy-purple-500">{item.score}</div>
@@ -298,31 +298,13 @@ const Maturity = () => {
                           Setor: {item.sectorAverage} | Gap: {item.score - item.sectorAverage > 0 ? '+' : ''}{(item.score - item.sectorAverage).toFixed(1)}
                         </div>
                       </div>;
-                    })}
+                  })}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Gráfico de Evolução */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <TrendingUp className="h-5 w-5" />
-                    <span>Evolução da Maturidade</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={historicalTrend}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" fontSize={12} />
-                      <YAxis domain={[0, 5]} fontSize={12} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              
 
               {/* Timeline de Maturidade */}
               <MaturityTimeline data={timelineData} />
@@ -350,8 +332,8 @@ const Maturity = () => {
                     </TableHeader>
                     <TableBody>
                       {historyData.map((assessment, index) => {
-                        const trend = getScoreTrend(index);
-                        return <TableRow key={assessment.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleOpenDetails(assessment)}>
+                      const trend = getScoreTrend(index);
+                      return <TableRow key={assessment.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleOpenDetails(assessment)}>
                           <TableCell>
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-2 text-legacy-purple-500" />
@@ -371,21 +353,23 @@ const Maturity = () => {
                             </div> : <span>-</span>}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" onClick={e => { e.stopPropagation(); handleOpenDetails(assessment); }}>
+                            <Button variant="ghost" onClick={e => {
+                            e.stopPropagation();
+                            handleOpenDetails(assessment);
+                          }}>
                               <Eye className="h-4 w-4 mr-2" />
                               Ver Detalhes
                             </Button>
                           </TableCell>
                         </TableRow>;
-                      })}
+                    })}
                     </TableBody>
                   </Table>
                 </CardContent>
               </Card>
 
               {/* Atividades Recentes - Expandable */}
-              {showHistoricalData && (
-                <Card>
+              {showHistoricalData && <Card>
                   <CardContent className="p-6">
                     <h2 className="text-xl font-semibold text-legacy-500 mb-6">Atividades Recentes</h2>
                     <div className="space-y-4">
@@ -407,8 +391,7 @@ const Maturity = () => {
                       </div>)}
                     </div>
                   </CardContent>
-                </Card>
-              )}
+                </Card>}
             </TabsContent>
 
             <TabsContent value="new-assessment">
