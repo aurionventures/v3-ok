@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Building2 } from "lucide-react";
+import { PlanConfigurationTab } from "@/components/settings/PlanConfigurationTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,10 @@ const Settings = () => {
                   <TabsTrigger value="notifications">
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
+                  </TabsTrigger>
+                  <TabsTrigger value="plan">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Plano & Módulos
                   </TabsTrigger>
                 </TabsList>
                 
@@ -260,6 +265,10 @@ const Settings = () => {
                       Salvar Preferências de Notificações
                     </Button>
                   </div>
+                </TabsContent>
+                
+                <TabsContent value="plan">
+                  <PlanConfigurationTab />
                 </TabsContent>
               </Tabs>
             </CardContent>
