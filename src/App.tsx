@@ -5,7 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import LoginAdmin from "./components/auth/LoginAdmin"; 
@@ -84,6 +84,37 @@ import ParceirosLanding from "./pages/ParceirosLanding";
 
 
 const queryClient = new QueryClient();
+
+// Wrapper condicional para mostrar o Guia apenas em páginas logadas
+const ConditionalAssistant = () => {
+  const location = useLocation();
+  
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/empresas',
+    '/parceiros',
+    '/investors',
+    '/diagnostic-quiz',
+    '/standalone-quiz',
+    '/generate-company-token',
+    '/generate-admin-token',
+    '/generate-partner-token'
+  ];
+  
+  const publicPatterns = [
+    '/guest-access/',
+    '/task-access/',
+    '/ata-approval/'
+  ];
+  
+  const isPublicRoute = publicRoutes.includes(location.pathname) ||
+    publicPatterns.some(pattern => location.pathname.startsWith(pattern));
+  
+  if (isPublicRoute) return null;
+  
+  return <GovernanceAssistant />;
+};
 
 const BancaLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex h-screen">
@@ -667,7 +698,7 @@ const App = () => (
             </Routes>
           </main>
         </div>
-        <GovernanceAssistant />
+        <ConditionalAssistant />
       </BrowserRouter>
     </AuthProvider>
   </QueryClientProvider>
