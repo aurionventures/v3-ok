@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard, CalendarIcon, FileSignature, PenTool } from "lucide-react";
+import { Library, ListTodo, UserCheck, FileText, Building2, Users, UserCog, Settings, CheckCircle2, Briefcase, AlertCircle, Clock, Timer, PlayCircle, TrendingUp, Target, Activity, LayoutDashboard, CalendarIcon, FileSignature, PenTool, Eye } from "lucide-react";
 import { PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -872,14 +872,14 @@ export const SecretariatDashboard = ({
                       <div className="flex items-center gap-2">
                         <Button 
                           size="sm" 
-                          variant="ghost"
+                          variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCompleteTask(task.id);
+                            handleOpenTaskDetail(task);
                           }}
                         >
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Concluir
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver e Editar
                         </Button>
                       </div>
                     </div>
