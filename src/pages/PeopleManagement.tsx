@@ -529,7 +529,7 @@ const PeopleManagementPage = () => {
             <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="heir">Herdeiros</TabsTrigger>
+                <TabsTrigger value="heir">Sucessores</TabsTrigger>
                 <TabsTrigger value="board_member">Conselheiros</TabsTrigger>
                 <TabsTrigger value="key_position">Cargos-Chave</TabsTrigger>
                 <TabsTrigger value="development">Desenvolvimento</TabsTrigger>
