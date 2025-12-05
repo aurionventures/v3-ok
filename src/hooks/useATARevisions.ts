@@ -1,11 +1,124 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ATARevisionSuggestion, ATAVersion, RevisionSuggestionStatus } from '@/types/ataRevision';
 import { useCreateAuditLog } from '@/hooks/useAuditLogs';
 
 const REVISIONS_STORAGE_KEY = 'ata_revisions';
 const VERSIONS_STORAGE_KEY = 'ata_versions';
+const DEMO_INITIALIZED_KEY = 'ata_revisions_demo_initialized';
+
+const DEMO_REVISIONS: ATARevisionSuggestion[] = [
+  {
+    id: 'rev-demo-1',
+    meetingId: 'conselho-1',
+    participantId: 'member-roberto',
+    participantName: 'Roberto Alves',
+    participantEmail: 'roberto.alves@empresa.com',
+    section: 'deliberations',
+    sectionLabel: 'Deliberações / Discussões',
+    originalText: 'O conselho aprovou o investimento de R$ 500.000 para expansão.',
+    suggestedText: 'O conselho aprovou por unanimidade o investimento de R$ 500.000 para expansão da área comercial na região Sul.',
+    reason: 'Faltou mencionar que a decisão foi unânime e especificar a região de expansão.',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-demo-2',
+    meetingId: 'conselho-1',
+    participantId: 'member-maria',
+    participantName: 'Maria Silva',
+    participantEmail: 'maria.silva@empresa.com',
+    section: 'actions',
+    sectionLabel: 'Encaminhamentos / Ações',
+    originalText: 'Diretoria deve apresentar relatório na próxima reunião.',
+    suggestedText: 'Diretoria Financeira deve apresentar relatório detalhado de viabilidade na próxima reunião ordinária, prevista para 15/01/2025.',
+    reason: 'Necessário especificar qual diretoria e a data da próxima reunião para melhor acompanhamento.',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-demo-3',
+    meetingId: 'conselho-1',
+    participantId: 'member-carlos',
+    participantName: 'Carlos Mendes',
+    participantEmail: 'carlos.mendes@empresa.com',
+    section: 'participants',
+    sectionLabel: 'Participantes / Presença',
+    originalText: 'Presentes: Roberto Alves, Maria Silva, Carlos Mendes.',
+    suggestedText: 'Presentes: Roberto Alves (Presidente), Maria Silva (Conselheira), Carlos Mendes (Conselheiro Independente). Ausente justificado: João Pereira (Conselheiro).',
+    reason: 'Incluir as funções de cada membro e registrar ausências justificadas conforme regimento.',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-demo-4',
+    meetingId: 'comite-1',
+    participantId: 'member-ana',
+    participantName: 'Ana Costa',
+    participantEmail: 'ana.costa@empresa.com',
+    section: 'deliberations',
+    sectionLabel: 'Deliberações / Discussões',
+    originalText: 'Aprovada a política de compliance.',
+    suggestedText: 'Aprovada a Política de Compliance Corporativo versão 2.0, com vigência a partir de 01/02/2025, conforme recomendação da auditoria externa.',
+    reason: 'Importante registrar a versão do documento, data de vigência e origem da recomendação.',
+    status: 'accepted',
+    processedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    processedBy: 'Administrador',
+    finalText: 'Aprovada a Política de Compliance Corporativo versão 2.0, com vigência a partir de 01/02/2025, conforme recomendação da auditoria externa.',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'rev-demo-5',
+    meetingId: 'comite-1',
+    participantId: 'member-pedro',
+    participantName: 'Pedro Santos',
+    participantEmail: 'pedro.santos@empresa.com',
+    section: 'closing',
+    sectionLabel: 'Encerramento',
+    originalText: 'Reunião encerrada às 16h.',
+    suggestedText: 'Reunião encerrada às 16h30, com duração total de 2 horas.',
+    reason: 'Corrigir horário de encerramento que estava incorreto.',
+    status: 'rejected',
+    processedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    processedBy: 'Administrador',
+    adminResponse: 'Verificado nos registros que o horário correto de encerramento foi 16h. A gravação confirma.',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+const DEMO_VERSIONS: ATAVersion[] = [
+  {
+    id: 'version-demo-1',
+    meetingId: 'comite-1',
+    version: 1,
+    content: 'ATA da Reunião do Comitê de Auditoria - Versão Original\n\nData: 10/12/2024\nHorário: 14h às 16h\n\nParticipantes: Ana Costa, Pedro Santos, Fernanda Lima\n\nDeliberações:\n- Aprovada a política de compliance.\n- Discutido o plano de auditoria 2025.\n\nEncaminhamentos:\n- Preparar cronograma de auditorias.\n\nObservações:\n- Reunião encerrada às 16h.',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: 'Sistema',
+    changesSummary: 'Versão inicial da ATA',
+    suggestionsApplied: [],
+  },
+  {
+    id: 'version-demo-2',
+    meetingId: 'comite-1',
+    version: 2,
+    content: 'ATA da Reunião do Comitê de Auditoria - Versão 2\n\nData: 10/12/2024\nHorário: 14h às 16h\n\nParticipantes: Ana Costa (Presidente), Pedro Santos (Membro), Fernanda Lima (Membro)\n\nDeliberações:\n- Aprovada a Política de Compliance Corporativo versão 2.0, com vigência a partir de 01/02/2025, conforme recomendação da auditoria externa.\n- Discutido o plano de auditoria 2025.\n\nEncaminhamentos:\n- Preparar cronograma de auditorias para apresentação até 20/01/2025.\n\nObservações:\n- Reunião encerrada às 16h.',
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    createdBy: 'Administrador',
+    changesSummary: 'Aplicada sugestão de Ana Costa sobre detalhamento da política de compliance',
+    suggestionsApplied: ['rev-demo-4'],
+  },
+];
+
+const initializeDemoData = () => {
+  const initialized = localStorage.getItem(DEMO_INITIALIZED_KEY);
+  if (!initialized) {
+    localStorage.setItem(REVISIONS_STORAGE_KEY, JSON.stringify(DEMO_REVISIONS));
+    localStorage.setItem(VERSIONS_STORAGE_KEY, JSON.stringify(DEMO_VERSIONS));
+    localStorage.setItem(DEMO_INITIALIZED_KEY, 'true');
+  }
+};
 
 const getStoredRevisions = (): ATARevisionSuggestion[] => {
+  initializeDemoData();
   const stored = localStorage.getItem(REVISIONS_STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
 };
