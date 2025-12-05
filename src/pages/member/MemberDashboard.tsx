@@ -107,29 +107,29 @@ const MemberDashboard = () => {
       title={`Bem-vindo, ${user?.name?.split(' ')[0]}`}
       subtitle="Portal do Membro de Governança"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {tiles.map((tile) => (
           <Link key={tile.id} to={tile.path} className="block">
-            <Card className="h-[150px] p-5 hover:bg-accent/50 transition-all active:scale-[0.98] cursor-pointer border-2 hover:border-primary/30">
-              <div className="flex items-center gap-4">
+            <Card className="h-[180px] p-6 hover:bg-accent/50 transition-all active:scale-[0.98] cursor-pointer border-2 hover:border-primary/30">
+              <div className="flex items-center gap-5">
                 {/* Icon Container */}
-                <div className={`h-14 w-14 rounded-xl ${tile.iconBg} flex items-center justify-center flex-shrink-0`}>
-                  <tile.icon className={`h-8 w-8 ${tile.iconColor}`} />
+                <div className={`h-16 w-16 rounded-xl ${tile.iconBg} flex items-center justify-center flex-shrink-0`}>
+                  <tile.icon className={`h-10 w-10 ${tile.iconColor}`} />
                 </div>
                 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-bold truncate">{tile.title}</h3>
+                    <h3 className="text-2xl font-bold truncate">{tile.title}</h3>
                     {tile.badge && (
-                      <Badge variant={tile.badgeVariant} className="text-sm px-2 py-0.5">
+                      <Badge variant={tile.badgeVariant} className="text-base px-3 py-1">
                         {tile.badge}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{tile.subtitle}</p>
+                  <p className="text-lg text-muted-foreground truncate">{tile.subtitle}</p>
                   {tile.detail && (
-                    <p className={`text-xs mt-1 truncate ${
+                    <p className={`text-base mt-1 truncate ${
                       tile.id === 'atas' || tile.id === 'pendencias' || tile.id === 'riscos'
                         ? 'text-red-500 font-medium' 
                         : 'text-muted-foreground'
@@ -140,7 +140,7 @@ const MemberDashboard = () => {
                 </div>
                 
                 {/* Arrow */}
-                <ChevronRight className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                <ChevronRight className="h-8 w-8 text-muted-foreground flex-shrink-0" />
               </div>
             </Card>
           </Link>
