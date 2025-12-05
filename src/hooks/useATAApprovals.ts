@@ -270,8 +270,15 @@ export const useATAApprovals = (meetingId?: string) => {
         console.log(`🔍 Demo signature lookup: found at index ${index}`);
       }
       
+      // If not found, try finding by approval-*-member-* pattern
+      if (index === -1 && approvalId.startsWith('approval-')) {
+        index = allApprovals.findIndex(a => a.id === approvalId);
+        console.log(`🔍 Member approval lookup for ${approvalId}: found at index ${index}`);
+      }
+      
       if (index === -1) {
         console.log(`⚠️ Approval not found for signing: ${approvalId}`);
+        console.log(`📋 Available approvals:`, allApprovals.map(a => a.id));
         return false;
       }
       
