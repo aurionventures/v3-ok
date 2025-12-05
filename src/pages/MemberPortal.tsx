@@ -28,6 +28,7 @@ import { MemberATAViewerModal } from "@/components/member/MemberATAViewerModal";
 import { MemberApprovalModal } from "@/components/member/MemberApprovalModal";
 import { MemberTaskDetailModal } from "@/components/member/MemberTaskDetailModal";
 import { ElectronicSignatureModal } from "@/components/councils/ElectronicSignatureModal";
+import MemberNotificationBell from "@/components/member/MemberNotificationBell";
 
 // Mock data para o portal do membro
 const mockMemberMeetings = [
@@ -260,6 +261,7 @@ const MemberPortal = () => {
                 <p className="text-muted-foreground">Participante de:</p>
                 <p className="font-medium">{memberCouncils.join(', ')}</p>
               </div>
+              <MemberNotificationBell />
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
