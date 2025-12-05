@@ -497,7 +497,7 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Subir Ata da Reunião em Arquivo
+              Ata da reunião
               {meeting.ata?.uploadedFile && <CheckCircle2 className="h-4 w-4 text-green-600" />}
             </CardTitle>
           </CardHeader>
