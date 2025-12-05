@@ -19,28 +19,122 @@ interface PendingATA {
   approvedCount: number;
   signedCount: number;
   totalCount: number;
+  content?: string;
 }
+
+const ATA_CONTENT_CONSELHO = `**ATA DA REUNIÃO ORDINÁRIA DO CONSELHO DE ADMINISTRAÇÃO**
+
+**Data:** ${format(addDays(new Date(), -10), "dd/MM/yyyy")}
+**Horário:** 14h00 às 17h30
+**Local:** Sala de Reuniões - Sede Administrativa
+**Modalidade:** Presencial
+
+---
+
+**1. ABERTURA E VERIFICAÇÃO DE QUÓRUM**
+
+A reunião foi aberta pelo Presidente do Conselho, Sr. João Carlos Silva, às 14h00, verificando-se a presença de 4 (quatro) dos 5 (cinco) conselheiros, configurando quórum necessário para deliberações.
+
+**2. PARTICIPANTES PRESENTES**
+
+- João Carlos Silva - Presidente do Conselho
+- Roberto Alves - Conselheiro Independente
+- Maria Helena Santos - Conselheira
+- Carlos Eduardo Mendes - Conselheiro
+- Ausente justificado: Pedro Augusto Lima
+
+**3. ORDEM DO DIA**
+
+3.1. Aprovação da ata da reunião anterior
+3.2. Análise do relatório trimestral de resultados
+3.3. Discussão sobre plano de expansão para região Sul
+3.4. Avaliação de proposta de investimento em tecnologia
+
+**4. DELIBERAÇÕES E DISCUSSÕES**
+
+**4.1. Aprovação da Ata Anterior**
+A ata da reunião anterior foi aprovada por unanimidade, sem ressalvas.
+
+**4.2. Relatório Trimestral**
+O Diretor Financeiro apresentou os resultados do 3º trimestre, destacando crescimento de 12% na receita líquida e margem EBITDA de 18,5%. O Conselho aprovou o relatório por unanimidade.
+
+**4.3. Plano de Expansão Região Sul**
+Após ampla discussão, o Conselho aprovou o investimento de R$ 2.500.000,00 para abertura de 3 novas unidades na região Sul, com prazo de implementação de 18 meses.
+
+**4.4. Investimento em Tecnologia**
+O Conselho aprovou a contratação de consultoria especializada para avaliação de sistema ERP integrado, com orçamento preliminar de R$ 500.000,00.
+
+**5. ENCAMINHAMENTOS**
+
+| Ação | Responsável | Prazo |
+|------|-------------|-------|
+| Elaborar cronograma detalhado de expansão Sul | Diretoria de Operações | 30 dias |
+| Iniciar processo de seleção de consultoria ERP | Diretoria de TI | 15 dias |
+| Preparar relatório de due diligence das localidades | Diretoria Comercial | 45 dias |
+
+**6. ENCERRAMENTO**
+
+Nada mais havendo a tratar, o Presidente encerrou a reunião às 17h30, da qual eu, secretário, lavrei a presente ata que, após lida e aprovada, será assinada por todos os presentes.
+
+---
+
+**Próxima reunião:** ${format(addDays(new Date(), 20), "dd/MM/yyyy")} às 14h00`;
+
+const ATA_CONTENT_COMITE = `**ATA DA REUNIÃO EXTRAORDINÁRIA DO COMITÊ DE AUDITORIA**
+
+**Data:** ${format(addDays(new Date(), -5), "dd/MM/yyyy")}
+**Horário:** 10h00 às 12h30
+**Local:** Sala de Videoconferência
+**Modalidade:** Híbrida
+
+---
+
+**1. ABERTURA**
+
+A reunião foi aberta pela Coordenadora do Comitê, Sra. Ana Paula Ferreira, às 10h00.
+
+**2. PARTICIPANTES**
+
+- Ana Paula Ferreira - Coordenadora
+- Roberto Alves - Membro
+- Fernanda Costa - Membro
+
+**3. PAUTA**
+
+3.1. Revisão dos controles internos
+3.2. Análise de riscos operacionais
+3.3. Parecer sobre demonstrações financeiras
+
+**4. DELIBERAÇÕES**
+
+O Comitê aprovou por unanimidade o parecer favorável às demonstrações financeiras do trimestre.
+
+**5. ENCERRAMENTO**
+
+Reunião encerrada às 12h30.`;
 
 const initialPendingATAs: PendingATA[] = [
   {
-    id: 'ata-1',
+    id: 'conselho-1',
     meetingTitle: 'Reunião Ordinária',
     council: 'Conselho de Administração',
     date: addDays(new Date(), -10),
     status: 'AGUARDANDO_APROVACAO',
     approvedCount: 2,
     signedCount: 0,
-    totalCount: 4
+    totalCount: 4,
+    content: ATA_CONTENT_CONSELHO
   },
   {
-    id: 'ata-2',
+    id: 'comite-1',
     meetingTitle: 'Reunião Extraordinária',
     council: 'Comitê de Auditoria',
     date: addDays(new Date(), -5),
     status: 'AGUARDANDO_ASSINATURA',
     approvedCount: 3,
     signedCount: 1,
-    totalCount: 3
+    totalCount: 3,
+    content: ATA_CONTENT_COMITE
   }
 ];
 
@@ -175,9 +269,13 @@ const MemberATAs = () => {
           title: selectedATA.meetingTitle,
           council: selectedATA.council,
           date: format(selectedATA.date, "dd/MM/yyyy"),
+          content: selectedATA.content,
           approvedCount: selectedATA.approvedCount,
           totalMembers: selectedATA.totalCount
         } : null}
+        participantId="member-roberto"
+        participantName="Roberto Alves"
+        participantEmail="roberto.alves@empresa.com"
         onApprovalComplete={handleApprovalComplete}
       />
       {selectedATA && (
