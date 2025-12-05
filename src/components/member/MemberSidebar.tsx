@@ -128,7 +128,7 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
             <div className="flex items-center justify-between">
               <MemberNotificationBell />
               <Button 
-                variant="outline" 
+                variant="destructive" 
                 size="lg"
                 onClick={onLogout}
                 className="text-base h-12 px-5"
