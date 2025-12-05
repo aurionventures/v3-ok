@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Bot, FileText, Sparkles, RotateCcw, Save, Check } from "lucide-react";
+import { Bot, FileText, Sparkles, RotateCcw, Save, Check, Clock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useATAConfig, ATAConfig, DEFAULT_CONFIG } from "@/hooks/useATAConfig";
 import { cn } from "@/lib/utils";
@@ -255,6 +257,57 @@ ${localConfig.customInstructions ? `INSTRUÇÕES ESPECÍFICAS DO CLIENTE:\n${loc
                 placeholder="Ex: Sempre mencione o quórum presente. Inclua referências aos documentos anexos. Use o nome completo dos membros na primeira menção..."
                 className="min-h-[120px]"
               />
+            </CardContent>
+          </Card>
+
+          {/* Auto-Approval Configuration */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Auto-Aprovação de ATA
+              </CardTitle>
+              <CardDescription>Configure aprovação automática após período sem resposta</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Ativar auto-aprovação</Label>
+                  <p className="text-sm text-muted-foreground">
+                    ATAs serão consideradas aprovadas automaticamente
+                  </p>
+                </div>
+                <Switch
+                  checked={localConfig.autoApprovalDays !== null}
+                  onCheckedChange={(checked) => {
+                    handleConfigChange('autoApprovalDays', checked ? 7 : null);
+                  }}
+                />
+              </div>
+
+              {localConfig.autoApprovalDays !== null && (
+                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm">Após</span>
+                    <Input
+                      type="number"
+                      min={3}
+                      max={30}
+                      value={localConfig.autoApprovalDays}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 7;
+                        handleConfigChange('autoApprovalDays', Math.min(30, Math.max(3, value)));
+                      }}
+                      className="w-20 h-9 text-center"
+                    />
+                    <span className="text-sm">dias da geração da ATA, considerar ATA aprovada pelos membros.</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Membros que não responderem dentro do prazo terão sua aprovação registrada automaticamente.
+                    O prazo deve estar entre 3 e 30 dias.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

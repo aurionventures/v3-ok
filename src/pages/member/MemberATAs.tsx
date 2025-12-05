@@ -282,7 +282,7 @@ const MemberATAs = () => {
         <ElectronicSignatureModal
           isOpen={signatureModalOpen}
           onClose={() => setSignatureModalOpen(false)}
-          approvalId={selectedATA.id}
+          approvalId={`approval-${selectedATA.id}-member-roberto`}
           participantName="Roberto Alves"
           onSuccess={handleSignatureSuccess}
         />
