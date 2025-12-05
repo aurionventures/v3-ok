@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { MeetingSchedule, AgendaItem, Task, CouncilDocument } from "@/types/annualSchedule";
 import { MeetingRealizationChecker } from "./MeetingRealizationChecker";
 import { supabase } from "@/integrations/supabase/client";
+import { useATAConfig } from "@/hooks/useATAConfig";
 
 interface MeetingFlowManagerProps {
   meeting: MeetingSchedule;
@@ -52,6 +53,7 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
   const [newTask, setNewTask] = useState<Partial<Task>>({});
   const [isGeneratingMinutes, setIsGeneratingMinutes] = useState(false);
   const [nextMeetingTopics, setNextMeetingTopics] = useState(meeting.nextMeetingTopics?.join('\n') || '');
+  const { getConfigForOrgan } = useATAConfig();
 
   // Função para verificar se reunião está completa para gerar ATA
   const isMeetingReadyForATA = (meeting: MeetingSchedule): { ready: boolean; missing: string[] } => {
@@ -173,6 +175,9 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
     try {
       console.log('🤖 Gerando ATA com IA para reunião:', meeting.id);
       
+      // Get ATA config for this organ
+      const ataConfig = getConfigForOrgan(meeting.council_id || '');
+      
       // Chamar edge function
       const { data, error } = await supabase.functions.invoke('generate-meeting-ata', {
         body: {
@@ -185,7 +190,8 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           agenda: meeting.agenda || [],
           participants: meeting.participants || [],
           meeting_tasks: meeting.meeting_tasks || [],
-          nextMeetingTopics: meeting.nextMeetingTopics || []
+          nextMeetingTopics: meeting.nextMeetingTopics || [],
+          ataConfig
         }
       });
       
