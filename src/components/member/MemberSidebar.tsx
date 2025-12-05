@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -31,21 +30,35 @@ interface MemberSidebarProps {
 }
 
 const menuItems = [
-  { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { id: 'reunioes', icon: CalendarDays, label: 'Próximas Reuniões' },
-  { id: 'atas', icon: FileText, label: 'ATAs Pendentes' },
-  { id: 'pendencias', icon: AlertTriangle, label: 'Minhas Pendências' },
-  { id: 'orgaos', icon: Building2, label: 'Meus Órgãos' },
+  { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/member-portal' },
+  { id: 'reunioes', icon: CalendarDays, label: 'Próximas Reuniões', path: '/member-portal/reunioes' },
+  { id: 'atas', icon: FileText, label: 'ATAs Pendentes', path: '/member-portal/atas' },
+  { id: 'pendencias', icon: AlertTriangle, label: 'Minhas Pendências', path: '/member-portal/pendencias' },
+  { id: 'orgaos', icon: Building2, label: 'Meus Órgãos', path: '/member-portal/orgaos' },
 ];
 
 export function MemberSidebar({ activeSection, onSectionClick, onLogout }: MemberSidebarProps) {
   const { user } = useAuth();
   const { state } = useSidebar();
+  const navigate = useNavigate();
+  const location = useLocation();
   const collapsed = state === "collapsed";
 
   const memberCouncils = user?.councilMemberships?.length 
     ? ['Conselho de Administração', 'Comitê de Auditoria'] 
     : ['Conselho de Administração'];
+
+  const handleItemClick = (item: typeof menuItems[0]) => {
+    navigate(item.path);
+    onSectionClick(item.id);
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/member-portal') {
+      return location.pathname === '/member-portal';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <Sidebar>
@@ -61,7 +74,7 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
         </div>
         {!collapsed && (
           <div className="px-3 pb-3">
-            <p className="text-sm text-sidebar-foreground/70">Portal do Membro</p>
+            <p className="text-base text-sidebar-foreground/70">Portal do Membro</p>
           </div>
         )}
       </SidebarHeader>
@@ -73,12 +86,12 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
               {menuItems.map(item => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
-                    onClick={() => onSectionClick(item.id)}
-                    isActive={activeSection === item.id}
-                    className="py-3"
+                    onClick={() => handleItemClick(item)}
+                    isActive={isActive(item.path)}
+                    className="py-4 min-h-[52px]"
                   >
-                    <item.icon className="h-5 w-5" />
-                    {!collapsed && <span className="text-base">{item.label}</span>}
+                    <item.icon className="h-6 w-6" />
+                    {!collapsed && <span className="text-lg">{item.label}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -95,17 +108,17 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
               variant="ghost" 
               size="icon" 
               onClick={onLogout}
-              className="h-10 w-10"
+              className="h-12 w-12"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-6 w-6" />
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             {/* User Info */}
             <div className="space-y-1">
-              <p className="text-base font-semibold text-sidebar-foreground">{user?.name}</p>
-              <p className="text-sm text-sidebar-foreground/70">
+              <p className="text-lg font-semibold text-sidebar-foreground">{user?.name}</p>
+              <p className="text-base text-sidebar-foreground/70">
                 {memberCouncils[0]}
                 {memberCouncils.length > 1 && ` +${memberCouncils.length - 1}`}
               </p>
@@ -116,9 +129,9 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
               <MemberNotificationBell />
               <Button 
                 variant="outline" 
-                size="default"
+                size="lg"
                 onClick={onLogout}
-                className="text-base"
+                className="text-base h-12 px-5"
               >
                 <LogOut className="h-5 w-5 mr-2" />
                 Sair

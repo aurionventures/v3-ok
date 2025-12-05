@@ -64,7 +64,11 @@ import GuestAccess from "./pages/GuestAccess";
 import TaskAccess from "./pages/TaskAccess";
 import ATAApproval from "./pages/ATAApproval";
 import ATAPendingManagement from "./pages/ATAPendingManagement";
-import MemberPortal from "./pages/MemberPortal";
+import MemberDashboard from "./pages/member/MemberDashboard";
+import MemberReunioes from "./pages/member/MemberReunioes";
+import MemberATAs from "./pages/member/MemberATAs";
+import MemberPendencias from "./pages/member/MemberPendencias";
+import MemberOrgaos from "./pages/member/MemberOrgaos";
 import PlanResult from "./pages/PlanResult";
 import Checkout from "./pages/Checkout";
 import Payment from "./pages/Payment";
@@ -170,7 +174,39 @@ const App = () => (
             path="/member-portal" 
             element={
               <ProtectedRoute>
-                <MemberPortal />
+                <MemberDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/reunioes" 
+            element={
+              <ProtectedRoute>
+                <MemberReunioes />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/atas" 
+            element={
+              <ProtectedRoute>
+                <MemberATAs />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/pendencias" 
+            element={
+              <ProtectedRoute>
+                <MemberPendencias />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/orgaos" 
+            element={
+              <ProtectedRoute>
+                <MemberOrgaos />
               </ProtectedRoute>
             } 
           />
