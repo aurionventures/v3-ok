@@ -1,7 +1,7 @@
 export interface GuideEntry {
   id: string;
   module: string;
-  category: 'inicio' | 'parametrizacao' | 'preparacao' | 'estruturacao' | 'desenvolvimento' | 'monitoramento' | 'inteligencia' | 'esg';
+  category: 'inicio' | 'parametrizacao' | 'preparacao' | 'estruturacao' | 'desenvolvimento' | 'monitoramento' | 'inteligencia' | 'esg' | 'member';
   title: string;
   keywords: string[];
   shortDescription: string;
@@ -961,6 +961,134 @@ export const legacyGuideData: GuideEntry[] = [
     relatedModules: ['Dashboard ESG', 'Indicadores ESG'],
     route: '/esg',
     icon: 'FileSpreadsheet'
+  },
+
+  // ==================== PORTAL DO MEMBRO ====================
+  {
+    id: 'member-dashboard',
+    module: 'Portal do Membro',
+    category: 'member',
+    title: 'Dashboard do Membro',
+    keywords: ['membro', 'conselheiro', 'portal', 'dashboard', 'member', 'painel'],
+    shortDescription: 'O Dashboard do Membro é sua central pessoal de governança, mostrando reuniões, ATAs pendentes, tarefas e órgãos.',
+    howTo: [
+      'Acesse o Portal do Membro após o login como membro/conselheiro',
+      'Visualize os 4 cards principais: Reuniões, ATAs, Pendências e Órgãos',
+      'Clique em qualquer card para acessar detalhes',
+      'Use o menu lateral para navegar entre seções'
+    ],
+    tips: [
+      'Cards com badges vermelhos indicam itens urgentes',
+      'O sino de notificações no topo mostra alertas importantes'
+    ],
+    relatedModules: ['Maturidade do Membro', 'Reuniões do Membro'],
+    route: '/member-portal',
+    icon: 'LayoutDashboard'
+  },
+  {
+    id: 'member-maturity',
+    module: 'Maturidade do Membro',
+    category: 'member',
+    title: 'Visualizando Maturidade de Governança',
+    keywords: ['maturidade', 'membro', 'governança', 'riscos', 'indicadores', 'pilares'],
+    shortDescription: 'Visualize os indicadores de maturidade de governança e gestão de riscos da sua empresa.',
+    howTo: [
+      'Acesse "Maturidade" no menu lateral do Portal do Membro',
+      'Visualize os KPIs de Gestão de Riscos no card superior',
+      'Acompanhe as barras de progresso dos 5 pilares IBGC',
+      'Clique em "Ver Detalhes" para análise completa'
+    ],
+    tips: [
+      'Os pilares IBGC são: Sócios, Conselho, Diretoria, Fiscalização e Conduta',
+      'Riscos críticos aparecem destacados em vermelho'
+    ],
+    relatedModules: ['Portal do Membro', 'Reuniões do Membro'],
+    route: '/member-portal/maturidade',
+    icon: 'BarChart3'
+  },
+  {
+    id: 'member-meetings',
+    module: 'Reuniões do Membro',
+    category: 'member',
+    title: 'Próximas Reuniões',
+    keywords: ['reunião', 'membro', 'próxima', 'agenda', 'convocação', 'pauta'],
+    shortDescription: 'Visualize suas próximas reuniões, pautas e materiais de apoio.',
+    howTo: [
+      'Acesse "Próximas Reuniões" no menu lateral',
+      'Veja a lista de reuniões agendadas para seus órgãos',
+      'Clique em "Ver Pauta" para ver os itens da reunião',
+      'Acesse "Materiais" para baixar documentos de apoio'
+    ],
+    tips: [
+      'Confirme presença nas reuniões clicando no botão apropriado',
+      'Materiais são disponibilizados com antecedência'
+    ],
+    relatedModules: ['Portal do Membro', 'ATAs do Membro'],
+    route: '/member-portal/reunioes',
+    icon: 'CalendarDays'
+  },
+  {
+    id: 'member-atas',
+    module: 'ATAs do Membro',
+    category: 'member',
+    title: 'ATAs Pendentes de Ação',
+    keywords: ['ata', 'membro', 'aprovação', 'assinatura', 'pendente', 'minuta'],
+    shortDescription: 'Visualize e aprove ATAs das reuniões, assine eletronicamente documentos pendentes.',
+    howTo: [
+      'Acesse "ATAs Pendentes" no menu lateral',
+      'Visualize ATAs aguardando sua aprovação ou assinatura',
+      'Clique em "Visualizar ATA" para ler o conteúdo completo',
+      'Use os botões para aprovar, solicitar revisão ou assinar'
+    ],
+    tips: [
+      'ATAs urgentes aparecem com badge em destaque',
+      'A assinatura eletrônica tem validade jurídica'
+    ],
+    relatedModules: ['Reuniões do Membro', 'Portal do Membro'],
+    route: '/member-portal/atas',
+    icon: 'FileText'
+  },
+  {
+    id: 'member-tasks',
+    module: 'Pendências do Membro',
+    category: 'member',
+    title: 'Minhas Pendências',
+    keywords: ['pendência', 'tarefa', 'membro', 'responsável', 'prazo', 'ação'],
+    shortDescription: 'Visualize e gerencie tarefas atribuídas a você originadas das reuniões de governança.',
+    howTo: [
+      'Acesse "Minhas Pendências" no menu lateral',
+      'Veja tarefas ordenadas por urgência (atrasadas primeiro)',
+      'Clique em uma tarefa para ver detalhes completos',
+      'Marque como resolvida quando concluir'
+    ],
+    tips: [
+      'Tarefas atrasadas aparecem em vermelho',
+      'Tarefas próximas do prazo aparecem em amarelo'
+    ],
+    relatedModules: ['Portal do Membro', 'Reuniões do Membro'],
+    route: '/member-portal/pendencias',
+    icon: 'AlertTriangle'
+  },
+  {
+    id: 'member-organs',
+    module: 'Órgãos do Membro',
+    category: 'member',
+    title: 'Meus Órgãos de Governança',
+    keywords: ['órgão', 'conselho', 'comitê', 'comissão', 'membro', 'participação'],
+    shortDescription: 'Visualize os órgãos de governança dos quais você participa como membro.',
+    howTo: [
+      'Acesse "Meus Órgãos" no menu lateral',
+      'Veja a lista de conselhos, comitês e comissões',
+      'Visualize seu papel e mandato em cada órgão',
+      'Acesse informações de outros membros do órgão'
+    ],
+    tips: [
+      'O período de mandato é exibido para cada participação',
+      'Você pode ter diferentes papéis em diferentes órgãos'
+    ],
+    relatedModules: ['Portal do Membro', 'Reuniões do Membro'],
+    route: '/member-portal/orgaos',
+    icon: 'Building2'
   }
 ];
 
@@ -1012,7 +1140,8 @@ export const categoryLabels: Record<string, string> = {
   desenvolvimento: 'Desenvolvimento',
   monitoramento: 'Monitoramento',
   inteligencia: 'Inteligência de Mercado',
-  esg: 'ESG'
+  esg: 'ESG',
+  member: 'Portal do Membro'
 };
 
 // Quick actions padrão

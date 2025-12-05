@@ -83,7 +83,7 @@ const MemberDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {tiles.map((tile) => (
           <Link key={tile.id} to={tile.path} className="block">
-            <Card className="min-h-[140px] p-6 hover:bg-accent/50 transition-all active:scale-[0.98] cursor-pointer border-2 hover:border-primary/30">
+            <Card className="h-[160px] p-6 hover:bg-accent/50 transition-all active:scale-[0.98] cursor-pointer border-2 hover:border-primary/30">
               <div className="flex items-center gap-5">
                 {/* Large Icon Container */}
                 <div className={`h-20 w-20 rounded-2xl ${tile.iconBg} flex items-center justify-center flex-shrink-0`}>
