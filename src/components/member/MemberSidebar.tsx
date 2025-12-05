@@ -22,7 +22,6 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import MemberNotificationBell from "./MemberNotificationBell";
 
 interface MemberSidebarProps {
   activeSection: string;
@@ -90,7 +89,7 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
                   <SidebarMenuButton 
                     onClick={() => handleItemClick(item)}
                     isActive={isActive(item.path)}
-                    className="py-4 min-h-[52px]"
+                    className="py-4 min-h-[52px] cursor-pointer"
                   >
                     <item.icon className="h-6 w-6" />
                     {!collapsed && <span className="text-lg">{item.label}</span>}
@@ -105,12 +104,11 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
       <SidebarFooter className="border-t border-sidebar-border p-4">
         {collapsed ? (
           <div className="flex flex-col items-center gap-3">
-            <MemberNotificationBell />
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={onLogout}
-              className="h-12 w-12"
+              className="h-12 w-12 bg-[#C9A54E] hover:bg-[#B8944D] text-white"
             >
               <LogOut className="h-6 w-6" />
             </Button>
@@ -126,19 +124,16 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
               </p>
             </div>
             
-            {/* Notifications & Logout */}
-            <div className="flex items-center justify-between">
-              <MemberNotificationBell />
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={onLogout}
-                className="text-base h-12 px-5 bg-amber-500 hover:bg-amber-600 text-white border-amber-500 hover:border-amber-600"
-              >
-                <LogOut className="h-5 w-5 mr-2" />
-                Sair
-              </Button>
-            </div>
+            {/* Logout */}
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={onLogout}
+              className="w-full text-base h-12 px-5 bg-[#C9A54E] hover:bg-[#B8944D] text-white border-[#C9A54E] hover:border-[#B8944D]"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              Sair
+            </Button>
           </div>
         )}
       </SidebarFooter>

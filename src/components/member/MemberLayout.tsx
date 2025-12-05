@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MemberSidebar } from "./MemberSidebar";
+import MemberNotificationBell from "./MemberNotificationBell";
 
 interface MemberLayoutProps {
   children: ReactNode;
@@ -53,12 +54,15 @@ export function MemberLayout({ children, title, subtitle }: MemberLayoutProps) {
         
         <main className="flex-1 overflow-auto">
           <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-            <div className="flex items-center gap-4 px-6 py-4">
-              <SidebarTrigger className="h-10 w-10" />
-              <div>
-                <h1 className="text-2xl font-bold">{title}</h1>
-                {subtitle && <p className="text-base text-muted-foreground">{subtitle}</p>}
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="h-10 w-10" />
+                <div>
+                  <h1 className="text-2xl font-bold">{title}</h1>
+                  {subtitle && <p className="text-base text-muted-foreground">{subtitle}</p>}
+                </div>
               </div>
+              <MemberNotificationBell />
             </div>
           </header>
 
