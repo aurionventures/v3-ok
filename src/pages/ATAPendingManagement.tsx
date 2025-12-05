@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -9,12 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   FileSignature, PenTool, CheckCircle2, XCircle, Clock, AlertCircle, 
-  Mail, Building2, CalendarDays, Users, Copy, ArrowLeft, Send, Eye, Edit
+  Mail, Building2, CalendarDays, Users, Copy, ArrowLeft, Send, Eye, Edit,
+  MessageSquareText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ATAAdminActionsModal from "@/components/councils/ATAAdminActionsModal";
+import { ATARevisionDashboard } from "@/components/councils/ATARevisionDashboard";
+import { useATARevisions } from "@/hooks/useATARevisions";
 
 export interface ATAWithApprovals {
   meetingId: string;
@@ -23,6 +26,7 @@ export interface ATAWithApprovals {
   organName: string;
   organType: string;
   ataStatus: string;
+  ataContent?: string;
   participants: Array<{
     id: string;
     name: string;
@@ -47,6 +51,12 @@ const ATAPendingManagement = () => {
   const [selectedATA, setSelectedATA] = useState<ATAWithApprovals | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalActionType, setModalActionType] = useState<'view' | 'edit'>('view');
+  
+  // Revision Dashboard state
+  const [revisionDashboardOpen, setRevisionDashboardOpen] = useState(false);
+  const [revisionATA, setRevisionATA] = useState<ATAWithApprovals | null>(null);
+
+  const { getRevisionStats, getPendingRevisions } = useATARevisions();
 
   const handleViewATA = (ata: ATAWithApprovals) => {
     setSelectedATA(ata);
@@ -60,12 +70,22 @@ const ATAPendingManagement = () => {
     setModalOpen(true);
   };
 
+  const handleOpenRevisions = (ata: ATAWithApprovals) => {
+    setRevisionATA(ata);
+    setRevisionDashboardOpen(true);
+  };
+
   const handleModalClose = () => {
     setModalOpen(false);
     setSelectedATA(null);
   };
 
   const handleActionComplete = () => {
+    loadATAData();
+  };
+
+  const handleATAUpdated = (newContent: string) => {
+    // Update the ATA content after applying revisions
     loadATAData();
   };
 
@@ -105,6 +125,7 @@ const ATAPendingManagement = () => {
           organName: meeting?.council || 'Órgão não identificado',
           organType: meeting?.organ_type || 'conselho',
           ataStatus: statusMap[meetingId] || 'PENDENTE_APROVACAO',
+          ataContent: meeting?.minutes_full || 'Conteúdo da ATA em processamento...',
           participants: []
         });
       }
@@ -192,6 +213,11 @@ const ATAPendingManagement = () => {
     const totalCount = ata.participants.length;
     const completedCount = totalCount - pendingCount;
 
+    // Get revision stats for this ATA
+    const revisionStats = getRevisionStats(ata.meetingId);
+    const hasRevisions = revisionStats.pending > 0;
+    const hasRequestedRevisions = ata.participants.some(p => p.approvalStatus === 'REVISAO_SOLICITADA');
+
     return (
       <Card key={ata.meetingId} className="mb-4">
         <CardHeader className="pb-3">
@@ -210,6 +236,18 @@ const ATAPendingManagement = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Revision indicator */}
+              {(hasRevisions || hasRequestedRevisions) && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1 h-8 border-amber-300 text-amber-700 hover:bg-amber-50"
+                  onClick={() => handleOpenRevisions(ata)}
+                >
+                  <MessageSquareText className="h-3.5 w-3.5" />
+                  {revisionStats.pending > 0 ? `${revisionStats.pending} Revisões` : 'Ver Revisões'}
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -242,16 +280,21 @@ const ATAPendingManagement = () => {
                 const isPending = type === 'approval' 
                   ? participant.approvalStatus === 'PENDENTE'
                   : participant.signatureStatus === 'NAO_ASSINADO';
+                const isRevision = participant.approvalStatus === 'REVISAO_SOLICITADA';
                 
                 return (
                   <div 
                     key={participant.id} 
                     className={`flex items-center justify-between p-3 rounded-lg border ${
+                      isRevision ? 'bg-amber-50/50 border-amber-300' :
                       isPending ? 'bg-amber-50/50 border-amber-200' : 'bg-green-50/50 border-green-200'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${isPending ? 'bg-amber-500' : 'bg-green-500'}`} />
+                      <div className={`w-2 h-2 rounded-full ${
+                        isRevision ? 'bg-amber-500' :
+                        isPending ? 'bg-gray-400' : 'bg-green-500'
+                      }`} />
                       <div>
                         <p className="text-sm font-medium">{participant.name}</p>
                         <p className="text-xs text-muted-foreground">{participant.email} - {participant.role}</p>
@@ -389,6 +432,22 @@ const ATAPendingManagement = () => {
         actionType={modalActionType}
         onActionComplete={handleActionComplete}
       />
+
+      {/* Revision Dashboard */}
+      {revisionATA && (
+        <ATARevisionDashboard
+          open={revisionDashboardOpen}
+          onClose={() => {
+            setRevisionDashboardOpen(false);
+            setRevisionATA(null);
+          }}
+          meetingId={revisionATA.meetingId}
+          meetingTitle={revisionATA.meetingTitle}
+          ataContent={revisionATA.ataContent || ''}
+          adminName="Administrador"
+          onATAUpdated={handleATAUpdated}
+        />
+      )}
     </div>
   );
 };
