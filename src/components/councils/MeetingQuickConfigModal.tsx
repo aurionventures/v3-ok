@@ -12,6 +12,7 @@ import { useMeetingNotifications } from '@/hooks/useMeetingNotifications';
 import { toast } from 'sonner';
 import MeetingATAViewer from './MeetingATAViewer';
 import { supabase } from '@/integrations/supabase/client';
+import { useATAConfig } from '@/hooks/useATAConfig';
 
 interface MeetingQuickConfigModalProps {
   meeting: MeetingSchedule;
@@ -30,6 +31,7 @@ export default function MeetingQuickConfigModal({
   const [participants, setParticipants] = useState<MeetingParticipant[]>(meeting.participants || []);
   const { sendMeetingInvites, sendMeetingUpdateNotifications } = useMeetingNotifications();
   const [isGeneratingATA, setIsGeneratingATA] = useState(false);
+  const { getConfigForOrgan } = useATAConfig();
 
   const handleSave = async () => {
     // Identificar campos alterados
@@ -161,6 +163,9 @@ export default function MeetingQuickConfigModal({
                 onGenerateATA={async () => {
                   setIsGeneratingATA(true);
                   try {
+                    // Get ATA config for this organ
+                    const ataConfig = getConfigForOrgan(meeting.council_id || '');
+                    
                     const { data, error } = await supabase.functions.invoke('generate-meeting-ata', {
                       body: {
                         meetingId: meeting.id,
@@ -172,7 +177,8 @@ export default function MeetingQuickConfigModal({
                         agenda: agenda,
                         participants: participants,
                         meeting_tasks: meeting.meeting_tasks || [],
-                        nextMeetingTopics: meeting.nextMeetingTopics || []
+                        nextMeetingTopics: meeting.nextMeetingTopics || [],
+                        ataConfig
                       }
                     });
 

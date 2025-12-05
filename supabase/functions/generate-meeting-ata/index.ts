@@ -22,7 +22,8 @@ serve(async (req) => {
       agenda = [],
       participants = [],
       meeting_tasks = [],
-      nextMeetingTopics = []
+      nextMeetingTopics = [],
+      ataConfig = null
     } = await req.json();
 
     console.log('📝 Generating ATA for meeting:', meetingId);
@@ -56,8 +57,46 @@ serve(async (req) => {
       `- ${task.title} (Responsável: ${task.responsible}, Prazo: ${new Date(task.deadline).toLocaleDateString('pt-BR')})`
     ).join('\n');
 
+    // Build dynamic prompt based on config
+    const buildStyleInstructions = (config: any) => {
+      if (!config) {
+        return {
+          tone: 'Seja direto e focado em decisões e ações. Priorize clareza e objetividade.',
+          person: 'Use terceira pessoa do singular',
+          length: 200,
+          custom: ''
+        };
+      }
+
+      const toneMap: Record<string, string> = {
+        'formal': 'Use linguagem jurídica formal e cerimonial. Utilize vocabulário jurídico-corporativo com referências a deliberações formais.',
+        'semi-formal': 'Use linguagem profissional mas acessível. Mantenha o tom corporativo sem excesso de formalidades.',
+        'executivo': 'Seja direto e focado em decisões e ações. Priorize clareza e objetividade.',
+        'tecnico': 'Use linguagem técnica com bullet points e listas. Inclua métricas e dados quando disponíveis.'
+      };
+
+      const personMap: Record<string, string> = {
+        'terceira': 'Use terceira pessoa do singular (Ex: "O Conselho deliberou...", "Foi aprovado...")',
+        'primeira_plural': 'Use primeira pessoa do plural (Ex: "Deliberamos...", "Aprovamos...")'
+      };
+
+      return {
+        tone: toneMap[config.tone] || toneMap['executivo'],
+        person: personMap[config.verbalPerson] || personMap['terceira'],
+        length: config.summaryLength || 200,
+        custom: config.customInstructions || ''
+      };
+    };
+
+    const styleInstructions = buildStyleInstructions(ataConfig);
+
     const prompt = `Você é um secretário executivo experiente em governança corporativa brasileira. 
-Gere uma ATA formal e profissional em português brasileiro baseada nos dados abaixo:
+Gere uma ATA formal e profissional em português brasileiro baseada nos dados abaixo.
+
+INSTRUÇÕES DE ESTILO:
+- ${styleInstructions.tone}
+- ${styleInstructions.person}
+${styleInstructions.custom ? `\nINSTRUÇÕES ESPECÍFICAS DO CLIENTE:\n${styleInstructions.custom}\n` : ''}
 
 INFORMAÇÕES DA REUNIÃO:
 - Órgão: ${council}
@@ -79,7 +118,7 @@ PRÓXIMOS ASSUNTOS:
 ${nextMeetingTopics.map((t: string) => `- ${t}`).join('\n') || 'Não definidos'}
 
 INSTRUÇÕES:
-1. Gere um resumo executivo narrativo de 150-250 palavras que:
+1. Gere um resumo executivo narrativo de ${styleInstructions.length - 50}-${styleInstructions.length + 50} palavras que:
    - Contextualize a reunião e seu objetivo
    - Destaque os principais pontos discutidos na pauta
    - Mencione as tarefas atribuídas
