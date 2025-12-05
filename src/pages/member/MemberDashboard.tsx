@@ -1,0 +1,126 @@
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { MemberLayout } from "@/components/member/MemberLayout";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  CalendarDays, 
+  FileText, 
+  AlertTriangle, 
+  Building2,
+  ChevronRight 
+} from "lucide-react";
+import { addDays } from "date-fns";
+
+// Mock data for dashboard counts
+const mockCounts = {
+  meetings: 3,
+  nextMeetingDate: "10/12 às 14:00",
+  pendingATAs: 2,
+  urgentATAs: 1,
+  pendingTasks: 3,
+  overdueTasks: 1,
+  organs: 2
+};
+
+const MemberDashboard = () => {
+  const { user } = useAuth();
+
+  const tiles = [
+    {
+      id: 'reunioes',
+      path: '/member-portal/reunioes',
+      icon: CalendarDays,
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+      title: 'Próximas Reuniões',
+      subtitle: `${mockCounts.meetings} reuniões agendadas`,
+      detail: `Próxima: ${mockCounts.nextMeetingDate}`,
+      badge: null
+    },
+    {
+      id: 'atas',
+      path: '/member-portal/atas',
+      icon: FileText,
+      iconBg: 'bg-orange-500/10',
+      iconColor: 'text-orange-500',
+      title: 'ATAs Pendentes',
+      subtitle: `${mockCounts.pendingATAs} aguardando sua ação`,
+      detail: mockCounts.urgentATAs > 0 ? `${mockCounts.urgentATAs} urgente` : null,
+      badge: mockCounts.pendingATAs,
+      badgeVariant: 'destructive' as const
+    },
+    {
+      id: 'pendencias',
+      path: '/member-portal/pendencias',
+      icon: AlertTriangle,
+      iconBg: 'bg-yellow-500/10',
+      iconColor: 'text-yellow-500',
+      title: 'Minhas Pendências',
+      subtitle: `${mockCounts.pendingTasks} tarefas pendentes`,
+      detail: mockCounts.overdueTasks > 0 ? `${mockCounts.overdueTasks} atrasada` : null,
+      badge: mockCounts.pendingTasks,
+      badgeVariant: 'secondary' as const
+    },
+    {
+      id: 'orgaos',
+      path: '/member-portal/orgaos',
+      icon: Building2,
+      iconBg: 'bg-blue-500/10',
+      iconColor: 'text-blue-500',
+      title: 'Meus Órgãos',
+      subtitle: `${mockCounts.organs} órgãos de governança`,
+      detail: 'Conselho de Administração +1',
+      badge: null
+    }
+  ];
+
+  return (
+    <MemberLayout 
+      title={`Bem-vindo, ${user?.name?.split(' ')[0]}`}
+      subtitle="Portal do Membro de Governança"
+    >
+      <div className="space-y-5">
+        {tiles.map((tile) => (
+          <Link key={tile.id} to={tile.path} className="block">
+            <Card className="min-h-[140px] p-6 hover:bg-accent/50 transition-all active:scale-[0.98] cursor-pointer border-2 hover:border-primary/30">
+              <div className="flex items-center gap-5">
+                {/* Large Icon Container */}
+                <div className={`h-20 w-20 rounded-2xl ${tile.iconBg} flex items-center justify-center flex-shrink-0`}>
+                  <tile.icon className={`h-12 w-12 ${tile.iconColor}`} />
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-2xl font-bold">{tile.title}</h3>
+                    {tile.badge && (
+                      <Badge variant={tile.badgeVariant} className="text-base px-3 py-1">
+                        {tile.badge}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-lg text-muted-foreground">{tile.subtitle}</p>
+                  {tile.detail && (
+                    <p className={`text-base mt-1 ${
+                      tile.id === 'atas' || tile.id === 'pendencias' 
+                        ? 'text-red-500 font-medium' 
+                        : 'text-muted-foreground'
+                    }`}>
+                      {tile.detail}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Arrow */}
+                <ChevronRight className="h-10 w-10 text-muted-foreground flex-shrink-0" />
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </MemberLayout>
+  );
+};
+
+export default MemberDashboard;
