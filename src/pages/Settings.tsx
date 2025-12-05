@@ -1,7 +1,5 @@
-
 import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Building2, Users, Bot } from "lucide-react";
-import { PlanConfigurationTab } from "@/components/settings/PlanConfigurationTab";
+import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe } from "lucide-react";
 import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { AIParameterizationTab } from "@/components/settings/AIParameterizationTab";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,13 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
-
 
 const Settings = () => {
   const { user } = useAuth();
@@ -49,42 +45,31 @@ const Settings = () => {
                     <SettingsIcon className="h-4 w-4 mr-2" />
                     Geral
                   </TabsTrigger>
-                  <TabsTrigger value="profile">
-                    <UserCog className="h-4 w-4 mr-2" />
-                    Perfil
-                  </TabsTrigger>
-                  <TabsTrigger value="security">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Segurança
-                  </TabsTrigger>
                   <TabsTrigger value="notifications">
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
                   </TabsTrigger>
-                  <TabsTrigger value="users">
-                    <Users className="h-4 w-4 mr-2" />
-                    Usuários
-                  </TabsTrigger>
-                  <TabsTrigger value="plan">
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Plano & Módulos
-                  </TabsTrigger>
-                  <TabsTrigger value="ai">
-                    <Bot className="h-4 w-4 mr-2" />
-                    Parametrização de IA
+                  <TabsTrigger value="atas">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Parametrização de ATAs
                   </TabsTrigger>
                 </TabsList>
                 
+                {/* ABA GERAL - Consolidada com sub-seções */}
                 <TabsContent value="general">
-                  <div className="space-y-6">
+                  <div className="space-y-8">
+                    {/* Seção 1: Idioma e Região */}
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Idioma e Região</h3>
+                      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                        Idioma e Região
+                      </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="language">Idioma</Label>
                           <select 
                             id="language" 
-                            className="w-full p-2 border rounded-md"
+                            className="w-full p-2 border rounded-md bg-background"
                             defaultValue="pt-BR"
                           >
                             <option value="pt-BR">Português (Brasil)</option>
@@ -96,7 +81,7 @@ const Settings = () => {
                           <Label htmlFor="timezone">Fuso Horário</Label>
                           <select 
                             id="timezone" 
-                            className="w-full p-2 border rounded-md"
+                            className="w-full p-2 border rounded-md bg-background"
                             defaultValue="America/Sao_Paulo"
                           >
                             <option value="America/Sao_Paulo">Brasília (GMT-3)</option>
@@ -108,6 +93,62 @@ const Settings = () => {
                       </div>
                     </div>
                     
+                    <Separator />
+                    
+                    {/* Seção 2: Usuários */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                        Usuários
+                      </h3>
+                      <UserManagementTab />
+                    </div>
+                    
+                    <Separator />
+                    
+                    {/* Seção 3: Segurança */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-muted-foreground" />
+                        Segurança
+                      </h3>
+                      <div className="space-y-6">
+                        <div className="space-y-4">
+                          <h4 className="text-base font-medium">Alterar Senha</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="current-password">Senha Atual</Label>
+                              <Input id="current-password" type="password" />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="new-password">Nova Senha</Label>
+                              <Input id="new-password" type="password" />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                              <Input id="confirm-password" type="password" />
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">Alterar Senha</Button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <h4 className="text-base font-medium">Autenticação de Dois Fatores</h4>
+                          <div className="flex items-center justify-between max-w-md">
+                            <div>
+                              <Label>Ativar 2FA</Label>
+                              <p className="text-sm text-muted-foreground">
+                                Proteja sua conta com autenticação de dois fatores
+                              </p>
+                            </div>
+                            <Switch />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
                     <Button onClick={handleSaveSettings}>
                       <Save className="h-4 w-4 mr-2" />
                       Salvar Configurações
@@ -115,71 +156,7 @@ const Settings = () => {
                   </div>
                 </TabsContent>
                 
-                
-                <TabsContent value="profile">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="full-name">Nome Completo</Label>
-                        <Input id="full-name" defaultValue="Usuário Demonstração" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="demo@legacy.com" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="role">Função</Label>
-                        <Input id="role" defaultValue="Administrador" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="department">Departamento</Label>
-                        <Input id="department" defaultValue="Diretoria" />
-                      </div>
-                    </div>
-                    <Button onClick={handleSaveSettings}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Salvar Perfil
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="security">
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium mb-4">Segurança da Conta</h3>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="current-password">Senha Atual</Label>
-                        <Input id="current-password" type="password" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-password">Nova Senha</Label>
-                        <Input id="new-password" type="password" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                        <Input id="confirm-password" type="password" />
-                      </div>
-                      
-                      <Button className="mt-2">Alterar Senha</Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium mb-4">Autenticação de Dois Fatores</h3>
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Ativar 2FA</Label>
-                          <p className="text-sm text-gray-500">
-                            Proteja sua conta com autenticação de dois fatores
-                          </p>
-                        </div>
-                        <Switch />
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                
+                {/* ABA NOTIFICAÇÕES */}
                 <TabsContent value="notifications">
                   <div className="space-y-6">
                     {/* SEÇÃO 1: Preferências de Notificações */}
@@ -280,15 +257,8 @@ const Settings = () => {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="users">
-                  <UserManagementTab />
-                </TabsContent>
-                
-                <TabsContent value="plan">
-                  <PlanConfigurationTab />
-                </TabsContent>
-                
-                <TabsContent value="ai">
+                {/* ABA PARAMETRIZAÇÃO DE ATAs */}
+                <TabsContent value="atas">
                   <AIParameterizationTab />
                 </TabsContent>
               </Tabs>
