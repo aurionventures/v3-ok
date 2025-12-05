@@ -65,6 +65,7 @@ import TaskAccess from "./pages/TaskAccess";
 import ATAApproval from "./pages/ATAApproval";
 import ATAPendingManagement from "./pages/ATAPendingManagement";
 import MemberDashboard from "./pages/member/MemberDashboard";
+import MemberMaturidade from "./pages/member/MemberMaturidade";
 import MemberReunioes from "./pages/member/MemberReunioes";
 import MemberATAs from "./pages/member/MemberATAs";
 import MemberPendencias from "./pages/member/MemberPendencias";
@@ -175,6 +176,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <MemberDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/maturidade" 
+            element={
+              <ProtectedRoute>
+                <MemberMaturidade />
               </ProtectedRoute>
             } 
           />
