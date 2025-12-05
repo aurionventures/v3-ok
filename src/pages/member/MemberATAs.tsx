@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MemberLayout } from "@/components/member/MemberLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -144,6 +144,54 @@ const MemberATAs = () => {
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [selectedATA, setSelectedATA] = useState<PendingATA | null>(null);
+
+  // Initialize demo approval records for Roberto Alves
+  useEffect(() => {
+    const STORAGE_KEY = 'ata_approvals';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const allApprovals = stored ? JSON.parse(stored) : [];
+    
+    let hasNewApprovals = false;
+    
+    initialPendingATAs.forEach(ata => {
+      const approvalId = `approval-${ata.id}-member-roberto`;
+      const existing = allApprovals.find((a: any) => a.id === approvalId);
+      
+      if (!existing) {
+        const newApproval = {
+          id: approvalId,
+          meeting_id: ata.id,
+          participant_id: 'member-roberto',
+          approval_status: ata.status === 'AGUARDANDO_ASSINATURA' ? 'APROVADO' : 'PENDENTE',
+          approval_comment: null,
+          approved_at: ata.status === 'AGUARDANDO_ASSINATURA' ? new Date().toISOString() : null,
+          signature_status: 'NAO_ASSINADO',
+          signature_hash: null,
+          signature_ip: null,
+          signature_user_agent: null,
+          signed_at: null,
+          notification_sent_at: new Date().toISOString(),
+          magic_link_token: `demo-token-${ata.id}-roberto`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          participant: {
+            id: 'member-roberto',
+            external_name: 'Roberto Alves',
+            external_email: 'roberto.alves@empresa.com',
+            role: 'Conselheiro'
+          }
+        };
+        allApprovals.push(newApproval);
+        hasNewApprovals = true;
+        console.log(`✅ Created approval record: ${approvalId}`);
+      }
+    });
+    
+    if (hasNewApprovals) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allApprovals));
+      console.log(`📋 Updated localStorage with ${allApprovals.length} approvals`);
+    }
+  }, []);
 
   const handleViewATA = (ata: PendingATA) => {
     setSelectedATA(ata);
