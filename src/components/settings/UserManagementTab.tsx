@@ -119,6 +119,24 @@ export const UserManagementTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Card de Credenciais de Demonstração */}
+      <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/30">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">Credenciais de demonstração:</h4>
+          <div className="space-y-2 text-sm">
+            <p className="text-blue-800 dark:text-blue-200">
+              <strong>Admin:</strong> cliente@empresa.com / 123456
+            </p>
+            <p className="text-blue-800 dark:text-blue-200">
+              <strong>Membro:</strong> roberto.alves@empresa.com / membro123
+            </p>
+            <p className="text-blue-800 dark:text-blue-200">
+              <strong>Usuário:</strong> maria.secretaria@empresa.com / user123
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium">Usuários da Organização</h3>

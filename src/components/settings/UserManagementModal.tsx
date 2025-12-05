@@ -114,7 +114,7 @@ export const UserManagementModal = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Papel na Organização</Label>
+            <Label htmlFor="role">Tipo de Usuário</Label>
             <Select value={orgRole} onValueChange={(v) => setOrgRole(v as OrganizationUserRole)}>
               <SelectTrigger>
                 <SelectValue />

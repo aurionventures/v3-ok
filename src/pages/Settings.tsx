@@ -60,12 +60,10 @@ const Settings = () => {
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
                   </TabsTrigger>
-                  {isOrgAdmin && (
-                    <TabsTrigger value="users">
-                      <Users className="h-4 w-4 mr-2" />
-                      Usuários
-                    </TabsTrigger>
-                  )}
+                  <TabsTrigger value="users">
+                    <Users className="h-4 w-4 mr-2" />
+                    Usuários
+                  </TabsTrigger>
                   <TabsTrigger value="plan">
                     <Building2 className="h-4 w-4 mr-2" />
                     Plano & Módulos
@@ -277,11 +275,9 @@ const Settings = () => {
                   </div>
                 </TabsContent>
                 
-                {isOrgAdmin && (
-                  <TabsContent value="users">
-                    <UserManagementTab />
-                  </TabsContent>
-                )}
+                <TabsContent value="users">
+                  <UserManagementTab />
+                </TabsContent>
                 
                 <TabsContent value="plan">
                   <PlanConfigurationTab />
