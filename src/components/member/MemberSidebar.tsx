@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -41,18 +41,12 @@ const menuItems = [
 export function MemberSidebar({ activeSection, onSectionClick, onLogout }: MemberSidebarProps) {
   const { user } = useAuth();
   const { state } = useSidebar();
-  const navigate = useNavigate();
   const location = useLocation();
   const collapsed = state === "collapsed";
 
   const memberCouncils = user?.councilMemberships?.length 
     ? ['Conselho de Administração', 'Comitê de Auditoria'] 
     : ['Conselho de Administração'];
-
-  const handleItemClick = (item: typeof menuItems[0]) => {
-    navigate(item.path);
-    onSectionClick(item.id);
-  };
 
   const isActive = (path: string) => {
     if (path === '/member-portal') {
@@ -87,12 +81,14 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
               {menuItems.map(item => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
-                    onClick={() => handleItemClick(item)}
+                    asChild
                     isActive={isActive(item.path)}
-                    className="py-4 min-h-[52px] cursor-pointer"
+                    className="py-4 min-h-[52px]"
                   >
-                    <item.icon className="h-6 w-6" />
-                    {!collapsed && <span className="text-lg">{item.label}</span>}
+                    <Link to={item.path} onClick={() => onSectionClick(item.id)}>
+                      <item.icon className="h-6 w-6" />
+                      {!collapsed && <span className="text-lg">{item.label}</span>}
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
