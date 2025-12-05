@@ -107,6 +107,11 @@ export interface MeetingATA {
   decisions: string[];
   generatedAt: string;
   generatedBy: string;
+  uploadedFile?: {
+    name: string;
+    url: string;
+    uploadedAt: string;
+  };
 }
 
 export interface CouncilDocument {

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Calendar, Clock, MapPin, Users, FileText, Upload, Mic, CheckCircle2, AlertCircle, Plus, X, Save, Bot, Sparkles } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, FileText, Upload, Mic, CheckCircle2, AlertCircle, Plus, X, Save, Bot, Sparkles, Download } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -477,19 +478,51 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
                     Enviado em: {new Date(meeting.recording.uploadedAt).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
-              ) : meeting.status === "Realizada" ? (
-                <div className="text-center py-4">
-                  <Mic className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-700 mb-4">Enviar gravação da reunião</p>
-                  <Button onClick={handleUploadRecording}>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <Mic className="h-8 w-8 mx-auto mb-2" />
+                  <p className="mb-4">Aguardando gravação da reunião</p>
+                  <Button variant="outline" onClick={handleUploadRecording}>
                     <Upload className="h-4 w-4 mr-2" />
-                    Enviar Gravação
+                    Subir arquivo da reunião
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ATA File Upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Subir Ata da Reunião em Arquivo
+              {meeting.ata?.uploadedFile && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {meeting.ata?.uploadedFile ? (
+                <div className="text-center py-4">
+                  <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                  <p className="text-green-700 font-medium">Arquivo da ATA enviado</p>
+                  <p className="text-sm text-muted-foreground">
+                    {meeting.ata.uploadedFile.name}
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-2">
+                    <Download className="h-4 w-4 mr-2" />
+                    Baixar
                   </Button>
                 </div>
               ) : (
-                <div className="text-center py-4 text-gray-500">
-                  <Mic className="h-8 w-8 mx-auto mb-2" />
-                  <p>Aguardando realização da reunião</p>
+                <div className="text-center py-4 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2" />
+                  <p className="mb-4">Nenhum arquivo de ATA enviado</p>
+                  <Button variant="outline">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Enviar Arquivo de ATA
+                  </Button>
                 </div>
               )}
             </div>
@@ -559,39 +592,34 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
               ))}
 
               {meeting.status === "Realizada" && (
-                <div className="space-y-3 p-3 border-2 border-dashed border-gray-200 rounded">
-                  <Input
-                    placeholder="Título da tarefa"
-                    value={newTask.title || ""}
-                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  />
-                  <Textarea
-                    placeholder="Descrição"
-                    value={newTask.description || ""}
-                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  />
-                  <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-4 p-4 border-2 border-dashed border-border rounded">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Tarefa</Label>
                     <Input
-                      placeholder="Responsável"
+                      placeholder="Descreva a tarefa..."
+                      value={newTask.title || ""}
+                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Responsável</Label>
+                    <Input
+                      placeholder="Nome do responsável"
                       value={newTask.assignee || ""}
                       onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Data Conclusão</Label>
                     <Input
                       type="date"
                       value={newTask.dueDate || ""}
                       onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                     />
-                    <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as any })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Prioridade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Baixa">Baixa</SelectItem>
-                        <SelectItem value="Média">Média</SelectItem>
-                        <SelectItem value="Alta">Alta</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
+
                   <Button onClick={handleAddTask} className="w-full">
                     <Plus className="h-4 w-4 mr-2" />
                     Adicionar Tarefa
