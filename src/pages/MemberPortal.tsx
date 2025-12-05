@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { MemberSidebar } from "@/components/member/MemberSidebar";
 import { 
   Calendar, 
   FileText, 
   CheckCircle, 
   AlertTriangle, 
   Clock, 
-  LogOut,
   Eye,
   FileSignature,
   CalendarDays,
@@ -19,7 +20,6 @@ import {
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
-import logoLegacy from "@/assets/legacy-logo-new.png";
 
 // Import modals
 import { MemberAgendaModal } from "@/components/member/MemberAgendaModal";
@@ -28,7 +28,6 @@ import { MemberATAViewerModal } from "@/components/member/MemberATAViewerModal";
 import { MemberApprovalModal } from "@/components/member/MemberApprovalModal";
 import { MemberTaskDetailModal } from "@/components/member/MemberTaskDetailModal";
 import { ElectronicSignatureModal } from "@/components/councils/ElectronicSignatureModal";
-import MemberNotificationBell from "@/components/member/MemberNotificationBell";
 
 // Mock data para o portal do membro
 const mockMemberMeetings = [
@@ -145,6 +144,13 @@ const MemberPortal = () => {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState(initialMemberTasks);
   const [atas, setAtas] = useState(mockPendingATAs);
+  const [activeSection, setActiveSection] = useState('dashboard');
+
+  // Refs for scroll navigation
+  const reunioesRef = useRef<HTMLDivElement>(null);
+  const atasRef = useRef<HTMLDivElement>(null);
+  const pendenciasRef = useRef<HTMLDivElement>(null);
+  const orgaosRef = useRef<HTMLDivElement>(null);
 
   // Modal states
   const [agendaModalOpen, setAgendaModalOpen] = useState(false);
@@ -162,6 +168,22 @@ const MemberPortal = () => {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleSectionClick = (section: string) => {
+    setActiveSection(section);
+    const refs: Record<string, React.RefObject<HTMLDivElement>> = {
+      reunioes: reunioesRef,
+      atas: atasRef,
+      pendencias: pendenciasRef,
+      orgaos: orgaosRef
+    };
+    
+    if (section === 'dashboard') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (refs[section]?.current) {
+      refs[section].current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   // Meeting handlers
@@ -244,243 +266,242 @@ const MemberPortal = () => {
     : ['Conselho de Administração'];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={logoLegacy} alt="Legacy" className="h-8" />
-              <div className="border-l pl-4">
-                <p className="text-sm text-muted-foreground">Portal do Membro</p>
-                <p className="font-medium">{user?.name}</p>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <MemberSidebar 
+          activeSection={activeSection}
+          onSectionClick={handleSectionClick}
+          onLogout={handleLogout}
+        />
+        
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          {/* Header with trigger */}
+          <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+            <div className="flex items-center gap-4 px-6 py-4">
+              <SidebarTrigger className="h-10 w-10" />
+              <div>
+                <h1 className="text-2xl font-bold">Bem-vindo, {user?.name?.split(' ')[0]}</h1>
+                <p className="text-base text-muted-foreground">Portal do Membro de Governança</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right text-sm">
-                <p className="text-muted-foreground">Participante de:</p>
-                <p className="font-medium">{memberCouncils.join(', ')}</p>
-              </div>
-              <MemberNotificationBell />
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Próximas Reuniões */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CalendarDays className="h-5 w-5 text-primary" />
-              Próximas Reuniões
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockMemberMeetings.map((meeting) => (
-              <div 
-                key={meeting.id} 
-                className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{meeting.council} - {meeting.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(meeting.date, "dd/MM/yyyy", { locale: ptBR })} às {meeting.time} • {meeting.location}
-                    </p>
-                    <Badge variant="secondary" className="mt-1">
-                      {meeting.status === 'PAUTA_DEFINIDA' ? 'Pauta Definida' : 
-                       meeting.status === 'EM_PREPARACAO' ? 'Em Preparação' : 'Agendada'}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {meeting.hasAgenda && (
-                    <Button variant="outline" size="sm" onClick={() => handleViewAgenda(meeting)}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver Pauta
-                    </Button>
-                  )}
-                  {meeting.hasMaterials && (
-                    <Button variant="outline" size="sm" onClick={() => handleViewMaterials(meeting)}>
-                      <FileText className="h-4 w-4 mr-1" />
-                      Materiais
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* ATAs Pendentes de Ação */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FileText className="h-5 w-5 text-orange-500" />
-              ATAs Pendentes de Ação
-              <Badge variant="destructive" className="ml-2">{atas.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {atas.map((ata) => (
-              <div 
-                key={ata.id} 
-                className="flex items-center justify-between p-4 rounded-lg border bg-card"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${
-                    ata.status === 'AGUARDANDO_APROVACAO' ? 'bg-yellow-500/10' : 'bg-blue-500/10'
-                  }`}>
-                    {ata.status === 'AGUARDANDO_APROVACAO' ? (
-                      <CheckCircle className="h-6 w-6 text-yellow-500" />
-                    ) : (
-                      <FileSignature className="h-6 w-6 text-blue-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium">ATA - {ata.council} {format(ata.date, "dd/MM/yyyy")}</p>
-                    <p className="text-sm text-muted-foreground">{ata.meetingTitle}</p>
-                    <Badge 
-                      variant={ata.status === 'AGUARDANDO_APROVACAO' ? 'secondary' : 'outline'}
-                      className="mt-1"
-                    >
-                      {ata.status === 'AGUARDANDO_APROVACAO' 
-                        ? `Aguardando sua aprovação (${ata.approvedCount}/${ata.totalCount} aprovaram)`
-                        : `Aguardando sua assinatura (${ata.signedCount}/${ata.totalCount} assinaram)`
-                      }
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewATA(ata)}>
-                    <Eye className="h-4 w-4 mr-1" />
-                    Ver ATA
-                  </Button>
-                  {ata.status === 'AGUARDANDO_APROVACAO' ? (
-                    <Button size="sm" onClick={() => handleApproveATA(ata)}>
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Aprovar
-                    </Button>
-                  ) : (
-                    <Button size="sm" onClick={() => handleSignATA(ata)}>
-                      <FileSignature className="h-4 w-4 mr-1" />
-                      Assinar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Minhas Pendências */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              Minhas Pendências
-              <Badge variant="secondary" className="ml-2">
-                {tasks.filter(t => t.status === 'PENDENTE').length} pendentes
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {tasks.filter(t => t.status === 'PENDENTE').map((task) => {
-              const daysRemaining = getDaysRemaining(task.dueDate);
-              const urgencyColor = getUrgencyColor(daysRemaining);
-              
-              return (
-                <div 
-                  key={task.id} 
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                      daysRemaining <= 3 ? 'bg-red-500/10' : 
-                      daysRemaining <= 7 ? 'bg-yellow-500/10' : 'bg-green-500/10'
-                    }`}>
-                      <Clock className={`h-5 w-5 ${urgencyColor}`} />
-                    </div>
-                    <div>
-                      <p className="font-medium">{task.title}</p>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>Prazo: {format(task.dueDate, "dd/MM/yyyy")}</span>
-                        <span className={urgencyColor}>
-                          ({daysRemaining < 0 
-                            ? `${Math.abs(daysRemaining)} dias atrasado` 
-                            : `${daysRemaining} dias restantes`})
-                        </span>
+          <div className="p-6 lg:p-8 space-y-8">
+            {/* Próximas Reuniões */}
+            <Card ref={reunioesRef}>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <CalendarDays className="h-6 w-6 text-primary" />
+                  Próximas Reuniões
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mockMemberMeetings.map((meeting) => (
+                  <div 
+                    key={meeting.id} 
+                    className="flex flex-col lg:flex-row lg:items-center justify-between p-5 rounded-lg border bg-card hover:bg-accent/50 transition-colors gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Calendar className="h-7 w-7 text-primary" />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Origem: {task.origin}
-                      </p>
+                      <div>
+                        <p className="text-lg font-semibold">{meeting.council} - {meeting.title}</p>
+                        <p className="text-base text-muted-foreground">
+                          {format(meeting.date, "dd/MM/yyyy", { locale: ptBR })} às {meeting.time} • {meeting.location}
+                        </p>
+                        <Badge variant="secondary" className="mt-2 text-sm px-3 py-1">
+                          {meeting.status === 'PAUTA_DEFINIDA' ? 'Pauta Definida' : 
+                           meeting.status === 'EM_PREPARACAO' ? 'Em Preparação' : 'Agendada'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 ml-auto lg:ml-0">
+                      {meeting.hasAgenda && (
+                        <Button variant="outline" size="lg" onClick={() => handleViewAgenda(meeting)} className="text-base">
+                          <Eye className="h-5 w-5 mr-2" />
+                          Ver Pauta
+                        </Button>
+                      )}
+                      {meeting.hasMaterials && (
+                        <Button variant="outline" size="lg" onClick={() => handleViewMaterials(meeting)} className="text-base">
+                          <FileText className="h-5 w-5 mr-2" />
+                          Materiais
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={task.priority === 'Alta' ? 'destructive' : 'secondary'}>
-                      {task.priority}
-                    </Badge>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleOpenTaskDetail(task)}
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* ATAs Pendentes de Ação */}
+            <Card ref={atasRef}>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <FileText className="h-6 w-6 text-orange-500" />
+                  ATAs Pendentes de Ação
+                  <Badge variant="destructive" className="ml-2 text-sm px-3 py-1">{atas.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {atas.map((ata) => (
+                  <div 
+                    key={ata.id} 
+                    className="flex flex-col lg:flex-row lg:items-center justify-between p-5 rounded-lg border bg-card gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`h-14 w-14 rounded-lg flex items-center justify-center ${
+                        ata.status === 'AGUARDANDO_APROVACAO' ? 'bg-yellow-500/10' : 'bg-blue-500/10'
+                      }`}>
+                        {ata.status === 'AGUARDANDO_APROVACAO' ? (
+                          <CheckCircle className="h-7 w-7 text-yellow-500" />
+                        ) : (
+                          <FileSignature className="h-7 w-7 text-blue-500" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold">ATA - {ata.council} {format(ata.date, "dd/MM/yyyy")}</p>
+                        <p className="text-base text-muted-foreground">{ata.meetingTitle}</p>
+                        <Badge 
+                          variant={ata.status === 'AGUARDANDO_APROVACAO' ? 'secondary' : 'outline'}
+                          className="mt-2 text-sm px-3 py-1"
+                        >
+                          {ata.status === 'AGUARDANDO_APROVACAO' 
+                            ? `Aguardando sua aprovação (${ata.approvedCount}/${ata.totalCount} aprovaram)`
+                            : `Aguardando sua assinatura (${ata.signedCount}/${ata.totalCount} assinaram)`
+                          }
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 ml-auto lg:ml-0">
+                      <Button variant="outline" size="lg" onClick={() => handleViewATA(ata)} className="text-base">
+                        <Eye className="h-5 w-5 mr-2" />
+                        Ver ATA
+                      </Button>
+                      {ata.status === 'AGUARDANDO_APROVACAO' ? (
+                        <Button size="lg" onClick={() => handleApproveATA(ata)} className="text-base">
+                          <CheckCircle className="h-5 w-5 mr-2" />
+                          Aprovar
+                        </Button>
+                      ) : (
+                        <Button size="lg" onClick={() => handleSignATA(ata)} className="text-base">
+                          <FileSignature className="h-5 w-5 mr-2" />
+                          Assinar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Minhas Pendências */}
+            <Card ref={pendenciasRef}>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <AlertTriangle className="h-6 w-6 text-yellow-500" />
+                  Minhas Pendências
+                  <Badge variant="secondary" className="ml-2 text-sm px-3 py-1">
+                    {tasks.filter(t => t.status === 'PENDENTE').length} pendentes
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {tasks.filter(t => t.status === 'PENDENTE').map((task) => {
+                  const daysRemaining = getDaysRemaining(task.dueDate);
+                  const urgencyColor = getUrgencyColor(daysRemaining);
+                  
+                  return (
+                    <div 
+                      key={task.id} 
+                      className="flex flex-col lg:flex-row lg:items-center justify-between p-5 rounded-lg border bg-card gap-4"
                     >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Marcar Resolvida
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {tasks.filter(t => t.status === 'PENDENTE').length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500" />
-                <p>Nenhuma pendência! Você está em dia.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Meus Órgãos */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Building2 className="h-5 w-5 text-primary" />
-              Meus Órgãos de Governança
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              {memberCouncils.map((council, index) => (
-                <div 
-                  key={index}
-                  className="p-4 rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{council}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {index === 0 ? '6 reuniões/ano' : '12 reuniões/ano'}
-                      </p>
+                      <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                          daysRemaining <= 3 ? 'bg-red-500/10' : 
+                          daysRemaining <= 7 ? 'bg-yellow-500/10' : 'bg-green-500/10'
+                        }`}>
+                          <Clock className={`h-6 w-6 ${urgencyColor}`} />
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold">{task.title}</p>
+                          <div className="flex flex-wrap items-center gap-3 text-base text-muted-foreground">
+                            <span>Prazo: {format(task.dueDate, "dd/MM/yyyy")}</span>
+                            <span className={urgencyColor}>
+                              ({daysRemaining < 0 
+                                ? `${Math.abs(daysRemaining)} dias atrasado` 
+                                : `${daysRemaining} dias restantes`})
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Origem: {task.origin}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 ml-auto lg:ml-0">
+                        <Badge 
+                          variant={task.priority === 'Alta' ? 'destructive' : 'secondary'}
+                          className="text-sm px-3 py-1"
+                        >
+                          {task.priority}
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="lg"
+                          onClick={() => handleOpenTaskDetail(task)}
+                          className="text-base"
+                        >
+                          <CheckCircle className="h-5 w-5 mr-2" />
+                          Marcar Resolvida
+                        </Button>
+                      </div>
                     </div>
-                    <div className={`h-3 w-3 rounded-full ${index === 0 ? 'bg-blue-500' : 'bg-green-500'}`} />
+                  );
+                })}
+
+                {tasks.filter(t => t.status === 'PENDENTE').length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                    <p className="text-xl">Nenhuma pendência! Você está em dia.</p>
                   </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Meus Órgãos */}
+            <Card ref={orgaosRef}>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <Building2 className="h-6 w-6 text-primary" />
+                  Meus Órgãos de Governança
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-5">
+                  {memberCouncils.map((council, index) => (
+                    <div 
+                      key={index}
+                      className="p-5 rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-lg font-semibold">{council}</p>
+                          <p className="text-base text-muted-foreground">
+                            {index === 0 ? '6 reuniões/ano' : '12 reuniões/ano'}
+                          </p>
+                        </div>
+                        <div className={`h-4 w-4 rounded-full ${index === 0 ? 'bg-blue-500' : 'bg-green-500'}`} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
 
       {/* Modals */}
       <MemberAgendaModal
@@ -544,7 +565,7 @@ const MemberPortal = () => {
         task={selectedTask}
         onMarkResolved={handleMarkTaskResolved}
       />
-    </div>
+    </SidebarProvider>
   );
 };
 
