@@ -80,7 +80,7 @@ const MemberDashboard = () => {
       title={`Bem-vindo, ${user?.name?.split(' ')[0]}`}
       subtitle="Portal do Membro de Governança"
     >
-      <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {tiles.map((tile) => (
           <Link key={tile.id} to={tile.path} className="block">
             <Card className="min-h-[140px] p-6 hover:bg-accent/50 transition-all active:scale-[0.98] cursor-pointer border-2 hover:border-primary/30">

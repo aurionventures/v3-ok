@@ -4,8 +4,9 @@ import {
   CalendarDays, 
   FileText, 
   AlertTriangle, 
-  Building2,
-  LogOut
+  Building2, 
+  LogOut,
+  BarChart3
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -31,6 +32,7 @@ interface MemberSidebarProps {
 
 const menuItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/member-portal' },
+  { id: 'maturidade', icon: BarChart3, label: 'Maturidade', path: '/member-portal/maturidade' },
   { id: 'reunioes', icon: CalendarDays, label: 'Próximas Reuniões', path: '/member-portal/reunioes' },
   { id: 'atas', icon: FileText, label: 'ATAs Pendentes', path: '/member-portal/atas' },
   { id: 'pendencias', icon: AlertTriangle, label: 'Minhas Pendências', path: '/member-portal/pendencias' },
@@ -128,10 +130,10 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
             <div className="flex items-center justify-between">
               <MemberNotificationBell />
               <Button 
-                variant="destructive" 
+                variant="outline" 
                 size="lg"
                 onClick={onLogout}
-                className="text-base h-12 px-5"
+                className="text-base h-12 px-5 bg-amber-500 hover:bg-amber-600 text-white border-amber-500 hover:border-amber-600"
               >
                 <LogOut className="h-5 w-5 mr-2" />
                 Sair
