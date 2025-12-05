@@ -6,6 +6,7 @@ export interface ATAConfig {
   summaryLength: number;
   customInstructions: string;
   templateName?: string;
+  autoApprovalDays: number | null; // null = disabled, number = days after generation to auto-approve
 }
 
 export const DEFAULT_CONFIG: ATAConfig = {
@@ -13,7 +14,8 @@ export const DEFAULT_CONFIG: ATAConfig = {
   verbalPerson: 'terceira',
   summaryLength: 200,
   customInstructions: '',
-  templateName: undefined
+  templateName: undefined,
+  autoApprovalDays: null
 };
 
 const STORAGE_KEY = 'ata_generation_config';
