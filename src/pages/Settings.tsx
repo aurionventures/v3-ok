@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Users } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, Building2, Users } from "lucide-react";
+import { PlanConfigurationTab } from "@/components/settings/PlanConfigurationTab";
 import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,10 @@ const Settings = () => {
                       Usuários
                     </TabsTrigger>
                   )}
+                  <TabsTrigger value="plan">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Plano & Módulos
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="general">
@@ -277,6 +282,10 @@ const Settings = () => {
                     <UserManagementTab />
                   </TabsContent>
                 )}
+                
+                <TabsContent value="plan">
+                  <PlanConfigurationTab />
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
