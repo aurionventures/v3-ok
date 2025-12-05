@@ -9,13 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   FileSignature, PenTool, CheckCircle2, XCircle, Clock, AlertCircle, 
-  Mail, Building2, CalendarDays, Users, Copy, ArrowLeft, Send
+  Mail, Building2, CalendarDays, Users, Copy, ArrowLeft, Send, Eye, Edit
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ATAAdminActionsModal from "@/components/councils/ATAAdminActionsModal";
 
-interface ATAWithApprovals {
+export interface ATAWithApprovals {
   meetingId: string;
   meetingTitle: string;
   meetingDate: string;
@@ -41,6 +42,32 @@ const ATAPendingManagement = () => {
   
   const [atasWithApprovals, setAtasWithApprovals] = useState<ATAWithApprovals[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modal states
+  const [selectedATA, setSelectedATA] = useState<ATAWithApprovals | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalActionType, setModalActionType] = useState<'view' | 'edit'>('view');
+
+  const handleViewATA = (ata: ATAWithApprovals) => {
+    setSelectedATA(ata);
+    setModalActionType('view');
+    setModalOpen(true);
+  };
+
+  const handleEditATA = (ata: ATAWithApprovals) => {
+    setSelectedATA(ata);
+    setModalActionType('edit');
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setSelectedATA(null);
+  };
+
+  const handleActionComplete = () => {
+    loadATAData();
+  };
 
   useEffect(() => {
     loadATAData();
@@ -182,7 +209,25 @@ const ATAPendingManagement = () => {
                 <span>{ata.organName}</span>
               </div>
             </div>
-            <div className="text-right">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1 h-8"
+                onClick={() => handleViewATA(ata)}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Visualizar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1 h-8"
+                onClick={() => handleEditATA(ata)}
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Editar
+              </Button>
               <Badge variant="outline" className={type === 'approval' ? 'border-amber-300 text-amber-700' : 'border-blue-300 text-blue-700'}>
                 {completedCount}/{totalCount} {type === 'approval' ? 'aprovados' : 'assinados'}
               </Badge>
@@ -335,6 +380,15 @@ const ATAPendingManagement = () => {
           </div>
         </div>
       </div>
+      
+      {/* Admin Actions Modal */}
+      <ATAAdminActionsModal
+        isOpen={modalOpen}
+        onClose={handleModalClose}
+        ata={selectedATA}
+        actionType={modalActionType}
+        onActionComplete={handleActionComplete}
+      />
     </div>
   );
 };
