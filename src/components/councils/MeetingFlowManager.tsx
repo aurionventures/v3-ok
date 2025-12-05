@@ -591,41 +591,39 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
                 </div>
               ))}
 
-              {meeting.status === "Realizada" && (
-                <div className="space-y-4 p-4 border-2 border-dashed border-border rounded">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Tarefa</Label>
-                    <Input
-                      placeholder="Descreva a tarefa..."
-                      value={newTask.title || ""}
-                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Responsável</Label>
-                    <Input
-                      placeholder="Nome do responsável"
-                      value={newTask.assignee || ""}
-                      onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Data Conclusão</Label>
-                    <Input
-                      type="date"
-                      value={newTask.dueDate || ""}
-                      onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                    />
-                  </div>
-
-                  <Button onClick={handleAddTask} className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Tarefa
-                  </Button>
+              <div className="space-y-4 p-4 border-2 border-dashed border-border rounded">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Nome da Tarefa</Label>
+                  <Input
+                    placeholder="Descreva a tarefa..."
+                    value={newTask.title || ""}
+                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  />
                 </div>
-              )}
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Responsável</Label>
+                  <Input
+                    placeholder="Nome do responsável"
+                    value={newTask.assignee || ""}
+                    onChange={(e) => setNewTask({ ...newTask, assignee: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Data Conclusão</Label>
+                  <Input
+                    type="date"
+                    value={newTask.dueDate || ""}
+                    onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                  />
+                </div>
+
+                <Button onClick={handleAddTask} className="w-full">
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
