@@ -66,6 +66,7 @@ import ATAApproval from "./pages/ATAApproval";
 import ATAPendingManagement from "./pages/ATAPendingManagement";
 import MemberDashboard from "./pages/member/MemberDashboard";
 import MemberMaturidade from "./pages/member/MemberMaturidade";
+import MemberRiscos from "./pages/member/MemberRiscos";
 import MemberReunioes from "./pages/member/MemberReunioes";
 import MemberATAs from "./pages/member/MemberATAs";
 import MemberPendencias from "./pages/member/MemberPendencias";
@@ -188,7 +189,15 @@ const App = () => (
             } 
           />
           <Route 
-            path="/member-portal/reunioes" 
+            path="/member-portal/riscos" 
+            element={
+              <ProtectedRoute>
+                <MemberRiscos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/reunioes"
             element={
               <ProtectedRoute>
                 <MemberReunioes />

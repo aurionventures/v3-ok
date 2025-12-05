@@ -6,7 +6,8 @@ import {
   AlertTriangle, 
   Building2, 
   LogOut,
-  BarChart3
+  BarChart3,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -32,10 +33,11 @@ interface MemberSidebarProps {
 const menuItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/member-portal' },
   { id: 'maturidade', icon: BarChart3, label: 'Maturidade', path: '/member-portal/maturidade' },
+  { id: 'riscos', icon: Shield, label: 'Riscos', path: '/member-portal/riscos' },
   { id: 'reunioes', icon: CalendarDays, label: 'Próximas Reuniões', path: '/member-portal/reunioes' },
   { id: 'atas', icon: FileText, label: 'ATAs Pendentes', path: '/member-portal/atas' },
-  { id: 'pendencias', icon: AlertTriangle, label: 'Minhas Pendências', path: '/member-portal/pendencias' },
-  { id: 'orgaos', icon: Building2, label: 'Meus Órgãos', path: '/member-portal/orgaos' },
+  { id: 'pendencias', icon: AlertTriangle, label: 'Tarefas Pendentes', path: '/member-portal/pendencias' },
+  { id: 'orgaos', icon: Building2, label: 'Meus Conselhos', path: '/member-portal/orgaos' },
 ];
 
 export function MemberSidebar({ activeSection, onSectionClick, onLogout }: MemberSidebarProps) {

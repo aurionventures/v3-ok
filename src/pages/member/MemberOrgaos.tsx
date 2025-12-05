@@ -29,7 +29,7 @@ const mockMemberOrgans = [
 const MemberOrgaos = () => {
   return (
     <MemberLayout 
-      title="Meus Órgãos"
+      title="Meus Conselhos"
       subtitle="Órgãos de governança dos quais você participa"
     >
       <Card>
