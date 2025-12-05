@@ -19,9 +19,9 @@ export interface OrganizationUser {
 
 // Labels para papéis organizacionais
 export const ORG_ROLE_LABELS: Record<OrganizationUserRole, string> = {
-  org_admin: 'Administrador',
+  org_admin: 'ADM',
   org_user: 'Usuário',
-  org_member: 'Membro/Conselheiro'
+  org_member: 'Membro'
 };
 
 export const ORG_ROLE_DESCRIPTIONS: Record<OrganizationUserRole, string> = {
