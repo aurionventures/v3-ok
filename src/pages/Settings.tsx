@@ -34,6 +34,7 @@ const Settings = () => {
     notify_pauta_definition: true,
     notify_ata_approval: true,
     notify_ata_signature: true,
+    notify_tasks_agreements: true,
     
     // Tarefas
     notify_task_assigned: true,
@@ -58,6 +59,7 @@ const Settings = () => {
         notify_pauta_definition: preferences.notify_pauta_definition ?? true,
         notify_ata_approval: preferences.notify_ata_approval ?? true,
         notify_ata_signature: preferences.notify_ata_signature ?? true,
+        notify_tasks_agreements: preferences.notify_tasks_agreements ?? true,
         notify_task_assigned: preferences.notify_task_assigned ?? true,
         notify_task_due_30d: preferences.notify_task_due_30d ?? true,
         notify_task_due_15d: preferences.notify_task_due_15d ?? true,
@@ -287,6 +289,13 @@ const Settings = () => {
                                 <Switch 
                                   checked={formData.notify_ata_signature}
                                   onCheckedChange={() => handleToggle('notify_ata_signature')}
+                                />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <Label className="text-sm">Tarefas e combinados</Label>
+                                <Switch 
+                                  checked={formData.notify_tasks_agreements}
+                                  onCheckedChange={() => handleToggle('notify_tasks_agreements')}
                                 />
                               </div>
                             </div>

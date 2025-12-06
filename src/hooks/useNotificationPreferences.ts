@@ -19,6 +19,7 @@ export interface NotificationPreferences {
   notify_pauta_definition: boolean;
   notify_ata_approval: boolean;
   notify_ata_signature: boolean;
+  notify_tasks_agreements: boolean;
   
   // Tipos de Notificação - Tarefas
   notify_task_assigned: boolean;
@@ -54,6 +55,7 @@ const defaultPreferences: NotificationPreferences = {
   notify_pauta_definition: true,
   notify_ata_approval: true,
   notify_ata_signature: true,
+  notify_tasks_agreements: true,
   notify_task_assigned: true,
   notify_task_due_30d: true,
   notify_task_due_15d: true,
@@ -134,6 +136,7 @@ export const useNotificationPreferences = () => {
         'notify_pauta_definition',
         'notify_ata_approval',
         'notify_ata_signature',
+        'notify_tasks_agreements',
         'notify_task_assigned',
         'notify_task_due_30d',
         'notify_task_due_15d',
