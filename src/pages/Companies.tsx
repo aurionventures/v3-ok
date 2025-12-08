@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Building2, Search, PlusCircle, Download, Trash2, Pencil, Loader2,
-  Briefcase, Users
+  Briefcase, Users, Crown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { InviteForm } from "@/components/invitation/InviteForm";
 import { CompanyFilters, CompanyFiltersState } from "@/components/admin/CompanyFilters";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import MetricCard from "@/components/metrics/MetricCard";
+import { AdminPlanManager } from "@/components/admin/AdminPlanManager";
 
 const Companies = () => {
   const navigate = useNavigate();
@@ -295,6 +296,10 @@ const Companies = () => {
               <TabsTrigger value="active">Empresas Ativas ({filteredCompanies.filter(c => c.status === "active").length})</TabsTrigger>
               <TabsTrigger value="inactive">Inativas ({filteredCompanies.filter(c => c.status === "inactive").length})</TabsTrigger>
               <TabsTrigger value="all">Todas ({filteredCompanies.length})</TabsTrigger>
+              <TabsTrigger value="plans" className="gap-2">
+                <Crown className="h-4 w-4" />
+                Configurar Planos
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="active" className="mt-4">
               <Card>
@@ -502,6 +507,11 @@ const Companies = () => {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Tab Configurar Planos */}
+            <TabsContent value="plans" className="mt-4">
+              <AdminPlanManager />
             </TabsContent>
           </Tabs>
 

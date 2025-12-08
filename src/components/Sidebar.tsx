@@ -77,6 +77,11 @@ const Sidebar = () => {
       name: "Empresas"
     },
     {
+      icon: <BarChart3 className="h-5 w-5" />,
+      href: "/admin/plans-comparison",
+      name: "Comparativo de Planos"
+    },
+    {
       icon: <Shield className="h-5 w-5" />,
       href: "/seguranca",
       name: "Segurança"
