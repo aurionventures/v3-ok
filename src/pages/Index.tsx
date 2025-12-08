@@ -168,9 +168,8 @@ const Index = () => {
             
             
             <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight font-heading">
-              O primeiro{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">OS de Governança</span>{" "}
-              para empresas de controle concentrado.
+              O primeiro sistema operacional para{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">Governança Corporativa Digital</span>
             </h1>
             
             <p className="text-xl lg:text-2xl mb-8 text-white/90 leading-relaxed max-w-4xl mx-auto">
