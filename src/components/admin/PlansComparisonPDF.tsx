@@ -1,23 +1,23 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { COMPANY_SIZE_LABELS } from '@/types/organization';
-import { BASE_MODULES, ADDON_MODULES, PLAN_PRICES, ADDON_PRICES } from '@/utils/moduleMatrix';
+import { BASE_MODULES, PLAN_PRICES, ADDON_PRICES, FULL_PACKAGE } from '@/utils/moduleMatrix';
 import { SIDEBAR_SECTIONS } from '@/data/sidebarCatalog';
 
 const styles = StyleSheet.create({
   page: {
     backgroundColor: '#ffffff',
-    padding: 30,
+    padding: 15,
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    borderBottom: '2px solid #C9A54E',
-    paddingBottom: 15,
+    marginBottom: 8,
+    borderBottom: '1.5px solid #C9A54E',
+    paddingBottom: 6,
   },
   logo: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#1a1a2e',
   },
@@ -25,147 +25,162 @@ const styles = StyleSheet.create({
     color: '#C9A54E',
   },
   date: {
-    fontSize: 9,
+    fontSize: 7,
     color: '#666666',
   },
   title: {
-    fontSize: 16,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#1a1a2e',
-    marginBottom: 5,
+    marginBottom: 2,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 7,
     color: '#666666',
-    marginBottom: 15,
+    marginBottom: 6,
     textAlign: 'center',
   },
   table: {
-    marginBottom: 15,
+    marginBottom: 6,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#1a1a2e',
-    paddingVertical: 8,
-    paddingHorizontal: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 3,
   },
   tableHeaderCell: {
-    fontSize: 7,
+    fontSize: 5.5,
     color: '#ffffff',
     fontWeight: 'bold',
     textAlign: 'center',
   },
   moduleCol: {
-    width: '25%',
+    width: '22%',
     textAlign: 'left',
-    paddingLeft: 5,
+    paddingLeft: 3,
   },
   planCol: {
-    width: '12.5%',
+    width: '13%',
     textAlign: 'center',
   },
   addonCol: {
-    width: '12.5%',
+    width: '6.5%',
     textAlign: 'center',
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottom: '1px solid #e0e0e0',
-    paddingVertical: 5,
-    paddingHorizontal: 5,
+    borderBottom: '0.5px solid #e0e0e0',
+    paddingVertical: 2,
+    paddingHorizontal: 3,
   },
   tableRowAlt: {
     backgroundColor: '#f8f9fa',
   },
   sectionRow: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 6,
-    paddingHorizontal: 5,
-    borderBottom: '1px solid #e0e0e0',
+    backgroundColor: '#e8e8e8',
+    paddingVertical: 2,
+    paddingHorizontal: 3,
   },
   sectionTitle: {
-    fontSize: 8,
+    fontSize: 5.5,
     fontWeight: 'bold',
     color: '#1a1a2e',
   },
   moduleCell: {
-    fontSize: 7,
+    fontSize: 5,
     color: '#333333',
-    width: '25%',
-    paddingLeft: 10,
+    width: '22%',
+    paddingLeft: 6,
   },
   checkCell: {
-    fontSize: 8,
-    width: '12.5%',
+    fontSize: 6,
+    width: '13%',
+    textAlign: 'center',
+  },
+  addonCheckCell: {
+    fontSize: 6,
+    width: '6.5%',
     textAlign: 'center',
   },
   check: {
     color: '#22c55e',
   },
   cross: {
-    color: '#ef4444',
+    color: '#cccccc',
   },
   priceRow: {
     flexDirection: 'row',
     backgroundColor: '#C9A54E',
-    paddingVertical: 8,
-    paddingHorizontal: 5,
-    marginTop: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 3,
   },
   priceLabel: {
-    fontSize: 8,
+    fontSize: 5.5,
     color: '#ffffff',
     fontWeight: 'bold',
-    width: '25%',
-    paddingLeft: 5,
+    width: '22%',
+    paddingLeft: 3,
   },
   priceCell: {
-    fontSize: 7,
+    fontSize: 5,
     color: '#ffffff',
-    width: '12.5%',
+    width: '13%',
     textAlign: 'center',
     fontWeight: 'bold',
   },
-  fullPackageSection: {
-    marginTop: 15,
-    padding: 15,
+  addonPriceCell: {
+    fontSize: 5,
+    color: '#ffffff',
+    width: '6.5%',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  fullPackageRow: {
+    flexDirection: 'row',
     backgroundColor: '#1a1a2e',
-    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginTop: 4,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   fullPackageTitle: {
-    fontSize: 12,
+    fontSize: 7,
     fontWeight: 'bold',
     color: '#C9A54E',
-    marginBottom: 5,
   },
   fullPackageText: {
-    fontSize: 9,
+    fontSize: 6,
     color: '#ffffff',
-    marginBottom: 3,
   },
-  fullPackagePrice: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#C9A54E',
-    marginTop: 5,
+  fullPackagePrices: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   originalPrice: {
-    fontSize: 10,
+    fontSize: 6,
     color: '#999999',
     textDecorationLine: 'line-through',
   },
+  discountedPrice: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#C9A54E',
+  },
   footer: {
     position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 30,
-    borderTop: '1px solid #e0e0e0',
-    paddingTop: 10,
+    bottom: 8,
+    left: 15,
+    right: 15,
+    borderTop: '0.5px solid #e0e0e0',
+    paddingTop: 4,
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#666666',
     textAlign: 'center',
   },
@@ -197,10 +212,6 @@ export const PlansComparisonPDF = () => {
 
   const isModuleIncluded = (moduleKey: string, size: typeof SIZE_ORDER[number]) => {
     return BASE_MODULES[size].includes(moduleKey as any);
-  };
-
-  const isAddonModule = (moduleKey: string) => {
-    return ADDON_MODULES.some(addon => addon.key === moduleKey);
   };
 
   return (
@@ -249,14 +260,14 @@ export const PlansComparisonPDF = () => {
                         isModuleIncluded(item.key, size) ? styles.check : styles.cross
                       ]}
                     >
-                      {isModuleIncluded(item.key, size) ? '✓' : '✗'}
+                      {isModuleIncluded(item.key, size) ? '●' : '○'}
                     </Text>
                   ))}
-                  <Text style={[styles.checkCell, item.key === 'esg_maturity' ? styles.check : styles.cross]}>
-                    {item.key === 'esg_maturity' ? '✓' : '—'}
+                  <Text style={[styles.addonCheckCell, item.key === 'esg_maturity' ? styles.check : styles.cross]}>
+                    {item.key === 'esg_maturity' ? '●' : '-'}
                   </Text>
-                  <Text style={[styles.checkCell, (item.key === 'market_intel' || item.key === 'benchmarking') ? styles.check : styles.cross]}>
-                    {(item.key === 'market_intel' || item.key === 'benchmarking') ? '✓' : '—'}
+                  <Text style={[styles.addonCheckCell, (item.key === 'market_intel' || item.key === 'benchmarking') ? styles.check : styles.cross]}>
+                    {(item.key === 'market_intel' || item.key === 'benchmarking') ? '●' : '-'}
                   </Text>
                 </View>
               ))}
@@ -270,18 +281,17 @@ export const PlansComparisonPDF = () => {
                 {size === 'listed' ? 'A partir de ' : ''}{formatCurrency(PLAN_PRICES[size])}
               </Text>
             ))}
-            <Text style={styles.priceCell}>{formatCurrency(ADDON_PRICES.esg)}</Text>
-            <Text style={styles.priceCell}>{formatCurrency(ADDON_PRICES.market_intel)}</Text>
+            <Text style={styles.addonPriceCell}>{formatCurrency(ADDON_PRICES.esg)}</Text>
+            <Text style={styles.addonPriceCell}>{formatCurrency(ADDON_PRICES.market_intel)}</Text>
           </View>
         </View>
 
-        <View style={styles.fullPackageSection}>
-          <Text style={styles.fullPackageTitle}>Pacote Full (Todos os Add-ons)</Text>
-          <Text style={styles.fullPackageText}>
-            Inclui Maturidade ESG + Inteligência de Mercado + Benchmarking Global
-          </Text>
-          <Text style={styles.originalPrice}>De R$ 78.970/mês</Text>
-          <Text style={styles.fullPackagePrice}>Por R$ 75.970/mês</Text>
+        <View style={styles.fullPackageRow}>
+          <Text style={styles.fullPackageTitle}>Pacote Full (ESG + Inteligência de Mercado)</Text>
+          <View style={styles.fullPackagePrices}>
+            <Text style={styles.originalPrice}>De {formatCurrency(FULL_PACKAGE.originalPrice)}</Text>
+            <Text style={styles.discountedPrice}>Por {formatCurrency(FULL_PACKAGE.discountedPrice)}/mês</Text>
+          </View>
         </View>
 
         <View style={styles.footer}>
