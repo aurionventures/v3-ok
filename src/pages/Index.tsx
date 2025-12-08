@@ -168,14 +168,14 @@ const Index = () => {
             
             
             <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight font-heading">
-              Revolucione a Governança em{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">6 Semanas</span>{" "}
-              e Garanta a Perpetuidade do Seu Legado.
+              O primeiro{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">OS de Governança</span>{" "}
+              para empresas de controle concentrado.
             </h1>
             
             <p className="text-xl lg:text-2xl mb-8 text-white/90 leading-relaxed max-w-4xl mx-auto">
-              Implemente em 6 semanas o que levava 9+ meses. Acelere a valorização do seu negócio com a{" "}
-              <strong className="text-accent">única plataforma que une Governança Corporativa, Sucessão e IA Preditiva.</strong>
+              Estruture governança completa em 45 dias:{" "}
+              <strong className="text-accent">cap table, sucessão, riscos, ESG e IA de mercado</strong>, tudo integrado, operando 24/7, sem planilha.
             </p>
             
             {/* CTAs */}
