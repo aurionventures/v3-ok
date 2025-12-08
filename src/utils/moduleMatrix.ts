@@ -6,6 +6,27 @@ import { CompanySize, GovernancePlan, ModuleKey } from "@/types/organization";
 // Grande: + MONITORAMENTO + Agentes IA + Submeter Projetos
 // Listada: + Add-ons (ESG, Inteligência de Mercado)
 
+// Preços dos planos por porte
+export const PLAN_PRICES: Record<CompanySize, number> = {
+  startup: 3990,
+  small: 5990,
+  medium: 12900,
+  large: 29900,
+  listed: 69990
+};
+
+// Preços dos add-ons
+export const ADDON_PRICES = {
+  esg: 3990,
+  market_intel: 4990
+};
+
+// Pacote Full com desconto
+export const FULL_PACKAGE = {
+  originalPrice: 78970,
+  discountedPrice: 75970
+};
+
 const STARTUP_SMALL_MODULES: ModuleKey[] = [
   // INÍCIO
   'dashboard', 'settings', 'start',
