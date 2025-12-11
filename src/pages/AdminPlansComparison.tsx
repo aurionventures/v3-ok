@@ -8,7 +8,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, X, Sparkles, FileText, Download, Package, Percent, DollarSign, Settings2 } from "lucide-react";
+import { Check, X, Sparkles, FileText, Download, Package, Percent, DollarSign, Settings2, Eye, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { pdf } from '@react-pdf/renderer';
@@ -53,6 +64,7 @@ const AdminPlansComparison = () => {
 
   // Estado da aba "Proposta Personalizada"
   const [customCompanyName, setCustomCompanyName] = useState('');
+  const [customResponsibleName, setCustomResponsibleName] = useState('');
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [baseValue, setBaseValue] = useState<number>(0);
   const [setupValue, setSetupValue] = useState<number>(0);
@@ -61,6 +73,8 @@ const AdminPlansComparison = () => {
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [validityDays, setValidityDays] = useState<number>(30);
   const [observations, setObservations] = useState('');
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   // Coleta todos os módulos de todas as seções
   const allModules = SIDEBAR_SECTIONS.flatMap(section => 
@@ -168,6 +182,42 @@ const AdminPlansComparison = () => {
     return baseValue - discountValue;
   };
 
+  // Organiza módulos selecionados por seção
+  const getModulesBySection = () => {
+    return SIDEBAR_SECTIONS.map(section => ({
+      label: section.label,
+      modules: section.items.filter(item => selectedModules.includes(item.key)),
+    })).filter(s => s.modules.length > 0);
+  };
+
+  // Gerar resumo automático no campo observações
+  const generateObservationsSummary = () => {
+    const modulesBySection = getModulesBySection();
+    if (modulesBySection.length === 0) {
+      toast.error('Selecione pelo menos um módulo para gerar o resumo');
+      return;
+    }
+
+    const lines = [`${selectedModules.length} Módulos Selecionados:\n`];
+    modulesBySection.forEach(section => {
+      const moduleNames = section.modules.map(m => m.label).join(', ');
+      lines.push(`• ${section.label}: ${moduleNames}`);
+    });
+
+    const summary = lines.join('\n');
+    setObservations(summary);
+    toast.success('Resumo gerado com sucesso!');
+  };
+
+  // Toggle seção expandida
+  const toggleSection = (sectionLabel: string) => {
+    setExpandedSections(prev => 
+      prev.includes(sectionLabel) 
+        ? prev.filter(s => s !== sectionLabel)
+        : [...prev, sectionLabel]
+    );
+  };
+
   // Gerar PDF de proposta personalizada
   const handleGenerateCustomProposalPDF = async () => {
     if (!customCompanyName.trim()) {
@@ -189,6 +239,7 @@ const AdminPlansComparison = () => {
       const blob = await pdf(
         <CustomProposalPDF
           companyName={customCompanyName}
+          responsibleName={customResponsibleName}
           selectedModules={selectedModules}
           baseValue={baseValue}
           setupValue={setupValue}
@@ -513,6 +564,17 @@ const AdminPlansComparison = () => {
                         />
                       </div>
 
+                      {/* Responsável */}
+                      <div className="space-y-2">
+                        <Label htmlFor="customResponsibleName">Responsável</Label>
+                        <Input
+                          id="customResponsibleName"
+                          placeholder="Nome do responsável pelo projeto"
+                          value={customResponsibleName}
+                          onChange={(e) => setCustomResponsibleName(e.target.value)}
+                        />
+                      </div>
+
                       {/* Seleção de Módulos */}
                       <div className="space-y-3">
                         <Label>Seleção de Módulos</Label>
@@ -618,32 +680,85 @@ const AdminPlansComparison = () => {
 
                       {/* Observações */}
                       <div className="space-y-2">
-                        <Label htmlFor="observations">Observações (opcional)</Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="observations">Observações (opcional)</Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={generateObservationsSummary}
+                            disabled={selectedModules.length === 0}
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Gerar Resumo
+                          </Button>
+                        </div>
                         <Textarea
                           id="observations"
-                          placeholder="Condições especiais, notas, etc."
+                          placeholder="Condições especiais, notas, etc. Use 'Gerar Resumo' para preencher automaticamente."
                           value={observations}
                           onChange={(e) => setObservations(e.target.value)}
-                          rows={3}
+                          rows={4}
                         />
                       </div>
 
-                      {/* Card de Resumo */}
+                      {/* Card de Resumo Expandido */}
                       <Card className="bg-muted/30">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg">Resumo da Proposta</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Empresa</p>
-                            <p className="font-medium">{customCompanyName || '(Não informado)'}</p>
+                          {/* Empresa e Responsável */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Empresa</p>
+                              <p className="font-medium">{customCompanyName || '(Não informado)'}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Responsável</p>
+                              <p className="font-medium">{customResponsibleName || '(Não informado)'}</p>
+                            </div>
                           </div>
 
-                          <div>
-                            <p className="text-sm text-muted-foreground">Módulos Selecionados</p>
-                            <Badge variant="secondary">{selectedModules.length}</Badge>
+                          {/* Módulos por Seção */}
+                          <div className="border-t pt-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-sm font-medium">Módulos Selecionados</p>
+                              <Badge variant="secondary">{selectedModules.length}</Badge>
+                            </div>
+                            <div className="space-y-1 max-h-40 overflow-y-auto">
+                              {getModulesBySection().map((section) => (
+                                <Collapsible
+                                  key={section.label}
+                                  open={expandedSections.includes(section.label)}
+                                  onOpenChange={() => toggleSection(section.label)}
+                                >
+                                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-md bg-background/50 hover:bg-background/80 text-sm">
+                                    <span className="font-medium">{section.label} ({section.modules.length})</span>
+                                    {expandedSections.includes(section.label) ? (
+                                      <ChevronUp className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4" />
+                                    )}
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent className="pl-4 pt-1">
+                                    <div className="flex flex-wrap gap-1">
+                                      {section.modules.map((module) => (
+                                        <Badge key={module.key} variant="outline" className="text-xs">
+                                          {module.label}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </CollapsibleContent>
+                                </Collapsible>
+                              ))}
+                              {selectedModules.length === 0 && (
+                                <p className="text-xs text-muted-foreground italic">Nenhum módulo selecionado</p>
+                              )}
+                            </div>
                           </div>
 
+                          {/* Valores */}
                           <div className="border-t pt-4 space-y-2">
                             <div className="flex justify-between text-sm">
                               <span>Valor Base</span>
@@ -675,18 +790,153 @@ const AdminPlansComparison = () => {
                             )}
                           </div>
 
-                          <Button 
-                            className="w-full mt-4" 
-                            size="lg"
-                            onClick={handleGenerateCustomProposalPDF}
-                            disabled={isGeneratingPDF}
-                          >
-                            <FileText className="h-4 w-4 mr-2" />
-                            Gerar PDF da Proposta
-                          </Button>
+                          {/* Botões de Ação */}
+                          <div className="flex gap-2 pt-2">
+                            <Button 
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => setShowPreviewModal(true)}
+                              disabled={selectedModules.length === 0 || !customCompanyName}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Visualizar
+                            </Button>
+                            <Button 
+                              className="flex-1"
+                              onClick={handleGenerateCustomProposalPDF}
+                              disabled={isGeneratingPDF || selectedModules.length === 0}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Gerar PDF
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
+
+                    {/* Modal de Preview */}
+                    <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Eye className="h-5 w-5" />
+                            Pré-visualização da Proposta
+                          </DialogTitle>
+                        </DialogHeader>
+                        
+                        <div className="space-y-6 p-4 bg-white rounded-lg border">
+                          {/* Header */}
+                          <div className="flex justify-between items-start border-b pb-4">
+                            <div>
+                              <h2 className="text-xl font-bold text-[#1a1a2e]">
+                                LEGACY <span className="text-[#C9A54E]">GOVERNANÇA</span>
+                              </h2>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                            </p>
+                          </div>
+
+                          {/* Título */}
+                          <div className="text-center">
+                            <h3 className="text-lg font-bold">Proposta Comercial Personalizada</h3>
+                            <p className="text-sm text-muted-foreground">Solução de Governança Corporativa sob medida</p>
+                          </div>
+
+                          {/* Empresa e Responsável */}
+                          <div className="bg-muted/30 rounded-md p-4">
+                            <p className="text-xs text-muted-foreground">Elaborada para:</p>
+                            <p className="font-bold text-lg">{customCompanyName}</p>
+                            {customResponsibleName && (
+                              <>
+                                <p className="text-xs text-muted-foreground mt-2">Responsável:</p>
+                                <p className="font-medium">{customResponsibleName}</p>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Módulos */}
+                          <div>
+                            <h4 className="font-bold border-b pb-2 mb-3">
+                              Módulos Incluídos ({selectedModules.length})
+                            </h4>
+                            {getModulesBySection().map((section) => (
+                              <div key={section.label} className="mb-3">
+                                <p className="text-xs font-bold text-muted-foreground mb-1">{section.label}</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {section.modules.map((module) => (
+                                    <Badge key={module.key} variant="secondary" className="text-xs">
+                                      {module.label}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Investimento */}
+                          <div className="bg-[#1a1a2e] text-white rounded-md p-4">
+                            <h4 className="font-bold text-[#C9A54E] mb-3">Investimento</h4>
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span>Valor Base</span>
+                                <span>{formatCurrency(baseValue)}/mês</span>
+                              </div>
+                              {(discountPercent > 0 || discountValue > 0) && (
+                                <div className="flex justify-between text-sm text-green-400">
+                                  <span>Desconto {discountType === 'percent' ? `(${discountPercent}%)` : ''}</span>
+                                  <span>- {formatCurrency(discountType === 'percent' ? baseValue * discountPercent / 100 : discountValue)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between border-t border-[#C9A54E] pt-2 mt-2">
+                                <span className="font-bold text-[#C9A54E]">TOTAL MENSAL</span>
+                                <span className="font-bold text-lg text-[#C9A54E]">{formatCurrency(calculateCustomFinalValue())}</span>
+                              </div>
+                              {setupValue > 0 && (
+                                <div className="flex justify-between text-sm pt-2 border-t border-[#C9A54E]/50">
+                                  <span>Setup/Implementação (único)</span>
+                                  <span>{formatCurrency(setupValue)}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Condições */}
+                          <div className="bg-muted/30 rounded-md p-4 text-sm">
+                            <h4 className="font-bold mb-2">Condições Comerciais</h4>
+                            <div className="space-y-1">
+                              <p><span className="text-muted-foreground">Validade:</span> {validityDays} dias</p>
+                              <p><span className="text-muted-foreground">Pagamento:</span> Mensal via boleto ou cartão</p>
+                              <p><span className="text-muted-foreground">Início:</span> Imediato após confirmação</p>
+                            </div>
+                            {observations && (
+                              <div className="mt-3 pt-3 border-t">
+                                <p className="text-xs text-muted-foreground mb-1">Observações:</p>
+                                <p className="whitespace-pre-line text-xs">{observations}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Botões do Modal */}
+                        <div className="flex gap-2 pt-4">
+                          <Button variant="outline" className="flex-1" onClick={() => setShowPreviewModal(false)}>
+                            Fechar
+                          </Button>
+                          <Button 
+                            className="flex-1" 
+                            onClick={() => {
+                              setShowPreviewModal(false);
+                              handleGenerateCustomProposalPDF();
+                            }}
+                            disabled={isGeneratingPDF}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Gerar PDF
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </TabsContent>
               </Tabs>
