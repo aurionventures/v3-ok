@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Check, X, Sparkles, FileText, Download, Package } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Check, X, Sparkles, FileText, Download, Package, Percent, DollarSign, Settings2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { pdf } from '@react-pdf/renderer';
@@ -31,6 +33,8 @@ import {
 import { SIDEBAR_SECTIONS } from "@/data/sidebarCatalog";
 import { PlanProposalPDF } from "@/components/admin/PlanProposalPDF";
 import { PlansComparisonPDF } from "@/components/admin/PlansComparisonPDF";
+import { CustomProposalPDF } from "@/components/admin/CustomProposalPDF";
+import { ModuleSelector } from "@/components/admin/ModuleSelector";
 import { toast } from "sonner";
 
 const SIZE_ORDER: CompanySize[] = ['startup', 'small', 'medium', 'large', 'listed'];
@@ -40,11 +44,22 @@ const formatCurrency = (value: number) => {
 };
 
 const AdminPlansComparison = () => {
+  // Estado da aba "Proposta por Plano"
   const [companyName, setCompanyName] = useState('');
   const [selectedSize, setSelectedSize] = useState<CompanySize>('medium');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [isFullPackage, setIsFullPackage] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Estado da aba "Proposta Personalizada"
+  const [customCompanyName, setCustomCompanyName] = useState('');
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [baseValue, setBaseValue] = useState<number>(0);
+  const [discountType, setDiscountType] = useState<'percent' | 'value'>('percent');
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [validityDays, setValidityDays] = useState<number>(30);
+  const [observations, setObservations] = useState('');
 
   // Coleta todos os módulos de todas as seções
   const allModules = SIDEBAR_SECTIONS.flatMap(section => 
@@ -144,6 +159,56 @@ const AdminPlansComparison = () => {
     return count;
   };
 
+  // Cálculo do valor final da proposta personalizada
+  const calculateCustomFinalValue = () => {
+    if (discountType === 'percent' && discountPercent > 0) {
+      return baseValue - (baseValue * discountPercent / 100);
+    }
+    return baseValue - discountValue;
+  };
+
+  // Gerar PDF de proposta personalizada
+  const handleGenerateCustomProposalPDF = async () => {
+    if (!customCompanyName.trim()) {
+      toast.error('Por favor, informe o nome da empresa');
+      return;
+    }
+    if (selectedModules.length === 0) {
+      toast.error('Por favor, selecione pelo menos um módulo');
+      return;
+    }
+    if (baseValue <= 0) {
+      toast.error('Por favor, informe o valor base');
+      return;
+    }
+    
+    setIsGeneratingPDF(true);
+    try {
+      const finalValue = calculateCustomFinalValue();
+      const blob = await pdf(
+        <CustomProposalPDF
+          companyName={customCompanyName}
+          selectedModules={selectedModules}
+          baseValue={baseValue}
+          discountPercent={discountType === 'percent' ? discountPercent : 0}
+          discountValue={discountType === 'value' ? discountValue : 0}
+          finalValue={finalValue}
+          validityDays={validityDays}
+          observations={observations}
+        />
+      ).toBlob();
+      
+      const fileName = `Proposta_Personalizada_${customCompanyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      saveAs(blob, fileName);
+      toast.success('Proposta personalizada gerada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -168,7 +233,7 @@ const AdminPlansComparison = () => {
             </Button>
           </div>
 
-          {/* Configurador de Proposta */}
+          {/* Configurador de Proposta com Tabs */}
           <Card className="border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -177,6 +242,20 @@ const AdminPlansComparison = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <Tabs defaultValue="plan" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="plan" className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Proposta por Plano
+                  </TabsTrigger>
+                  <TabsTrigger value="custom" className="flex items-center gap-2">
+                    <Settings2 className="h-4 w-4" />
+                    Proposta Personalizada
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Tab: Proposta por Plano */}
+                <TabsContent value="plan">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Coluna de configuração */}
                 <div className="space-y-6">
@@ -414,6 +493,179 @@ const AdminPlansComparison = () => {
                   </Card>
                 </div>
               </div>
+                </TabsContent>
+
+                {/* Tab: Proposta Personalizada */}
+                <TabsContent value="custom">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Coluna de configuração personalizada */}
+                    <div className="space-y-6">
+                      {/* Nome da empresa */}
+                      <div className="space-y-2">
+                        <Label htmlFor="customCompanyName">Nome da Empresa</Label>
+                        <Input
+                          id="customCompanyName"
+                          placeholder="Digite o nome da empresa"
+                          value={customCompanyName}
+                          onChange={(e) => setCustomCompanyName(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Seleção de Módulos */}
+                      <div className="space-y-3">
+                        <Label>Seleção de Módulos</Label>
+                        <ModuleSelector 
+                          selectedModules={selectedModules}
+                          onModulesChange={setSelectedModules}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Coluna de precificação */}
+                    <div className="space-y-6">
+                      {/* Valor Base */}
+                      <div className="space-y-2">
+                        <Label htmlFor="baseValue">Valor Base Mensal</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                          <Input
+                            id="baseValue"
+                            type="number"
+                            placeholder="0,00"
+                            className="pl-10"
+                            value={baseValue || ''}
+                            onChange={(e) => setBaseValue(Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tipo de Desconto */}
+                      <div className="space-y-3">
+                        <Label>Desconto</Label>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant={discountType === 'percent' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setDiscountType('percent')}
+                          >
+                            <Percent className="h-4 w-4 mr-1" />
+                            Percentual
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={discountType === 'value' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setDiscountType('value')}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            Valor Fixo
+                          </Button>
+                        </div>
+                        {discountType === 'percent' ? (
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              className="pr-8"
+                              value={discountPercent || ''}
+                              onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                            <Input
+                              type="number"
+                              placeholder="0,00"
+                              className="pl-10"
+                              value={discountValue || ''}
+                              onChange={(e) => setDiscountValue(Number(e.target.value))}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Validade */}
+                      <div className="space-y-2">
+                        <Label htmlFor="validityDays">Validade da Proposta (dias)</Label>
+                        <Input
+                          id="validityDays"
+                          type="number"
+                          value={validityDays}
+                          onChange={(e) => setValidityDays(Number(e.target.value))}
+                        />
+                      </div>
+
+                      {/* Observações */}
+                      <div className="space-y-2">
+                        <Label htmlFor="observations">Observações (opcional)</Label>
+                        <Textarea
+                          id="observations"
+                          placeholder="Condições especiais, notas, etc."
+                          value={observations}
+                          onChange={(e) => setObservations(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+
+                      {/* Card de Resumo */}
+                      <Card className="bg-muted/30">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">Resumo da Proposta</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Empresa</p>
+                            <p className="font-medium">{customCompanyName || '(Não informado)'}</p>
+                          </div>
+
+                          <div>
+                            <p className="text-sm text-muted-foreground">Módulos Selecionados</p>
+                            <Badge variant="secondary">{selectedModules.length}</Badge>
+                          </div>
+
+                          <div className="border-t pt-4 space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>Valor Base</span>
+                              <span>{formatCurrency(baseValue)}</span>
+                            </div>
+                            
+                            {(discountPercent > 0 || discountValue > 0) && (
+                              <div className="flex justify-between text-sm text-green-600">
+                                <span>Desconto {discountType === 'percent' ? `(${discountPercent}%)` : ''}</span>
+                                <span>
+                                  - {formatCurrency(discountType === 'percent' ? baseValue * discountPercent / 100 : discountValue)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="border-t pt-4">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-lg">Total Mensal</span>
+                              <span className="font-bold text-2xl text-primary">
+                                {formatCurrency(calculateCustomFinalValue())}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Button 
+                            className="w-full mt-4" 
+                            size="lg"
+                            onClick={handleGenerateCustomProposalPDF}
+                            disabled={isGeneratingPDF}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Gerar PDF da Proposta
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
