@@ -35,7 +35,7 @@ export default function LoginAdmin({ onBack }: LoginAdminProps) {
 
       if (success) {
         toast({ title: "Login bem-sucedido", description: "Bem-vindo ao painel administrativo" });
-        navigate('/admin-panel');
+        navigate('/admin');
       } else {
         toast({ title: "Erro de Login", description: "Email ou senha incorretos.", variant: "destructive" });
       }
