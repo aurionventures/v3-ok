@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
 
 interface CustomProposalPDFProps {
   companyName: string;
+  responsibleName?: string;
   selectedModules: string[];
   baseValue: number;
   setupValue?: number;
@@ -213,6 +214,7 @@ const formatCurrency = (value: number) => {
 
 export const CustomProposalPDF = ({
   companyName,
+  responsibleName,
   selectedModules,
   baseValue,
   setupValue = 0,
@@ -256,6 +258,12 @@ export const CustomProposalPDF = ({
         <View style={styles.companySection}>
           <Text style={styles.companyLabel}>Elaborada para:</Text>
           <Text style={styles.companyName}>{companyName}</Text>
+          {responsibleName && (
+            <View style={{ marginTop: 6 }}>
+              <Text style={styles.companyLabel}>Responsável:</Text>
+              <Text style={[styles.companyName, { fontSize: 12 }]}>{responsibleName}</Text>
+            </View>
+          )}
         </View>
 
         <Text style={styles.sectionTitle}>Módulos Incluídos ({selectedModules.length})</Text>
