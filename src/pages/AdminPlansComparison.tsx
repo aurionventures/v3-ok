@@ -55,6 +55,7 @@ const AdminPlansComparison = () => {
   const [customCompanyName, setCustomCompanyName] = useState('');
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [baseValue, setBaseValue] = useState<number>(0);
+  const [setupValue, setSetupValue] = useState<number>(0);
   const [discountType, setDiscountType] = useState<'percent' | 'value'>('percent');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [discountValue, setDiscountValue] = useState<number>(0);
@@ -190,6 +191,7 @@ const AdminPlansComparison = () => {
           companyName={customCompanyName}
           selectedModules={selectedModules}
           baseValue={baseValue}
+          setupValue={setupValue}
           discountPercent={discountType === 'percent' ? discountPercent : 0}
           discountValue={discountType === 'value' ? discountValue : 0}
           finalValue={finalValue}
@@ -523,19 +525,35 @@ const AdminPlansComparison = () => {
 
                     {/* Coluna de precificação */}
                     <div className="space-y-6">
-                      {/* Valor Base */}
-                      <div className="space-y-2">
-                        <Label htmlFor="baseValue">Valor Base Mensal</Label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                          <Input
-                            id="baseValue"
-                            type="number"
-                            placeholder="0,00"
-                            className="pl-10"
-                            value={baseValue || ''}
-                            onChange={(e) => setBaseValue(Number(e.target.value))}
-                          />
+                      {/* Valor Base e Setup */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="baseValue">Valor Base Mensal</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                            <Input
+                              id="baseValue"
+                              type="number"
+                              placeholder="0,00"
+                              className="pl-10"
+                              value={baseValue || ''}
+                              onChange={(e) => setBaseValue(Number(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="setupValue">Setup/Implementação (único)</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                            <Input
+                              id="setupValue"
+                              type="number"
+                              placeholder="0,00"
+                              className="pl-10"
+                              value={setupValue || ''}
+                              onChange={(e) => setSetupValue(Number(e.target.value))}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -642,13 +660,19 @@ const AdminPlansComparison = () => {
                             )}
                           </div>
 
-                          <div className="border-t pt-4">
+                          <div className="border-t pt-4 space-y-2">
                             <div className="flex justify-between items-center">
                               <span className="font-bold text-lg">Total Mensal</span>
                               <span className="font-bold text-2xl text-primary">
                                 {formatCurrency(calculateCustomFinalValue())}
                               </span>
                             </div>
+                            {setupValue > 0 && (
+                              <div className="flex justify-between items-center text-sm text-muted-foreground">
+                                <span>+ Setup/Implementação (único)</span>
+                                <span className="font-medium">{formatCurrency(setupValue)}</span>
+                              </div>
+                            )}
                           </div>
 
                           <Button 

@@ -199,6 +199,7 @@ interface CustomProposalPDFProps {
   companyName: string;
   selectedModules: string[];
   baseValue: number;
+  setupValue?: number;
   discountPercent: number;
   discountValue: number;
   finalValue: number;
@@ -214,6 +215,7 @@ export const CustomProposalPDF = ({
   companyName,
   selectedModules,
   baseValue,
+  setupValue = 0,
   discountPercent,
   discountValue,
   finalValue,
@@ -290,6 +292,13 @@ export const CustomProposalPDF = ({
             <Text style={styles.totalLabel}>TOTAL MENSAL</Text>
             <Text style={styles.totalValue}>{formatCurrency(finalValue)}</Text>
           </View>
+
+          {setupValue > 0 && (
+            <View style={[styles.pricingRow, { marginTop: 12, paddingTop: 8, borderTop: '1px solid #C9A54E' }]}>
+              <Text style={styles.pricingLabel}>Setup/Implementação (único)</Text>
+              <Text style={styles.pricingValue}>{formatCurrency(setupValue)}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.conditionsSection}>
