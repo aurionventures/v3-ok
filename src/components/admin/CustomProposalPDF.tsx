@@ -283,7 +283,7 @@ export const CustomProposalPDF = ({
           <Text style={styles.pricingTitle}>Investimento</Text>
           
           <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Valor Base</Text>
+            <Text style={styles.pricingLabel}>Valor Base (mensal)</Text>
             <Text style={styles.pricingValue}>{formatCurrency(baseValue)}/mês</Text>
           </View>
 
@@ -296,17 +296,23 @@ export const CustomProposalPDF = ({
             </View>
           )}
 
+          {/* Total Recorrente */}
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>TOTAL MENSAL</Text>
+            <View>
+              <Text style={styles.totalLabel}>TOTAL RECORRENTE</Text>
+              <Text style={{ fontSize: 7, color: '#999999' }}>Valor mensal</Text>
+            </View>
             <Text style={styles.totalValue}>{formatCurrency(finalValue)}</Text>
           </View>
 
-          {setupValue > 0 && (
-            <View style={[styles.pricingRow, { marginTop: 12, paddingTop: 8, borderTop: '1px solid #C9A54E' }]}>
-              <Text style={styles.pricingLabel}>Setup/Implementação (único)</Text>
-              <Text style={styles.pricingValue}>{formatCurrency(setupValue)}</Text>
+          {/* Total Setup */}
+          <View style={[styles.pricingRow, { marginTop: 12, paddingTop: 10, borderTop: '1px solid #C9A54E' }]}>
+            <View>
+              <Text style={[styles.pricingLabel, { fontWeight: 'bold', color: '#60a5fa' }]}>TOTAL SETUP</Text>
+              <Text style={{ fontSize: 7, color: '#999999' }}>Pagamento único</Text>
             </View>
-          )}
+            <Text style={[styles.pricingValue, { fontSize: 12, fontWeight: 'bold', color: '#60a5fa' }]}>{formatCurrency(setupValue)}</Text>
+          </View>
         </View>
 
         <View style={styles.conditionsSection}>

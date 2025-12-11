@@ -174,12 +174,34 @@ const AdminPlansComparison = () => {
     return count;
   };
 
+  // Helper para parsing de valores numéricos (suporta formato BR e US)
+  const parseNumberInput = (value: string): number => {
+    if (!value) return 0;
+    // Remove caracteres não numéricos exceto ponto e vírgula
+    const cleaned = value.replace(/[^\d.,]/g, '');
+    // Se tem vírgula como decimal (formato BR: 22.990,00)
+    if (cleaned.includes(',') && cleaned.indexOf(',') > cleaned.indexOf('.')) {
+      const normalized = cleaned.replace(/\./g, '').replace(',', '.');
+      return parseFloat(normalized) || 0;
+    }
+    // Formato US ou número simples
+    return parseFloat(cleaned.replace(',', '')) || 0;
+  };
+
   // Cálculo do valor final da proposta personalizada
   const calculateCustomFinalValue = () => {
     if (discountType === 'percent' && discountPercent > 0) {
       return baseValue - (baseValue * discountPercent / 100);
     }
     return baseValue - discountValue;
+  };
+
+  // Cálculo do desconto aplicado
+  const calculateDiscount = () => {
+    if (discountType === 'percent' && discountPercent > 0) {
+      return baseValue * discountPercent / 100;
+    }
+    return discountValue;
   };
 
   // Organiza módulos selecionados por seção
@@ -758,36 +780,42 @@ const AdminPlansComparison = () => {
                             </div>
                           </div>
 
-                          {/* Valores */}
+                          {/* Valores - Recorrente */}
                           <div className="border-t pt-4 space-y-2">
                             <div className="flex justify-between text-sm">
-                              <span>Valor Base</span>
-                              <span>{formatCurrency(baseValue)}</span>
+                              <span>Valor Base (mensal)</span>
+                              <span>{formatCurrency(baseValue)}/mês</span>
                             </div>
                             
                             {(discountPercent > 0 || discountValue > 0) && (
                               <div className="flex justify-between text-sm text-green-600">
                                 <span>Desconto {discountType === 'percent' ? `(${discountPercent}%)` : ''}</span>
-                                <span>
-                                  - {formatCurrency(discountType === 'percent' ? baseValue * discountPercent / 100 : discountValue)}
-                                </span>
+                                <span>- {formatCurrency(calculateDiscount())}</span>
                               </div>
                             )}
-                          </div>
-
-                          <div className="border-t pt-4 space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-lg">Total Mensal</span>
+                            
+                            <div className="flex justify-between items-center bg-primary/10 rounded-md p-3 mt-2">
+                              <div>
+                                <span className="font-bold text-base">TOTAL RECORRENTE</span>
+                                <p className="text-xs text-muted-foreground">Valor mensal</p>
+                              </div>
                               <span className="font-bold text-2xl text-primary">
                                 {formatCurrency(calculateCustomFinalValue())}
                               </span>
                             </div>
-                            {setupValue > 0 && (
-                              <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                <span>+ Setup/Implementação (único)</span>
-                                <span className="font-medium">{formatCurrency(setupValue)}</span>
+                          </div>
+
+                          {/* Valores - Setup */}
+                          <div className="border-t pt-4">
+                            <div className="flex justify-between items-center bg-blue-500/10 rounded-md p-3">
+                              <div>
+                                <span className="font-bold text-base">TOTAL SETUP</span>
+                                <p className="text-xs text-muted-foreground">Pagamento único</p>
                               </div>
-                            )}
+                              <span className="font-bold text-xl text-blue-600">
+                                {formatCurrency(setupValue)}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Botões de Ação */}
@@ -879,25 +907,33 @@ const AdminPlansComparison = () => {
                             <h4 className="font-bold text-[#C9A54E] mb-3">Investimento</h4>
                             <div className="space-y-2">
                               <div className="flex justify-between text-sm">
-                                <span>Valor Base</span>
+                                <span>Valor Base (mensal)</span>
                                 <span>{formatCurrency(baseValue)}/mês</span>
                               </div>
                               {(discountPercent > 0 || discountValue > 0) && (
                                 <div className="flex justify-between text-sm text-green-400">
                                   <span>Desconto {discountType === 'percent' ? `(${discountPercent}%)` : ''}</span>
-                                  <span>- {formatCurrency(discountType === 'percent' ? baseValue * discountPercent / 100 : discountValue)}</span>
+                                  <span>- {formatCurrency(calculateDiscount())}</span>
                                 </div>
                               )}
-                              <div className="flex justify-between border-t border-[#C9A54E] pt-2 mt-2">
-                                <span className="font-bold text-[#C9A54E]">TOTAL MENSAL</span>
-                                <span className="font-bold text-lg text-[#C9A54E]">{formatCurrency(calculateCustomFinalValue())}</span>
+                              
+                              {/* Total Recorrente */}
+                              <div className="flex justify-between border-t border-[#C9A54E] pt-3 mt-3">
+                                <div>
+                                  <span className="font-bold text-[#C9A54E]">TOTAL RECORRENTE</span>
+                                  <p className="text-xs text-gray-400">Valor mensal</p>
+                                </div>
+                                <span className="font-bold text-xl text-[#C9A54E]">{formatCurrency(calculateCustomFinalValue())}</span>
                               </div>
-                              {setupValue > 0 && (
-                                <div className="flex justify-between text-sm pt-2 border-t border-[#C9A54E]/50">
-                                  <span>Setup/Implementação (único)</span>
-                                  <span>{formatCurrency(setupValue)}</span>
+                              
+                              {/* Total Setup */}
+                              <div className="flex justify-between border-t border-[#C9A54E]/50 pt-3 mt-2">
+                                <div>
+                                  <span className="font-bold text-blue-400">TOTAL SETUP</span>
+                                  <p className="text-xs text-gray-400">Pagamento único</p>
                                 </div>
-                              )}
+                                <span className="font-bold text-lg text-blue-400">{formatCurrency(setupValue)}</span>
+                              </div>
                             </div>
                           </div>
 
