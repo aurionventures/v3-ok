@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, X, Sparkles, FileText, Download, Package, Percent, DollarSign, Settings2, Eye, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { Check, X, Sparkles, FileText, Download, Package, Percent, DollarSign, Settings2, Eye, ChevronDown, ChevronUp, RefreshCw, Building2, Layers, Calculator } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -576,172 +576,203 @@ const AdminPlansComparison = () => {
 
                 {/* Tab: Proposta Personalizada */}
                 <TabsContent value="custom">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Coluna de configuração personalizada */}
-                    <div className="space-y-6">
-                      {/* Nome da empresa */}
-                      <div className="space-y-2">
-                        <Label htmlFor="customCompanyName">Nome da Empresa</Label>
-                        <Input
-                          id="customCompanyName"
-                          placeholder="Digite o nome da empresa"
-                          value={customCompanyName}
-                          onChange={(e) => setCustomCompanyName(e.target.value)}
-                        />
-                      </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Coluna 1: Dados do Cliente */}
+                    <div className="space-y-4">
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            Dados do Cliente
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {/* Nome da empresa */}
+                          <div className="space-y-2">
+                            <Label htmlFor="customCompanyName">Nome da Empresa *</Label>
+                            <Input
+                              id="customCompanyName"
+                              placeholder="Digite o nome da empresa"
+                              value={customCompanyName}
+                              onChange={(e) => setCustomCompanyName(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Responsável */}
-                      <div className="space-y-2">
-                        <Label htmlFor="customResponsibleName">Responsável</Label>
-                        <Input
-                          id="customResponsibleName"
-                          placeholder="Nome do responsável pelo projeto"
-                          value={customResponsibleName}
-                          onChange={(e) => setCustomResponsibleName(e.target.value)}
-                        />
-                      </div>
+                          {/* Responsável */}
+                          <div className="space-y-2">
+                            <Label htmlFor="customResponsibleName">Responsável</Label>
+                            <Input
+                              id="customResponsibleName"
+                              placeholder="Nome do responsável"
+                              value={customResponsibleName}
+                              onChange={(e) => setCustomResponsibleName(e.target.value)}
+                            />
+                          </div>
 
-                      {/* Seleção de Módulos */}
-                      <div className="space-y-3">
-                        <Label>Seleção de Módulos</Label>
-                        <ModuleSelector 
-                          selectedModules={selectedModules}
-                          onModulesChange={setSelectedModules}
-                        />
-                      </div>
+                          {/* Validade */}
+                          <div className="space-y-2">
+                            <Label htmlFor="validityDays">Validade da Proposta (dias)</Label>
+                            <Input
+                              id="validityDays"
+                              type="number"
+                              value={validityDays}
+                              onChange={(e) => setValidityDays(Number(e.target.value))}
+                            />
+                          </div>
+
+                          {/* Observações */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="observations">Observações</Label>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={generateObservationsSummary}
+                                disabled={!customCompanyName}
+                              >
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Auto
+                              </Button>
+                            </div>
+                            <Textarea
+                              id="observations"
+                              placeholder="Condições especiais, notas..."
+                              value={observations}
+                              onChange={(e) => setObservations(e.target.value)}
+                              rows={4}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
 
-                    {/* Coluna de precificação */}
-                    <div className="space-y-6">
-                      {/* Valor Base e Setup */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="baseValue">Valor Base Mensal</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                            <Input
-                              id="baseValue"
-                              type="text"
-                              placeholder="22.500,00"
-                              className="pl-10"
-                              value={baseValueText}
-                              onChange={(e) => {
-                                setBaseValueText(e.target.value);
-                                setBaseValue(parseNumberInput(e.target.value));
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="setupValue">Setup/Implementação (único)</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                            <Input
-                              id="setupValue"
-                              type="text"
-                              placeholder="25.000,00"
-                              className="pl-10"
-                              value={setupValueText}
-                              onChange={(e) => {
-                                setSetupValueText(e.target.value);
-                                setSetupValue(parseNumberInput(e.target.value));
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    {/* Coluna 2: Seleção de Módulos */}
+                    <div className="space-y-4">
+                      <Card className="h-full">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Layers className="h-4 w-4" />
+                            Seleção de Módulos
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ModuleSelector 
+                            selectedModules={selectedModules}
+                            onModulesChange={setSelectedModules}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
 
-                      {/* Tipo de Desconto */}
-                      <div className="space-y-3">
-                        <Label>Desconto</Label>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant={discountType === 'percent' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setDiscountType('percent')}
-                          >
-                            <Percent className="h-4 w-4 mr-1" />
-                            Percentual
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={discountType === 'value' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setDiscountType('value')}
-                          >
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            Valor Fixo
-                          </Button>
-                        </div>
-                        {discountType === 'percent' ? (
-                          <div className="relative">
-                            <Input
-                              type="text"
-                              placeholder="25"
-                              className="pr-8"
-                              value={discountPercentText}
-                              onChange={(e) => {
-                                setDiscountPercentText(e.target.value);
-                                setDiscountPercent(parseNumberInput(e.target.value));
-                              }}
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                    {/* Coluna 3: Precificação e Resumo */}
+                    <div className="space-y-4">
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Calculator className="h-4 w-4" />
+                            Precificação
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {/* Valor Base */}
+                          <div className="space-y-2">
+                            <Label htmlFor="baseValue">Valor Base Mensal</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                              <Input
+                                id="baseValue"
+                                type="text"
+                                placeholder="22.500,00"
+                                className="pl-10"
+                                value={baseValueText}
+                                onChange={(e) => {
+                                  setBaseValueText(e.target.value);
+                                  setBaseValue(parseNumberInput(e.target.value));
+                                }}
+                              />
+                            </div>
                           </div>
-                        ) : (
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                            <Input
-                              type="text"
-                              placeholder="5.000,00"
-                              className="pl-10"
-                              value={discountValueText}
-                              onChange={(e) => {
-                                setDiscountValueText(e.target.value);
-                                setDiscountValue(parseNumberInput(e.target.value));
-                              }}
-                            />
+
+                          {/* Setup */}
+                          <div className="space-y-2">
+                            <Label htmlFor="setupValue">Setup (único)</Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                              <Input
+                                id="setupValue"
+                                type="text"
+                                placeholder="25.000,00"
+                                className="pl-10"
+                                value={setupValueText}
+                                onChange={(e) => {
+                                  setSetupValueText(e.target.value);
+                                  setSetupValue(parseNumberInput(e.target.value));
+                                }}
+                              />
+                            </div>
                           </div>
-                        )}
-                      </div>
 
-                      {/* Validade */}
-                      <div className="space-y-2">
-                        <Label htmlFor="validityDays">Validade da Proposta (dias)</Label>
-                        <Input
-                          id="validityDays"
-                          type="number"
-                          value={validityDays}
-                          onChange={(e) => setValidityDays(Number(e.target.value))}
-                        />
-                      </div>
+                          {/* Tipo de Desconto */}
+                          <div className="space-y-2">
+                            <Label>Desconto</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant={discountType === 'percent' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setDiscountType('percent')}
+                                className="flex-1"
+                              >
+                                <Percent className="h-3 w-3 mr-1" />
+                                %
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={discountType === 'value' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setDiscountType('value')}
+                                className="flex-1"
+                              >
+                                <DollarSign className="h-3 w-3 mr-1" />
+                                R$
+                              </Button>
+                            </div>
+                            {discountType === 'percent' ? (
+                              <div className="relative">
+                                <Input
+                                  type="text"
+                                  placeholder="25"
+                                  className="pr-8"
+                                  value={discountPercentText}
+                                  onChange={(e) => {
+                                    setDiscountPercentText(e.target.value);
+                                    setDiscountPercent(parseNumberInput(e.target.value));
+                                  }}
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                              </div>
+                            ) : (
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                                <Input
+                                  type="text"
+                                  placeholder="5.000,00"
+                                  className="pl-10"
+                                  value={discountValueText}
+                                  onChange={(e) => {
+                                    setDiscountValueText(e.target.value);
+                                    setDiscountValue(parseNumberInput(e.target.value));
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
 
-                      {/* Observações */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="observations">Observações (opcional)</Label>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={generateObservationsSummary}
-                            disabled={!customCompanyName}
-                          >
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                            Gerar Resumo
-                          </Button>
-                        </div>
-                        <Textarea
-                          id="observations"
-                          placeholder="Condições especiais, notas, etc. Use 'Gerar Resumo' para preencher automaticamente."
-                          value={observations}
-                          onChange={(e) => setObservations(e.target.value)}
-                          rows={4}
-                        />
-                      </div>
-
-                      {/* Card de Resumo Expandido */}
-                      <Card className="bg-muted/30">
+                      {/* Card de Resumo */}
+                      <Card className="bg-primary/5 border-primary/20">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg">Resumo da Proposta</CardTitle>
                         </CardHeader>
