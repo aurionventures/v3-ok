@@ -72,7 +72,9 @@ const AdminPlansComparison = () => {
   const [setupValueText, setSetupValueText] = useState<string>('');
   const [discountType, setDiscountType] = useState<'percent' | 'value'>('percent');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [discountPercentText, setDiscountPercentText] = useState<string>('');
   const [discountValue, setDiscountValue] = useState<number>(0);
+  const [discountValueText, setDiscountValueText] = useState<string>('');
   const [validityDays, setValidityDays] = useState<number>(30);
   const [observations, setObservations] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -675,11 +677,14 @@ const AdminPlansComparison = () => {
                         {discountType === 'percent' ? (
                           <div className="relative">
                             <Input
-                              type="number"
-                              placeholder="0"
+                              type="text"
+                              placeholder="25"
                               className="pr-8"
-                              value={discountPercent || ''}
-                              onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                              value={discountPercentText}
+                              onChange={(e) => {
+                                setDiscountPercentText(e.target.value);
+                                setDiscountPercent(parseNumberInput(e.target.value));
+                              }}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
                           </div>
@@ -687,11 +692,14 @@ const AdminPlansComparison = () => {
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                             <Input
-                              type="number"
-                              placeholder="0,00"
+                              type="text"
+                              placeholder="5.000,00"
                               className="pl-10"
-                              value={discountValue || ''}
-                              onChange={(e) => setDiscountValue(Number(e.target.value))}
+                              value={discountValueText}
+                              onChange={(e) => {
+                                setDiscountValueText(e.target.value);
+                                setDiscountValue(parseNumberInput(e.target.value));
+                              }}
                             />
                           </div>
                         )}

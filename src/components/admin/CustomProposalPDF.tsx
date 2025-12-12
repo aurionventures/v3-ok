@@ -4,18 +4,18 @@ import { SIDEBAR_SECTIONS } from '@/data/sidebarCatalog';
 const styles = StyleSheet.create({
   page: {
     backgroundColor: '#ffffff',
-    padding: 30,
+    padding: 25,
     fontFamily: 'Helvetica',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 10,
     borderBottom: '2px solid #C9A54E',
-    paddingBottom: 10,
+    paddingBottom: 8,
   },
   logo: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1a1a2e',
   },
@@ -23,173 +23,170 @@ const styles = StyleSheet.create({
     color: '#C9A54E',
   },
   date: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#666666',
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#1a1a2e',
-    marginBottom: 4,
+    marginBottom: 2,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#666666',
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
   companySection: {
-    marginBottom: 20,
-    padding: 12,
+    marginBottom: 10,
+    padding: 8,
     backgroundColor: '#f8f9fa',
     borderRadius: 4,
   },
   companyLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#666666',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   companyName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#1a1a2e',
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#1a1a2e',
-    marginBottom: 8,
-    marginTop: 16,
+    marginBottom: 4,
+    marginTop: 8,
     borderBottom: '1px solid #e0e0e0',
-    paddingBottom: 4,
+    paddingBottom: 3,
   },
   modulesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: 3,
   },
   sectionGroup: {
-    marginBottom: 10,
+    marginBottom: 6,
   },
   sectionLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 'bold',
     color: '#666666',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   moduleItem: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#333333',
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    paddingVertical: 1,
+    paddingHorizontal: 4,
     backgroundColor: '#e8f4f8',
-    borderRadius: 3,
-    marginRight: 4,
-    marginBottom: 4,
+    borderRadius: 2,
+    marginRight: 3,
+    marginBottom: 3,
   },
   pricingSection: {
-    marginTop: 24,
-    padding: 16,
+    marginTop: 12,
+    padding: 10,
     backgroundColor: '#1a1a2e',
-    borderRadius: 6,
+    borderRadius: 4,
   },
   pricingTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#C9A54E',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   pricingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   pricingLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#ffffff',
   },
   pricingValue: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#ffffff',
   },
   discountLabel: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#22c55e',
   },
   discountValue: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#22c55e',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 10,
+    marginTop: 8,
+    paddingTop: 8,
     borderTop: '1px solid #C9A54E',
   },
   totalLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#C9A54E',
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#C9A54E',
   },
   conditionsSection: {
-    marginTop: 20,
-    padding: 12,
+    marginTop: 10,
+    padding: 8,
     backgroundColor: '#f8f9fa',
     borderRadius: 4,
   },
   conditionsTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#1a1a2e',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   conditionRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   conditionLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#666666',
     width: '40%',
   },
   conditionValue: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#333333',
   },
   observationsBox: {
-    marginTop: 8,
-    padding: 8,
+    marginTop: 6,
+    padding: 6,
     backgroundColor: '#ffffff',
     borderRadius: 3,
     border: '1px solid #e0e0e0',
   },
   observationsLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#666666',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   observationsText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#333333',
-    lineHeight: 1.4,
+    lineHeight: 1.3,
   },
   footer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 30,
+    marginTop: 12,
     borderTop: '1px solid #e0e0e0',
-    paddingTop: 10,
+    paddingTop: 8,
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#666666',
     textAlign: 'center',
   },
@@ -259,9 +256,9 @@ export const CustomProposalPDF = ({
           <Text style={styles.companyLabel}>Elaborada para:</Text>
           <Text style={styles.companyName}>{companyName}</Text>
           {responsibleName && (
-            <View style={{ marginTop: 6 }}>
+            <View style={{ marginTop: 4 }}>
               <Text style={styles.companyLabel}>Responsável:</Text>
-              <Text style={[styles.companyName, { fontSize: 12 }]}>{responsibleName}</Text>
+              <Text style={[styles.companyName, { fontSize: 10 }]}>{responsibleName}</Text>
             </View>
           )}
         </View>
@@ -300,19 +297,21 @@ export const CustomProposalPDF = ({
           <View style={styles.totalRow}>
             <View>
               <Text style={styles.totalLabel}>TOTAL RECORRENTE</Text>
-              <Text style={{ fontSize: 7, color: '#999999' }}>Valor mensal</Text>
+              <Text style={{ fontSize: 6, color: '#999999' }}>Valor mensal</Text>
             </View>
             <Text style={styles.totalValue}>{formatCurrency(finalValue)}</Text>
           </View>
 
           {/* Total Setup */}
-          <View style={[styles.pricingRow, { marginTop: 12, paddingTop: 10, borderTop: '1px solid #C9A54E' }]}>
-            <View>
-              <Text style={[styles.pricingLabel, { fontWeight: 'bold', color: '#60a5fa' }]}>TOTAL SETUP</Text>
-              <Text style={{ fontSize: 7, color: '#999999' }}>Pagamento único</Text>
+          {setupValue > 0 && (
+            <View style={[styles.pricingRow, { marginTop: 8, paddingTop: 6, borderTop: '1px solid #C9A54E' }]}>
+              <View>
+                <Text style={[styles.pricingLabel, { fontWeight: 'bold', color: '#60a5fa' }]}>TOTAL SETUP</Text>
+                <Text style={{ fontSize: 6, color: '#999999' }}>Pagamento único</Text>
+              </View>
+              <Text style={[styles.pricingValue, { fontSize: 10, fontWeight: 'bold', color: '#60a5fa' }]}>{formatCurrency(setupValue)}</Text>
             </View>
-            <Text style={[styles.pricingValue, { fontSize: 12, fontWeight: 'bold', color: '#60a5fa' }]}>{formatCurrency(setupValue)}</Text>
-          </View>
+          )}
         </View>
 
         <View style={styles.conditionsSection}>
@@ -343,7 +342,7 @@ export const CustomProposalPDF = ({
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Legacy Governança Corporativa | contato@legacygovernanca.com.br | +55 47 99162-2220
+            Legacy Tecnologia para Governança Corporativa
           </Text>
         </View>
       </Page>
