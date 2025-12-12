@@ -47,25 +47,24 @@ export const ModuleSelector = ({ selectedModules, onModulesChange }: ModuleSelec
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Módulos Selecionados:</span>
-          <Badge variant="secondary">{selectedModules.length}</Badge>
+          <Badge variant={selectedModules.length > 0 ? "default" : "secondary"} className="text-sm px-3 py-1">
+            {selectedModules.length} módulos
+          </Badge>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleSelectAll}>
-            <CheckSquare className="h-4 w-4 mr-1" />
-            Todos
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" onClick={handleSelectAll} className="h-8 px-2">
+            <CheckSquare className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleClearAll}>
-            <XSquare className="h-4 w-4 mr-1" />
-            Limpar
+          <Button variant="ghost" size="sm" onClick={handleClearAll} className="h-8 px-2">
+            <XSquare className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="border rounded-lg max-h-[400px] overflow-y-auto">
+      <div className="border rounded-lg">
         <Accordion type="multiple" className="w-full" defaultValue={SIDEBAR_SECTIONS.map(s => s.key)}>
           {SIDEBAR_SECTIONS.map(section => {
             const sectionModuleKeys = section.items.map(item => item.key);
