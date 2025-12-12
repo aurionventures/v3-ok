@@ -67,7 +67,9 @@ const AdminPlansComparison = () => {
   const [customResponsibleName, setCustomResponsibleName] = useState('');
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [baseValue, setBaseValue] = useState<number>(0);
+  const [baseValueText, setBaseValueText] = useState<string>('');
   const [setupValue, setSetupValue] = useState<number>(0);
+  const [setupValueText, setSetupValueText] = useState<string>('');
   const [discountType, setDiscountType] = useState<'percent' | 'value'>('percent');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [discountValue, setDiscountValue] = useState<number>(0);
@@ -617,11 +619,14 @@ const AdminPlansComparison = () => {
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                             <Input
                               id="baseValue"
-                              type="number"
-                              placeholder="0,00"
+                              type="text"
+                              placeholder="22.500,00"
                               className="pl-10"
-                              value={baseValue || ''}
-                              onChange={(e) => setBaseValue(Number(e.target.value))}
+                              value={baseValueText}
+                              onChange={(e) => {
+                                setBaseValueText(e.target.value);
+                                setBaseValue(parseNumberInput(e.target.value));
+                              }}
                             />
                           </div>
                         </div>
@@ -631,11 +636,14 @@ const AdminPlansComparison = () => {
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                             <Input
                               id="setupValue"
-                              type="number"
-                              placeholder="0,00"
+                              type="text"
+                              placeholder="25.000,00"
                               className="pl-10"
-                              value={setupValue || ''}
-                              onChange={(e) => setSetupValue(Number(e.target.value))}
+                              value={setupValueText}
+                              onChange={(e) => {
+                                setSetupValueText(e.target.value);
+                                setSetupValue(parseNumberInput(e.target.value));
+                              }}
                             />
                           </div>
                         </div>
