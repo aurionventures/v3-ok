@@ -725,7 +725,7 @@ const AdminPlansComparison = () => {
                             variant="outline"
                             size="sm"
                             onClick={generateObservationsSummary}
-                            disabled={selectedModules.length === 0}
+                            disabled={!customCompanyName}
                           >
                             <RefreshCw className="h-3 w-3 mr-1" />
                             Gerar Resumo
@@ -832,6 +832,9 @@ const AdminPlansComparison = () => {
                                 {formatCurrency(setupValue)}
                               </span>
                             </div>
+                            <p className="text-xs text-muted-foreground text-center italic mt-3">
+                              Valor da mensalidade válido para contrato mínimo de 24 meses.
+                            </p>
                           </div>
 
                           {/* Botões de Ação */}
@@ -840,7 +843,7 @@ const AdminPlansComparison = () => {
                               variant="outline"
                               className="flex-1"
                               onClick={() => setShowPreviewModal(true)}
-                              disabled={selectedModules.length === 0 || !customCompanyName}
+                              disabled={!customCompanyName || (baseValue === 0 && setupValue === 0)}
                             >
                               <Eye className="h-4 w-4 mr-2" />
                               Visualizar
@@ -848,7 +851,7 @@ const AdminPlansComparison = () => {
                             <Button 
                               className="flex-1"
                               onClick={handleGenerateCustomProposalPDF}
-                              disabled={isGeneratingPDF || selectedModules.length === 0}
+                              disabled={isGeneratingPDF || !customCompanyName || (baseValue === 0 && setupValue === 0)}
                             >
                               <FileText className="h-4 w-4 mr-2" />
                               Gerar PDF

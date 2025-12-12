@@ -312,6 +312,11 @@ export const CustomProposalPDF = ({
               <Text style={[styles.pricingValue, { fontSize: 10, fontWeight: 'bold', color: '#60a5fa' }]}>{formatCurrency(setupValue)}</Text>
             </View>
           )}
+
+          {/* Nota de contrato mínimo */}
+          <Text style={{ fontSize: 7, color: '#666666', fontStyle: 'italic', textAlign: 'center', marginTop: 10 }}>
+            Valor da mensalidade válido para contrato mínimo de 24 meses.
+          </Text>
         </View>
 
         <View style={styles.conditionsSection}>
