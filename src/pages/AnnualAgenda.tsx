@@ -34,11 +34,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ParticipantsManager from "@/components/councils/ParticipantsManager";
 import { MeetingParticipant } from "@/types/annualSchedule";
 import { useMeetingNotifications } from "@/hooks/useMeetingNotifications";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AnnualAgenda = () => {
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingSchedule | null>(null);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -345,25 +348,27 @@ const AnnualAgenda = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            <Button 
-              onClick={() => setIsWizardOpen(true)}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Configurar Calendário Anual
-            </Button>
-            <Button 
-              onClick={() => setIsNewMeetingModalOpen(true)}
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              Nova Reunião
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="flex flex-wrap gap-3 mb-4">
+              <Button 
+                onClick={() => setIsWizardOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Configurar Calendário Anual
+              </Button>
+              <Button 
+                onClick={() => setIsNewMeetingModalOpen(true)}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                Nova Reunião
+              </Button>
+            </div>
+          )}
 
           {/* Barra de Filtros */}
           <Card className="mb-4">

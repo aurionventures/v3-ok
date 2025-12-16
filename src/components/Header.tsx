@@ -65,9 +65,6 @@ const Header = ({ title = "Dashboard" }: HeaderProps) => {
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
       <div className="flex items-center gap-3">
         <h1 className="text-xl font-semibold">{title}</h1>
-        <Badge className={getOrgRoleBadgeClass(user?.orgRole)}>
-          Logado como: {getOrgRoleLabel(user?.orgRole)}
-        </Badge>
       </div>
       <div className="flex items-center space-x-2">
         <NotificationBell />
@@ -79,9 +76,12 @@ const Header = ({ title = "Dashboard" }: HeaderProps) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-1">
                 <span>{user?.name || 'Usuário'}</span>
                 <span className="text-xs text-muted-foreground">{user?.email || 'Email não disponível'}</span>
+                <Badge className={`${getOrgRoleBadgeClass(user?.orgRole)} mt-1 text-xs`}>
+                  Logado como: {getOrgRoleLabel(user?.orgRole)}
+                </Badge>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
