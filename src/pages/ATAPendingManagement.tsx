@@ -18,6 +18,7 @@ import { ptBR } from "date-fns/locale";
 import ATAAdminActionsModal from "@/components/councils/ATAAdminActionsModal";
 import { ATARevisionDashboard } from "@/components/councils/ATARevisionDashboard";
 import { useATARevisions } from "@/hooks/useATARevisions";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface ATAWithApprovals {
   meetingId: string;
@@ -42,6 +43,8 @@ const ATAPendingManagement = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   const initialTab = searchParams.get("tab") === "signatures" ? "signatures" : "approvals";
   
   const [atasWithApprovals, setAtasWithApprovals] = useState<ATAWithApprovals[]>([]);
@@ -237,7 +240,7 @@ const ATAPendingManagement = () => {
             </div>
             <div className="flex items-center gap-2">
               {/* Revision indicator */}
-              {(hasRevisions || hasRequestedRevisions) && (
+              {isAdmin && (hasRevisions || hasRequestedRevisions) && (
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -257,15 +260,17 @@ const ATAPendingManagement = () => {
                 <Eye className="h-3.5 w-3.5" />
                 Visualizar
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-1 h-8"
-                onClick={() => handleEditATA(ata)}
-              >
-                <Edit className="h-3.5 w-3.5" />
-                Editar
-              </Button>
+              {isAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1 h-8"
+                  onClick={() => handleEditATA(ata)}
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  Editar
+                </Button>
+              )}
               <Badge variant="outline" className={type === 'approval' ? 'border-amber-300 text-amber-700' : 'border-blue-300 text-blue-700'}>
                 {completedCount}/{totalCount} {type === 'approval' ? 'aprovados' : 'assinados'}
               </Badge>
@@ -305,7 +310,7 @@ const ATAPendingManagement = () => {
                         ? getApprovalStatusBadge(participant.approvalStatus)
                         : getSignatureStatusBadge(participant.signatureStatus)
                       }
-                      {isPending && (
+                      {isPending && isAdmin && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
@@ -322,7 +327,7 @@ const ATAPendingManagement = () => {
             </div>
           </div>
           
-          {pendingCount > 0 && (
+          {pendingCount > 0 && isAdmin && (
             <div className="flex justify-end">
               <Button 
                 variant="outline" 

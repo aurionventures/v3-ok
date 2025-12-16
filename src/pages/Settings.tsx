@@ -107,20 +107,24 @@ const Settings = () => {
           
           <Card>
             <CardContent className="p-6">
-              <Tabs defaultValue="general">
+              <Tabs defaultValue={isOrgAdmin ? "general" : "notifications"}>
                 <TabsList className="mb-6">
-                  <TabsTrigger value="general">
-                    <SettingsIcon className="h-4 w-4 mr-2" />
-                    Geral
-                  </TabsTrigger>
+                  {isOrgAdmin && (
+                    <TabsTrigger value="general">
+                      <SettingsIcon className="h-4 w-4 mr-2" />
+                      Geral
+                    </TabsTrigger>
+                  )}
                   <TabsTrigger value="notifications">
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
                   </TabsTrigger>
-                  <TabsTrigger value="atas">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Parametrização de ATAs
-                  </TabsTrigger>
+                  {isOrgAdmin && (
+                    <TabsTrigger value="atas">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Parametrização de ATAs
+                    </TabsTrigger>
+                  )}
                 </TabsList>
                 
                 {/* ABA GERAL - Consolidada com sub-seções */}

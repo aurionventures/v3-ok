@@ -19,6 +19,7 @@ import { ATALibrary } from "./ATALibrary";
 import { GuestDocumentApproval } from "./GuestDocumentApproval";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 interface SecretariatDashboardProps {
   onOpenConvocations?: () => void;
   onOpenMaterials?: () => void;
@@ -32,6 +33,8 @@ export const SecretariatDashboard = ({
   const {
     toast
   } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   const {
     actions,
     loading,
@@ -854,6 +857,6 @@ export const SecretariatDashboard = ({
 
       <PendingTasksPreviewModal open={previewModalOpen} onOpenChange={setPreviewModalOpen} tasks={previewTasks} selectedOrganType={previewOrganType} />
 
-      <TaskDetailModal open={taskDetailModalOpen} onOpenChange={setTaskDetailModalOpen} task={selectedTask} onComplete={handleCompleteTask} />
+      <TaskDetailModal open={taskDetailModalOpen} onOpenChange={setTaskDetailModalOpen} task={selectedTask} onComplete={isAdmin ? handleCompleteTask : undefined} />
     </div>;
 };

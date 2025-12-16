@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Sample projects data
 const projects = [{
@@ -116,6 +117,8 @@ const votedProjects = [{
 }];
 const SubmitProjects = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   const [searchTerm, setSearchTerm] = useState("");
   const [projectList, setProjectList] = useState(projects);
   const [votedProjectsList, setVotedProjectsList] = useState(votedProjects);
@@ -300,14 +303,15 @@ const SubmitProjects = () => {
                 </TabsList>
 
                 <TabsContent value="projects">
-                  <div className="flex justify-end mb-4">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="flex items-center gap-2">
-                          <Send className="h-4 w-4" />
-                          Submeter Projeto
-                        </Button>
-                      </DialogTrigger>
+                  {isAdmin && (
+                    <div className="flex justify-end mb-4">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="flex items-center gap-2">
+                            <Send className="h-4 w-4" />
+                            Submeter Projeto
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
                           <DialogTitle>Submeter Novo Projeto</DialogTitle>
@@ -374,6 +378,7 @@ const SubmitProjects = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
+                  )}
 
                   <div className="rounded-md border">
                     <Table>
@@ -419,11 +424,11 @@ const SubmitProjects = () => {
                                 <Button variant="outline" size="sm" onClick={() => handleViewDetails(project)}>
                                   Ver Detalhes
                                 </Button>
-                                {project.status !== "Enriquecido pela IA" && <Button variant="outline" size="sm" onClick={() => handleEnrichProject(project.id)} disabled={isEnriching} className="flex items-center gap-1">
+                                {isAdmin && project.status !== "Enriquecido pela IA" && <Button variant="outline" size="sm" onClick={() => handleEnrichProject(project.id)} disabled={isEnriching} className="flex items-center gap-1">
                                     <Sparkles className="h-3 w-3" />
                                     {isEnriching ? "Enriquecendo..." : "Enriquecer com IA"}
                                   </Button>}
-                                {project.status !== "Submetido para Votação" && <Button size="sm" onClick={() => handleSubmitForVoting(project.id)} className="flex items-center gap-1">
+                                {isAdmin && project.status !== "Submetido para Votação" && <Button size="sm" onClick={() => handleSubmitForVoting(project.id)} className="flex items-center gap-1">
                                     <Vote className="h-3 w-3" />
                                     Submeter Votação
                                   </Button>}
@@ -485,7 +490,7 @@ const SubmitProjects = () => {
                                 <Button variant="outline" size="sm" onClick={() => handleViewDetails(project)}>
                                   Ver Detalhes
                                 </Button>
-                                {project.status === "Aprovado" && <Button variant="outline" size="sm" onClick={() => handleSendToDocuments(project.id)} className="flex items-center gap-1">
+                                {isAdmin && project.status === "Aprovado" && <Button variant="outline" size="sm" onClick={() => handleSendToDocuments(project.id)} className="flex items-center gap-1">
                                     <FileText className="h-3 w-3" />
                                     Enviar p/ Docs
                                   </Button>}

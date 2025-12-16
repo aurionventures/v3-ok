@@ -24,7 +24,7 @@ interface TaskDetailModalProps {
     responsibleEmail?: string | null;
     status: string;
   } | null;
-  onComplete: (taskId: string) => void;
+  onComplete?: (taskId: string) => void;
 }
 
 export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDetailModalProps) => {
@@ -194,6 +194,8 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
   };
 
   const handleCompleteTask = async () => {
+    if (!onComplete) return;
+    
     // Log da conclusão
     createAuditLog.mutate({
       action: 'CONCLUSAO_TAREFA',
@@ -334,51 +336,53 @@ export const TaskDetailModal = ({ open, onOpenChange, task, onComplete }: TaskDe
 
           <Separator />
 
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-muted-foreground">Ações</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={handleSendEmailAlert}
-                className="w-full"
-                disabled={!task.responsibleEmail}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Enviar E-mail
-              </Button>
+          {/* Action Buttons - Only show for admin users */}
+          {onComplete && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Ações</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleSendEmailAlert}
+                  className="w-full"
+                  disabled={!task.responsibleEmail}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Enviar E-mail
+                </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleSendWhatsAppAlert}
-                className="w-full"
-                disabled={!task.responsibleEmail}
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Enviar WhatsApp
-              </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSendWhatsAppAlert}
+                  className="w-full"
+                  disabled={!task.responsibleEmail}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Enviar WhatsApp
+                </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleCopyLink}
-                className="w-full"
-                disabled={!task.responsibleEmail}
-              >
-                <Link2 className="h-4 w-4 mr-2" />
-                Copiar Link de Acesso
-              </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCopyLink}
+                  className="w-full"
+                  disabled={!task.responsibleEmail}
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Copiar Link de Acesso
+                </Button>
 
-              <Button
-                variant="default"
-                onClick={handleCompleteTask}
-                className="w-full"
-                disabled={task.status === 'CONCLUIDA'}
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Marcar como Concluída
-              </Button>
+                <Button
+                  variant="default"
+                  onClick={handleCompleteTask}
+                  className="w-full"
+                  disabled={task.status === 'CONCLUIDA'}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Marcar como Concluída
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
