@@ -56,6 +56,7 @@ const getRoleIcon = (role: OrganizationUserRole) => {
 
 export const UserManagementTab = () => {
   const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.orgRole === 'org_admin';
   const [users, setUsers] = useState(mockOrganizationUsers);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<typeof mockOrganizationUsers[0] | null>(null);
@@ -141,13 +142,15 @@ export const UserManagementTab = () => {
         <div>
           <h3 className="text-lg font-medium">Usuários da Organização</h3>
           <p className="text-sm text-muted-foreground">
-            Gerencie os usuários que têm acesso à plataforma
+            {isAdmin ? 'Gerencie os usuários que têm acesso à plataforma' : 'Visualize os usuários da organização'}
           </p>
         </div>
-        <Button onClick={handleAddUser}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Adicionar Usuário
-        </Button>
+        {isAdmin && (
+          <Button onClick={handleAddUser}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Adicionar Usuário
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -205,7 +208,7 @@ export const UserManagementTab = () => {
                       )}
                     </div>
 
-                    {!isCurrentUser && (
+                    {!isCurrentUser && isAdmin && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -162,11 +163,16 @@ const Settings = () => {
                     
                     <Separator />
                     
-                    {/* Seção 2: Usuários */}
+                    {/* Seção 2: Usuários - Visible for all but actions restricted */}
                     <div>
                       <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
                         <Users className="h-5 w-5 text-muted-foreground" />
                         Usuários
+                        {!isOrgAdmin && (
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 ml-2">
+                            Somente Visualização
+                          </Badge>
+                        )}
                       </h3>
                       <UserManagementTab />
                     </div>

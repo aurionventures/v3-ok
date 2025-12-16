@@ -16,6 +16,7 @@ interface MembersTableProps {
   onEditMember: (member: GovernanceMember) => void;
   onAllocateMember: (member: GovernanceMember) => void;
   onDeleteMember: (member: GovernanceMember) => void;
+  readOnly?: boolean;
 }
 
 export const MembersTable: React.FC<MembersTableProps> = ({
@@ -24,7 +25,8 @@ export const MembersTable: React.FC<MembersTableProps> = ({
   onCreateMember,
   onEditMember,
   onAllocateMember,
-  onDeleteMember
+  onDeleteMember,
+  readOnly = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -70,10 +72,12 @@ export const MembersTable: React.FC<MembersTableProps> = ({
             className="pl-10"
           />
         </div>
-        <Button onClick={onCreateMember} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Criar Membro
-        </Button>
+        {!readOnly && (
+          <Button onClick={onCreateMember} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Criar Membro
+          </Button>
+        )}
       </div>
 
       {/* Tabela de membros */}
@@ -132,32 +136,34 @@ export const MembersTable: React.FC<MembersTableProps> = ({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onEditMember(member)}
-                          title="Editar membro"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onAllocateMember(member)}
-                          title="Alocar em órgão"
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onDeleteMember(member)}
-                          title="Remover membro"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {!readOnly && (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEditMember(member)}
+                            title="Editar membro"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onAllocateMember(member)}
+                            title="Alocar em órgão"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onDeleteMember(member)}
+                            title="Remover membro"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
