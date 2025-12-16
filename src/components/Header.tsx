@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 import { 
   DropdownMenu, 
@@ -20,6 +21,24 @@ import { toast } from "@/hooks/use-toast";
 interface HeaderProps {
   title?: string;
 }
+
+const getOrgRoleLabel = (orgRole?: string) => {
+  switch (orgRole) {
+    case 'org_admin': return 'Admin';
+    case 'org_user': return 'Usuário';
+    case 'org_member': return 'Membro';
+    default: return 'Usuário';
+  }
+};
+
+const getOrgRoleBadgeClass = (orgRole?: string) => {
+  switch (orgRole) {
+    case 'org_admin': return 'bg-blue-500 text-white hover:bg-blue-500';
+    case 'org_user': return 'bg-gray-500 text-white hover:bg-gray-500';
+    case 'org_member': return 'bg-purple-500 text-white hover:bg-purple-500';
+    default: return 'bg-gray-500 text-white hover:bg-gray-500';
+  }
+};
 
 const Header = ({ title = "Dashboard" }: HeaderProps) => {
   const navigate = useNavigate();
@@ -44,8 +63,11 @@ const Header = ({ title = "Dashboard" }: HeaderProps) => {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
         <h1 className="text-xl font-semibold">{title}</h1>
+        <Badge className={getOrgRoleBadgeClass(user?.orgRole)}>
+          Logado como: {getOrgRoleLabel(user?.orgRole)}
+        </Badge>
       </div>
       <div className="flex items-center space-x-2">
         <NotificationBell />

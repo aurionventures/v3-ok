@@ -18,9 +18,12 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
 
 const GovernanceConfig = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.orgRole === 'org_admin';
   const [activeTab, setActiveTab] = useState<OrganType | 'membros'>('conselho');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -212,114 +215,117 @@ const GovernanceConfig = () => {
                 <MembersTable
                   members={members}
                   loading={membersLoading}
-                  onCreateMember={() => {
+                  onCreateMember={isAdmin ? () => {
                     setEditingMember(null);
                     setIsCreateMemberModalOpen(true);
-                  }}
-                  onEditMember={(member) => {
+                  } : () => {}}
+                  onEditMember={isAdmin ? (member) => {
                     setEditingMember(member);
                     setIsCreateMemberModalOpen(true);
-                  }}
-                  onAllocateMember={(member) => {
+                  } : () => {}}
+                  onAllocateMember={isAdmin ? (member) => {
                     setAllocatingMember(member);
                     setIsAllocateMemberModalOpen(true);
-                  }}
-                  onDeleteMember={handleDeleteMember}
+                  } : () => {}}
+                  onDeleteMember={isAdmin ? handleDeleteMember : () => {}}
+                  readOnly={!isAdmin}
                 />
               </TabsContent>
 
               {/* Content for each organ tab */}
               {(['conselho', 'comite', 'comissao'] as OrganType[]).map((type) => (
                 <TabsContent key={type} value={type} className="space-y-4">
-                  {/* Create Button */}
-                  <div className="flex justify-end gap-2">
-                    <Dialog open={isCreateDialogOpen && activeTab === type} onOpenChange={setIsCreateDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="flex items-center gap-2">
-                          <Plus className="h-4 w-4" />
-                          Criar {getOrganTypeLabel(type)}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            {getOrganTypeIcon(type)}
-                            Criar Novo {getOrganTypeLabel(type)}
-                          </DialogTitle>
-                          <DialogDescription>
-                            Preencha os dados básicos do {getOrganTypeLabel(type).toLowerCase()}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Nome *</Label>
-                            <Input
-                              value={formData.name}
-                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                              placeholder={`Ex: ${type === 'conselho' ? 'Conselho Administrativo' : type === 'comite' ? 'Comitê de Auditoria' : 'Comissão de Ética'}`}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Tipo</Label>
-                            <Select 
-                              value={formData.type}
-                              onValueChange={(value) => setFormData({ ...formData, type: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="administrativo">Administrativo</SelectItem>
-                                <SelectItem value="fiscal">Fiscal</SelectItem>
-                                <SelectItem value="consultivo">Consultivo</SelectItem>
-                                <SelectItem value="auditoria">Auditoria</SelectItem>
-                                <SelectItem value="estrategia">Estratégia</SelectItem>
-                                <SelectItem value="outros">Outros</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Descrição</Label>
-                            <Textarea
-                              value={formData.description}
-                              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                              placeholder="Breve descrição sobre o órgão"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
+                  {/* Create Button - Only for Admin */}
+                  {isAdmin && (
+                    <div className="flex justify-end gap-2">
+                      <Dialog open={isCreateDialogOpen && activeTab === type} onOpenChange={setIsCreateDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            Criar {getOrganTypeLabel(type)}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              {getOrganTypeIcon(type)}
+                              Criar Novo {getOrganTypeLabel(type)}
+                            </DialogTitle>
+                            <DialogDescription>
+                              Preencha os dados básicos do {getOrganTypeLabel(type).toLowerCase()}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
                             <div className="space-y-2">
-                              <Label>Quórum</Label>
+                              <Label>Nome *</Label>
                               <Input
-                                type="number"
-                                min="1"
-                                value={formData.quorum}
-                                onChange={(e) => setFormData({ ...formData, quorum: parseInt(e.target.value) })}
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder={`Ex: ${type === 'conselho' ? 'Conselho Administrativo' : type === 'comite' ? 'Comitê de Auditoria' : 'Comissão de Ética'}`}
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label>Nível Hierárquico</Label>
+                              <Label>Tipo</Label>
                               <Select 
-                                value={formData.hierarchy_level.toString()}
-                                onValueChange={(value) => setFormData({ ...formData, hierarchy_level: parseInt(value) })}
+                                value={formData.type}
+                                onValueChange={(value) => setFormData({ ...formData, type: value })}
                               >
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="1">1 - Estratégico</SelectItem>
-                                  <SelectItem value="2">2 - Tático</SelectItem>
-                                  <SelectItem value="3">3 - Operacional</SelectItem>
+                                  <SelectItem value="administrativo">Administrativo</SelectItem>
+                                  <SelectItem value="fiscal">Fiscal</SelectItem>
+                                  <SelectItem value="consultivo">Consultivo</SelectItem>
+                                  <SelectItem value="auditoria">Auditoria</SelectItem>
+                                  <SelectItem value="estrategia">Estratégia</SelectItem>
+                                  <SelectItem value="outros">Outros</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
+                            <div className="space-y-2">
+                              <Label>Descrição</Label>
+                              <Textarea
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                placeholder="Breve descrição sobre o órgão"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Quórum</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  value={formData.quorum}
+                                  onChange={(e) => setFormData({ ...formData, quorum: parseInt(e.target.value) })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Nível Hierárquico</Label>
+                                <Select 
+                                  value={formData.hierarchy_level.toString()}
+                                  onValueChange={(value) => setFormData({ ...formData, hierarchy_level: parseInt(value) })}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="1">1 - Estratégico</SelectItem>
+                                    <SelectItem value="2">2 - Tático</SelectItem>
+                                    <SelectItem value="3">3 - Operacional</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <Button onClick={handleCreate} className="w-full">
+                              Criar {getOrganTypeLabel(type)}
+                            </Button>
                           </div>
-                          <Button onClick={handleCreate} className="w-full">
-                            Criar {getOrganTypeLabel(type)}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
 
                   {/* List of Organs */}
                   {loading ? (
@@ -355,13 +361,15 @@ const GovernanceConfig = () => {
                                   {organ.description || 'Sem descrição'}
                                 </CardDescription>
                               </div>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleDelete(organ.id, organ.name)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {isAdmin && (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleDelete(organ.id, organ.name)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </CardHeader>
                           <CardContent className="space-y-4">
