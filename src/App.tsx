@@ -757,7 +757,7 @@ const App = () => (
             } 
           />
           <Route 
-            path="/auditoria" 
+            path="/admin/auditoria" 
             element={
               <ProtectedRoute >
                 <AuditLogs />
@@ -765,7 +765,7 @@ const App = () => (
             } 
           />
           <Route 
-            path="/seguranca" 
+            path="/admin/seguranca" 
             element={
               <ProtectedRoute >
                 <SecurityDashboard />

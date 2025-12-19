@@ -83,12 +83,12 @@ const Sidebar = () => {
     },
     {
       icon: <Shield className="h-5 w-5" />,
-      href: "/seguranca",
+      href: "/admin/seguranca",
       name: "Segurança"
     },
     {
       icon: <FileText className="h-5 w-5" />,
-      href: "/auditoria",
+      href: "/admin/auditoria",
       name: "Auditoria"
     },
     {
