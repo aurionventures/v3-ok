@@ -214,7 +214,7 @@ export default function AdminClientManagement() {
       case 'active':
         return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Ativo</Badge>;
       case 'suspended':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Suspenso</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Inativo</Badge>;
       case 'pending':
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pendente</Badge>;
       default:
@@ -708,6 +708,7 @@ export default function AdminClientManagement() {
                       <TabsTrigger value="all">Todas</TabsTrigger>
                       <TabsTrigger value="active">Ativas</TabsTrigger>
                       <TabsTrigger value="pending">Pendentes</TabsTrigger>
+                      <TabsTrigger value="suspended">Inativas</TabsTrigger>
                       <TabsTrigger value="no-plan">Sem Plano</TabsTrigger>
                     </TabsList>
                   </Tabs>
@@ -782,15 +783,15 @@ export default function AdminClientManagement() {
                                 </DropdownMenuItem>
                                 {client.plan_config?.status === 'active' ? (
                                   <DropdownMenuItem 
-                                    className="gap-2 text-red-500"
+                                    className="gap-2 text-amber-600"
                                     onClick={() => suspendClient(client.id)}
                                   >
                                     <PowerOff className="h-4 w-4" />
-                                    Suspender
+                                    Inativar
                                   </DropdownMenuItem>
-                                ) : client.plan_config?.status === 'pending' ? (
+                                ) : (client.plan_config?.status === 'pending' || client.plan_config?.status === 'suspended') ? (
                                   <DropdownMenuItem 
-                                    className="gap-2 text-green-500"
+                                    className="gap-2 text-green-600"
                                     onClick={() => activateClient(client.id)}
                                   >
                                     <Power className="h-4 w-4" />
