@@ -1,12 +1,8 @@
 import { CompanySize, GovernancePlan, ModuleKey } from "@/types/organization";
 
-// Módulos base por porte (herança cumulativa conforme o plano)
-// Startup/Pequena: INÍCIO + PARAMETRIZAÇÃO + PREPARAÇÃO + ESTRUTURAÇÃO
-// Média: + GESTÃO DE PESSOAS
-// Grande: + MONITORAMENTO + Agentes IA + Submeter Projetos
-// Listada: + Add-ons (ESG, Inteligência de Mercado)
-
-// Preços dos planos por porte
+// ==========================================
+// PREÇOS DOS PLANOS BASE POR PORTE
+// ==========================================
 export const PLAN_PRICES: Record<CompanySize, number> = {
   startup: 3990,
   small: 5990,
@@ -15,10 +11,61 @@ export const PLAN_PRICES: Record<CompanySize, number> = {
   listed: 69990
 };
 
-// Preços dos add-ons
-export const ADDON_PRICES = {
-  esg: 3990,
-  market_intel: 4990
+// ==========================================
+// PREÇOS INDIVIDUAIS DOS ADD-ONS
+// ==========================================
+export const ADDON_PRICES: Record<string, number> & { esg: number; market_intel: number } = {
+  ai_agents: 2990,
+  project_submission: 1990,
+  leadership_performance: 2490,
+  risks: 1990,
+  esg_maturity: 3990,
+  esg: 3990, // Alias para compatibilidade
+  market_intel: 4990, // Inclui benchmarking
+  benchmarking: 0 // Incluído com market_intel
+};
+
+// Detalhes dos Add-ons para exibição
+export const ADDON_DETAILS: Record<string, { 
+  label: string; 
+  description: string; 
+  section: string;
+  targetSection?: string;
+  includesModules?: ModuleKey[];
+}> = {
+  ai_agents: {
+    label: 'Agentes de IA',
+    description: 'Automação de processos com IA',
+    section: 'INÍCIO',
+    targetSection: 'inicio'
+  },
+  project_submission: {
+    label: 'Submeter Projetos',
+    description: 'Fluxo de aprovação de projetos',
+    section: 'ESTRUTURAÇÃO',
+    targetSection: 'estruturacao'
+  },
+  leadership_performance: {
+    label: 'Gestão de Pessoas',
+    description: 'Desenvolvimento e PDI de lideranças',
+    section: 'GESTÃO DE PESSOAS'
+  },
+  risks: {
+    label: 'Monitoramento de Riscos',
+    description: 'Gestão de riscos de governança',
+    section: 'MONITORAMENTO'
+  },
+  esg_maturity: {
+    label: 'ESG',
+    description: 'Avaliação de maturidade ESG',
+    section: 'ESG'
+  },
+  market_intel: {
+    label: 'Inteligência de Mercado',
+    description: 'Análise de mercado e benchmarking',
+    section: 'INTELIGÊNCIA DE MERCADO',
+    includesModules: ['benchmarking']
+  }
 };
 
 // Pacote Full com desconto
@@ -27,34 +74,48 @@ export const FULL_PACKAGE = {
   discountedPrice: 75970
 };
 
-const STARTUP_SMALL_MODULES: ModuleKey[] = [
+// ==========================================
+// MÓDULOS BASE (incluídos em todos os planos)
+// ==========================================
+export const CORE_BASE_MODULES: ModuleKey[] = [
   // INÍCIO
-  'dashboard', 'settings', 'start',
+  'dashboard', 'settings',
   // PARAMETRIZAÇÃO
   'structure', 'cap_table', 'gov_maturity', 'legacy_rituals',
   // PREPARAÇÃO
   'checklist', 'interviews', 'analysis_actions',
   // ESTRUTURAÇÃO
-  'gov_config', 'annual_agenda', 'secretariat', 'councils'
+  'gov_config', 'annual_agenda', 'secretariat', 'councils',
+  // FIXOS
+  'activities'
 ];
+
+// ==========================================
+// MÓDULOS ADD-ON (contratados separadamente)
+// ==========================================
+export const ALL_ADDON_MODULES: ModuleKey[] = [
+  'ai_agents', 'project_submission',
+  'leadership_performance', 'risks',
+  'esg_maturity', 'market_intel', 'benchmarking'
+];
+
+// ==========================================
+// MÓDULOS POR PORTE (para compatibilidade)
+// ==========================================
+const STARTUP_SMALL_MODULES: ModuleKey[] = [...CORE_BASE_MODULES];
 
 const MEDIUM_MODULES: ModuleKey[] = [
   ...STARTUP_SMALL_MODULES,
-  // GESTÃO DE PESSOAS
   'leadership_performance'
 ];
 
 const LARGE_MODULES: ModuleKey[] = [
   ...MEDIUM_MODULES,
-  // MONITORAMENTO
-  'risks', 'activities',
-  // OTIMIZAÇÃO
-  'ai_agents', 'project_submission'
+  'risks', 'ai_agents', 'project_submission'
 ];
 
 const LISTED_MODULES: ModuleKey[] = [
   ...LARGE_MODULES,
-  // ADD-ONS incluídos
   'esg_maturity', 'market_intel', 'benchmarking'
 ];
 
@@ -68,6 +129,10 @@ export const BASE_MODULES: Record<CompanySize, ModuleKey[]> = {
 
 // Add-ons disponíveis para contratação separada
 export const ADDON_MODULES: { key: ModuleKey; label: string; section: string }[] = [
+  { key: 'ai_agents', label: 'Agentes de IA', section: 'Otimização' },
+  { key: 'project_submission', label: 'Submeter Projetos', section: 'Estruturação' },
+  { key: 'leadership_performance', label: 'Gestão de Pessoas', section: 'Desenvolvimento' },
+  { key: 'risks', label: 'Riscos', section: 'Monitoramento' },
   { key: 'esg_maturity', label: 'Maturidade ESG', section: 'ESG' },
   { key: 'market_intel', label: 'Inteligência de Mercado', section: 'Inteligência de Mercado' },
   { key: 'benchmarking', label: 'Benchmarking Global', section: 'Inteligência de Mercado' },
@@ -94,11 +159,40 @@ export function getDefaultModules(companySize: CompanySize, plan: GovernancePlan
 }
 
 /**
+ * Retorna módulos habilitados baseado em porte + addons selecionados
+ */
+export function getModulesWithAddons(companySize: CompanySize, enabledAddons: ModuleKey[]): ModuleKey[] {
+  const baseModules = CORE_BASE_MODULES;
+  
+  // Adicionar add-ons selecionados
+  const allModules = new Set([...baseModules, ...enabledAddons]);
+  
+  // Se market_intel está ativo, incluir benchmarking
+  if (enabledAddons.includes('market_intel')) {
+    allModules.add('benchmarking');
+  }
+  
+  return Array.from(allModules);
+}
+
+/**
+ * Calcula o preço total baseado no porte + add-ons selecionados
+ */
+export function calculateTotalPrice(companySize: CompanySize, enabledAddons: ModuleKey[]): number {
+  const basePrice = PLAN_PRICES[companySize];
+  
+  const addonsPrice = enabledAddons.reduce((total, addon) => {
+    return total + (ADDON_PRICES[addon] || 0);
+  }, 0);
+  
+  return basePrice + addonsPrice;
+}
+
+/**
  * Verifica se um módulo é premium (add-on)
  */
 export function isPremiumModule(moduleKey: ModuleKey): boolean {
-  const premiumList: ModuleKey[] = ['esg_maturity', 'market_intel', 'benchmarking', 'ai_agents'];
-  return premiumList.includes(moduleKey);
+  return ALL_ADDON_MODULES.includes(moduleKey);
 }
 
 /**
@@ -133,5 +227,5 @@ export function isModuleIncludedInSize(moduleKey: ModuleKey, size: CompanySize):
  * Verifica se um módulo é add-on
  */
 export function isAddonModule(moduleKey: ModuleKey): boolean {
-  return ADDON_MODULES.some(addon => addon.key === moduleKey);
+  return ALL_ADDON_MODULES.includes(moduleKey);
 }

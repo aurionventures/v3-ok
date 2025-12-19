@@ -2,7 +2,7 @@ import { LucideIcon } from "lucide-react";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, BookText, 
-  Activity, Bot, Play, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle
+  Bot, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle
 } from "lucide-react";
 import { ModuleKey } from "@/types/organization";
 
@@ -12,6 +12,7 @@ export interface SidebarItem {
   path: string;
   icon: LucideIcon;
   premium?: boolean;
+  isAddon?: boolean;
 }
 
 export interface SidebarSection {
@@ -20,15 +21,13 @@ export interface SidebarSection {
   icon: LucideIcon;
   color: string;
   premium?: boolean;
+  isBase?: boolean;
+  isAddon?: boolean;
   items: SidebarItem[];
 }
 
 // Descrições de módulos para o UpgradeModal
 export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits: string[] }> = {
-  start: {
-    description: 'Guia inicial para começar a usar a plataforma de governança.',
-    benefits: ['Orientação passo a passo', 'Checklist de primeiros passos', 'Links rápidos para configurações essenciais']
-  },
   dashboard: {
     description: 'Painel central com visão geral de todos os indicadores de governança.',
     benefits: ['Métricas em tempo real', 'Alertas de pendências', 'Visão consolidada da governança']
@@ -115,16 +114,18 @@ export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits
   }
 };
 
-export const SIDEBAR_SECTIONS: SidebarSection[] = [
+// ==========================================
+// SEÇÕES BASE (disponíveis para todos os planos)
+// ==========================================
+export const BASE_SECTIONS: SidebarSection[] = [
   {
     key: 'inicio',
-    label: 'Início',
+    label: 'INÍCIO',
     icon: Target,
     color: 'text-blue-400',
+    isBase: true,
     items: [
-      { key: 'start', label: 'Comece Aqui', path: '/start', icon: Play },
       { key: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-      { key: 'settings', label: 'Configurações', path: '/settings', icon: Settings },
     ]
   },
   {
@@ -132,6 +133,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: 'PARAMETRIZAÇÃO',
     icon: Zap,
     color: 'text-green-400',
+    isBase: true,
     items: [
       { key: 'structure', label: 'Estrutura Societária', path: '/shareholder-structure', icon: Users },
       { key: 'cap_table', label: 'Cap Table', path: '/cap-table', icon: BarChart3 },
@@ -141,9 +143,10 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   },
   {
     key: 'preparacao',
-    label: 'Preparação',
+    label: 'PREPARAÇÃO',
     icon: BookOpen,
     color: 'text-blue-400',
+    isBase: true,
     items: [
       { key: 'checklist', label: 'Checklist', path: '/document-checklist', icon: FileText },
       { key: 'interviews', label: 'Entrevistas', path: '/interviews', icon: ActivitySquare },
@@ -152,34 +155,40 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   },
   {
     key: 'estruturacao',
-    label: 'Estruturação',
+    label: 'ESTRUTURAÇÃO',
     icon: Shield,
     color: 'text-purple-400',
+    isBase: true,
     items: [
+      { key: 'gov_config', label: 'Config. Governança', path: '/governance-config', icon: Shield },
       { key: 'annual_agenda', label: 'Agenda Anual', path: '/annual-agenda', icon: Calendar },
-      { key: 'gov_config', label: 'Órgãos de Governança', path: '/governance-config', icon: Shield },
-      { key: 'secretariat', label: 'Painel do Secretariado', path: '/secretariat', icon: Shield },
-      { key: 'councils', label: 'Conselhos', path: '/councils', icon: Shield },
-      { key: 'project_submission', label: 'Submeter Projetos', path: '/submit-projects', icon: Send },
+      { key: 'secretariat', label: 'Secretariado', path: '/secretariat', icon: Shield },
     ]
   },
+];
+
+// ==========================================
+// SEÇÕES ADD-ON (módulos pagos separadamente)
+// ==========================================
+export const ADDON_SECTIONS: SidebarSection[] = [
   {
-    key: 'desenvolvimento',
-    label: 'Desenvolvimento',
-    icon: Activity,
+    key: 'gestao_pessoas',
+    label: 'GESTÃO DE PESSOAS',
+    icon: Users,
     color: 'text-orange-400',
+    isAddon: true,
     items: [
-      { key: 'leadership_performance', label: 'Gestão de Pessoas & Governança', path: '/people-management', icon: Users },
+      { key: 'leadership_performance', label: 'Desenvolvimento e PDI', path: '/people-management', icon: Users, isAddon: true },
     ]
   },
   {
     key: 'monitoramento',
-    label: 'Monitoramento',
+    label: 'MONITORAMENTO',
     icon: AlertCircle,
     color: 'text-red-400',
+    isAddon: true,
     items: [
-      { key: 'risks', label: 'Gestão de Riscos de Governança', path: '/governance-risk-management', icon: Shield },
-      { key: 'activities', label: 'Atividades', path: '/activities', icon: ActivitySquare },
+      { key: 'risks', label: 'Riscos', path: '/governance-risk-management', icon: Shield, isAddon: true },
     ]
   },
   {
@@ -187,30 +196,50 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     label: 'ESG',
     icon: Leaf,
     color: 'text-emerald-400',
-    premium: true,
+    isAddon: true,
     items: [
-      { key: 'esg_maturity', label: 'Maturidade ESG', path: '/esg', icon: Leaf, premium: true },
+      { key: 'esg_maturity', label: 'Maturidade ESG', path: '/esg', icon: Leaf, isAddon: true },
     ]
   },
   {
     key: 'inteligencia_mercado',
-    label: 'Inteligência de Mercado',
+    label: 'INTELIGÊNCIA DE MERCADO',
     icon: TrendingUp,
     color: 'text-cyan-400',
-    premium: true,
+    isAddon: true,
     items: [
-      { key: 'market_intel', label: 'Inteligência de Mercado', path: '/market-intelligence', icon: TrendingUp, premium: true },
-      { key: 'benchmarking', label: 'Benchmarking Global', path: '/benchmarking', icon: BarChart3, premium: true },
+      { key: 'market_intel', label: 'Inteligência de Mercado', path: '/market-intelligence', icon: TrendingUp, isAddon: true },
+      { key: 'benchmarking', label: 'Benchmarking Global', path: '/benchmarking', icon: BarChart3, isAddon: true },
     ]
   },
-  {
-    key: 'otimizacao',
-    label: 'Otimização',
-    icon: Zap,
-    color: 'text-yellow-400',
-    premium: true,
-    items: [
-      { key: 'ai_agents', label: 'Agentes de IA', path: '/ai-agents', icon: Bot, premium: true },
-    ]
+];
+
+// ==========================================
+// ITENS FIXOS (sempre visíveis na base do sidebar)
+// ==========================================
+export const FIXED_ITEMS: SidebarItem[] = [
+  { key: 'activities', label: 'Atividades', path: '/activities', icon: ActivitySquare },
+  { key: 'settings', label: 'Configurações', path: '/settings', icon: Settings },
+];
+
+// ==========================================
+// ADD-ONS DINÂMICOS (vão para seções específicas quando ativados)
+// ==========================================
+export const DYNAMIC_ADDONS: Record<string, { targetSection: string; item: SidebarItem }> = {
+  ai_agents: {
+    targetSection: 'inicio',
+    item: { key: 'ai_agents', label: 'Agentes de IA', path: '/ai-agents', icon: Bot, isAddon: true }
+  },
+  project_submission: {
+    targetSection: 'estruturacao',
+    item: { key: 'project_submission', label: 'Submeter Projetos', path: '/submit-projects', icon: Send, isAddon: true }
   }
+};
+
+// ==========================================
+// SIDEBAR_SECTIONS (mantido para compatibilidade)
+// ==========================================
+export const SIDEBAR_SECTIONS: SidebarSection[] = [
+  ...BASE_SECTIONS,
+  ...ADDON_SECTIONS
 ];
