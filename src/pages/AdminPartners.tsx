@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { usePartners, Partner, PartnerFormData } from "@/hooks/usePartners";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, 
   Building2, 
@@ -27,26 +29,11 @@ import {
   Send,
   Handshake,
   Percent,
-  Globe
+  Globe,
+  Power,
+  PowerOff,
+  Loader2
 } from "lucide-react";
-
-interface Partner {
-  id: string;
-  companyName: string;
-  cnpj: string;
-  type: string;
-  adminName: string;
-  adminEmail: string;
-  adminPhone: string;
-  whitelabel: {
-    primaryColor: string;
-    secondaryColor: string;
-    customDomain: string;
-    commission: number;
-  };
-  status: 'pending' | 'active' | 'suspended';
-  createdAt: string;
-}
 
 const PARTNER_TYPES = [
   { value: 'revenda', label: 'Revenda' },
@@ -55,51 +42,26 @@ const PARTNER_TYPES = [
   { value: 'afiliado', label: 'Afiliado' }
 ];
 
-const MOCK_PARTNERS: Partner[] = [
-  {
-    id: '1',
-    companyName: 'Consultoria ABC',
-    cnpj: '12.345.678/0001-90',
-    type: 'consultoria',
-    adminName: 'Carlos Silva',
-    adminEmail: 'carlos@consultoriaabc.com',
-    adminPhone: '(11) 99999-0001',
-    whitelabel: {
-      primaryColor: '#3B82F6',
-      secondaryColor: '#1E40AF',
-      customDomain: 'abc.legacy.app',
-      commission: 15
-    },
-    status: 'active',
-    createdAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    companyName: 'Revenda XYZ',
-    cnpj: '98.765.432/0001-10',
-    type: 'revenda',
-    adminName: 'Ana Oliveira',
-    adminEmail: 'ana@revendaxyz.com',
-    adminPhone: '(11) 99999-0002',
-    whitelabel: {
-      primaryColor: '#10B981',
-      secondaryColor: '#059669',
-      customDomain: '',
-      commission: 20
-    },
-    status: 'pending',
-    createdAt: '2024-02-20'
-  }
-];
-
 const AdminPartners = () => {
   const navigate = useNavigate();
-  const [partners, setPartners] = useState<Partner[]>(MOCK_PARTNERS);
+  const { partners, loading, createPartner, updatePartnerSettings, updatePartnerStatus, deletePartner } = usePartners();
+  
   const [wizardOpen, setWizardOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  
+  // Edit Whitelabel Modal
+  const [editWhitelabelOpen, setEditWhitelabelOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [whitelabelForm, setWhitelabelForm] = useState({
+    primaryColor: '#3B82F6',
+    secondaryColor: '#1E40AF',
+    customDomain: '',
+    commission: 15
+  });
   
   // Form state
-  const [partnerForm, setPartnerForm] = useState({
+  const [partnerForm, setPartnerForm] = useState<PartnerFormData>({
     companyName: '',
     cnpj: '',
     type: '',
@@ -139,43 +101,71 @@ const AdminPartners = () => {
     setWizardOpen(true);
   };
 
-  const handleActivatePartner = () => {
-    const newPartner: Partner = {
-      id: Date.now().toString(),
-      companyName: partnerForm.companyName,
-      cnpj: partnerForm.cnpj,
-      type: partnerForm.type,
-      adminName: partnerForm.adminName,
-      adminEmail: partnerForm.adminEmail,
-      adminPhone: partnerForm.adminPhone,
-      whitelabel: {
-        primaryColor: partnerForm.primaryColor,
-        secondaryColor: partnerForm.secondaryColor,
-        customDomain: partnerForm.customDomain,
-        commission: partnerForm.commission
-      },
-      status: 'active',
-      createdAt: new Date().toISOString().split('T')[0]
-    };
+  const handleActivatePartner = async () => {
+    setSaving(true);
+    const result = await createPartner(partnerForm);
+    setSaving(false);
     
-    setPartners([...partners, newPartner]);
-    setWizardOpen(false);
-    resetForm();
-    toast.success("Parceiro ativado com sucesso! Convite enviado.");
+    if (result.success) {
+      setWizardOpen(false);
+      resetForm();
+      toast.success("Parceiro ativado com sucesso! Convite enviado para " + partnerForm.adminEmail);
+    }
   };
 
-  const getStatusBadge = (status: Partner['status']) => {
-    const statusConfig = {
-      active: { label: 'Ativo', variant: 'default' as const, className: 'bg-emerald-500' },
-      pending: { label: 'Pendente', variant: 'secondary' as const, className: 'bg-amber-500 text-white' },
-      suspended: { label: 'Suspenso', variant: 'destructive' as const, className: '' }
+  const handleEditWhitelabel = (partner: Partner) => {
+    setSelectedPartner(partner);
+    setWhitelabelForm({
+      primaryColor: partner.settings?.primary_color || '#3B82F6',
+      secondaryColor: partner.settings?.secondary_color || '#1E40AF',
+      customDomain: partner.settings?.custom_domain || '',
+      commission: partner.settings?.commission || 15
+    });
+    setEditWhitelabelOpen(true);
+  };
+
+  const handleSaveWhitelabel = async () => {
+    if (!selectedPartner) return;
+    
+    setSaving(true);
+    const result = await updatePartnerSettings(selectedPartner.id, {
+      primary_color: whitelabelForm.primaryColor,
+      secondary_color: whitelabelForm.secondaryColor,
+      custom_domain: whitelabelForm.customDomain || null,
+      commission: whitelabelForm.commission,
+    });
+    setSaving(false);
+    
+    if (result.success) {
+      setEditWhitelabelOpen(false);
+      toast.success("Configurações whitelabel atualizadas!");
+    }
+  };
+
+  const handleToggleStatus = async (partner: Partner) => {
+    const newStatus = partner.settings?.status === 'active' ? 'suspended' : 'active';
+    await updatePartnerStatus(partner.id, newStatus);
+    toast.success(newStatus === 'active' ? 'Parceiro ativado!' : 'Parceiro inativado!');
+  };
+
+  const handleDeletePartner = async (partner: Partner) => {
+    if (confirm(`Remover parceiro ${partner.settings?.company_name || partner.company}?`)) {
+      await deletePartner(partner.id);
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    const statusConfig: Record<string, { label: string; className: string }> = {
+      active: { label: 'Ativo', className: 'bg-emerald-500' },
+      pending: { label: 'Pendente', className: 'bg-amber-500 text-white' },
+      suspended: { label: 'Inativo', className: 'bg-red-500/20 text-red-400 border-red-500/30' }
     };
-    const config = statusConfig[status];
+    const config = statusConfig[status || 'pending'] || statusConfig.pending;
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  const getPartnerTypeLabel = (type: string) => {
-    return PARTNER_TYPES.find(t => t.value === type)?.label || type;
+  const getPartnerTypeLabel = (type?: string) => {
+    return PARTNER_TYPES.find(t => t.value === type)?.label || type || 'Consultoria';
   };
 
   const canAdvance = () => {
@@ -188,98 +178,132 @@ const AdminPartners = () => {
     return true;
   };
 
+  const stats = {
+    total: partners.length,
+    active: partners.filter(p => p.settings?.status === 'active').length,
+    pending: partners.filter(p => p.settings?.status === 'pending').length,
+    avgCommission: partners.length > 0 
+      ? Math.round(partners.reduce((acc, p) => acc + (p.settings?.commission || 15), 0) / partners.length)
+      : 0
+  };
+
   return (
     <div className="min-h-screen flex w-full bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header title="Gestão de Parceiros" />
         <main className="flex-1 p-6 space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                  <Handshake className="h-6 w-6 text-primary" />
-                  Gestão de Parceiros
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  Gerencie parceiros de revenda e consultoria
-                </p>
-              </div>
-              <Button onClick={handleOpenWizard} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Parceiro
-              </Button>
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Handshake className="h-6 w-6 text-primary" />
+                Gestão de Parceiros
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Gerencie parceiros de revenda e consultoria
+              </p>
             </div>
+            <Button onClick={handleOpenWizard} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Novo Parceiro
+            </Button>
+          </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total de Parceiros</p>
-                      <p className="text-2xl font-bold">{partners.length}</p>
-                    </div>
-                    <Handshake className="h-8 w-8 text-muted-foreground/30" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Ativos</p>
-                      <p className="text-2xl font-bold text-emerald-600">
-                        {partners.filter(p => p.status === 'active').length}
-                      </p>
-                    </div>
-                    <CheckCircle className="h-8 w-8 text-emerald-500/30" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Pendentes</p>
-                      <p className="text-2xl font-bold text-amber-600">
-                        {partners.filter(p => p.status === 'pending').length}
-                      </p>
-                    </div>
-                    <Building2 className="h-8 w-8 text-amber-500/30" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Comissão Média</p>
-                      <p className="text-2xl font-bold">
-                        {partners.length > 0 
-                          ? Math.round(partners.reduce((acc, p) => acc + p.whitelabel.commission, 0) / partners.length)
-                          : 0}%
-                      </p>
-                    </div>
-                    <Percent className="h-8 w-8 text-muted-foreground/30" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Partners Table */}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Parceiros Cadastrados</CardTitle>
-                <CardDescription>Lista de todos os parceiros da plataforma</CardDescription>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total de Parceiros</p>
+                    {loading ? (
+                      <Skeleton className="h-8 w-16 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold">{stats.total}</p>
+                    )}
+                  </div>
+                  <Handshake className="h-8 w-8 text-muted-foreground/30" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ativos</p>
+                    {loading ? (
+                      <Skeleton className="h-8 w-12 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold text-emerald-600">{stats.active}</p>
+                    )}
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-emerald-500/30" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pendentes</p>
+                    {loading ? (
+                      <Skeleton className="h-8 w-12 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                    )}
+                  </div>
+                  <Building2 className="h-8 w-8 text-amber-500/30" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Comissão Média</p>
+                    {loading ? (
+                      <Skeleton className="h-8 w-16 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold">{stats.avgCommission}%</p>
+                    )}
+                  </div>
+                  <Percent className="h-8 w-8 text-muted-foreground/30" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Partners Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Parceiros Cadastrados</CardTitle>
+              <CardDescription>Lista de todos os parceiros da plataforma</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : partners.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Handshake className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                  <p>Nenhum parceiro cadastrado</p>
+                  <Button onClick={handleOpenWizard} variant="outline" className="mt-4 gap-2">
+                    <Plus className="h-4 w-4" />
+                    Adicionar primeiro parceiro
+                  </Button>
+                </div>
+              ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Empresa</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Administrador</TableHead>
+                      <TableHead>Cores</TableHead>
                       <TableHead>Comissão</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="w-[70px]">Ações</TableHead>
@@ -290,23 +314,39 @@ const AdminPartners = () => {
                       <TableRow key={partner.id}>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{partner.companyName}</p>
-                            <p className="text-sm text-muted-foreground">{partner.cnpj}</p>
+                            <p className="font-medium">{partner.settings?.company_name || partner.company}</p>
+                            {partner.settings?.cnpj && (
+                              <p className="text-sm text-muted-foreground">{partner.settings.cnpj}</p>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{getPartnerTypeLabel(partner.type)}</Badge>
+                          <Badge variant="outline">{getPartnerTypeLabel(partner.settings?.partner_type)}</Badge>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{partner.adminName}</p>
-                            <p className="text-sm text-muted-foreground">{partner.adminEmail}</p>
+                            <p className="font-medium">{partner.name}</p>
+                            <p className="text-sm text-muted-foreground">{partner.email}</p>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium">{partner.whitelabel.commission}%</span>
+                          <div className="flex gap-1">
+                            <div 
+                              className="w-6 h-6 rounded border"
+                              style={{ backgroundColor: partner.settings?.primary_color || '#3B82F6' }}
+                              title="Cor Primária"
+                            />
+                            <div 
+                              className="w-6 h-6 rounded border"
+                              style={{ backgroundColor: partner.settings?.secondary_color || '#1E40AF' }}
+                              title="Cor Secundária"
+                            />
+                          </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(partner.status)}</TableCell>
+                        <TableCell>
+                          <span className="font-medium">{partner.settings?.commission || 15}%</span>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(partner.settings?.status)}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -315,15 +355,34 @@ const AdminPartners = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="gap-2">
-                                <Eye className="h-4 w-4" />
-                                Ver Detalhes
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
-                                <Edit className="h-4 w-4" />
+                              <DropdownMenuItem 
+                                className="gap-2"
+                                onClick={() => handleEditWhitelabel(partner)}
+                              >
+                                <Palette className="h-4 w-4" />
                                 Editar Whitelabel
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2 text-destructive">
+                              {partner.settings?.status === 'active' ? (
+                                <DropdownMenuItem 
+                                  className="gap-2 text-amber-600"
+                                  onClick={() => handleToggleStatus(partner)}
+                                >
+                                  <PowerOff className="h-4 w-4" />
+                                  Inativar
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem 
+                                  className="gap-2 text-emerald-600"
+                                  onClick={() => handleToggleStatus(partner)}
+                                >
+                                  <Power className="h-4 w-4" />
+                                  Ativar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem 
+                                className="gap-2 text-destructive"
+                                onClick={() => handleDeletePartner(partner)}
+                              >
                                 <Trash2 className="h-4 w-4" />
                                 Remover
                               </DropdownMenuItem>
@@ -334,12 +393,123 @@ const AdminPartners = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </CardContent>
-            </Card>
-          </main>
-        </div>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
 
-        {/* Wizard Dialog */}
+      {/* Edit Whitelabel Modal */}
+      <Dialog open={editWhitelabelOpen} onOpenChange={setEditWhitelabelOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5 text-primary" />
+              Editar Whitelabel
+            </DialogTitle>
+            <DialogDescription>
+              Configurações visuais para {selectedPartner?.settings?.company_name || selectedPartner?.company}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-primaryColor">Cor Primária</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="edit-primaryColor"
+                  type="color"
+                  className="w-14 h-10 p-1 cursor-pointer"
+                  value={whitelabelForm.primaryColor}
+                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, primaryColor: e.target.value })}
+                />
+                <Input
+                  value={whitelabelForm.primaryColor}
+                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, primaryColor: e.target.value })}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-secondaryColor">Cor Secundária</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="edit-secondaryColor"
+                  type="color"
+                  className="w-14 h-10 p-1 cursor-pointer"
+                  value={whitelabelForm.secondaryColor}
+                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, secondaryColor: e.target.value })}
+                />
+                <Input
+                  value={whitelabelForm.secondaryColor}
+                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, secondaryColor: e.target.value })}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-customDomain" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Domínio Personalizado
+              </Label>
+              <Input
+                id="edit-customDomain"
+                placeholder="parceiro.legacy.app"
+                value={whitelabelForm.customDomain}
+                onChange={(e) => setWhitelabelForm({ ...whitelabelForm, customDomain: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-commission" className="flex items-center gap-2">
+                <Percent className="h-4 w-4" />
+                Comissão (%)
+              </Label>
+              <Input
+                id="edit-commission"
+                type="number"
+                min="0"
+                max="100"
+                value={whitelabelForm.commission}
+                onChange={(e) => setWhitelabelForm({ ...whitelabelForm, commission: Number(e.target.value) })}
+              />
+            </div>
+
+            {/* Preview */}
+            <div className="p-4 rounded-lg border bg-muted/30">
+              <p className="text-sm font-medium mb-3">Preview</p>
+              <div className="flex gap-4">
+                <div 
+                  className="w-16 h-16 rounded-lg shadow-sm flex items-center justify-center text-white text-xs"
+                  style={{ backgroundColor: whitelabelForm.primaryColor }}
+                >
+                  Primária
+                </div>
+                <div 
+                  className="w-16 h-16 rounded-lg shadow-sm flex items-center justify-center text-white text-xs"
+                  style={{ backgroundColor: whitelabelForm.secondaryColor }}
+                >
+                  Secundária
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditWhitelabelOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveWhitelabel} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Wizard Dialog */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -704,9 +874,14 @@ const AdminPartners = () => {
               ) : (
                 <Button
                   onClick={handleActivatePartner}
+                  disabled={saving}
                   className="gap-2 bg-emerald-600 hover:bg-emerald-700"
                 >
-                  <CheckCircle className="h-4 w-4" />
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
                   Ativar Parceiro e Enviar Convite
                 </Button>
               )}
