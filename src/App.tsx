@@ -28,7 +28,7 @@ import Benchmarking from "./pages/Benchmarking";
 import Insights from "./pages/Insights";
 import Monitoring from "./pages/Monitoring";
 import DadosESG from "./pages/DadosESG";
-import GovernanceAssistant from "./components/GovernanceAssistant";
+
 import PeopleDevelopment from "./pages/PeopleDevelopment";
 import Subsystems from "./pages/Subsystems";
 import Legacy from "./pages/Legacy";
@@ -104,37 +104,6 @@ import ParceirosLanding from "./pages/ParceirosLanding";
 
 const queryClient = new QueryClient();
 
-// Wrapper condicional para mostrar o Guia apenas em páginas logadas
-const ConditionalAssistant = () => {
-  const location = useLocation();
-  
-  const publicRoutes = [
-    '/',
-    '/login',
-    '/empresas',
-    '/parceiros',
-    '/investors',
-    '/diagnostic-quiz',
-    '/standalone-quiz',
-    '/plan-discovery',
-    '/generate-company-token',
-    '/generate-admin-token',
-    '/generate-partner-token'
-  ];
-  
-  const publicPatterns = [
-    '/guest-access/',
-    '/task-access/',
-    '/ata-approval/'
-  ];
-  
-  const isPublicRoute = publicRoutes.includes(location.pathname) ||
-    publicPatterns.some(pattern => location.pathname.startsWith(pattern));
-  
-  if (isPublicRoute) return null;
-  
-  return <GovernanceAssistant />;
-};
 
 const BancaLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex h-screen">
@@ -809,7 +778,7 @@ const App = () => (
             </Routes>
           </main>
         </div>
-        <ConditionalAssistant />
+        
       </BrowserRouter>
       </OrganizationProvider>
     </AuthProvider>
