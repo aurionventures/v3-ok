@@ -36,6 +36,8 @@ const formatCurrency = (value: number) => {
 };
 
 const AdminPlansComparison = () => {
+  // Hook de configuração de planos
+  const planConfig = usePlanConfiguration();
   const {
     sizeConfigs,
     addonPrices,
@@ -52,7 +54,7 @@ const AdminPlansComparison = () => {
     updateFullPackage,
     saveChanges,
     resetToDefaults
-  } = usePlanConfiguration();
+  } = planConfig;
 
   // Estado para edição de linha completa (preços)
   const [editingRow, setEditingRow] = useState<CompanySize | null>(null);
