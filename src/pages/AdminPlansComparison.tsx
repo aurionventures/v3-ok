@@ -37,13 +37,14 @@ const formatCurrency = (value: number) => {
 
 const AdminPlansComparison = () => {
   const {
-    prices,
+    sizeConfigs,
     addonPrices,
     modulesBySize,
     fullPackage,
     isLoading,
     hasChanges,
-    updatePrice,
+    updateSizeConfig,
+    getSizeConfig,
     updateAddonPrice,
     updateAddonDetails,
     toggleModule,
@@ -53,8 +54,10 @@ const AdminPlansComparison = () => {
     resetToDefaults
   } = usePlanConfiguration();
 
-  // Estado para edição de preços
-  const [editingPrice, setEditingPrice] = useState<CompanySize | null>(null);
+  // Estado para edição de linha completa (preços)
+  const [editingRow, setEditingRow] = useState<CompanySize | null>(null);
+  const [tempLabel, setTempLabel] = useState<string>('');
+  const [tempDescription, setTempDescription] = useState<string>('');
   const [tempPrice, setTempPrice] = useState<string>('');
 
   // Estado para edição de add-on
@@ -74,20 +77,30 @@ const AdminPlansComparison = () => {
     }))
   );
 
-  // Iniciar edição de preço
-  const startEditingPrice = (size: CompanySize) => {
-    setEditingPrice(size);
-    setTempPrice(prices[size].toString());
+  // Iniciar edição de linha completa
+  const startEditingRow = (size: CompanySize) => {
+    const config = getSizeConfig(size);
+    if (config) {
+      setEditingRow(size);
+      setTempLabel(config.label);
+      setTempDescription(config.description);
+      setTempPrice(config.price.toString());
+    }
   };
 
-  // Salvar preço editado
-  const saveEditedPrice = () => {
-    if (editingPrice) {
-      const value = parseInt(tempPrice.replace(/\D/g, ''), 10) || 0;
-      updatePrice(editingPrice, value);
-      setEditingPrice(null);
-      toast.success(`Preço de ${COMPANY_SIZE_LABELS[editingPrice]} atualizado`);
+  // Salvar linha editada
+  const saveEditedRow = () => {
+    if (editingRow) {
+      const price = parseInt(tempPrice.replace(/\D/g, ''), 10) || 0;
+      updateSizeConfig(editingRow, tempLabel, tempDescription, price);
+      setEditingRow(null);
+      toast.success(`Configuração de ${tempLabel} atualizada`);
     }
+  };
+
+  // Cancelar edição
+  const cancelEditingRow = () => {
+    setEditingRow(null);
   };
 
   // Iniciar edição de add-on
@@ -195,41 +208,57 @@ const AdminPlansComparison = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {SIZE_ORDER.map(size => (
-                            <TableRow key={size}>
+                          {sizeConfigs.map(config => (
+                            <TableRow key={config.key}>
                               <TableCell className="font-medium">
-                                {COMPANY_SIZE_LABELS[size]}
+                                {editingRow === config.key ? (
+                                  <Input
+                                    value={tempLabel}
+                                    onChange={(e) => setTempLabel(e.target.value)}
+                                    className="w-full"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  config.label
+                                )}
                               </TableCell>
                               <TableCell className="text-muted-foreground text-sm">
-                                {modulesBySize[size].length} módulos incluídos
+                                {editingRow === config.key ? (
+                                  <Input
+                                    value={tempDescription}
+                                    onChange={(e) => setTempDescription(e.target.value)}
+                                    className="w-full"
+                                  />
+                                ) : (
+                                  config.description
+                                )}
                               </TableCell>
                               <TableCell className="text-right">
-                                {editingPrice === size ? (
+                                {editingRow === config.key ? (
                                   <Input
                                     value={tempPrice}
                                     onChange={(e) => setTempPrice(e.target.value)}
                                     className="w-32 text-right ml-auto"
-                                    autoFocus
-                                    onKeyDown={(e) => e.key === 'Enter' && saveEditedPrice()}
+                                    onKeyDown={(e) => e.key === 'Enter' && saveEditedRow()}
                                   />
                                 ) : (
                                   <Badge variant="secondary" className="font-mono text-base">
-                                    {formatCurrency(prices[size])}
+                                    {formatCurrency(config.price)}
                                   </Badge>
                                 )}
                               </TableCell>
                               <TableCell>
-                                {editingPrice === size ? (
+                                {editingRow === config.key ? (
                                   <div className="flex gap-1">
-                                    <Button size="sm" variant="ghost" onClick={saveEditedPrice}>
+                                    <Button size="sm" variant="ghost" onClick={saveEditedRow}>
                                       <Check className="h-4 w-4 text-green-500" />
                                     </Button>
-                                    <Button size="sm" variant="ghost" onClick={() => setEditingPrice(null)}>
+                                    <Button size="sm" variant="ghost" onClick={cancelEditingRow}>
                                       <X className="h-4 w-4 text-red-500" />
                                     </Button>
                                   </div>
                                 ) : (
-                                  <Button size="sm" variant="ghost" onClick={() => startEditingPrice(size)}>
+                                  <Button size="sm" variant="ghost" onClick={() => startEditingRow(config.key)}>
                                     <Pencil className="h-4 w-4" />
                                   </Button>
                                 )}
