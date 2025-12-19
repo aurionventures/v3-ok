@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Settings, Building, DollarSign, Rocket, Building2, Globe, TrendingUp, Crown, Sparkles, Leaf, Check, Lock, Sliders } from "lucide-react";
+import { LayoutDashboard, Building, DollarSign, Rocket, Building2, Globe, TrendingUp, Crown, Sparkles, Leaf, Check, Lock, Handshake, FileText, Shield, ScrollText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
@@ -50,13 +50,15 @@ export function AppSidebar() {
   
   const isAdminRoute = pathname.startsWith("/admin");
   
-  // Admin menu items
+  // Admin menu items - reorganized structure
   const adminMenuItems = [
     { icon: LayoutDashboard, href: "/admin", name: "Dashboard" },
-    { icon: Building, href: "/admin/companies", name: "Empresas" },
-    { icon: DollarSign, href: "/admin/finances", name: "Finanças" },
-    { icon: Sliders, href: "/admin/plan-configurator", name: "Configurar Planos" },
-    { icon: Settings, href: "/admin/settings", name: "Configurações" }
+    { icon: Building2, href: "/admin/clientes", name: "Gestão de Empresas" },
+    { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
+    { icon: FileText, href: "/admin/plans-comparison", name: "Configuração de Planos" },
+    { icon: Shield, href: "/admin/seguranca", name: "Segurança" },
+    { icon: ScrollText, href: "/admin/auditoria", name: "Auditoria" },
+    { icon: DollarSign, href: "/admin/finances", name: "Finanças" }
   ];
   
   const SizeIcon = organization ? SIZE_ICONS[organization.companySize] : Building2;
@@ -186,7 +188,7 @@ export function AppSidebar() {
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
                         asChild
-                        isActive={pathname === item.href || (item.href === "/admin/companies" && pathname.startsWith("/admin/companies"))}
+                        isActive={pathname === item.href || (item.href === "/admin/clientes" && pathname.startsWith("/admin/clientes"))}
                       >
                         <Link to={item.href}>
                           <item.icon className="h-5 w-5" />
