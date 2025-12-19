@@ -131,15 +131,9 @@ export function AppSidebar() {
   };
 
   // Renderiza uma seção do sidebar
-  const renderSection = (section: SidebarSection) => {
+  const renderSection = (section: SidebarSection, showLocked: boolean = false) => {
     const sectionItems = section.items;
     if (sectionItems.length === 0) return null;
-    
-    // Para seções addon, verificar se pelo menos um item está habilitado
-    if (section.isAddon) {
-      const hasAnyAccess = sectionItems.some(item => hasAccess(item.key));
-      if (!hasAnyAccess) return null;
-    }
     
     return (
       <SidebarGroup key={section.key}>
@@ -166,11 +160,6 @@ export function AppSidebar() {
   };
 
   const baseSectionsWithAddons = getSectionsWithDynamicAddons();
-  
-  // Filtrar seções addon que têm itens habilitados
-  const visibleAddonSections = ADDON_SECTIONS.filter(section => 
-    section.items.some(item => hasAccess(item.key))
-  );
 
   return (
     <>
@@ -214,21 +203,19 @@ export function AppSidebar() {
               {/* Seções BASE */}
               {baseSectionsWithAddons.map(section => renderSection(section))}
               
-              {/* Separador ADD-ONS (apenas se houver seções addon visíveis) */}
-              {visibleAddonSections.length > 0 && (
-                <div className="px-3 py-2 mt-4 mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-px bg-sidebar-border" />
-                    <span className="text-xs text-amber-500 font-semibold tracking-wider">
-                      ADD-ONS
-                    </span>
-                    <div className="flex-1 h-px bg-sidebar-border" />
-                  </div>
+              {/* Separador ADD-ONS - sempre visível */}
+              <div className="px-3 py-2 mt-4 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-px bg-sidebar-border" />
+                  <span className="text-xs text-amber-500 font-semibold tracking-wider">
+                    ADD-ONS
+                  </span>
+                  <div className="flex-1 h-px bg-sidebar-border" />
                 </div>
-              )}
+              </div>
               
-              {/* Seções ADD-ON */}
-              {visibleAddonSections.map(section => renderSection(section))}
+              {/* Seções ADD-ON - todas visíveis (bloqueadas ou não) */}
+              {ADDON_SECTIONS.map(section => renderSection(section, true))}
               
               {/* Itens Fixos */}
               <SidebarGroup className="mt-auto border-t border-sidebar-border pt-2">
