@@ -38,7 +38,9 @@ import {
   TrendingUp,
   Briefcase,
   Lightbulb,
-  UserPlus
+  UserPlus,
+  Handshake,
+  ScrollText
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -65,7 +67,7 @@ const Sidebar = () => {
     }
   }, [pathname, isMobile]);
   
-  // Admin menu items
+  // Admin menu items - Nova estrutura reorganizada
   const adminMenuItems = [
     {
       icon: <LayoutDashboard className="h-5 w-5" />,
@@ -73,19 +75,19 @@ const Sidebar = () => {
       name: "Dashboard"
     },
     {
-      icon: <UserPlus className="h-5 w-5" />,
+      icon: <Building2 className="h-5 w-5" />,
       href: "/admin/clientes",
-      name: "Gestão de Clientes"
+      name: "Gestão de Empresas"
     },
     {
-      icon: <Building className="h-5 w-5" />,
-      href: "/admin/companies",
-      name: "Empresas"
+      icon: <Handshake className="h-5 w-5" />,
+      href: "/admin/parceiros",
+      name: "Parceiros"
     },
     {
-      icon: <BarChart3 className="h-5 w-5" />,
+      icon: <FileText className="h-5 w-5" />,
       href: "/admin/plans-comparison",
-      name: "Comparativo de Planos"
+      name: "Configuração de Planos"
     },
     {
       icon: <Shield className="h-5 w-5" />,
@@ -93,7 +95,7 @@ const Sidebar = () => {
       name: "Segurança"
     },
     {
-      icon: <FileText className="h-5 w-5" />,
+      icon: <ScrollText className="h-5 w-5" />,
       href: "/admin/auditoria",
       name: "Auditoria"
     },
@@ -101,11 +103,6 @@ const Sidebar = () => {
       icon: <DollarSign className="h-5 w-5" />,
       href: "/admin/finances",
       name: "Finanças"
-    },
-    {
-      icon: <Settings className="h-5 w-5" />,
-      href: "/admin/settings",
-      name: "Configurações"
     }
   ];
 
@@ -378,24 +375,26 @@ const Sidebar = () => {
         </div>
       </div>
       
-      {/* Configurações no rodapé */}
-      <div className="border-t border-legacy-600 p-3">
-        <Link 
-          to="/settings" 
-          className={cn(
-            "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
-            pathname === "/settings"
-              ? "bg-accent text-accent-foreground" 
-              : "text-white hover:bg-legacy-600"
-          )}
-          title={!open ? "Configurações" : undefined}
-        >
-          <div className="h-4 w-4 flex items-center justify-center">
-            <Settings className="h-5 w-5" />
-          </div>
-          {open && <span className="ml-2">Configurações</span>}
-        </Link>
-      </div>
+      {/* Configurações no rodapé - apenas para rotas não-admin */}
+      {!isAdminRoute && (
+        <div className="border-t border-legacy-600 p-3">
+          <Link 
+            to="/settings" 
+            className={cn(
+              "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
+              pathname === "/settings"
+                ? "bg-accent text-accent-foreground" 
+                : "text-white hover:bg-legacy-600"
+            )}
+            title={!open ? "Configurações" : undefined}
+          >
+            <div className="h-4 w-4 flex items-center justify-center">
+              <Settings className="h-5 w-5" />
+            </div>
+            {open && <span className="ml-2">Configurações</span>}
+          </Link>
+        </div>
+      )}
       
       <Button variant="outline" size="icon" onClick={toggleSidebar} className="m-2">
         {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
