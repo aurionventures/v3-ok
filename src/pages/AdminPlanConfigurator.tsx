@@ -21,9 +21,9 @@ import {
   getModulesWithAddons
 } from "@/utils/moduleMatrix";
 import { BASE_SECTIONS, ADDON_SECTIONS, FIXED_ITEMS, DYNAMIC_ADDONS } from "@/data/sidebarCatalog";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 import { cn } from "@/lib/utils";
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 
 const SIZE_ICONS: Record<CompanySize, typeof Rocket> = {
   startup: Rocket,
@@ -109,14 +109,25 @@ export default function AdminPlanConfigurator() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="flex h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header title="Configurador de Planos" />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="flex h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header title="Configurador de Planos" />
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Configurador de Planos</h1>
@@ -424,6 +435,9 @@ export default function AdminPlanConfigurator() {
           </div>
         </div>
       )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
