@@ -37,7 +37,8 @@ import {
   Send, 
   TrendingUp,
   Briefcase,
-  Lightbulb
+  Lightbulb,
+  UserPlus
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,11 @@ const Sidebar = () => {
       icon: <LayoutDashboard className="h-5 w-5" />,
       href: "/admin",
       name: "Dashboard"
+    },
+    {
+      icon: <UserPlus className="h-5 w-5" />,
+      href: "/admin/clientes",
+      name: "Gestão de Clientes"
     },
     {
       icon: <Building className="h-5 w-5" />,
