@@ -3,12 +3,11 @@ import { CompanySize } from '@/types/organization';
 import { toast } from 'sonner';
 
 // Tipos para a configuração
-export interface PlanPrices {
-  startup: number;
-  small: number;
-  medium: number;
-  large: number;
-  listed: number;
+export interface PlanSizeConfig {
+  key: CompanySize;
+  label: string;
+  description: string;
+  price: number;
 }
 
 export interface AddonPrice {
@@ -32,20 +31,20 @@ export interface FullPackage {
 }
 
 export interface PlanConfiguration {
-  prices: PlanPrices;
+  sizeConfigs: PlanSizeConfig[];
   addonPrices: AddonPrice[];
   modulesBySize: ModulesBySize;
   fullPackage: FullPackage;
 }
 
 // Valores padrão (hardcoded - podem ser movidos para banco depois)
-const DEFAULT_PRICES: PlanPrices = {
-  startup: 3990,
-  small: 5990,
-  medium: 12900,
-  large: 29900,
-  listed: 69990
-};
+const DEFAULT_SIZE_CONFIGS: PlanSizeConfig[] = [
+  { key: 'startup', label: 'Startup', description: '14 módulos incluídos', price: 3990 },
+  { key: 'small', label: 'Pequena Empresa', description: '14 módulos incluídos', price: 5990 },
+  { key: 'medium', label: 'Média Empresa', description: '15 módulos incluídos', price: 12900 },
+  { key: 'large', label: 'Grande Empresa', description: '18 módulos incluídos', price: 29900 },
+  { key: 'listed', label: 'Empresa Listada', description: '21 módulos incluídos', price: 69990 },
+];
 
 const DEFAULT_ADDONS: AddonPrice[] = [
   { key: 'ai_agents', label: 'Agentes de IA', description: 'Automação de processos com IA', price: 2990 },
@@ -76,18 +75,32 @@ const DEFAULT_FULL_PACKAGE: FullPackage = {
 };
 
 export function usePlanConfiguration() {
-  const [prices, setPrices] = useState<PlanPrices>(DEFAULT_PRICES);
+  const [sizeConfigs, setSizeConfigs] = useState<PlanSizeConfig[]>(DEFAULT_SIZE_CONFIGS);
   const [addonPrices, setAddonPrices] = useState<AddonPrice[]>(DEFAULT_ADDONS);
   const [modulesBySize, setModulesBySize] = useState<ModulesBySize>(DEFAULT_MODULES_BY_SIZE);
   const [fullPackage, setFullPackage] = useState<FullPackage>(DEFAULT_FULL_PACKAGE);
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Atualizar preço de um porte
-  const updatePrice = useCallback((size: CompanySize, value: number) => {
-    setPrices(prev => ({ ...prev, [size]: value }));
+  // Atualizar configuração completa de um porte
+  const updateSizeConfig = useCallback((
+    size: CompanySize, 
+    label: string, 
+    description: string, 
+    price: number
+  ) => {
+    setSizeConfigs(prev => prev.map(config => 
+      config.key === size 
+        ? { ...config, label, description, price }
+        : config
+    ));
     setHasChanges(true);
   }, []);
+
+  // Obter configuração de um porte específico
+  const getSizeConfig = useCallback((size: CompanySize): PlanSizeConfig | undefined => {
+    return sizeConfigs.find(config => config.key === size);
+  }, [sizeConfigs]);
 
   // Atualizar preço de add-on
   const updateAddonPrice = useCallback((key: string, value: number) => {
@@ -150,11 +163,11 @@ export function usePlanConfiguration() {
     } finally {
       setIsLoading(false);
     }
-  }, [prices, addonPrices, modulesBySize, fullPackage]);
+  }, [sizeConfigs, addonPrices, modulesBySize, fullPackage]);
 
   // Restaurar para padrões
   const resetToDefaults = useCallback(() => {
-    setPrices(DEFAULT_PRICES);
+    setSizeConfigs(DEFAULT_SIZE_CONFIGS);
     setAddonPrices(DEFAULT_ADDONS);
     setModulesBySize(DEFAULT_MODULES_BY_SIZE);
     setFullPackage(DEFAULT_FULL_PACKAGE);
@@ -164,7 +177,7 @@ export function usePlanConfiguration() {
 
   return {
     // Estado
-    prices,
+    sizeConfigs,
     addonPrices,
     modulesBySize,
     fullPackage,
@@ -172,7 +185,8 @@ export function usePlanConfiguration() {
     hasChanges,
     
     // Ações
-    updatePrice,
+    updateSizeConfig,
+    getSizeConfig,
     updateAddonPrice,
     updateAddonDetails,
     toggleModule,
