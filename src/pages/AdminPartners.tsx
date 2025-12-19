@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { TopMenu } from "@/components/TopMenu";
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -190,12 +189,11 @@ const AdminPartners = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col">
-          <TopMenu />
-          <main className="flex-1 p-6 space-y-6">
+    <div className="min-h-screen flex w-full bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header title="Gestão de Parceiros" />
+        <main className="flex-1 p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -340,9 +338,8 @@ const AdminPartners = () => {
             </Card>
           </main>
         </div>
-      </div>
 
-      {/* Wizard Dialog */}
+        {/* Wizard Dialog */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -717,7 +714,7 @@ const AdminPartners = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
+    </div>
   );
 };
 
