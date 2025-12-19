@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { CompanySize, ModuleKey } from '@/types/organization';
+import type { CompanySize } from '@/types/organization';
 
 export interface ClientPlanConfig {
   id: string;
@@ -15,6 +14,16 @@ export interface ClientPlanConfig {
   updated_at: string;
 }
 
+export interface DemoClient {
+  id: string;
+  name: string;
+  email: string;
+  company: string | null;
+  sector: string | null;
+  phone: string | null;
+  created_at: string;
+}
+
 export interface ClientWithPlan {
   id: string;
   name: string;
@@ -26,15 +35,96 @@ export interface ClientWithPlan {
   plan_config: ClientPlanConfig | null;
 }
 
-// Storage key for localStorage fallback
+// Storage keys for localStorage
+const DEMO_CLIENTS_KEY = 'demo_clients';
 const PLAN_CONFIGS_KEY = 'client_plan_configs';
+
+// Initial demo clients
+const INITIAL_DEMO_CLIENTS: DemoClient[] = [
+  {
+    id: 'demo-client-001',
+    name: 'Carlos Mendes',
+    email: 'carlos@techcorp.com.br',
+    company: 'TechCorp Brasil',
+    sector: 'Tecnologia',
+    phone: '(11) 99999-1111',
+    created_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: 'demo-client-002',
+    name: 'Ana Paula Silva',
+    email: 'ana@industriasprogresso.com.br',
+    company: 'Indústrias Progresso',
+    sector: 'Indústria',
+    phone: '(11) 99999-2222',
+    created_at: '2024-02-20T14:30:00Z'
+  },
+  {
+    id: 'demo-client-003',
+    name: 'Roberto Fernandes',
+    email: 'roberto@gruposilva.com.br',
+    company: 'Grupo Familiar Silva',
+    sector: 'Holding Familiar',
+    phone: '(11) 99999-3333',
+    created_at: '2024-03-10T09:15:00Z'
+  }
+];
+
+// Initial demo plan configs
+const INITIAL_PLAN_CONFIGS: Record<string, ClientPlanConfig> = {
+  'demo-client-001': {
+    id: 'plan-001',
+    user_id: 'demo-client-001',
+    company_size: 'media' as CompanySize,
+    enabled_addons: ['esg', 'riscos'],
+    total_price: 2990,
+    status: 'active',
+    activated_at: '2024-01-20T10:00:00Z',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-20T10:00:00Z'
+  },
+  'demo-client-002': {
+    id: 'plan-002',
+    user_id: 'demo-client-002',
+    company_size: 'grande' as CompanySize,
+    enabled_addons: ['conselhos', 'sucessao'],
+    total_price: 4990,
+    status: 'pending',
+    activated_at: null,
+    created_at: '2024-02-20T14:30:00Z',
+    updated_at: '2024-02-20T14:30:00Z'
+  }
+};
+
+function getDemoClients(): DemoClient[] {
+  try {
+    const stored = localStorage.getItem(DEMO_CLIENTS_KEY);
+    if (!stored) {
+      // Initialize with demo data
+      localStorage.setItem(DEMO_CLIENTS_KEY, JSON.stringify(INITIAL_DEMO_CLIENTS));
+      return INITIAL_DEMO_CLIENTS;
+    }
+    return JSON.parse(stored);
+  } catch {
+    return INITIAL_DEMO_CLIENTS;
+  }
+}
+
+function saveDemoClients(clients: DemoClient[]) {
+  localStorage.setItem(DEMO_CLIENTS_KEY, JSON.stringify(clients));
+}
 
 function getStoredConfigs(): Record<string, ClientPlanConfig> {
   try {
     const stored = localStorage.getItem(PLAN_CONFIGS_KEY);
-    return stored ? JSON.parse(stored) : {};
+    if (!stored) {
+      // Initialize with demo data
+      localStorage.setItem(PLAN_CONFIGS_KEY, JSON.stringify(INITIAL_PLAN_CONFIGS));
+      return INITIAL_PLAN_CONFIGS;
+    }
+    return JSON.parse(stored);
   } catch {
-    return {};
+    return INITIAL_PLAN_CONFIGS;
   }
 }
 
@@ -51,36 +141,21 @@ export function useClientPlanConfig() {
     try {
       setLoading(true);
       
-      // Buscar usuários com role 'cliente'
-      const { data: usersWithRoles, error: usersError } = await supabase
-        .from('user_roles')
-        .select(`
-          user_id,
-          users!inner(id, name, email, company, sector, phone, created_at)
-        `)
-        .eq('role', 'cliente');
-
-      if (usersError) throw usersError;
-
-      // Get stored plan configs from localStorage
+      // Get demo clients from localStorage
+      const demoClients = getDemoClients();
       const storedConfigs = getStoredConfigs();
 
-      // Combinar dados
-      const clientsWithPlans: ClientWithPlan[] = (usersWithRoles || []).map((ur: any) => {
-        const user = ur.users;
-        const planConfig = storedConfigs[user.id] || null;
-        
-        return {
-          id: user.id,
-          name: user.name || 'Sem nome',
-          email: user.email,
-          company: user.company,
-          sector: user.sector,
-          phone: user.phone,
-          created_at: user.created_at,
-          plan_config: planConfig
-        };
-      });
+      // Combine clients with their plan configs
+      const clientsWithPlans: ClientWithPlan[] = demoClients.map((client) => ({
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        company: client.company,
+        sector: client.sector,
+        phone: client.phone,
+        created_at: client.created_at,
+        plan_config: storedConfigs[client.id] || null
+      }));
 
       setClients(clientsWithPlans);
       setError(null);
@@ -100,34 +175,29 @@ export function useClientPlanConfig() {
     phone?: string;
   }) => {
     try {
-      // Criar usuário
-      const { data: newUser, error: userError } = await supabase
-        .from('users')
-        .insert({
-          name: clientData.name,
-          email: clientData.email,
-          company: clientData.company,
-          sector: clientData.sector,
-          phone: clientData.phone || null
-        })
-        .select()
-        .single();
+      const demoClients = getDemoClients();
+      
+      // Check if email already exists
+      if (demoClients.some(c => c.email === clientData.email)) {
+        throw new Error('Email já cadastrado');
+      }
 
-      if (userError) throw userError;
+      const newClient: DemoClient = {
+        id: crypto.randomUUID(),
+        name: clientData.name,
+        email: clientData.email,
+        company: clientData.company,
+        sector: clientData.sector,
+        phone: clientData.phone || null,
+        created_at: new Date().toISOString()
+      };
 
-      // Criar role de cliente
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: newUser.id,
-          role: 'cliente'
-        });
-
-      if (roleError) throw roleError;
+      demoClients.push(newClient);
+      saveDemoClients(demoClients);
 
       toast.success('Cliente criado com sucesso!');
       await fetchClients();
-      return newUser;
+      return newClient;
     } catch (err: any) {
       console.error('Error creating client:', err);
       toast.error('Erro ao criar cliente: ' + err.message);
@@ -216,6 +286,27 @@ export function useClientPlanConfig() {
     }
   };
 
+  const deleteClient = async (userId: string) => {
+    try {
+      // Remove from demo clients
+      const demoClients = getDemoClients();
+      const filteredClients = demoClients.filter(c => c.id !== userId);
+      saveDemoClients(filteredClients);
+
+      // Remove plan config
+      const storedConfigs = getStoredConfigs();
+      delete storedConfigs[userId];
+      saveStoredConfigs(storedConfigs);
+
+      toast.success('Cliente removido.');
+      await fetchClients();
+    } catch (err: any) {
+      console.error('Error deleting client:', err);
+      toast.error('Erro ao remover cliente: ' + err.message);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchClients();
   }, []);
@@ -228,6 +319,7 @@ export function useClientPlanConfig() {
     createClient,
     savePlanConfig,
     activateClient,
-    suspendClient
+    suspendClient,
+    deleteClient
   };
 }
