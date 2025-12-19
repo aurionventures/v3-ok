@@ -211,21 +211,23 @@ export function useClientPlanConfig() {
       company_size: CompanySize;
       enabled_addons: string[];
       total_price: number;
+      status?: 'pending' | 'active' | 'suspended';
     }
   ) => {
     try {
       const storedConfigs = getStoredConfigs();
       const now = new Date().toISOString();
+      const existingConfig = storedConfigs[userId];
       
       const newConfig: ClientPlanConfig = {
-        id: storedConfigs[userId]?.id || crypto.randomUUID(),
+        id: existingConfig?.id || crypto.randomUUID(),
         user_id: userId,
         company_size: config.company_size,
         enabled_addons: config.enabled_addons,
         total_price: config.total_price,
-        status: 'pending',
-        activated_at: null,
-        created_at: storedConfigs[userId]?.created_at || now,
+        status: config.status || existingConfig?.status || 'pending',
+        activated_at: existingConfig?.activated_at || null,
+        created_at: existingConfig?.created_at || now,
         updated_at: now
       };
       
