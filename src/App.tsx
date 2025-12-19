@@ -40,6 +40,7 @@ import AdminAgentConfig from "./pages/AdminAgentConfig";
 import AdminPlansComparison from "./pages/AdminPlansComparison";
 import AdminPlanConfigurator from "./pages/AdminPlanConfigurator";
 import AdminClientManagement from "./pages/AdminClientManagement";
+import AdminPartners from "./pages/AdminPartners";
 import AIConfig from "./pages/AIConfig";
 import AIAgents from "./pages/AIAgents";
 import Companies from "./pages/Companies";
@@ -658,6 +659,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <AdminClientManagement />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/parceiros" 
+            element={
+              <ProtectedRoute >
+                <AdminPartners />
               </ProtectedRoute>
             } 
           />
