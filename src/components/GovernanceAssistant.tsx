@@ -14,8 +14,28 @@ interface Message {
   suggestions?: string[];
 }
 
-export const GovernanceAssistant: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface GovernanceAssistantProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const GovernanceAssistant: React.FC<GovernanceAssistantProps> = ({ 
+  isOpen: externalOpen, 
+  onOpenChange 
+}) => {
+  const isControlled = externalOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isOpen = isControlled ? externalOpen : internalOpen;
+  
+  const setIsOpen = (value: boolean) => {
+    if (isControlled && onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalOpen(value);
+    }
+  };
+  
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -109,8 +129,8 @@ export const GovernanceAssistant: React.FC = () => {
 
   return (
     <>
-      {/* Floating Button */}
-      {!isOpen && (
+      {/* Floating Button - só mostra se não for controlado externamente */}
+      {!isControlled && !isOpen && (
         <button
           onClick={toggleChat}
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-legacy-500 hover:bg-legacy-600 text-white rounded-full shadow-lg transition-all duration-300 hover:scale-105"
