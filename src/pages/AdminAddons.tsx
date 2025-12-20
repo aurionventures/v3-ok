@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,18 +223,14 @@ const AdminAddons = () => {
   const totalMRR = addons.filter(a => a.isActive).reduce((sum, a) => sum + a.price, 0);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Add-ons</h1>
-              <p className="text-muted-foreground mt-1">
-                Gerencie os add-ons disponíveis para expansão de valor
-              </p>
-            </div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header title="Add-ons" />
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto space-y-8">
+            {/* Header Actions */}
+            <div className="flex items-center justify-end">
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => handleOpenModal()}>
@@ -464,8 +461,9 @@ const AdminAddons = () => {
               </Table>
             </CardContent>
           </Card>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
