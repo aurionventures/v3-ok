@@ -33,9 +33,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import { useClientPlanConfig, ClientWithPlan } from "@/hooks/useClientPlanConfig";
-import { PLAN_PRICES, ADDON_PRICES } from "@/utils/moduleMatrix";
-import type { CompanySize } from "@/types/organization";
+import { useClientPlanConfig, ClientWithPlan, ConfigMode } from "@/hooks/useClientPlanConfig";
+import { ModuleConfigurator } from "@/components/admin/ModuleConfigurator";
+import { PLAN_PRICES, ADDON_PRICES, BASE_MODULES, ALL_ADDON_MODULES } from "@/utils/moduleMatrix";
+import type { CompanySize, ModuleKey } from "@/types/organization";
 import { cn } from "@/lib/utils";
 
 const SIZE_OPTIONS: { value: CompanySize; label: string; description: string }[] = [
@@ -77,7 +78,9 @@ export default function AdminClientManagement() {
   });
   const [createdClientId, setCreatedClientId] = useState<string | null>(null);
   
-  // Step 2: Plan config (add-ons only, size comes from step 1)
+  // Step 2: Plan config with module configurator
+  const [configMode, setConfigMode] = useState<ConfigMode>('automatic');
+  const [selectedModules, setSelectedModules] = useState<ModuleKey[]>(BASE_MODULES['startup']);
   const [enabledAddons, setEnabledAddons] = useState<string[]>([]);
   
   // Filter state for "Empresas Cadastradas" tab
@@ -93,6 +96,21 @@ export default function AdminClientManagement() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const selectedCompany = clients.find(c => c.id === selectedCompanyId);
 
+  // New price calculation with modules and mode
+  const calculateModulePrice = (size: CompanySize, modules: ModuleKey[], mode: ConfigMode) => {
+    if (mode === 'automatic') {
+      return PLAN_PRICES[size];
+    }
+    
+    const basePrice = PLAN_PRICES[size];
+    const includedInBase = BASE_MODULES[size];
+    const addonsPrice = modules
+      .filter((m) => ALL_ADDON_MODULES.includes(m) && !includedInBase.includes(m))
+      .reduce((sum, addon) => sum + (ADDON_PRICES[addon] || 0), 0);
+    return basePrice + addonsPrice;
+  };
+
+  // Legacy price calculation for edit modal (uses addons array)
   const calculateTotalPrice = (size: CompanySize, addons: string[]) => {
     const basePrice = PLAN_PRICES[size];
     const addonsPrice = addons.reduce((sum, addon) => {
@@ -113,6 +131,8 @@ export default function AdminClientManagement() {
       adminPhone: '' 
     });
     setCreatedClientId(null);
+    setConfigMode('automatic');
+    setSelectedModules(BASE_MODULES['startup']);
     setEnabledAddons([]);
   };
 
@@ -142,12 +162,17 @@ export default function AdminClientManagement() {
   const handleSavePlan = async () => {
     if (!createdClientId) return;
     
+    // Extract enabled addons from selected modules
+    const addonsFromModules = selectedModules.filter(m => ALL_ADDON_MODULES.includes(m));
+    
     setIsSubmitting(true);
     try {
       await savePlanConfig(createdClientId, {
         company_size: companyForm.companySize,
-        enabled_addons: enabledAddons,
-        total_price: calculateTotalPrice(companyForm.companySize, enabledAddons)
+        config_mode: configMode,
+        enabled_modules: selectedModules,
+        enabled_addons: addonsFromModules,
+        total_price: calculateModulePrice(companyForm.companySize, selectedModules, configMode)
       });
       setCurrentStep(3);
     } catch (error) {
@@ -486,7 +511,7 @@ export default function AdminClientManagement() {
                       </div>
                     )}
 
-                    {/* Step 2: Configurar Plano */}
+                    {/* Step 2: Configurar Plano com ModuleConfigurator */}
                     {currentStep === 2 && (
                       <div className="space-y-6">
                         {/* Resumo do porte selecionado */}
@@ -509,59 +534,16 @@ export default function AdminClientManagement() {
                           </CardContent>
                         </Card>
 
-                        {/* Add-ons */}
-                        <div className="space-y-3">
-                          <Label className="text-base font-semibold">Módulos Adicionais (Add-ons)</Label>
-                          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            {ADDON_OPTIONS.map(addon => (
-                              <div
-                                key={addon.key}
-                                className={cn(
-                                  "p-4 rounded-lg border transition-all",
-                                  enabledAddons.includes(addon.key)
-                                    ? "border-primary bg-primary/5"
-                                    : "border-border"
-                                )}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <div className="font-medium text-sm">{addon.label}</div>
-                                    <div className="text-xs text-muted-foreground mt-0.5">{addon.description}</div>
-                                    <div className="text-sm font-semibold text-primary mt-2">
-                                      +R$ {(ADDON_PRICES[addon.key] || 0).toLocaleString('pt-BR')}/mês
-                                    </div>
-                                  </div>
-                                  <Switch
-                                    checked={enabledAddons.includes(addon.key)}
-                                    onCheckedChange={() => toggleAddon(addon.key)}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        {/* Module Configurator */}
+                        <ModuleConfigurator
+                          companySize={companyForm.companySize}
+                          mode={configMode}
+                          onModeChange={setConfigMode}
+                          selectedModules={selectedModules}
+                          onModulesChange={setSelectedModules}
+                        />
 
-                        {/* Resumo de preço */}
-                        <Card className="bg-muted/50">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="text-sm text-muted-foreground">Total mensal</div>
-                                <div className="text-2xl font-bold text-primary">
-                                  R$ {calculateTotalPrice(companyForm.companySize, enabledAddons).toLocaleString('pt-BR')}
-                                </div>
-                              </div>
-                              <div className="text-right text-sm text-muted-foreground">
-                                <div>Base: R$ {PLAN_PRICES[companyForm.companySize].toLocaleString('pt-BR')}</div>
-                                {enabledAddons.length > 0 && (
-                                  <div>+ {enabledAddons.length} add-on(s)</div>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <div className="flex justify-between pt-4">
+                        <div className="flex justify-between pt-4 border-t">
                           <Button variant="outline" onClick={() => setCurrentStep(1)} className="gap-2">
                             <ArrowLeft className="h-4 w-4" />
                             Voltar
@@ -666,25 +648,20 @@ export default function AdminClientManagement() {
                                 R$ {PLAN_PRICES[companyForm.companySize].toLocaleString('pt-BR')}/mês
                               </span>
                             </div>
-                            {enabledAddons.length > 0 && (
+                            {selectedModules.filter(m => ALL_ADDON_MODULES.includes(m)).length > 0 && (
                               <div className="pt-2 border-t">
-                                <span className="text-muted-foreground">Add-ons:</span>
-                                <div className="mt-1 space-y-1">
-                                  {enabledAddons.map(addon => (
-                                    <div key={addon} className="flex justify-between pl-2">
-                                      <span>{ADDON_OPTIONS.find(a => a.key === addon)?.label}</span>
-                                      <span className="text-primary">
-                                        +R$ {(ADDON_PRICES[addon] || 0).toLocaleString('pt-BR')}/mês
-                                      </span>
-                                    </div>
-                                  ))}
+                                <span className="text-muted-foreground">Módulos selecionados:</span>
+                                <div className="mt-1">
+                                  <Badge variant="outline">
+                                    {selectedModules.length} módulos ({configMode === 'automatic' ? 'Automático' : 'Manual'})
+                                  </Badge>
                                 </div>
                               </div>
                             )}
                             <div className="pt-2 border-t flex justify-between font-bold">
                               <span>Total:</span>
                               <span className="text-primary">
-                                R$ {calculateTotalPrice(companyForm.companySize, enabledAddons).toLocaleString('pt-BR')}/mês
+                                R$ {calculateModulePrice(companyForm.companySize, selectedModules, configMode).toLocaleString('pt-BR')}/mês
                               </span>
                             </div>
                           </CardContent>
