@@ -476,19 +476,6 @@ export default function AdminClientManagement() {
                               </div>
                             </div>
 
-                            <Card className="bg-muted/30 mt-6">
-                              <CardContent className="p-4">
-                                <div className="flex items-start gap-3">
-                                  <FileText className="h-5 w-5 text-primary mt-0.5" />
-                                  <div className="text-sm">
-                                    <p className="font-medium">Convite automático</p>
-                                    <p className="text-muted-foreground mt-1">
-                                      Ao ativar a empresa, um convite será enviado para o email do administrador com instruções de acesso.
-                                    </p>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
                           </div>
                         </div>
                         
