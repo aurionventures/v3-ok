@@ -317,13 +317,13 @@ const Sidebar = () => {
         <div className="px-3 py-1">
           {isAdminRoute ? (
             // Admin menu (simple list)
-            <div className="space-y-1">
+            <div className="space-y-2">
               {adminMenuItems.map(item => (
                 <Link 
                   key={item.href} 
                   to={item.href} 
                   className={cn(
-                    "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
+                    "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors", 
                     pathname === item.href || (item.href === "/admin/companies" && pathname.startsWith("/admin/companies"))
                       ? "bg-accent text-accent-foreground" 
                       : "text-white hover:bg-legacy-600"
