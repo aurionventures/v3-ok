@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -200,19 +201,13 @@ const AdminSales = () => {
     .reduce((sum, a) => sum + a.mrr, 0);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Vendas & Ativações</h1>
-            <p className="text-muted-foreground mt-1">
-              Acompanhe ativações, conversões e métricas comerciais
-            </p>
-          </div>
-
-          {/* Metrics */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header title="Vendas & Ativações" />
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-7xl mx-auto space-y-8">
+            {/* Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <Card>
               <CardHeader className="pb-2">
@@ -411,8 +406,9 @@ const AdminSales = () => {
               </Table>
             </CardContent>
           </Card>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
