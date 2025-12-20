@@ -272,37 +272,6 @@ const AdminPlansComparison = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Pacote Full */}
-                  <Card className="border-primary/30 bg-primary/5">
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Layers className="h-5 w-5 text-primary" />
-                        Pacote Full (Todos os Add-ons)
-                      </CardTitle>
-                      <CardDescription>
-                        Valor promocional quando o cliente contrata todos os add-ons juntos
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-6">
-                        <div>
-                          <Label className="text-sm text-muted-foreground">Valor Original</Label>
-                          <p className="text-lg font-mono line-through text-muted-foreground">
-                            {formatCurrency(fullPackage.originalPrice)}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm text-muted-foreground">Valor com Desconto</Label>
-                          <p className="text-2xl font-bold text-primary font-mono">
-                            {formatCurrency(fullPackage.discountedPrice)}
-                          </p>
-                        </div>
-                        <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
-                          Economia de {formatCurrency(fullPackage.originalPrice - fullPackage.discountedPrice)}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </TabsContent>
 
                 {/* Tab: Módulos por Porte */}
