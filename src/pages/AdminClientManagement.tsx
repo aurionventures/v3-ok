@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Building2, Settings2, CheckCircle, ArrowRight, ArrowLeft, Mail, Phone, Briefcase, User, Check, Loader2, MoreVertical, Edit, Power, PowerOff, FileText, Hash, Users, Search } from "lucide-react";
+import { Building2, Settings2, CheckCircle, ArrowRight, ArrowLeft, Mail, Phone, Briefcase, User, Check, Loader2, MoreVertical, Edit, Power, PowerOff, FileText, Hash, Users, Search, Calendar, DollarSign, TrendingUp, Globe, Handshake, Eye, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useClientPlanConfig, ClientWithPlan, ConfigMode } from "@/hooks/useClientPlanConfig";
@@ -18,6 +19,11 @@ import { ModuleConfigurator } from "@/components/admin/ModuleConfigurator";
 import { PLAN_PRICES, ADDON_PRICES, BASE_MODULES, ALL_ADDON_MODULES } from "@/utils/moduleMatrix";
 import type { CompanySize, ModuleKey } from "@/types/organization";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+// Tipos de origem
+type CompanyOrigin = 'landing' | 'direct' | 'partner';
 const SIZE_OPTIONS: {
   value: CompanySize;
   label: string;
@@ -97,9 +103,15 @@ export default function AdminClientManagement() {
     companySize: 'startup' as CompanySize,
     adminName: '',
     adminEmail: '',
-    adminPhone: ''
+    adminPhone: '',
+    origin: 'direct' as CompanyOrigin
   });
   const [createdClientId, setCreatedClientId] = useState<string | null>(null);
+  
+  // Step 4: Activation settings
+  const [isTrial, setIsTrial] = useState(false);
+  const [trialDays, setTrialDays] = useState(14);
+  const [commercialNotes, setCommercialNotes] = useState('');
 
   // Step 2: Plan config with module configurator
   const [configMode, setConfigMode] = useState<ConfigMode>('automatic');
@@ -166,12 +178,41 @@ export default function AdminClientManagement() {
       companySize: 'startup',
       adminName: '',
       adminEmail: '',
-      adminPhone: ''
+      adminPhone: '',
+      origin: 'direct'
     });
     setCreatedClientId(null);
     setConfigMode('automatic');
     setSelectedModules(BASE_MODULES['startup']);
     setEnabledAddons([]);
+    setIsTrial(false);
+    setTrialDays(14);
+    setCommercialNotes('');
+  };
+  
+  // Helper functions para badges
+  const getOriginBadge = (origin: CompanyOrigin | string | undefined) => {
+    switch (origin) {
+      case 'landing':
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Landing</Badge>;
+      case 'partner':
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">Parceiro</Badge>;
+      case 'direct':
+      default:
+        return <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">Venda Direta</Badge>;
+    }
+  };
+  
+  const getSizeBadge = (size: CompanySize | undefined) => {
+    const sizeColors: Record<CompanySize, string> = {
+      startup: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+      small: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+      medium: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+      large: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+      listed: 'bg-pink-500/20 text-pink-400 border-pink-500/30'
+    };
+    const label = SIZE_OPTIONS.find(s => s.value === size)?.label || size;
+    return <Badge className={cn("text-xs", size ? sizeColors[size] : '')}>{label}</Badge>;
   };
   const handleCreateCompany = async () => {
     if (!companyForm.companyName || !companyForm.adminEmail || !companyForm.adminName || !companyForm.sector) {
@@ -440,7 +481,36 @@ export default function AdminClientManagement() {
                             }))} />
                               </div>
                             </div>
-
+                            
+                            {/* Origem da empresa */}
+                            <div className="space-y-2">
+                              <Label>Origem</Label>
+                              <Select value={companyForm.origin} onValueChange={(v) => setCompanyForm(prev => ({ ...prev, origin: v as CompanyOrigin }))}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="direct">
+                                    <div className="flex items-center gap-2">
+                                      <Handshake className="h-4 w-4" />
+                                      Venda Direta
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="landing">
+                                    <div className="flex items-center gap-2">
+                                      <Globe className="h-4 w-4" />
+                                      Landing Page
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="partner">
+                                    <div className="flex items-center gap-2">
+                                      <Users className="h-4 w-4" />
+                                      Parceiro
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                             
                           </div>
 
@@ -829,70 +899,120 @@ export default function AdminClientManagement() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Administrador</TableHead>
-                          <TableHead>Empresa</TableHead>
-                          <TableHead>Setor</TableHead>
-                          <TableHead>Plano</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Valor</TableHead>
-                          <TableHead className="w-10"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredClients.length === 0 ? <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                              Nenhuma empresa encontrada
-                            </TableCell>
-                          </TableRow> : filteredClients.map(client => <TableRow key={client.id}>
-                              <TableCell>
-                                <div>
-                                  <div className="font-medium">{client.name}</div>
-                                  <div className="text-xs text-muted-foreground">{client.email}</div>
-                                </div>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Empresa</TableHead>
+                            <TableHead>Porte</TableHead>
+                            <TableHead>Plano/Add-ons</TableHead>
+                            <TableHead>Origem</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Ativação</TableHead>
+                            <TableHead className="text-right">MRR</TableHead>
+                            <TableHead className="w-10"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredClients.length === 0 ? <TableRow>
+                              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                                Nenhuma empresa encontrada
                               </TableCell>
-                              <TableCell>{client.company || '-'}</TableCell>
-                              <TableCell>{client.sector || '-'}</TableCell>
-                              <TableCell>
-                                {client.plan_config ? <Badge variant="outline">
-                                    {SIZE_OPTIONS.find(s => s.value === client.plan_config?.company_size)?.label || client.plan_config.company_size}
-                                  </Badge> : <span className="text-muted-foreground text-sm">-</span>}
-                              </TableCell>
-                              <TableCell>
-                                {getStatusBadge(client.plan_config?.status)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {client.plan_config ? <span className="font-medium">
-                                    R$ {client.plan_config.total_price.toLocaleString('pt-BR')}/mês
-                                  </span> : <span className="text-muted-foreground">-</span>}
-                              </TableCell>
-                              <TableCell>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem className="gap-2" onClick={() => handleEditPlan(client)}>
-                                      <Edit className="h-4 w-4" />
-                                      Editar Plano
-                                    </DropdownMenuItem>
-                                    {client.plan_config?.status === 'active' ? <DropdownMenuItem className="gap-2 text-amber-600" onClick={() => suspendClient(client.id)}>
-                                        <PowerOff className="h-4 w-4" />
-                                        Inativar
-                                      </DropdownMenuItem> : client.plan_config?.status === 'pending' || client.plan_config?.status === 'suspended' ? <DropdownMenuItem className="gap-2 text-green-600" onClick={() => activateClient(client.id)}>
-                                        <Power className="h-4 w-4" />
-                                        Ativar
-                                      </DropdownMenuItem> : null}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>)}
-                      </TableBody>
-                    </Table>
+                            </TableRow> : filteredClients.map(client => <TableRow key={client.id} className="group">
+                                <TableCell>
+                                  <div>
+                                    <div className="font-medium">{client.company || client.name}</div>
+                                    <div className="text-xs text-muted-foreground">{client.email}</div>
+                                    {client.sector && <div className="text-xs text-muted-foreground">{client.sector}</div>}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  {client.plan_config?.company_size ? 
+                                    getSizeBadge(client.plan_config.company_size) : 
+                                    <span className="text-muted-foreground text-sm">-</span>
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  {client.plan_config ? (
+                                    <div className="space-y-1">
+                                      <div className="text-sm font-medium">
+                                        {SIZE_OPTIONS.find(s => s.value === client.plan_config?.company_size)?.label || '-'}
+                                      </div>
+                                      {client.plan_config.enabled_addons && client.plan_config.enabled_addons.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                          {client.plan_config.enabled_addons.slice(0, 2).map((addon: string) => (
+                                            <Badge key={addon} variant="outline" className="text-xs">
+                                              {ADDON_OPTIONS.find(a => a.key === addon)?.label || addon}
+                                            </Badge>
+                                          ))}
+                                          {client.plan_config.enabled_addons.length > 2 && (
+                                            <Badge variant="outline" className="text-xs">
+                                              +{client.plan_config.enabled_addons.length - 2}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : <span className="text-muted-foreground text-sm">-</span>}
+                                </TableCell>
+                                <TableCell>
+                                  {getOriginBadge((client.plan_config as any)?.origin || 'direct')}
+                                </TableCell>
+                                <TableCell>
+                                  {getStatusBadge(client.plan_config?.status)}
+                                </TableCell>
+                                <TableCell>
+                                  {client.plan_config?.activated_at ? (
+                                    <div className="text-sm">
+                                      {format(new Date(client.plan_config.activated_at), 'dd/MM/yyyy', { locale: ptBR })}
+                                    </div>
+                                  ) : <span className="text-muted-foreground text-sm">-</span>}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {client.plan_config ? (
+                                    <span className="font-medium text-primary">
+                                      R$ {client.plan_config.total_price.toLocaleString('pt-BR')}
+                                    </span>
+                                  ) : <span className="text-muted-foreground">-</span>}
+                                </TableCell>
+                                <TableCell>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem className="gap-2" onClick={() => {
+                                        setSelectedCompanyId(client.id);
+                                        setActiveTab('plano');
+                                      }}>
+                                        <Eye className="h-4 w-4" />
+                                        Ver detalhes
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem className="gap-2" onClick={() => handleEditPlan(client)}>
+                                        <Edit className="h-4 w-4" />
+                                        Alterar plano
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      {client.plan_config?.status === 'active' ? (
+                                        <DropdownMenuItem className="gap-2 text-amber-600" onClick={() => suspendClient(client.id)}>
+                                          <PowerOff className="h-4 w-4" />
+                                          Suspender
+                                        </DropdownMenuItem>
+                                      ) : client.plan_config?.status === 'pending' || client.plan_config?.status === 'suspended' ? (
+                                        <DropdownMenuItem className="gap-2 text-green-600" onClick={() => activateClient(client.id)}>
+                                          <Power className="h-4 w-4" />
+                                          Ativar
+                                        </DropdownMenuItem>
+                                      ) : null}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </TableCell>
+                              </TableRow>)}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
