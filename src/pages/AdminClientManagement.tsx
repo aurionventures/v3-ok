@@ -1,25 +1,5 @@
 import { useState } from "react";
-import { 
-  Building2, 
-  Settings2, 
-  CheckCircle, 
-  ArrowRight, 
-  ArrowLeft,
-  Mail,
-  Phone,
-  Briefcase,
-  User,
-  Check,
-  Loader2,
-  MoreVertical,
-  Edit,
-  Power,
-  PowerOff,
-  FileText,
-  Hash,
-  Users,
-  Search
-} from "lucide-react";
+import { Building2, Settings2, CheckCircle, ArrowRight, ArrowLeft, Mail, Phone, Briefcase, User, Check, Loader2, MoreVertical, Edit, Power, PowerOff, FileText, Hash, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,34 +18,77 @@ import { ModuleConfigurator } from "@/components/admin/ModuleConfigurator";
 import { PLAN_PRICES, ADDON_PRICES, BASE_MODULES, ALL_ADDON_MODULES } from "@/utils/moduleMatrix";
 import type { CompanySize, ModuleKey } from "@/types/organization";
 import { cn } from "@/lib/utils";
-
-const SIZE_OPTIONS: { value: CompanySize; label: string; description: string }[] = [
-  { value: 'startup', label: 'Startup', description: 'Até 10 colaboradores' },
-  { value: 'small', label: 'Pequena', description: '10-50 colaboradores' },
-  { value: 'medium', label: 'Média', description: '50-250 colaboradores' },
-  { value: 'large', label: 'Grande', description: '250-1000 colaboradores' },
-  { value: 'listed', label: 'Listada', description: 'Capital aberto ou +1000 colaboradores' },
-];
-
-const ADDON_OPTIONS: { key: string; label: string; description: string }[] = [
-  { key: 'esg_maturity', label: 'ESG', description: 'Ambiental, Social e Governança' },
-  { key: 'market_intel', label: 'Inteligência de Mercado', description: 'Análise de mercado e benchmarking' },
-  { key: 'ai_agents', label: 'Agentes de IA', description: 'Automação com inteligência artificial' },
-  { key: 'leadership_performance', label: 'Gestão de Pessoas', description: 'Desenvolvimento e PDI' },
-  { key: 'project_submission', label: 'Submeter Projetos', description: 'Fluxo de aprovação de projetos' },
-  { key: 'risks', label: 'Gestão de Riscos', description: 'Monitoramento e mitigação de riscos' },
-];
-
+const SIZE_OPTIONS: {
+  value: CompanySize;
+  label: string;
+  description: string;
+}[] = [{
+  value: 'startup',
+  label: 'Startup',
+  description: 'Até 10 colaboradores'
+}, {
+  value: 'small',
+  label: 'Pequena',
+  description: '10-50 colaboradores'
+}, {
+  value: 'medium',
+  label: 'Média',
+  description: '50-250 colaboradores'
+}, {
+  value: 'large',
+  label: 'Grande',
+  description: '250-1000 colaboradores'
+}, {
+  value: 'listed',
+  label: 'Listada',
+  description: 'Capital aberto ou +1000 colaboradores'
+}];
+const ADDON_OPTIONS: {
+  key: string;
+  label: string;
+  description: string;
+}[] = [{
+  key: 'esg_maturity',
+  label: 'ESG',
+  description: 'Ambiental, Social e Governança'
+}, {
+  key: 'market_intel',
+  label: 'Inteligência de Mercado',
+  description: 'Análise de mercado e benchmarking'
+}, {
+  key: 'ai_agents',
+  label: 'Agentes de IA',
+  description: 'Automação com inteligência artificial'
+}, {
+  key: 'leadership_performance',
+  label: 'Gestão de Pessoas',
+  description: 'Desenvolvimento e PDI'
+}, {
+  key: 'project_submission',
+  label: 'Submeter Projetos',
+  description: 'Fluxo de aprovação de projetos'
+}, {
+  key: 'risks',
+  label: 'Gestão de Riscos',
+  description: 'Monitoramento e mitigação de riscos'
+}];
 export default function AdminClientManagement() {
-  const { clients, loading, createClient, savePlanConfig, activateClient, suspendClient } = useClientPlanConfig();
-  
+  const {
+    clients,
+    loading,
+    createClient,
+    savePlanConfig,
+    activateClient,
+    suspendClient
+  } = useClientPlanConfig();
+
   // Main tab state
   const [activeTab, setActiveTab] = useState('cadastrar');
-  
+
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Step 1: Empresa + Admin data
   const [companyForm, setCompanyForm] = useState({
     companyName: '',
@@ -77,15 +100,15 @@ export default function AdminClientManagement() {
     adminPhone: ''
   });
   const [createdClientId, setCreatedClientId] = useState<string | null>(null);
-  
+
   // Step 2: Plan config with module configurator
   const [configMode, setConfigMode] = useState<ConfigMode>('automatic');
   const [selectedModules, setSelectedModules] = useState<ModuleKey[]>(BASE_MODULES['startup']);
   const [enabledAddons, setEnabledAddons] = useState<string[]>([]);
-  
+
   // Filter state for "Empresas Cadastradas" tab
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  
+
   // Edit Plan Modal state
   const [editPlanOpen, setEditPlanOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientWithPlan | null>(null);
@@ -101,12 +124,9 @@ export default function AdminClientManagement() {
     if (mode === 'automatic') {
       return PLAN_PRICES[size];
     }
-    
     const basePrice = PLAN_PRICES[size];
     const includedInBase = BASE_MODULES[size];
-    const addonsPrice = modules
-      .filter((m) => ALL_ADDON_MODULES.includes(m) && !includedInBase.includes(m))
-      .reduce((sum, addon) => sum + (ADDON_PRICES[addon] || 0), 0);
+    const addonsPrice = modules.filter(m => ALL_ADDON_MODULES.includes(m) && !includedInBase.includes(m)).reduce((sum, addon) => sum + (ADDON_PRICES[addon] || 0), 0);
     return basePrice + addonsPrice;
   };
 
@@ -118,29 +138,26 @@ export default function AdminClientManagement() {
     }, 0);
     return basePrice + addonsPrice;
   };
-
   const resetWizard = () => {
     setCurrentStep(1);
-    setCompanyForm({ 
-      companyName: '', 
-      cnpj: '', 
-      sector: '', 
+    setCompanyForm({
+      companyName: '',
+      cnpj: '',
+      sector: '',
       companySize: 'startup',
-      adminName: '', 
-      adminEmail: '', 
-      adminPhone: '' 
+      adminName: '',
+      adminEmail: '',
+      adminPhone: ''
     });
     setCreatedClientId(null);
     setConfigMode('automatic');
     setSelectedModules(BASE_MODULES['startup']);
     setEnabledAddons([]);
   };
-
   const handleCreateCompany = async () => {
     if (!companyForm.companyName || !companyForm.adminEmail || !companyForm.adminName || !companyForm.sector) {
       return;
     }
-    
     setIsSubmitting(true);
     try {
       const newClient = await createClient({
@@ -158,13 +175,11 @@ export default function AdminClientManagement() {
       setIsSubmitting(false);
     }
   };
-
   const handleSavePlan = async () => {
     if (!createdClientId) return;
-    
+
     // Extract enabled addons from selected modules
     const addonsFromModules = selectedModules.filter(m => ALL_ADDON_MODULES.includes(m));
-    
     setIsSubmitting(true);
     try {
       await savePlanConfig(createdClientId, {
@@ -181,10 +196,8 @@ export default function AdminClientManagement() {
       setIsSubmitting(false);
     }
   };
-
   const handleActivateCompany = async () => {
     if (!createdClientId) return;
-    
     setIsSubmitting(true);
     try {
       await activateClient(createdClientId);
@@ -196,13 +209,8 @@ export default function AdminClientManagement() {
       setIsSubmitting(false);
     }
   };
-
   const toggleAddon = (addon: string) => {
-    setEnabledAddons(prev => 
-      prev.includes(addon) 
-        ? prev.filter(a => a !== addon)
-        : [...prev, addon]
-    );
+    setEnabledAddons(prev => prev.includes(addon) ? prev.filter(a => a !== addon) : [...prev, addon]);
   };
 
   // Edit Plan functions
@@ -212,10 +220,8 @@ export default function AdminClientManagement() {
     setEditEnabledAddons(client.plan_config?.enabled_addons || []);
     setEditPlanOpen(true);
   };
-
   const handleSaveEditedPlan = async () => {
     if (!editingClient) return;
-    
     setIsSubmitting(true);
     try {
       await savePlanConfig(editingClient.id, {
@@ -232,15 +238,9 @@ export default function AdminClientManagement() {
       setIsSubmitting(false);
     }
   };
-
   const toggleEditAddon = (addon: string) => {
-    setEditEnabledAddons(prev => 
-      prev.includes(addon) 
-        ? prev.filter(a => a !== addon)
-        : [...prev, addon]
-    );
+    setEditEnabledAddons(prev => prev.includes(addon) ? prev.filter(a => a !== addon) : [...prev, addon]);
   };
-
   const getStatusBadge = (status: string | undefined) => {
     switch (status) {
       case 'active':
@@ -253,16 +253,13 @@ export default function AdminClientManagement() {
         return <Badge variant="outline">Sem plano</Badge>;
     }
   };
-
   const filteredClients = clients.filter(client => {
     if (statusFilter === 'all') return true;
     if (statusFilter === 'no-plan') return !client.plan_config;
     return client.plan_config?.status === statusFilter;
   });
-
   if (loading) {
-    return (
-      <div className="flex h-screen bg-background">
+    return <div className="flex h-screen bg-background">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header title="Gestão de Empresas" />
@@ -270,12 +267,9 @@ export default function AdminClientManagement() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="flex h-screen bg-background">
+  return <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Gestão de Empresas" />
@@ -316,39 +310,35 @@ export default function AdminClientManagement() {
                     
                     {/* Stepper */}
                     <div className="flex items-center gap-2 mt-4">
-                      {[
-                        { step: 1, label: 'Empresa + Admin', icon: Building2 },
-                        { step: 2, label: 'Configurar Plano', icon: Settings2 },
-                        { step: 3, label: 'Ativar Empresa', icon: CheckCircle }
-                      ].map(({ step, label, icon: Icon }, index) => (
-                        <div key={step} className="flex items-center">
-                          <div className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
-                            currentStep === step 
-                              ? "bg-primary text-primary-foreground" 
-                              : currentStep > step 
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-muted text-muted-foreground"
-                          )}>
-                            {currentStep > step ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Icon className="h-4 w-4" />
-                            )}
+                      {[{
+                      step: 1,
+                      label: 'Empresa + Admin',
+                      icon: Building2
+                    }, {
+                      step: 2,
+                      label: 'Configurar Plano',
+                      icon: Settings2
+                    }, {
+                      step: 3,
+                      label: 'Ativar Empresa',
+                      icon: CheckCircle
+                    }].map(({
+                      step,
+                      label,
+                      icon: Icon
+                    }, index) => <div key={step} className="flex items-center">
+                          <div className={cn("flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors", currentStep === step ? "bg-primary text-primary-foreground" : currentStep > step ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground")}>
+                            {currentStep > step ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                             <span className="hidden sm:inline">{label}</span>
                           </div>
-                          {index < 2 && (
-                            <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />
-                          )}
-                        </div>
-                      ))}
+                          {index < 2 && <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />}
+                        </div>)}
                     </div>
                   </CardHeader>
                   
                   <CardContent>
                     {/* Step 1: Empresa + Admin */}
-                    {currentStep === 1 && (
-                      <div className="space-y-6">
+                    {currentStep === 1 && <div className="space-y-6">
                         <div className="grid gap-6 lg:grid-cols-2">
                           {/* Coluna 1: Dados da Empresa */}
                           <div className="space-y-4">
@@ -361,13 +351,10 @@ export default function AdminClientManagement() {
                               <Label htmlFor="companyName">Nome da Empresa *</Label>
                               <div className="relative">
                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="companyName"
-                                  placeholder="Empresa LTDA"
-                                  className="pl-10"
-                                  value={companyForm.companyName}
-                                  onChange={e => setCompanyForm(prev => ({ ...prev, companyName: e.target.value }))}
-                                />
+                                <Input id="companyName" placeholder="Empresa LTDA" className="pl-10" value={companyForm.companyName} onChange={e => setCompanyForm(prev => ({
+                              ...prev,
+                              companyName: e.target.value
+                            }))} />
                               </div>
                             </div>
 
@@ -375,13 +362,10 @@ export default function AdminClientManagement() {
                               <Label htmlFor="cnpj">CNPJ (opcional)</Label>
                               <div className="relative">
                                 <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="cnpj"
-                                  placeholder="00.000.000/0001-00"
-                                  className="pl-10"
-                                  value={companyForm.cnpj}
-                                  onChange={e => setCompanyForm(prev => ({ ...prev, cnpj: e.target.value }))}
-                                />
+                                <Input id="cnpj" placeholder="00.000.000/0001-00" className="pl-10" value={companyForm.cnpj} onChange={e => setCompanyForm(prev => ({
+                              ...prev,
+                              cnpj: e.target.value
+                            }))} />
                               </div>
                             </div>
 
@@ -389,41 +373,14 @@ export default function AdminClientManagement() {
                               <Label htmlFor="sector">Setor *</Label>
                               <div className="relative">
                                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="sector"
-                                  placeholder="Tecnologia, Indústria, Serviços..."
-                                  className="pl-10"
-                                  value={companyForm.sector}
-                                  onChange={e => setCompanyForm(prev => ({ ...prev, sector: e.target.value }))}
-                                />
+                                <Input id="sector" placeholder="Tecnologia, Indústria, Serviços..." className="pl-10" value={companyForm.sector} onChange={e => setCompanyForm(prev => ({
+                              ...prev,
+                              sector: e.target.value
+                            }))} />
                               </div>
                             </div>
 
-                            <div className="space-y-2">
-                              <Label className="text-sm">Porte da Empresa *</Label>
-                              <div className="grid gap-2 grid-cols-1">
-                                {SIZE_OPTIONS.map(option => (
-                                  <button
-                                    key={option.value}
-                                    onClick={() => setCompanyForm(prev => ({ ...prev, companySize: option.value }))}
-                                    className={cn(
-                                      "p-3 rounded-lg border text-left transition-all flex justify-between items-center",
-                                      companyForm.companySize === option.value
-                                        ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                                        : "border-border hover:border-primary/50"
-                                    )}
-                                  >
-                                    <div>
-                                      <div className="font-medium text-sm">{option.label}</div>
-                                      <div className="text-xs text-muted-foreground">{option.description}</div>
-                                    </div>
-                                    <div className="text-sm font-bold text-primary">
-                                      R$ {PLAN_PRICES[option.value].toLocaleString('pt-BR')}/mês
-                                    </div>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                            
                           </div>
 
                           {/* Coluna 2: Dados do Admin */}
@@ -437,13 +394,10 @@ export default function AdminClientManagement() {
                               <Label htmlFor="adminName">Nome do Responsável *</Label>
                               <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="adminName"
-                                  placeholder="João Silva"
-                                  className="pl-10"
-                                  value={companyForm.adminName}
-                                  onChange={e => setCompanyForm(prev => ({ ...prev, adminName: e.target.value }))}
-                                />
+                                <Input id="adminName" placeholder="João Silva" className="pl-10" value={companyForm.adminName} onChange={e => setCompanyForm(prev => ({
+                              ...prev,
+                              adminName: e.target.value
+                            }))} />
                               </div>
                             </div>
 
@@ -451,14 +405,10 @@ export default function AdminClientManagement() {
                               <Label htmlFor="adminEmail">Email *</Label>
                               <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="adminEmail"
-                                  type="email"
-                                  placeholder="admin@empresa.com"
-                                  className="pl-10"
-                                  value={companyForm.adminEmail}
-                                  onChange={e => setCompanyForm(prev => ({ ...prev, adminEmail: e.target.value }))}
-                                />
+                                <Input id="adminEmail" type="email" placeholder="admin@empresa.com" className="pl-10" value={companyForm.adminEmail} onChange={e => setCompanyForm(prev => ({
+                              ...prev,
+                              adminEmail: e.target.value
+                            }))} />
                               </div>
                             </div>
 
@@ -466,13 +416,10 @@ export default function AdminClientManagement() {
                               <Label htmlFor="adminPhone">Telefone (opcional)</Label>
                               <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="adminPhone"
-                                  placeholder="(11) 99999-9999"
-                                  className="pl-10"
-                                  value={companyForm.adminPhone}
-                                  onChange={e => setCompanyForm(prev => ({ ...prev, adminPhone: e.target.value }))}
-                                />
+                                <Input id="adminPhone" placeholder="(11) 99999-9999" className="pl-10" value={companyForm.adminPhone} onChange={e => setCompanyForm(prev => ({
+                              ...prev,
+                              adminPhone: e.target.value
+                            }))} />
                               </div>
                             </div>
 
@@ -480,27 +427,17 @@ export default function AdminClientManagement() {
                         </div>
                         
                         <div className="flex justify-end pt-4 border-t">
-                          <Button 
-                            onClick={handleCreateCompany} 
-                            disabled={!companyForm.companyName || !companyForm.adminEmail || !companyForm.adminName || !companyForm.sector || isSubmitting}
-                            className="gap-2"
-                          >
-                            {isSubmitting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
+                          <Button onClick={handleCreateCompany} disabled={!companyForm.companyName || !companyForm.adminEmail || !companyForm.adminName || !companyForm.sector || isSubmitting} className="gap-2">
+                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
                                 Próximo
                                 <ArrowRight className="h-4 w-4" />
-                              </>
-                            )}
+                              </>}
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      </div>}
 
                     {/* Step 2: Configurar Plano com ModuleConfigurator */}
-                    {currentStep === 2 && (
-                      <div className="space-y-6">
+                    {currentStep === 2 && <div className="space-y-6">
                         {/* Resumo do porte selecionado */}
                         <Card className="bg-primary/5 border-primary/20">
                           <CardContent className="p-4">
@@ -522,13 +459,7 @@ export default function AdminClientManagement() {
                         </Card>
 
                         {/* Module Configurator */}
-                        <ModuleConfigurator
-                          companySize={companyForm.companySize}
-                          mode={configMode}
-                          onModeChange={setConfigMode}
-                          selectedModules={selectedModules}
-                          onModulesChange={setSelectedModules}
-                        />
+                        <ModuleConfigurator companySize={companyForm.companySize} mode={configMode} onModeChange={setConfigMode} selectedModules={selectedModules} onModulesChange={setSelectedModules} />
 
                         <div className="flex justify-between pt-4 border-t">
                           <Button variant="outline" onClick={() => setCurrentStep(1)} className="gap-2">
@@ -536,22 +467,16 @@ export default function AdminClientManagement() {
                             Voltar
                           </Button>
                           <Button onClick={handleSavePlan} disabled={isSubmitting} className="gap-2">
-                            {isSubmitting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
+                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
                                 Próximo
                                 <ArrowRight className="h-4 w-4" />
-                              </>
-                            )}
+                              </>}
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      </div>}
 
                     {/* Step 3: Ativar Empresa */}
-                    {currentStep === 3 && (
-                      <div className="space-y-6">
+                    {currentStep === 3 && <div className="space-y-6">
                         <div className="text-center py-6">
                           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 text-green-400 mb-4">
                             <CheckCircle className="h-8 w-8" />
@@ -574,12 +499,10 @@ export default function AdminClientManagement() {
                                 <span className="text-muted-foreground">Nome:</span>
                                 <span className="font-medium">{companyForm.companyName}</span>
                               </div>
-                              {companyForm.cnpj && (
-                                <div className="flex justify-between">
+                              {companyForm.cnpj && <div className="flex justify-between">
                                   <span className="text-muted-foreground">CNPJ:</span>
                                   <span className="font-medium">{companyForm.cnpj}</span>
-                                </div>
-                              )}
+                                </div>}
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Setor:</span>
                                 <span className="font-medium">{companyForm.sector}</span>
@@ -610,12 +533,10 @@ export default function AdminClientManagement() {
                                 <span className="text-muted-foreground">Email:</span>
                                 <span className="font-medium">{companyForm.adminEmail}</span>
                               </div>
-                              {companyForm.adminPhone && (
-                                <div className="flex justify-between">
+                              {companyForm.adminPhone && <div className="flex justify-between">
                                   <span className="text-muted-foreground">Telefone:</span>
                                   <span className="font-medium">{companyForm.adminPhone}</span>
-                                </div>
-                              )}
+                                </div>}
                             </CardContent>
                           </Card>
                         </div>
@@ -635,16 +556,14 @@ export default function AdminClientManagement() {
                                 R$ {PLAN_PRICES[companyForm.companySize].toLocaleString('pt-BR')}/mês
                               </span>
                             </div>
-                            {selectedModules.filter(m => ALL_ADDON_MODULES.includes(m)).length > 0 && (
-                              <div className="pt-2 border-t">
+                            {selectedModules.filter(m => ALL_ADDON_MODULES.includes(m)).length > 0 && <div className="pt-2 border-t">
                                 <span className="text-muted-foreground">Módulos selecionados:</span>
                                 <div className="mt-1">
                                   <Badge variant="outline">
                                     {selectedModules.length} módulos ({configMode === 'automatic' ? 'Automático' : 'Manual'})
                                   </Badge>
                                 </div>
-                              </div>
-                            )}
+                              </div>}
                             <div className="pt-2 border-t flex justify-between font-bold">
                               <span>Total:</span>
                               <span className="text-primary">
@@ -660,18 +579,13 @@ export default function AdminClientManagement() {
                             Voltar
                           </Button>
                           <Button onClick={handleActivateCompany} disabled={isSubmitting} className="gap-2 bg-green-600 hover:bg-green-700">
-                            {isSubmitting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
+                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
                                 <Power className="h-4 w-4" />
                                 Ativar Empresa
-                              </>
-                            )}
+                              </>}
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -695,18 +609,15 @@ export default function AdminClientManagement() {
                           <SelectValue placeholder="Escolha uma empresa..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {clients.map(client => (
-                            <SelectItem key={client.id} value={client.id}>
+                          {clients.map(client => <SelectItem key={client.id} value={client.id}>
                               {client.company || client.name} {client.plan_config ? '' : '(Sem plano)'}
-                            </SelectItem>
-                          ))}
+                            </SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
 
                     {/* Detalhes do plano */}
-                    {selectedCompany ? (
-                      <div className="space-y-4">
+                    {selectedCompany ? <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           {/* Info da empresa */}
                           <Card>
@@ -745,8 +656,7 @@ export default function AdminClientManagement() {
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-2 text-sm">
-                              {selectedCompany.plan_config ? (
-                                <>
+                              {selectedCompany.plan_config ? <>
                                   <div className="flex justify-between">
                                     <span className="text-muted-foreground">Status:</span>
                                     {getStatusBadge(selectedCompany.plan_config.status)}
@@ -769,33 +679,26 @@ export default function AdminClientManagement() {
                                       R$ {selectedCompany.plan_config.total_price.toLocaleString('pt-BR')}/mês
                                     </span>
                                   </div>
-                                </>
-                              ) : (
-                                <div className="text-center py-4 text-muted-foreground">
+                                </> : <div className="text-center py-4 text-muted-foreground">
                                   Esta empresa ainda não possui um plano configurado.
-                                </div>
-                              )}
+                                </div>}
                             </CardContent>
                           </Card>
                         </div>
 
                         {/* Add-ons ativos */}
-                        {selectedCompany.plan_config && selectedCompany.plan_config.enabled_addons?.length > 0 && (
-                          <Card>
+                        {selectedCompany.plan_config && selectedCompany.plan_config.enabled_addons?.length > 0 && <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-base">Módulos Habilitados</CardTitle>
                             </CardHeader>
                             <CardContent>
                               <div className="flex flex-wrap gap-2">
-                                {selectedCompany.plan_config.enabled_addons.map(addon => (
-                                  <Badge key={addon} variant="secondary" className="px-3 py-1">
+                                {selectedCompany.plan_config.enabled_addons.map(addon => <Badge key={addon} variant="secondary" className="px-3 py-1">
                                     {ADDON_OPTIONS.find(a => a.key === addon)?.label || addon}
-                                  </Badge>
-                                ))}
+                                  </Badge>)}
                               </div>
                             </CardContent>
-                          </Card>
-                        )}
+                          </Card>}
 
                         {/* Botões de ação */}
                         <div className="flex gap-3 pt-4">
@@ -803,33 +706,18 @@ export default function AdminClientManagement() {
                             <Edit className="h-4 w-4" />
                             Editar Plano
                           </Button>
-                          {selectedCompany.plan_config?.status === 'active' ? (
-                            <Button 
-                              variant="outline" 
-                              className="gap-2 text-amber-600 border-amber-600 hover:bg-amber-600/10"
-                              onClick={() => suspendClient(selectedCompany.id)}
-                            >
+                          {selectedCompany.plan_config?.status === 'active' ? <Button variant="outline" className="gap-2 text-amber-600 border-amber-600 hover:bg-amber-600/10" onClick={() => suspendClient(selectedCompany.id)}>
                               <PowerOff className="h-4 w-4" />
                               Inativar
-                            </Button>
-                          ) : (selectedCompany.plan_config?.status === 'pending' || selectedCompany.plan_config?.status === 'suspended') ? (
-                            <Button 
-                              variant="outline"
-                              className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10"
-                              onClick={() => activateClient(selectedCompany.id)}
-                            >
+                            </Button> : selectedCompany.plan_config?.status === 'pending' || selectedCompany.plan_config?.status === 'suspended' ? <Button variant="outline" className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10" onClick={() => activateClient(selectedCompany.id)}>
                               <Power className="h-4 w-4" />
                               Ativar
-                            </Button>
-                          ) : null}
+                            </Button> : null}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 text-muted-foreground">
+                      </div> : <div className="text-center py-12 text-muted-foreground">
                         <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Selecione uma empresa para visualizar os detalhes do plano</p>
-                      </div>
-                    )}
+                      </div>}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -868,15 +756,11 @@ export default function AdminClientManagement() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredClients.length === 0 ? (
-                          <TableRow>
+                        {filteredClients.length === 0 ? <TableRow>
                             <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                               Nenhuma empresa encontrada
                             </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredClients.map(client => (
-                            <TableRow key={client.id}>
+                          </TableRow> : filteredClients.map(client => <TableRow key={client.id}>
                               <TableCell>
                                 <div>
                                   <div className="font-medium">{client.name}</div>
@@ -886,25 +770,17 @@ export default function AdminClientManagement() {
                               <TableCell>{client.company || '-'}</TableCell>
                               <TableCell>{client.sector || '-'}</TableCell>
                               <TableCell>
-                                {client.plan_config ? (
-                                  <Badge variant="outline">
+                                {client.plan_config ? <Badge variant="outline">
                                     {SIZE_OPTIONS.find(s => s.value === client.plan_config?.company_size)?.label || client.plan_config.company_size}
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">-</span>
-                                )}
+                                  </Badge> : <span className="text-muted-foreground text-sm">-</span>}
                               </TableCell>
                               <TableCell>
                                 {getStatusBadge(client.plan_config?.status)}
                               </TableCell>
                               <TableCell className="text-right">
-                                {client.plan_config ? (
-                                  <span className="font-medium">
+                                {client.plan_config ? <span className="font-medium">
                                     R$ {client.plan_config.total_price.toLocaleString('pt-BR')}/mês
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
+                                  </span> : <span className="text-muted-foreground">-</span>}
                               </TableCell>
                               <TableCell>
                                 <DropdownMenu>
@@ -914,36 +790,21 @@ export default function AdminClientManagement() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem 
-                                      className="gap-2"
-                                      onClick={() => handleEditPlan(client)}
-                                    >
+                                    <DropdownMenuItem className="gap-2" onClick={() => handleEditPlan(client)}>
                                       <Edit className="h-4 w-4" />
                                       Editar Plano
                                     </DropdownMenuItem>
-                                    {client.plan_config?.status === 'active' ? (
-                                      <DropdownMenuItem 
-                                        className="gap-2 text-amber-600"
-                                        onClick={() => suspendClient(client.id)}
-                                      >
+                                    {client.plan_config?.status === 'active' ? <DropdownMenuItem className="gap-2 text-amber-600" onClick={() => suspendClient(client.id)}>
                                         <PowerOff className="h-4 w-4" />
                                         Inativar
-                                      </DropdownMenuItem>
-                                    ) : (client.plan_config?.status === 'pending' || client.plan_config?.status === 'suspended') ? (
-                                      <DropdownMenuItem 
-                                        className="gap-2 text-green-600"
-                                        onClick={() => activateClient(client.id)}
-                                      >
+                                      </DropdownMenuItem> : client.plan_config?.status === 'pending' || client.plan_config?.status === 'suspended' ? <DropdownMenuItem className="gap-2 text-green-600" onClick={() => activateClient(client.id)}>
                                         <Power className="h-4 w-4" />
                                         Ativar
-                                      </DropdownMenuItem>
-                                    ) : null}
+                                      </DropdownMenuItem> : null}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
-                            </TableRow>
-                          ))
-                        )}
+                            </TableRow>)}
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -969,17 +830,7 @@ export default function AdminClientManagement() {
             <div className="space-y-3">
               <Label className="text-base font-semibold">Porte da Empresa</Label>
               <div className="grid gap-2">
-                {SIZE_OPTIONS.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => setEditSelectedSize(option.value)}
-                    className={cn(
-                      "p-3 rounded-lg border text-left transition-all flex justify-between items-center",
-                      editSelectedSize === option.value
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
+                {SIZE_OPTIONS.map(option => <button key={option.value} onClick={() => setEditSelectedSize(option.value)} className={cn("p-3 rounded-lg border text-left transition-all flex justify-between items-center", editSelectedSize === option.value ? "border-primary bg-primary/10 ring-2 ring-primary/20" : "border-border hover:border-primary/50")}>
                     <div>
                       <div className="font-medium text-sm">{option.label}</div>
                       <div className="text-xs text-muted-foreground">{option.description}</div>
@@ -987,8 +838,7 @@ export default function AdminClientManagement() {
                     <div className="text-sm font-bold text-primary">
                       R$ {PLAN_PRICES[option.value].toLocaleString('pt-BR')}/mês
                     </div>
-                  </button>
-                ))}
+                  </button>)}
               </div>
             </div>
 
@@ -996,16 +846,7 @@ export default function AdminClientManagement() {
             <div className="space-y-3">
               <Label className="text-base font-semibold">Módulos Adicionais (Add-ons)</Label>
               <div className="grid gap-3 sm:grid-cols-2">
-                {ADDON_OPTIONS.map(addon => (
-                  <div
-                    key={addon.key}
-                    className={cn(
-                      "p-3 rounded-lg border transition-all",
-                      editEnabledAddons.includes(addon.key)
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    )}
-                  >
+                {ADDON_OPTIONS.map(addon => <div key={addon.key} className={cn("p-3 rounded-lg border transition-all", editEnabledAddons.includes(addon.key) ? "border-primary bg-primary/5" : "border-border")}>
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-medium text-sm">{addon.label}</div>
@@ -1014,13 +855,9 @@ export default function AdminClientManagement() {
                           +R$ {(ADDON_PRICES[addon.key] || 0).toLocaleString('pt-BR')}/mês
                         </div>
                       </div>
-                      <Switch
-                        checked={editEnabledAddons.includes(addon.key)}
-                        onCheckedChange={() => toggleEditAddon(addon.key)}
-                      />
+                      <Switch checked={editEnabledAddons.includes(addon.key)} onCheckedChange={() => toggleEditAddon(addon.key)} />
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
 
@@ -1036,9 +873,7 @@ export default function AdminClientManagement() {
                   </div>
                   <div className="text-right text-sm text-muted-foreground">
                     <div>Base: R$ {PLAN_PRICES[editSelectedSize].toLocaleString('pt-BR')}</div>
-                    {editEnabledAddons.length > 0 && (
-                      <div>+ {editEnabledAddons.length} add-on(s)</div>
-                    )}
+                    {editEnabledAddons.length > 0 && <div>+ {editEnabledAddons.length} add-on(s)</div>}
                   </div>
                 </div>
               </CardContent>
@@ -1050,18 +885,13 @@ export default function AdminClientManagement() {
               Cancelar
             </Button>
             <Button onClick={handleSaveEditedPlan} disabled={isSubmitting} className="gap-2">
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>
                   <Check className="h-4 w-4" />
                   Salvar Alterações
-                </>
-              )}
+                </>}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 }
