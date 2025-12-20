@@ -67,7 +67,7 @@ const Sidebar = () => {
     }
   }, [pathname, isMobile]);
   
-  // Admin menu items - Nova estrutura reorganizada
+  // Admin menu items - Nova estrutura reorganizada conforme PRD
   const adminMenuItems = [
     {
       icon: <LayoutDashboard className="h-5 w-5" />,
@@ -76,23 +76,28 @@ const Sidebar = () => {
     },
     {
       icon: <Building2 className="h-5 w-5" />,
-      href: "/admin/clientes",
-      name: "Gestão de Empresas"
-    },
-    {
-      icon: <Handshake className="h-5 w-5" />,
-      href: "/admin/parceiros",
-      name: "Parceiros"
+      href: "/admin/empresas",
+      name: "Empresas"
     },
     {
       icon: <FileText className="h-5 w-5" />,
-      href: "/admin/plans-comparison",
-      name: "Configuração de Planos"
+      href: "/admin/planos",
+      name: "Planos & Produtos"
     },
     {
-      icon: <Shield className="h-5 w-5" />,
-      href: "/admin/seguranca",
-      name: "Segurança"
+      icon: <Layers className="h-5 w-5" />,
+      href: "/admin/addons",
+      name: "Add-ons"
+    },
+    {
+      icon: <TrendingUp className="h-5 w-5" />,
+      href: "/admin/vendas",
+      name: "Vendas & Ativações"
+    },
+    {
+      icon: <DollarSign className="h-5 w-5" />,
+      href: "/admin/finances",
+      name: "Financeiro"
     },
     {
       icon: <ScrollText className="h-5 w-5" />,
@@ -100,9 +105,14 @@ const Sidebar = () => {
       name: "Auditoria"
     },
     {
-      icon: <DollarSign className="h-5 w-5" />,
-      href: "/admin/finances",
-      name: "Finanças"
+      icon: <Shield className="h-5 w-5" />,
+      href: "/admin/seguranca",
+      name: "Segurança"
+    },
+    {
+      icon: <Handshake className="h-5 w-5" />,
+      href: "/admin/parceiros",
+      name: "Parceiros"
     }
   ];
 
