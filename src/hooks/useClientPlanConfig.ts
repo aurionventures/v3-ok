@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { CompanySize } from '@/types/organization';
+import type { CompanySize, ModuleKey } from '@/types/organization';
+
+export type ConfigMode = 'automatic' | 'manual';
 
 export interface ClientPlanConfig {
   id: string;
   user_id: string;
   company_size: CompanySize;
+  config_mode: ConfigMode;
+  enabled_modules: ModuleKey[];
   enabled_addons: string[];
   total_price: number;
   status: 'pending' | 'active' | 'suspended';
@@ -75,9 +79,11 @@ const INITIAL_PLAN_CONFIGS: Record<string, ClientPlanConfig> = {
   'demo-client-001': {
     id: 'plan-001',
     user_id: 'demo-client-001',
-    company_size: 'media' as CompanySize,
-    enabled_addons: ['esg', 'riscos'],
-    total_price: 2990,
+    company_size: 'medium' as CompanySize,
+    config_mode: 'automatic',
+    enabled_modules: ['dashboard', 'settings', 'structure', 'cap_table', 'gov_maturity', 'legacy_rituals', 'checklist', 'interviews', 'analysis_actions', 'gov_config', 'annual_agenda', 'secretariat', 'councils', 'activities', 'leadership_performance'] as ModuleKey[],
+    enabled_addons: ['esg_maturity', 'risks'],
+    total_price: 12900,
     status: 'active',
     activated_at: '2024-01-20T10:00:00Z',
     created_at: '2024-01-15T10:00:00Z',
@@ -86,9 +92,11 @@ const INITIAL_PLAN_CONFIGS: Record<string, ClientPlanConfig> = {
   'demo-client-002': {
     id: 'plan-002',
     user_id: 'demo-client-002',
-    company_size: 'grande' as CompanySize,
-    enabled_addons: ['conselhos', 'sucessao'],
-    total_price: 4990,
+    company_size: 'large' as CompanySize,
+    config_mode: 'manual',
+    enabled_modules: ['dashboard', 'settings', 'structure', 'cap_table', 'gov_maturity', 'legacy_rituals', 'checklist', 'interviews', 'analysis_actions', 'gov_config', 'annual_agenda', 'secretariat', 'councils', 'activities', 'leadership_performance', 'risks', 'ai_agents', 'project_submission'] as ModuleKey[],
+    enabled_addons: ['risks', 'ai_agents'],
+    total_price: 29900,
     status: 'pending',
     activated_at: null,
     created_at: '2024-02-20T14:30:00Z',
@@ -209,6 +217,8 @@ export function useClientPlanConfig() {
     userId: string,
     config: {
       company_size: CompanySize;
+      config_mode?: ConfigMode;
+      enabled_modules?: ModuleKey[];
       enabled_addons: string[];
       total_price: number;
       status?: 'pending' | 'active' | 'suspended';
@@ -223,6 +233,8 @@ export function useClientPlanConfig() {
         id: existingConfig?.id || crypto.randomUUID(),
         user_id: userId,
         company_size: config.company_size,
+        config_mode: config.config_mode || existingConfig?.config_mode || 'automatic',
+        enabled_modules: config.enabled_modules || existingConfig?.enabled_modules || [],
         enabled_addons: config.enabled_addons,
         total_price: config.total_price,
         status: config.status || existingConfig?.status || 'pending',
