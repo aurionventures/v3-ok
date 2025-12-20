@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Building2, Settings2, CheckCircle, ArrowRight, ArrowLeft, Mail, Phone, Briefcase, User, Check, Loader2, MoreVertical, Edit, Power, PowerOff, FileText, Hash, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,6 +118,25 @@ export default function AdminClientManagement() {
   // "Plano Contratado" tab state
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const selectedCompany = clients.find(c => c.id === selectedCompanyId);
+  
+  // States for plan configurator in "Plano Contratado" tab
+  const [planConfigMode, setPlanConfigMode] = useState<ConfigMode>('automatic');
+  const [planSelectedModules, setPlanSelectedModules] = useState<ModuleKey[]>(BASE_MODULES['startup']);
+  const [planCompanySize, setPlanCompanySize] = useState<CompanySize>('startup');
+  
+  // Load plan config when company is selected
+  useEffect(() => {
+    if (selectedCompany?.plan_config) {
+      setPlanConfigMode(selectedCompany.plan_config.config_mode || 'automatic');
+      setPlanCompanySize(selectedCompany.plan_config.company_size);
+      setPlanSelectedModules(selectedCompany.plan_config.enabled_modules || BASE_MODULES[selectedCompany.plan_config.company_size]);
+    } else if (selectedCompany) {
+      // Reset to defaults for companies without a plan
+      setPlanConfigMode('automatic');
+      setPlanCompanySize('startup');
+      setPlanSelectedModules(BASE_MODULES['startup']);
+    }
+  }, [selectedCompanyId, selectedCompany]);
 
   // New price calculation with modules and mode
   const calculateModulePrice = (size: CompanySize, modules: ModuleKey[], mode: ConfigMode) => {
@@ -211,6 +230,48 @@ export default function AdminClientManagement() {
   };
   const toggleAddon = (addon: string) => {
     setEnabledAddons(prev => prev.includes(addon) ? prev.filter(a => a !== addon) : [...prev, addon]);
+  };
+  
+  // Handle enabling plan for selected company in "Plano Contratado" tab
+  const handleEnablePlan = async () => {
+    if (!selectedCompanyId) return;
+    setIsSubmitting(true);
+    try {
+      const addonsFromModules = planSelectedModules.filter(m => ALL_ADDON_MODULES.includes(m));
+      await savePlanConfig(selectedCompanyId, {
+        company_size: planCompanySize,
+        config_mode: planConfigMode,
+        enabled_modules: planSelectedModules,
+        enabled_addons: addonsFromModules,
+        total_price: calculateModulePrice(planCompanySize, planSelectedModules, planConfigMode),
+        status: 'active'
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Handle saving plan without activating
+  const handleSavePlanConfig = async () => {
+    if (!selectedCompanyId) return;
+    setIsSubmitting(true);
+    try {
+      const addonsFromModules = planSelectedModules.filter(m => ALL_ADDON_MODULES.includes(m));
+      await savePlanConfig(selectedCompanyId, {
+        company_size: planCompanySize,
+        config_mode: planConfigMode,
+        enabled_modules: planSelectedModules,
+        enabled_addons: addonsFromModules,
+        total_price: calculateModulePrice(planCompanySize, planSelectedModules, planConfigMode),
+        status: selectedCompany?.plan_config?.status || 'pending'
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Edit Plan functions
@@ -590,15 +651,15 @@ export default function AdminClientManagement() {
                 </Card>
               </TabsContent>
 
-              {/* TAB 2: Plano Contratado */}
+              {/* TAB 2: Configurar Plano */}
               <TabsContent value="plano" className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Gerenciar Plano de Empresa
+                      <Settings2 className="h-5 w-5" />
+                      Configurar Plano
                     </CardTitle>
-                    <CardDescription>Selecione uma empresa para visualizar e editar o plano contratado</CardDescription>
+                    <CardDescription>Selecione uma empresa e configure o plano com módulos personalizados</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Seletor de empresa */}
@@ -610,16 +671,16 @@ export default function AdminClientManagement() {
                         </SelectTrigger>
                         <SelectContent>
                           {clients.map(client => <SelectItem key={client.id} value={client.id}>
-                              {client.company || client.name} {client.plan_config ? '' : '(Sem plano)'}
+                              {client.company || client.name} {client.plan_config ? `(${client.plan_config.status === 'active' ? 'Ativo' : client.plan_config.status === 'pending' ? 'Pendente' : 'Inativo'})` : '(Sem plano)'}
                             </SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Detalhes do plano */}
-                    {selectedCompany ? <div className="space-y-4">
+                    {/* Configurador de plano */}
+                    {selectedCompany ? <div className="space-y-6">
+                        {/* Info da empresa + Status */}
                         <div className="grid gap-4 md:grid-cols-2">
-                          {/* Info da empresa */}
                           <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-base flex items-center gap-2">
@@ -644,79 +705,104 @@ export default function AdminClientManagement() {
                                 <span className="text-muted-foreground">Setor:</span>
                                 <span className="font-medium">{selectedCompany.sector || '-'}</span>
                               </div>
+                              <div className="flex justify-between pt-2 border-t">
+                                <span className="text-muted-foreground">Status:</span>
+                                {getStatusBadge(selectedCompany.plan_config?.status)}
+                              </div>
                             </CardContent>
                           </Card>
 
-                          {/* Info do plano */}
+                          {/* Seletor de Porte */}
                           <Card>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-base flex items-center gap-2">
-                                <Settings2 className="h-4 w-4" />
-                                Plano Atual
+                                <Briefcase className="h-4 w-4" />
+                                Porte da Empresa
                               </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                              {selectedCompany.plan_config ? <>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Status:</span>
-                                    {getStatusBadge(selectedCompany.plan_config.status)}
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Porte:</span>
-                                    <span className="font-medium">
-                                      {SIZE_OPTIONS.find(s => s.value === selectedCompany.plan_config?.company_size)?.label || selectedCompany.plan_config.company_size}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Add-ons:</span>
-                                    <span className="font-medium">
-                                      {selectedCompany.plan_config.enabled_addons?.length || 0} módulo(s)
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between pt-2 border-t">
-                                    <span className="text-muted-foreground font-semibold">Valor:</span>
-                                    <span className="font-bold text-primary">
-                                      R$ {selectedCompany.plan_config.total_price.toLocaleString('pt-BR')}/mês
-                                    </span>
-                                  </div>
-                                </> : <div className="text-center py-4 text-muted-foreground">
-                                  Esta empresa ainda não possui um plano configurado.
-                                </div>}
+                            <CardContent className="space-y-3">
+                              <Select value={planCompanySize} onValueChange={(v) => {
+                                setPlanCompanySize(v as CompanySize);
+                                if (planConfigMode === 'automatic') {
+                                  setPlanSelectedModules(BASE_MODULES[v as CompanySize]);
+                                }
+                              }}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SIZE_OPTIONS.map(size => (
+                                    <SelectItem key={size.value} value={size.value}>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <span>{size.label}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          R$ {PLAN_PRICES[size.value].toLocaleString('pt-BR')}/mês
+                                        </span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground">
+                                {SIZE_OPTIONS.find(s => s.value === planCompanySize)?.description}
+                              </p>
                             </CardContent>
                           </Card>
                         </div>
 
-                        {/* Add-ons ativos */}
-                        {selectedCompany.plan_config && selectedCompany.plan_config.enabled_addons?.length > 0 && <Card>
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-base">Módulos Habilitados</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="flex flex-wrap gap-2">
-                                {selectedCompany.plan_config.enabled_addons.map(addon => <Badge key={addon} variant="secondary" className="px-3 py-1">
-                                    {ADDON_OPTIONS.find(a => a.key === addon)?.label || addon}
-                                  </Badge>)}
-                              </div>
-                            </CardContent>
-                          </Card>}
+                        {/* Module Configurator */}
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Configuração de Módulos</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ModuleConfigurator
+                              companySize={planCompanySize}
+                              mode={planConfigMode}
+                              onModeChange={setPlanConfigMode}
+                              selectedModules={planSelectedModules}
+                              onModulesChange={setPlanSelectedModules}
+                            />
+                          </CardContent>
+                        </Card>
 
                         {/* Botões de ação */}
-                        <div className="flex gap-3 pt-4">
-                          <Button onClick={() => handleEditPlan(selectedCompany)} className="gap-2">
-                            <Edit className="h-4 w-4" />
-                            Editar Plano
+                        <div className="flex flex-wrap gap-3 pt-4 border-t">
+                          <Button 
+                            onClick={handleSavePlanConfig} 
+                            disabled={isSubmitting}
+                            variant="outline"
+                            className="gap-2"
+                          >
+                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                            Salvar Configuração
                           </Button>
-                          {selectedCompany.plan_config?.status === 'active' ? <Button variant="outline" className="gap-2 text-amber-600 border-amber-600 hover:bg-amber-600/10" onClick={() => suspendClient(selectedCompany.id)}>
+                          
+                          {selectedCompany.plan_config?.status !== 'active' && (
+                            <Button 
+                              onClick={handleEnablePlan} 
+                              disabled={isSubmitting}
+                              className="gap-2 bg-green-600 hover:bg-green-700"
+                            >
+                              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+                              Habilitar Plano
+                            </Button>
+                          )}
+                          
+                          {selectedCompany.plan_config?.status === 'active' && (
+                            <Button 
+                              variant="outline" 
+                              className="gap-2 text-amber-600 border-amber-600 hover:bg-amber-600/10" 
+                              onClick={() => suspendClient(selectedCompany.id)}
+                            >
                               <PowerOff className="h-4 w-4" />
-                              Inativar
-                            </Button> : selectedCompany.plan_config?.status === 'pending' || selectedCompany.plan_config?.status === 'suspended' ? <Button variant="outline" className="gap-2 text-green-600 border-green-600 hover:bg-green-600/10" onClick={() => activateClient(selectedCompany.id)}>
-                              <Power className="h-4 w-4" />
-                              Ativar
-                            </Button> : null}
+                              Inativar Empresa
+                            </Button>
+                          )}
                         </div>
                       </div> : <div className="text-center py-12 text-muted-foreground">
                         <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Selecione uma empresa para visualizar os detalhes do plano</p>
+                        <p>Selecione uma empresa para configurar o plano</p>
                       </div>}
                   </CardContent>
                 </Card>
