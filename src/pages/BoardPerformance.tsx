@@ -335,6 +335,40 @@ export default function BoardPerformance() {
 
               {/* Tab Análise Individual */}
               <TabsContent value="individual" className="space-y-4">
+                {/* Dropdown de seleção - sempre visível */}
+                <div className="flex items-center gap-4">
+                  <Select 
+                    value={selectedMember || ""} 
+                    onValueChange={(value) => setSelectedMember(value || null)}
+                  >
+                    <SelectTrigger className="w-[350px]">
+                      <SelectValue placeholder="Selecione um conselheiro para análise" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {performances.map((perf) => (
+                        <SelectItem key={perf.member_id} value={perf.member_id}>
+                          <div className="flex items-center gap-2">
+                            <span>{perf.member_name}</span>
+                            <span className="text-muted-foreground text-xs">
+                              ({perf.member_role})
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {selectedMember && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedMember(null)}
+                    >
+                      Limpar seleção
+                    </Button>
+                  )}
+                </div>
+
                 {selectedPerformance ? (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Informações do Membro */}
@@ -443,7 +477,7 @@ export default function BoardPerformance() {
                       <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                       <h3 className="font-medium text-lg">Selecione um conselheiro</h3>
                       <p className="text-muted-foreground">
-                        Clique em um conselheiro no ranking para ver a análise detalhada
+                        Use o dropdown acima para escolher um conselheiro
                       </p>
                     </CardContent>
                   </Card>
