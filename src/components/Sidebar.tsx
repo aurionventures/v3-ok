@@ -238,6 +238,12 @@ const Sidebar = () => {
           name: "Desenvolvimento e PDI",
           moduleId: "people-management",
           priority: true
+        },
+        {
+          icon: <Award className="h-5 w-5" />,
+          href: "/board-performance",
+          name: "Desempenho do Conselho",
+          moduleId: "board_performance"
         }
       ]
     },
