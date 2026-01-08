@@ -2,7 +2,7 @@ import { LucideIcon } from "lucide-react";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, BookText, 
-  Bot, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle
+  Bot, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award
 } from "lucide-react";
 import { ModuleKey } from "@/types/organization";
 
@@ -87,6 +87,10 @@ export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits
   leadership_performance: {
     description: 'Gestão de pessoas e desempenho de liderança.',
     benefits: ['Avaliação de competências', 'Planos de desenvolvimento', 'Sucessão de líderes']
+  },
+  board_performance: {
+    description: 'Avaliação de desempenho dos membros do conselho.',
+    benefits: ['Métricas automáticas', 'Avaliações 360°', 'Ranking de performance', 'Alertas de baixo desempenho']
   },
   risks: {
     description: 'Identifique e gerencie riscos de governança.',
@@ -179,6 +183,7 @@ export const ADDON_SECTIONS: SidebarSection[] = [
     isAddon: true,
     items: [
       { key: 'leadership_performance', label: 'Desenvolvimento e PDI', path: '/people-management', icon: Users, isAddon: true },
+      { key: 'board_performance', label: 'Desempenho do Conselho', path: '/board-performance', icon: Award, isAddon: true },
     ]
   },
   {

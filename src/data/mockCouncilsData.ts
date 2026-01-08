@@ -159,3 +159,9 @@ export const mockCouncilMembers = [
     updated_at: '2024-03-15T00:00:00Z'
   }
 ];
+
+// Helper para obter nome do conselho pelo ID
+export const getCouncilName = (councilId: string): string => {
+  const council = mockCouncils.find(c => c.id === councilId);
+  return council?.name || 'Conselho';
+};

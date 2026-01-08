@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { mockCouncilMembers, getCouncilName } from '@/data/mockCouncilsData';
 import type {
   BoardEvaluationPeriod,
   BoardMemberMetrics,
@@ -12,17 +13,31 @@ import type {
   PerformanceLevel
 } from '@/types/boardPerformance';
 
-// Mock data para demonstração (será substituído por dados reais do Supabase)
+// Função para gerar seed baseada no ID do membro (scores determinísticos)
+const seededRandom = (seed: string): number => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash % 100) / 100;
+};
+
+// Gera dados de performance mockados com scores determinísticos
 const generateMockPerformanceData = (councilMembers: any[]): MemberPerformanceWithDetails[] => {
   return councilMembers.map((member, index) => {
-    const presenceScore = 70 + Math.random() * 30;
-    const contributionScore = 60 + Math.random() * 40;
-    const deliveryScore = 65 + Math.random() * 35;
-    const engagementScore = 55 + Math.random() * 45;
-    const leadershipScore = 60 + Math.random() * 40;
+    const seed = member.id;
+    const baseScore = 60 + seededRandom(seed + 'base') * 35;
+    
+    const presenceScore = Math.min(100, baseScore + seededRandom(seed + 'presence') * 15);
+    const contributionScore = Math.min(100, baseScore - 5 + seededRandom(seed + 'contribution') * 20);
+    const deliveryScore = Math.min(100, baseScore + seededRandom(seed + 'delivery') * 18);
+    const engagementScore = Math.min(100, baseScore - 10 + seededRandom(seed + 'engagement') * 25);
+    const leadershipScore = Math.min(100, baseScore + seededRandom(seed + 'leadership') * 12);
     
     const automaticScore = (presenceScore * 0.25 + contributionScore * 0.20 + deliveryScore * 0.30 + engagementScore * 0.25);
-    const qualitativeScore = 70 + Math.random() * 25;
+    const qualitativeScore = 65 + seededRandom(seed + 'qual') * 30;
     const finalScore = automaticScore * 0.6 + qualitativeScore * 0.4;
     
     let performanceLevel: PerformanceLevel;
@@ -39,7 +54,7 @@ const generateMockPerformanceData = (councilMembers: any[]): MemberPerformanceWi
       council_id: member.council_id,
       member_name: member.name,
       member_role: member.role,
-      council_name: 'Conselho de Administração',
+      council_name: getCouncilName(member.council_id),
       presence_score: Math.round(presenceScore * 10) / 10,
       contribution_score: Math.round(contributionScore * 10) / 10,
       delivery_score: Math.round(deliveryScore * 10) / 10,
@@ -58,18 +73,18 @@ const generateMockPerformanceData = (councilMembers: any[]): MemberPerformanceWi
         member_id: member.id,
         council_id: member.council_id,
         meetings_scheduled: 12,
-        meetings_attended: Math.floor(9 + Math.random() * 4),
+        meetings_attended: Math.floor(9 + seededRandom(seed + 'attend') * 3),
         attendance_rate: presenceScore,
-        items_presented: Math.floor(Math.random() * 8),
-        suggestions_made: Math.floor(Math.random() * 15),
+        items_presented: Math.floor(seededRandom(seed + 'items') * 8),
+        suggestions_made: Math.floor(seededRandom(seed + 'sugg') * 15),
         contribution_score: contributionScore,
-        actions_assigned: Math.floor(5 + Math.random() * 10),
-        actions_completed: Math.floor(4 + Math.random() * 8),
-        actions_on_time: Math.floor(3 + Math.random() * 6),
+        actions_assigned: Math.floor(5 + seededRandom(seed + 'assigned') * 10),
+        actions_completed: Math.floor(4 + seededRandom(seed + 'completed') * 8),
+        actions_on_time: Math.floor(3 + seededRandom(seed + 'ontime') * 6),
         delivery_rate: deliveryScore,
-        approvals_requested: Math.floor(10 + Math.random() * 20),
-        approvals_responded: Math.floor(8 + Math.random() * 18),
-        avg_response_time_hours: Math.round((12 + Math.random() * 36) * 10) / 10,
+        approvals_requested: Math.floor(10 + seededRandom(seed + 'appreq') * 20),
+        approvals_responded: Math.floor(8 + seededRandom(seed + 'appresp') * 18),
+        avg_response_time_hours: Math.round((12 + seededRandom(seed + 'resp') * 36) * 10) / 10,
         engagement_score: engagementScore,
         automatic_score: automaticScore,
         calculated_at: new Date().toISOString(),
@@ -93,24 +108,37 @@ export function useBoardPerformance(companyId?: string) {
   const loadPerformanceData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Buscar membros do conselho
-      const { data: members, error } = await supabase
-        .from('council_members')
-        .select(`
-          id,
-          name,
-          role,
-          council_id,
-          status,
-          councils!inner(id, name, company_id)
-        `)
-        .eq('status', 'active');
+      // Tentar buscar membros do banco, com fallback para dados mockados
+      let membersToUse: any[] = [];
+      
+      try {
+        const { data: members, error } = await supabase
+          .from('council_members')
+          .select(`
+            id,
+            name,
+            role,
+            council_id,
+            status,
+            councils!inner(id, name, company_id)
+          `)
+          .eq('status', 'active');
 
-      if (error) throw error;
+        if (!error && members && members.length > 0) {
+          membersToUse = members;
+        }
+      } catch {
+        // Silently fall through to mock data
+      }
+      
+      // Usar dados mockados se não houver dados do banco
+      if (membersToUse.length === 0) {
+        membersToUse = mockCouncilMembers.filter(m => m.status === 'active');
+      }
 
-      if (members && members.length > 0) {
+      if (membersToUse.length > 0) {
         // Gerar dados mock de performance
-        const performanceData = generateMockPerformanceData(members);
+        const performanceData = generateMockPerformanceData(membersToUse);
         
         // Ordenar por score final
         performanceData.sort((a, b) => b.final_score - a.final_score);
