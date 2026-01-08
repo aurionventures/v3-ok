@@ -89,6 +89,7 @@ import NotificationsCenter from "./pages/NotificationsCenter";
 import AuditLogs from "./pages/AuditLogs";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import SecretariatPanel from "./pages/SecretariatPanel";
+import BoardPerformance from "./pages/BoardPerformance";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -532,6 +533,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <BoardMembers />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/board-performance" 
+            element={
+              <ProtectedRoute >
+                <BoardPerformance />
               </ProtectedRoute>
             } 
           />
