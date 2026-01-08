@@ -39,7 +39,7 @@ export type ModuleKey =
   | 'structure' | 'cap_table' | 'gov_maturity' | 'legacy_rituals'
   | 'checklist' | 'interviews' | 'analysis_actions'
   | 'gov_config' | 'annual_agenda' | 'secretariat' | 'councils'
-  | 'project_submission' | 'leadership_performance'
+  | 'project_submission' | 'leadership_performance' | 'board_performance'
   | 'risks' | 'activities'
   | 'esg_maturity' | 'market_intel' | 'benchmarking'
   | 'ai_agents';
