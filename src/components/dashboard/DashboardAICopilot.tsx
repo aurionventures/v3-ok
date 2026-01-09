@@ -156,23 +156,21 @@ export function DashboardAICopilot({
   }, []);
 
   return (
-    <Card>
-      <CardHeader className="py-2 px-3">
+    <Card className="flex flex-col min-h-0 overflow-hidden">
+      <CardHeader className="py-1.5 px-2.5 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded bg-gradient-to-br from-purple-500 to-indigo-600">
-              <Brain className="h-3.5 w-3.5 text-white" />
+          <div className="flex items-center gap-1.5">
+            <div className="p-1 rounded bg-gradient-to-br from-purple-500 to-indigo-600">
+              <Brain className="h-3 w-3 text-white" />
             </div>
-            <div>
-              <CardTitle className="text-sm flex items-center gap-1.5">
-                IA Preditiva
-                <Sparkles className="h-3 w-3 text-yellow-500" />
-              </CardTitle>
-            </div>
+            <CardTitle className="text-xs flex items-center gap-1">
+              IA Preditiva
+              <Sparkles className="h-2.5 w-2.5 text-yellow-500" />
+            </CardTitle>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {lastUpdated && (
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[9px] text-muted-foreground">
                 {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
@@ -181,38 +179,53 @@ export function DashboardAICopilot({
               size="sm"
               onClick={handleRefresh}
               disabled={isLoading}
-              className="gap-1 h-6 text-xs px-2"
+              className="gap-1 h-5 text-[10px] px-1.5"
             >
-              <RefreshCw className={cn("h-3 w-3", isLoading && "animate-spin")} />
+              <RefreshCw className={cn("h-2.5 w-2.5", isLoading && "animate-spin")} />
               {isLoading ? "..." : "Atualizar"}
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-3 pt-0">
+      <CardContent className="px-2.5 pb-2 pt-0 flex-1 min-h-0">
         {isLoading ? (
-          <LoadingSkeleton />
+          <div className="grid grid-cols-3 gap-1.5 h-full">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-2 rounded border bg-muted/30 flex flex-col">
+                <div className="flex items-start gap-1.5">
+                  <Skeleton className="h-5 w-5 rounded flex-shrink-0" />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex gap-1">
+                      <Skeleton className="h-3 w-10" />
+                      <Skeleton className="h-3 w-8" />
+                    </div>
+                    <Skeleton className="h-2.5 w-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : error ? (
-          <div className="text-center py-3">
-            <AlertTriangle className="h-6 w-6 text-yellow-500 mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground mb-2">{error}</p>
-            <Button variant="outline" size="sm" onClick={handleRefresh} className="h-6 text-xs">
+          <div className="text-center py-2 h-full flex flex-col items-center justify-center">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 mb-1" />
+            <p className="text-[10px] text-muted-foreground mb-1">{error}</p>
+            <Button variant="outline" size="sm" onClick={handleRefresh} className="h-5 text-[10px]">
               Tentar novamente
             </Button>
           </div>
         ) : insights.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5 h-full">
             {insights.slice(0, 3).map((insight, index) => (
               <InsightCard key={index} insight={insight} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-3">
-            <Brain className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
-            <p className="text-xs text-muted-foreground mb-2">Clique para gerar insights</p>
-            <Button onClick={handleRefresh} size="sm" className="gap-1 h-6 text-xs">
-              <Sparkles className="h-3 w-3" />
-              Gerar Análise
+          <div className="text-center h-full flex flex-col items-center justify-center">
+            <Brain className="h-5 w-5 text-muted-foreground/50 mb-1" />
+            <p className="text-[10px] text-muted-foreground mb-1">Clique para gerar insights</p>
+            <Button onClick={handleRefresh} size="sm" className="gap-1 h-5 text-[10px]">
+              <Sparkles className="h-2.5 w-2.5" />
+              Gerar
             </Button>
           </div>
         )}
