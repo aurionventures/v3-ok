@@ -68,38 +68,34 @@ function InsightCard({ insight }: { insight: PredictiveInsight }) {
   return (
     <div
       className={cn(
-        "p-4 rounded-lg border transition-all hover:shadow-md",
+        "p-2.5 rounded-md border transition-all hover:shadow-sm",
         config.bgColor,
         config.borderColor
       )}
     >
-      <div className="flex items-start gap-3">
-        <div className={cn("p-2 rounded-lg bg-background/80", config.iconColor)}>
-          <Icon className="h-4 w-4" />
+      <div className="flex items-start gap-2">
+        <div className={cn("p-1.5 rounded bg-background/80", config.iconColor)}>
+          <Icon className="h-3 w-3" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <Badge variant={config.badgeVariant} className="text-xs">
+          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+            <Badge variant={config.badgeVariant} className="text-[10px] px-1.5 py-0">
               {config.label}
             </Badge>
-            <Badge className={cn("text-xs", priority.color)}>
+            <Badge className={cn("text-[10px] px-1.5 py-0", priority.color)}>
               {priority.label}
             </Badge>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+              <Clock className="h-2.5 w-2.5" />
               {insight.timeframe}
             </span>
           </div>
-          <h4 className="font-semibold text-sm text-foreground mb-1">
+          <h4 className="font-semibold text-xs text-foreground leading-tight">
             {insight.title}
           </h4>
-          <p className="text-xs text-muted-foreground mb-2">
-            {insight.description}
+          <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+            {insight.suggestedAction}
           </p>
-          <div className="flex items-center gap-2 text-xs">
-            <Target className="h-3 w-3 text-primary" />
-            <span className="text-primary font-medium">{insight.suggestedAction}</span>
-          </div>
         </div>
       </div>
     </div>
@@ -108,19 +104,18 @@ function InsightCard({ insight }: { insight: PredictiveInsight }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-3 gap-2">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="p-4 rounded-lg border bg-muted/30">
-          <div className="flex items-start gap-3">
-            <Skeleton className="h-8 w-8 rounded-lg" />
-            <div className="flex-1 space-y-2">
-              <div className="flex gap-2">
-                <Skeleton className="h-5 w-16" />
-                <Skeleton className="h-5 w-12" />
+        <div key={i} className="p-2.5 rounded-md border bg-muted/30">
+          <div className="flex items-start gap-2">
+            <Skeleton className="h-6 w-6 rounded" />
+            <div className="flex-1 space-y-1">
+              <div className="flex gap-1">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-10" />
               </div>
-              <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-2.5 w-3/4" />
             </div>
           </div>
         </div>
@@ -153,36 +148,32 @@ export function DashboardAICopilot({
   // Auto-fetch on mount if no insights
   useEffect(() => {
     if (insights.length === 0 && !isLoading && !error) {
-      // Small delay to avoid immediate fetch on first render
       const timer = setTimeout(() => {
         handleRefresh();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, []); // Only on mount
+  }, []);
 
   return (
-    <Card className="col-span-full">
-      <CardHeader className="pb-3">
+    <Card>
+      <CardHeader className="py-2 px-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600">
-              <Brain className="h-5 w-5 text-white" />
+            <div className="p-1.5 rounded bg-gradient-to-br from-purple-500 to-indigo-600">
+              <Brain className="h-3.5 w-3.5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-1.5">
                 IA Preditiva
-                <Sparkles className="h-4 w-4 text-yellow-500" />
+                <Sparkles className="h-3 w-3 text-yellow-500" />
               </CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Copilot de Inteligência Estratégica
-              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {lastUpdated && (
-              <span className="text-xs text-muted-foreground">
-                Atualizado: {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              <span className="text-[10px] text-muted-foreground">
+                {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
             <Button
@@ -190,43 +181,38 @@ export function DashboardAICopilot({
               size="sm"
               onClick={handleRefresh}
               disabled={isLoading}
-              className="gap-2"
+              className="gap-1 h-6 text-xs px-2"
             >
-              <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-              {isLoading ? "Analisando..." : "Atualizar"}
+              <RefreshCw className={cn("h-3 w-3", isLoading && "animate-spin")} />
+              {isLoading ? "..." : "Atualizar"}
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-3 pt-0">
         {isLoading ? (
           <LoadingSkeleton />
         ) : error ? (
-          <div className="text-center py-8">
-            <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-3">{error}</p>
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
+          <div className="text-center py-3">
+            <AlertTriangle className="h-6 w-6 text-yellow-500 mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground mb-2">{error}</p>
+            <Button variant="outline" size="sm" onClick={handleRefresh} className="h-6 text-xs">
               Tentar novamente
             </Button>
           </div>
         ) : insights.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {insights.slice(0, 6).map((insight, index) => (
+          <div className="grid grid-cols-3 gap-2">
+            {insights.slice(0, 3).map((insight, index) => (
               <InsightCard key={index} insight={insight} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <Brain className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
-            <h3 className="font-medium text-muted-foreground mb-2">
-              Nenhuma análise disponível
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Clique em "Atualizar" para gerar insights preditivos
-            </p>
-            <Button onClick={handleRefresh} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Gerar Análise com IA
+          <div className="text-center py-3">
+            <Brain className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground mb-2">Clique para gerar insights</p>
+            <Button onClick={handleRefresh} size="sm" className="gap-1 h-6 text-xs">
+              <Sparkles className="h-3 w-3" />
+              Gerar Análise
             </Button>
           </div>
         )}
