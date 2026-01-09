@@ -221,9 +221,7 @@ export const ADDON_SECTIONS: SidebarSection[] = [
 // ==========================================
 // ITENS FIXOS (sempre visíveis na base do sidebar)
 // ==========================================
-export const FIXED_ITEMS: SidebarItem[] = [
-  { key: 'settings', label: 'Configurações', path: '/settings', icon: Settings },
-];
+export const FIXED_ITEMS: SidebarItem[] = [];
 
 // ==========================================
 // ADD-ONS DINÂMICOS (vão para seções específicas quando ativados)
