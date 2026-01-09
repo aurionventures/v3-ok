@@ -45,6 +45,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -304,6 +305,22 @@ const Sidebar = () => {
               className="h-8 w-auto brightness-0 invert"
             />
           </Link>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleSidebar}
+                className="h-8 w-8 text-white/70 hover:text-white hover:bg-legacy-600"
+              >
+                {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>{open ? "Recolher menu" : "Expandir menu"}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -379,30 +396,6 @@ const Sidebar = () => {
         </div>
       </div>
       
-      {/* Configurações no rodapé - apenas para rotas não-admin */}
-      {!isAdminRoute && (
-        <div className="border-t border-legacy-600 p-3">
-          <Link 
-            to="/settings" 
-            className={cn(
-              "flex items-center py-1.5 px-3 rounded-md text-xs font-medium transition-colors", 
-              pathname === "/settings"
-                ? "bg-accent text-accent-foreground" 
-                : "text-white hover:bg-legacy-600"
-            )}
-            title={!open ? "Configurações" : undefined}
-          >
-            <div className="h-4 w-4 flex items-center justify-center">
-              <Settings className="h-5 w-5" />
-            </div>
-            {open && <span className="ml-2">Configurações</span>}
-          </Link>
-        </div>
-      )}
-      
-      <Button variant="outline" size="icon" onClick={toggleSidebar} className="m-2">
-        {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-      </Button>
     </aside>
   );
 };
