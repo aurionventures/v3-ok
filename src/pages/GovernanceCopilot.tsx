@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, 
@@ -387,16 +387,72 @@ const mockData = {
   criticalRisks: 2,
 };
 
+// Demo insights for initial display (shown before first refresh)
+const demoInsights = {
+  strategicRisks: [
+    {
+      title: "Vulnerabilidade na Sucessão Executiva",
+      priority: "critical" as const,
+      context: "Concentração de conhecimento crítico em poucos profissionais chave sem plano de backup estruturado",
+      actions: { primary: "Revisar plano de sucessão", secondary: "Mapear candidatos internos" }
+    },
+    {
+      title: "Concentração de Decisões Estratégicas",
+      priority: "high" as const,
+      context: "Dependência excessiva de poucos tomadores de decisão para assuntos críticos da governança",
+      actions: { primary: "Descentralizar decisões", secondary: "Criar comitês delegados" }
+    }
+  ],
+  operationalThreats: [
+    {
+      title: "Pressão Regulatória ESG",
+      timeframe: "30_days" as const,
+      category: "Regulatório",
+      context: "Novas exigências de compliance ambiental entrando em vigor no próximo trimestre",
+      actions: { primary: "Atualizar políticas ESG", secondary: "Treinar equipe de compliance" }
+    },
+    {
+      title: "Pendências Acumuladas",
+      timeframe: "immediate" as const,
+      category: "Operacional",
+      context: "Backlog crescente de tarefas críticas impactando prazos de governança",
+      actions: { primary: "Priorizar pendências críticas", secondary: "Delegar tarefas pendentes" }
+    }
+  ],
+  strategicOpportunities: [
+    {
+      title: "Fortalecimento da Cultura de Compliance",
+      context: "Momento oportuno para consolidar práticas de governança e fortalecer a cultura organizacional",
+      actions: { primary: "Implementar programa de compliance", secondary: "Medir resultados trimestrais" }
+    },
+    {
+      title: "Certificação B Corp",
+      context: "Diferencial competitivo no mercado e alinhamento com valores ESG da organização",
+      actions: { primary: "Avaliar requisitos da certificação", secondary: "Iniciar processo de certificação" }
+    }
+  ]
+};
+
 export default function GovernanceCopilot() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("analysis");
+  const [hasRefreshed, setHasRefreshed] = useState(false);
   
   const { governanceInsights, isLoading, error, lastUpdated, fetchInsights } = usePredictiveInsights();
   const { history, isLoading: historyLoading, fetchHistory, getLatestEntry, compareTrends } = useInsightsHistory();
   
   const [trends, setTrends] = useState<Map<string, TrendInfo>>(new Map());
 
+  // Use demo insights until user refreshes, then show real data
+  const displayInsights = useMemo(() => {
+    if (hasRefreshed && governanceInsights) {
+      return governanceInsights;
+    }
+    return demoInsights;
+  }, [hasRefreshed, governanceInsights]);
+
   const handleRefresh = async () => {
+    setHasRefreshed(true);
     await fetchInsights(mockData);
     await fetchHistory();
   };
@@ -412,12 +468,6 @@ export default function GovernanceCopilot() {
       setTrends(newTrends);
     }
   }, [governanceInsights, history]);
-
-  const hasInsights = governanceInsights && (
-    governanceInsights.strategicRisks.length > 0 ||
-    governanceInsights.operationalThreats.length > 0 ||
-    governanceInsights.strategicOpportunities.length > 0
-  );
 
   return (
     <div className="flex h-screen bg-background">
@@ -495,7 +545,7 @@ export default function GovernanceCopilot() {
                     </Button>
                   </div>
                 </Card>
-              ) : hasInsights ? (
+              ) : (
                 <div className="grid grid-cols-3 gap-4 h-full">
                   {/* Column 1: Strategic Risks */}
                   <InsightColumn 
@@ -503,13 +553,13 @@ export default function GovernanceCopilot() {
                     icon={Shield} 
                     iconColor="text-red-600"
                     headerBg="bg-red-50/80 dark:bg-red-950/30"
-                    count={governanceInsights.strategicRisks.length}
+                    count={displayInsights.strategicRisks.length}
                   >
-                    {governanceInsights.strategicRisks.map((risk, index) => (
+                    {displayInsights.strategicRisks.map((risk, index) => (
                       <StrategicRiskItem 
                         key={index} 
                         risk={risk} 
-                        trend={trends.get(`risk_${index}`)}
+                        trend={hasRefreshed ? trends.get(`risk_${index}`) : undefined}
                       />
                     ))}
                   </InsightColumn>
@@ -520,13 +570,13 @@ export default function GovernanceCopilot() {
                     icon={AlertTriangle} 
                     iconColor="text-amber-600"
                     headerBg="bg-amber-50/80 dark:bg-amber-950/30"
-                    count={governanceInsights.operationalThreats.length}
+                    count={displayInsights.operationalThreats.length}
                   >
-                    {governanceInsights.operationalThreats.map((threat, index) => (
+                    {displayInsights.operationalThreats.map((threat, index) => (
                       <OperationalThreatItem 
                         key={index} 
                         threat={threat}
-                        trend={trends.get(`threat_${index}`)}
+                        trend={hasRefreshed ? trends.get(`threat_${index}`) : undefined}
                       />
                     ))}
                   </InsightColumn>
@@ -537,37 +587,17 @@ export default function GovernanceCopilot() {
                     icon={Lightbulb} 
                     iconColor="text-blue-600"
                     headerBg="bg-blue-50/80 dark:bg-blue-950/30"
-                    count={governanceInsights.strategicOpportunities.length}
+                    count={displayInsights.strategicOpportunities.length}
                   >
-                    {governanceInsights.strategicOpportunities.map((opportunity, index) => (
+                    {displayInsights.strategicOpportunities.map((opportunity, index) => (
                       <StrategicOpportunityItem 
                         key={index} 
                         opportunity={opportunity}
-                        trend={trends.get(`opportunity_${index}`)}
+                        trend={hasRefreshed ? trends.get(`opportunity_${index}`) : undefined}
                       />
                     ))}
                   </InsightColumn>
                 </div>
-              ) : (
-                <Card className="h-full flex items-center justify-center border-2 border-dashed border-indigo-200 dark:border-indigo-800">
-                  <div className="text-center py-12">
-                    <div className="p-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 mx-auto mb-4 w-fit">
-                      <Brain className="h-10 w-10 text-indigo-500" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Copiloto de Governança</h3>
-                    <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                      Gere uma análise estratégica completa com riscos, ameaças e oportunidades baseados nos dados atuais do sistema.
-                    </p>
-                    <Button 
-                      onClick={handleRefresh} 
-                      size="lg" 
-                      className="gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Gerar Análise Estratégica
-                    </Button>
-                  </div>
-                </Card>
               )}
             </TabsContent>
 
