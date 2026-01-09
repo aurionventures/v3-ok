@@ -196,21 +196,21 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-3 pb-2.5 pt-0 flex-1">
-                <div className="grid grid-cols-4 gap-1.5">
-                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/50 rounded-md">
-                    <div className="text-lg font-bold text-blue-600">{riskSummary.totalRisks}</div>
+                <div className="grid grid-cols-2 gap-1.5 h-full">
+                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
                     <div className="text-[9px] text-blue-600/80 font-medium">Total</div>
                   </div>
-                  <div className="text-center p-2 bg-red-50 dark:bg-red-950/50 rounded-md">
-                    <div className="text-lg font-bold text-red-600">{riskSummary.criticalRisks}</div>
+                  <div className="text-center p-2 bg-red-50 dark:bg-red-950/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-red-600">{riskSummary.criticalRisks}</div>
                     <div className="text-[9px] text-red-600/80 font-medium">Críticos</div>
                   </div>
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md">
-                    <div className="text-lg font-bold text-green-600">{riskSummary.mitigationPlans}</div>
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-green-600">{riskSummary.mitigationPlans}</div>
                     <div className="text-[9px] text-green-600/80 font-medium">Mitigados</div>
                   </div>
-                  <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded-md">
-                    <div className="text-lg font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
+                  <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
                     <div className="text-[9px] text-yellow-600/80 font-medium">S/ Mitig.</div>
                   </div>
                 </div>
@@ -227,22 +227,22 @@ const Dashboard = () => {
                   <CardTitle className="text-xs font-semibold">Gestão de Tarefas</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-2.5 pt-0 flex-1 space-y-2">
-                <div className="grid grid-cols-4 gap-1.5">
-                  <div className="text-center p-2 bg-muted/50 rounded-md">
-                    <div className="text-lg font-bold">{taskMetrics.total}</div>
+              <CardContent className="px-3 pb-2.5 pt-0 flex-1">
+                <div className="grid grid-cols-2 gap-1.5 h-full">
+                  <div className="text-center p-2 bg-muted/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold">{taskMetrics.total}</div>
                     <div className="text-[9px] text-muted-foreground font-medium">Total</div>
                   </div>
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md">
-                    <div className="text-lg font-bold text-green-600">{taskMetrics.completed}</div>
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-green-600">{taskMetrics.completed}</div>
                     <div className="text-[9px] text-green-600/80 font-medium">Concluídas</div>
                   </div>
-                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-950/50 rounded-md">
-                    <div className="text-lg font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
+                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-950/50 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
                     <div className="text-[9px] text-orange-600/80 font-medium">Pendentes</div>
                   </div>
-                  <div className="text-center p-2 bg-primary/10 rounded-md">
-                    <div className="text-lg font-bold text-primary">{taskMetrics.resolutionRate}%</div>
+                  <div className="text-center p-2 bg-primary/10 rounded-md flex flex-col justify-center">
+                    <div className="text-xl font-bold text-primary">{taskMetrics.resolutionRate}%</div>
                     <div className="text-[9px] text-primary/80 font-medium">Resolução</div>
                   </div>
                 </div>
