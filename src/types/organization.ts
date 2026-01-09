@@ -42,7 +42,7 @@ export type ModuleKey =
   | 'project_submission' | 'leadership_performance' | 'board_performance'
   | 'risks' | 'activities'
   | 'esg_maturity' | 'market_intel' | 'benchmarking'
-  | 'ai_agents';
+  | 'ai_agents' | 'ai_copilot';
 
 // Interface da Organização
 export interface Organization {

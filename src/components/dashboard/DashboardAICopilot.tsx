@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -217,6 +218,7 @@ export function DashboardAICopilot({
   overduesTasks,
   criticalRisks,
 }: DashboardAICopilotProps) {
+  const navigate = useNavigate();
   const { governanceInsights, isLoading, error, lastUpdated, fetchInsights } = usePredictiveInsights();
 
   const handleRefresh = () => {
@@ -271,6 +273,15 @@ export function DashboardAICopilot({
                 {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/copiloto-governanca')}
+              className="gap-1 h-7 text-xs px-2"
+            >
+              Ver completo
+              <ExternalLink className="h-3 w-3" />
+            </Button>
             <Button
               variant="outline"
               size="sm"
