@@ -44,7 +44,7 @@ import AdminPartners from "./pages/AdminPartners";
 import AdminAddons from "./pages/AdminAddons";
 import AdminSales from "./pages/AdminSales";
 import AIConfig from "./pages/AIConfig";
-import AIAgents from "./pages/AIAgents";
+import GovernanceCopilot from "./pages/GovernanceCopilot";
 import Companies from "./pages/Companies";
 import CapTable from "./pages/CapTable";
 import MaturityQuiz from "./pages/MaturityQuiz";
@@ -798,13 +798,15 @@ const App = () => (
             } 
           />
           <Route 
-            path="/ai-agents" 
+            path="/copiloto-governanca" 
             element={
               <ProtectedRoute >
-                <AIAgents />
+                <GovernanceCopilot />
               </ProtectedRoute>
             } 
           />
+          {/* Redirect old route */}
+          <Route path="/ai-agents" element={<Navigate to="/copiloto-governanca" replace />} />
           <Route 
             path="/admin/auditoria" 
             element={

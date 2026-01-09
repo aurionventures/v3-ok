@@ -2,7 +2,7 @@ import { LucideIcon } from "lucide-react";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, BookText, 
-  Bot, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award
+  Brain, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award
 } from "lucide-react";
 import { ModuleKey } from "@/types/organization";
 
@@ -112,9 +112,9 @@ export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits
     description: 'Compare sua governança com empresas do setor.',
     benefits: ['Ranking setorial', 'Indicadores comparativos', 'Melhores práticas']
   },
-  ai_agents: {
-    description: 'Agentes de IA para automação de processos de governança.',
-    benefits: ['Geração automática de ATAs', 'Análise de documentos', 'Recomendações inteligentes']
+  ai_copilot: {
+    description: 'Copiloto de Governança com IA preditiva para decisões estratégicas.',
+    benefits: ['Análise preditiva de riscos', 'Identificação de oportunidades', 'Histórico de tendências', 'Ações recomendadas navegáveis']
   }
 };
 
@@ -229,9 +229,9 @@ export const FIXED_ITEMS: SidebarItem[] = [
 // ADD-ONS DINÂMICOS (vão para seções específicas quando ativados)
 // ==========================================
 export const DYNAMIC_ADDONS: Record<string, { targetSection: string; item: SidebarItem }> = {
-  ai_agents: {
+  ai_copilot: {
     targetSection: 'inicio',
-    item: { key: 'ai_agents', label: 'Agentes de IA', path: '/ai-agents', icon: Bot, isAddon: true }
+    item: { key: 'ai_copilot', label: 'Copiloto IA', path: '/copiloto-governanca', icon: Brain, isAddon: true }
   },
   project_submission: {
     targetSection: 'estruturacao',
