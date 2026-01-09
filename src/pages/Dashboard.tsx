@@ -100,13 +100,13 @@ const Dashboard = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Dashboard" />
-        <div 
-          className="h-[calc(100vh-3.5rem)] p-2.5 grid gap-2" 
-          style={{ 
-            gridTemplateRows: 'auto auto 1fr 1fr',
-            overflow: 'hidden'
-          }}
-        >
+      <div 
+        className="h-[calc(100vh-3.5rem)] p-2.5 grid gap-2" 
+        style={{ 
+          gridTemplateRows: 'auto auto auto 1fr',
+          overflow: 'hidden'
+        }}
+      >
           {/* Row 1: 4 KPIs - altura mínima */}
           <div className="grid grid-cols-4 gap-2">
             {/* Score Geral */}
@@ -274,11 +274,11 @@ const Dashboard = () => {
               <CardContent className="px-2.5 pb-2 pt-0 flex-1 flex flex-col justify-evenly min-h-0">
                 {latestGovernanceAssessment ? (
                   <>
-                    {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 3).map(dim => (
-                      <div key={dim.name} className="flex items-center gap-1.5">
-                        <span className="text-[10px] w-20 truncate text-muted-foreground">{dim.name}</span>
-                        <Progress value={dim.score * 20} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
-                        <span className="text-[10px] font-bold w-7 text-blue-600">{dim.score.toFixed(1)}</span>
+                    {convertStoredDataToRadarData(latestGovernanceAssessment).map(dim => (
+                      <div key={dim.name} className="flex items-center gap-1">
+                        <span className="text-[9px] w-14 truncate text-muted-foreground" title={dim.name}>{dim.name}</span>
+                        <Progress value={dim.score * 20} className="flex-1 h-1 [&>div]:bg-blue-500" />
+                        <span className="text-[9px] font-bold w-5 text-blue-600">{dim.score.toFixed(1)}</span>
                       </div>
                     ))}
                   </>
@@ -311,20 +311,20 @@ const Dashboard = () => {
                   <>
                     {latestESGAssessment.pillarScores && (
                       <>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] w-20 text-muted-foreground">Ambiental</span>
-                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-green-500" />
-                          <span className="text-[10px] font-bold w-7 text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] w-14 text-muted-foreground">Ambiental</span>
+                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-1 [&>div]:bg-green-500" />
+                          <span className="text-[9px] font-bold w-6 text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] w-20 text-muted-foreground">Social</span>
-                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
-                          <span className="text-[10px] font-bold w-7 text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] w-14 text-muted-foreground">Social</span>
+                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-1 [&>div]:bg-blue-500" />
+                          <span className="text-[9px] font-bold w-6 text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] w-20 text-muted-foreground">Governança</span>
-                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-purple-500" />
-                          <span className="text-[10px] font-bold w-7 text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] w-14 text-muted-foreground">Governança</span>
+                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-1 [&>div]:bg-purple-500" />
+                          <span className="text-[9px] font-bold w-6 text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
                         </div>
                       </>
                     )}
