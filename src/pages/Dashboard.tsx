@@ -100,131 +100,137 @@ const Dashboard = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Dashboard" />
-        <div className="h-[calc(100vh-4rem)] overflow-hidden p-3 flex flex-col gap-3">
-          {/* Row 1: 4 Métricas Principais */}
-          <div className="grid grid-cols-4 gap-3">
+        <div 
+          className="h-[calc(100vh-3.5rem)] p-2.5 grid gap-2" 
+          style={{ 
+            gridTemplateRows: 'auto auto 1fr 1fr',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Row 1: 4 KPIs - altura mínima */}
+          <div className="grid grid-cols-4 gap-2">
             {/* Score Geral */}
-            <Card className="p-3">
+            <Card className="p-2">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Score Maturidade</p>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <p className="text-lg font-bold text-primary">3.6</p>
-                    <span className="text-xs text-green-600 font-medium">+9%</span>
+                  <p className="text-[10px] text-muted-foreground">Score Maturidade</p>
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <p className="text-base font-bold text-primary">3.6</p>
+                    <span className="text-[10px] text-green-600 font-medium">+9%</span>
                   </div>
-                  <Progress value={72} className="h-1.5 mt-1" />
+                  <Progress value={72} className="h-1 mt-1" />
                 </div>
-                <BarChart3 className="h-4 w-4 text-primary" />
+                <BarChart3 className="h-3.5 w-3.5 text-primary" />
               </div>
             </Card>
             {/* Riscos Críticos */}
-            <Card className="p-3">
+            <Card className="p-2">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Riscos Críticos</p>
-                  <p className="text-lg font-bold text-red-600 mt-0.5">{riskSummary.criticalRisks}</p>
-                  <Progress value={(riskSummary.criticalRisks / riskSummary.totalRisks) * 100} className="h-1.5 mt-1 [&>div]:bg-red-500" />
+                  <p className="text-[10px] text-muted-foreground">Riscos Críticos</p>
+                  <p className="text-base font-bold text-red-600 mt-0.5">{riskSummary.criticalRisks}</p>
+                  <Progress value={(riskSummary.criticalRisks / riskSummary.totalRisks) * 100} className="h-1 mt-1 [&>div]:bg-red-500" />
                 </div>
-                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
               </div>
             </Card>
             {/* Pautas */}
-            <Card className="p-3">
+            <Card className="p-2">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Pautas Definidas</p>
-                  <p className="text-lg font-bold text-primary mt-0.5">{meetingMetrics.pautasPercentual}%</p>
-                  <Progress value={meetingMetrics.pautasPercentual} className="h-1.5 mt-1" />
+                  <p className="text-[10px] text-muted-foreground">Pautas Definidas</p>
+                  <p className="text-base font-bold text-primary mt-0.5">{meetingMetrics.pautasPercentual}%</p>
+                  <Progress value={meetingMetrics.pautasPercentual} className="h-1 mt-1" />
                 </div>
-                <Clock className="h-4 w-4 text-primary" />
+                <Clock className="h-3.5 w-3.5 text-primary" />
               </div>
             </Card>
             {/* ATAs */}
-            <Card className="p-3">
+            <Card className="p-2">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">ATAs Geradas</p>
-                  <p className="text-lg font-bold text-green-600 mt-0.5">{meetingMetrics.atasPercentual}%</p>
-                  <Progress value={meetingMetrics.atasPercentual} className="h-1.5 mt-1 [&>div]:bg-green-600" />
+                  <p className="text-[10px] text-muted-foreground">ATAs Geradas</p>
+                  <p className="text-base font-bold text-green-600 mt-0.5">{meetingMetrics.atasPercentual}%</p>
+                  <Progress value={meetingMetrics.atasPercentual} className="h-1 mt-1 [&>div]:bg-green-600" />
                 </div>
-                <FileText className="h-4 w-4 text-green-600" />
+                <FileText className="h-3.5 w-3.5 text-green-600" />
               </div>
             </Card>
           </div>
 
-          {/* Row 2: Riscos + Tarefas */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Row 2: Riscos + Tarefas - altura mínima */}
+          <div className="grid grid-cols-2 gap-2">
             {/* Gestão de Riscos */}
-            <Card>
-              <CardHeader className="py-2 px-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-blue-600" />
-                  <CardTitle className="text-sm">Gestão de Riscos</CardTitle>
+            <Card className="flex flex-col">
+              <CardHeader className="py-1.5 px-2.5 flex-shrink-0">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-blue-600" />
+                  <CardTitle className="text-xs">Gestão de Riscos</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-3 pt-0">
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/50 rounded-md">
-                    <div className="text-lg font-bold text-blue-600">{riskSummary.totalRisks}</div>
-                    <div className="text-[10px] text-blue-600 font-medium">Total</div>
+              <CardContent className="px-2.5 pb-2 pt-0 flex-1">
+                <div className="grid grid-cols-4 gap-1.5">
+                  <div className="text-center p-1.5 bg-blue-50 dark:bg-blue-950/50 rounded">
+                    <div className="text-base font-bold text-blue-600">{riskSummary.totalRisks}</div>
+                    <div className="text-[9px] text-blue-600 font-medium">Total</div>
                   </div>
-                  <div className="text-center p-2 bg-red-50 dark:bg-red-950/50 rounded-md">
-                    <div className="text-lg font-bold text-red-600">{riskSummary.criticalRisks}</div>
-                    <div className="text-[10px] text-red-600 font-medium">Críticos</div>
+                  <div className="text-center p-1.5 bg-red-50 dark:bg-red-950/50 rounded">
+                    <div className="text-base font-bold text-red-600">{riskSummary.criticalRisks}</div>
+                    <div className="text-[9px] text-red-600 font-medium">Críticos</div>
                   </div>
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md">
-                    <div className="text-lg font-bold text-green-600">{riskSummary.mitigationPlans}</div>
-                    <div className="text-[10px] text-green-600 font-medium">Mitigados</div>
+                  <div className="text-center p-1.5 bg-green-50 dark:bg-green-950/50 rounded">
+                    <div className="text-base font-bold text-green-600">{riskSummary.mitigationPlans}</div>
+                    <div className="text-[9px] text-green-600 font-medium">Mitigados</div>
                   </div>
-                  <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded-md">
-                    <div className="text-lg font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
-                    <div className="text-[10px] text-yellow-600 font-medium">Sem Mitigação</div>
+                  <div className="text-center p-1.5 bg-yellow-50 dark:bg-yellow-950/50 rounded">
+                    <div className="text-base font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
+                    <div className="text-[9px] text-yellow-600 font-medium">Sem Mitigação</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Gestão de Tarefas */}
-            <Card>
-              <CardHeader className="py-2 px-3">
-                <div className="flex items-center gap-2">
-                  <ListTodo className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm">Gestão de Tarefas</CardTitle>
+            <Card className="flex flex-col">
+              <CardHeader className="py-1.5 px-2.5 flex-shrink-0">
+                <div className="flex items-center gap-1.5">
+                  <ListTodo className="h-3.5 w-3.5 text-primary" />
+                  <CardTitle className="text-xs">Gestão de Tarefas</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-3 pt-0 space-y-2">
+              <CardContent className="px-2.5 pb-2 pt-0 flex-1 space-y-1.5">
                 {/* KPIs */}
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="text-center p-2 bg-muted/50 rounded-md">
-                    <div className="text-lg font-bold">{taskMetrics.total}</div>
-                    <div className="text-[10px] text-muted-foreground font-medium">Total</div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  <div className="text-center p-1.5 bg-muted/50 rounded">
+                    <div className="text-base font-bold">{taskMetrics.total}</div>
+                    <div className="text-[9px] text-muted-foreground font-medium">Total</div>
                   </div>
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md">
-                    <div className="text-lg font-bold text-green-600">{taskMetrics.completed}</div>
-                    <div className="text-[10px] text-green-600 font-medium">Resolvidas</div>
+                  <div className="text-center p-1.5 bg-green-50 dark:bg-green-950/50 rounded">
+                    <div className="text-base font-bold text-green-600">{taskMetrics.completed}</div>
+                    <div className="text-[9px] text-green-600 font-medium">Resolvidas</div>
                   </div>
-                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-950/50 rounded-md">
-                    <div className="text-lg font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
-                    <div className="text-[10px] text-orange-600 font-medium">Pendentes</div>
+                  <div className="text-center p-1.5 bg-orange-50 dark:bg-orange-950/50 rounded">
+                    <div className="text-base font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
+                    <div className="text-[9px] text-orange-600 font-medium">Pendentes</div>
                   </div>
-                  <div className="text-center p-2 bg-primary/10 rounded-md">
-                    <div className="text-lg font-bold text-primary">{taskMetrics.resolutionRate}%</div>
-                    <div className="text-[10px] text-primary font-medium">Resolução</div>
+                  <div className="text-center p-1.5 bg-primary/10 rounded">
+                    <div className="text-base font-bold text-primary">{taskMetrics.resolutionRate}%</div>
+                    <div className="text-[9px] text-primary font-medium">Resolução</div>
                   </div>
                 </div>
                 {/* ATAs Pendentes */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <FileSignature className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium">ATAs:</span>
-                  <div className="flex gap-2 flex-1">
-                    <div className="flex-1 text-center p-1 bg-yellow-50 dark:bg-yellow-950/50 rounded text-[10px]">
-                      <span className="font-bold text-yellow-600">{ataApprovalMetrics.aguardandoAprovacao}</span> aprovação
+                  <span className="text-[9px] text-muted-foreground font-medium">ATAs:</span>
+                  <div className="flex gap-1.5 flex-1">
+                    <div className="flex-1 text-center py-0.5 px-1 bg-yellow-50 dark:bg-yellow-950/50 rounded text-[9px]">
+                      <span className="font-bold text-yellow-600">{ataApprovalMetrics.aguardandoAprovacao}</span> aprov.
                     </div>
-                    <div className="flex-1 text-center p-1 bg-blue-50 dark:bg-blue-950/50 rounded text-[10px]">
-                      <span className="font-bold text-blue-600">{ataApprovalMetrics.aguardandoAssinatura}</span> assinatura
+                    <div className="flex-1 text-center py-0.5 px-1 bg-blue-50 dark:bg-blue-950/50 rounded text-[9px]">
+                      <span className="font-bold text-blue-600">{ataApprovalMetrics.aguardandoAssinatura}</span> assin.
                     </div>
-                    <div className="flex-1 text-center p-1 bg-green-50 dark:bg-green-950/50 rounded text-[10px]">
-                      <span className="font-bold text-green-600">{ataApprovalMetrics.finalizadas}</span> finalizadas
+                    <div className="flex-1 text-center py-0.5 px-1 bg-green-50 dark:bg-green-950/50 rounded text-[9px]">
+                      <span className="font-bold text-green-600">{ataApprovalMetrics.finalizadas}</span> final.
                     </div>
                   </div>
                 </div>
@@ -232,7 +238,7 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Row 3: IA Preditiva */}
+          {/* Row 3: IA Preditiva - flexível */}
           <DashboardAICopilot
             risks={governanceRisks.map(r => ({
               id: r.id,
@@ -250,36 +256,36 @@ const Dashboard = () => {
             criticalRisks={riskSummary.criticalRisks}
           />
 
-          {/* Row 4: Maturidade GOV + ESG compactas */}
-          <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
+          {/* Row 4: Maturidade GOV + ESG - flexível */}
+          <div className="grid grid-cols-2 gap-2 min-h-0">
             {/* Maturidade Governança */}
-            <Card className="flex flex-col overflow-hidden">
-              <CardHeader className="py-2 px-3 flex-shrink-0">
+            <Card className="flex flex-col min-h-0 overflow-hidden">
+              <CardHeader className="py-1.5 px-2.5 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-blue-600" />
-                    <CardTitle className="text-sm">Maturidade Governança</CardTitle>
+                  <div className="flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 text-blue-600" />
+                    <CardTitle className="text-xs">Maturidade Governança</CardTitle>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => navigateTo("/maturity")}>
-                    Ver detalhes
+                  <Button variant="ghost" size="sm" className="h-5 text-[10px] px-1.5" onClick={() => navigateTo("/maturity")}>
+                    Detalhes
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-2 pt-0 flex-1 flex flex-col justify-center min-h-0">
+              <CardContent className="px-2.5 pb-2 pt-0 flex-1 flex flex-col justify-evenly min-h-0">
                 {latestGovernanceAssessment ? (
-                  <div className="space-y-1.5">
+                  <>
                     {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 3).map(dim => (
-                      <div key={dim.name} className="flex items-center gap-2">
-                        <span className="text-[11px] w-24 truncate text-muted-foreground">{dim.name}</span>
-                        <Progress value={dim.score * 20} className="flex-1 h-2 [&>div]:bg-blue-500" />
-                        <span className="text-xs font-bold w-8 text-blue-600">{dim.score.toFixed(1)}</span>
+                      <div key={dim.name} className="flex items-center gap-1.5">
+                        <span className="text-[10px] w-20 truncate text-muted-foreground">{dim.name}</span>
+                        <Progress value={dim.score * 20} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
+                        <span className="text-[10px] font-bold w-7 text-blue-600">{dim.score.toFixed(1)}</span>
                       </div>
                     ))}
-                  </div>
+                  </>
                 ) : (
-                  <div className="text-center py-2">
-                    <p className="text-xs text-muted-foreground">Nenhuma avaliação</p>
-                    <Button onClick={() => navigateTo("/maturity-quiz")} size="sm" className="mt-1 h-6 text-xs">
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground">Nenhuma avaliação</p>
+                    <Button onClick={() => navigateTo("/maturity-quiz")} size="sm" className="mt-1 h-5 text-[10px]">
                       Iniciar
                     </Button>
                   </div>
@@ -288,45 +294,45 @@ const Dashboard = () => {
             </Card>
 
             {/* Maturidade ESG */}
-            <Card className="flex flex-col overflow-hidden">
-              <CardHeader className="py-2 px-3 flex-shrink-0">
+            <Card className="flex flex-col min-h-0 overflow-hidden">
+              <CardHeader className="py-1.5 px-2.5 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Leaf className="h-4 w-4 text-green-600" />
-                    <CardTitle className="text-sm">Maturidade ESG</CardTitle>
+                  <div className="flex items-center gap-1.5">
+                    <Leaf className="h-3.5 w-3.5 text-green-600" />
+                    <CardTitle className="text-xs">Maturidade ESG</CardTitle>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => navigateTo("/esg")}>
-                    Ver detalhes
+                  <Button variant="ghost" size="sm" className="h-5 text-[10px] px-1.5" onClick={() => navigateTo("/esg")}>
+                    Detalhes
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-2 pt-0 flex-1 flex flex-col justify-center min-h-0">
+              <CardContent className="px-2.5 pb-2 pt-0 flex-1 flex flex-col justify-evenly min-h-0">
                 {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
-                  <div className="space-y-1.5">
+                  <>
                     {latestESGAssessment.pillarScores && (
                       <>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] w-24 text-muted-foreground">Ambiental</span>
-                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-2 [&>div]:bg-green-500" />
-                          <span className="text-xs font-bold w-8 text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] w-20 text-muted-foreground">Ambiental</span>
+                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-green-500" />
+                          <span className="text-[10px] font-bold w-7 text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] w-24 text-muted-foreground">Social</span>
-                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-2 [&>div]:bg-blue-500" />
-                          <span className="text-xs font-bold w-8 text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] w-20 text-muted-foreground">Social</span>
+                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
+                          <span className="text-[10px] font-bold w-7 text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] w-24 text-muted-foreground">Governança</span>
-                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-2 [&>div]:bg-purple-500" />
-                          <span className="text-xs font-bold w-8 text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] w-20 text-muted-foreground">Governança</span>
+                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-purple-500" />
+                          <span className="text-[10px] font-bold w-7 text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
                         </div>
                       </>
                     )}
-                  </div>
+                  </>
                 ) : (
-                  <div className="text-center py-2">
-                    <p className="text-xs text-muted-foreground">Nenhuma avaliação</p>
-                    <Button onClick={() => navigateTo("/esg")} size="sm" className="mt-1 h-6 text-xs bg-green-600 hover:bg-green-700">
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground">Nenhuma avaliação</p>
+                    <Button onClick={() => navigateTo("/esg")} size="sm" className="mt-1 h-5 text-[10px] bg-green-600 hover:bg-green-700">
                       Iniciar
                     </Button>
                   </div>
