@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare } from "lucide-react";
 import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { AIParameterizationTab } from "@/components/settings/AIParameterizationTab";
+import ActivitiesLogTab from "@/components/settings/ActivitiesLogTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,6 +126,10 @@ const Settings = () => {
                       Parametrização de ATAs
                     </TabsTrigger>
                   )}
+                  <TabsTrigger value="activities">
+                    <ActivitySquare className="h-4 w-4 mr-2" />
+                    Log de Atividades
+                  </TabsTrigger>
                 </TabsList>
                 
                 {/* ABA GERAL - Consolidada com sub-seções */}
@@ -520,6 +525,11 @@ const Settings = () => {
                 {/* ABA PARAMETRIZAÇÃO DE ATAs */}
                 <TabsContent value="atas">
                   <AIParameterizationTab />
+                </TabsContent>
+
+                {/* ABA LOG DE ATIVIDADES */}
+                <TabsContent value="activities">
+                  <ActivitiesLogTab />
                 </TabsContent>
               </Tabs>
             </CardContent>

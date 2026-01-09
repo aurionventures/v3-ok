@@ -13,7 +13,9 @@ import { MembersTable } from '@/components/governance/MembersTable';
 import { CreateMemberModal } from '@/components/governance/CreateMemberModal';
 import { AllocateMemberModal } from '@/components/governance/AllocateMemberModal';
 import { OrganDocumentsSection } from '@/components/governance/OrganDocumentsSection';
-import { Building2, Users, UserCog, Plus, Trash2 } from 'lucide-react';
+import LegacyContent from '@/components/governance/LegacyContent';
+import RitualsContent from '@/components/governance/RitualsContent';
+import { Building2, Users, UserCog, Plus, Trash2, BookText, Calendar } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +26,7 @@ const GovernanceConfig = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const isAdmin = user?.orgRole === 'org_admin';
-  const [activeTab, setActiveTab] = useState<OrganType | 'membros'>('conselho');
+  const [activeTab, setActiveTab] = useState<OrganType | 'membros' | 'legado' | 'rituais'>('conselho');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -34,7 +36,8 @@ const GovernanceConfig = () => {
     hierarchy_level: 1
   });
 
-  const currentOrganType = activeTab === 'membros' ? 'conselho' : activeTab;
+  const isOrganTab = activeTab === 'conselho' || activeTab === 'comite' || activeTab === 'comissao';
+  const currentOrganType: OrganType = isOrganTab ? activeTab : 'conselho';
   const { organs, loading, createOrgan, deleteOrgan, updateAccessConfig } = useGovernanceOrgans(currentOrganType);
   const { 
     members, 
@@ -52,17 +55,17 @@ const GovernanceConfig = () => {
   const [allocatingMember, setAllocatingMember] = useState<GovernanceMember | null>(null);
 
   const handleCreate = async () => {
-    if (activeTab === 'membros') return;
+    if (!isOrganTab) return;
     
     try {
       await createOrgan({
         ...formData,
-        organ_type: activeTab
+        organ_type: currentOrganType
       });
       
       toast({
         title: "Órgão criado",
-        description: `${getOrganTypeLabel(activeTab)} "${formData.name}" foi criado com sucesso.`,
+        description: `${getOrganTypeLabel(currentOrganType)} "${formData.name}" foi criado com sucesso.`,
       });
 
       setIsCreateDialogOpen(false);
@@ -190,23 +193,31 @@ const GovernanceConfig = () => {
             </div>
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as OrganType | 'membros')}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="conselho" className="flex items-center gap-2">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as OrganType | 'membros' | 'legado' | 'rituais')}>
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="conselho" className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
-                  Conselhos
+                  <span className="hidden sm:inline">Conselhos</span>
                 </TabsTrigger>
-                <TabsTrigger value="comite" className="flex items-center gap-2">
+                <TabsTrigger value="comite" className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  Comitês
+                  <span className="hidden sm:inline">Comitês</span>
                 </TabsTrigger>
-                <TabsTrigger value="comissao" className="flex items-center gap-2">
+                <TabsTrigger value="comissao" className="flex items-center gap-1">
                   <UserCog className="h-4 w-4" />
-                  Comissões
+                  <span className="hidden sm:inline">Comissões</span>
                 </TabsTrigger>
-                <TabsTrigger value="membros" className="flex items-center gap-2">
+                <TabsTrigger value="membros" className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  Membros
+                  <span className="hidden sm:inline">Membros</span>
+                </TabsTrigger>
+                <TabsTrigger value="legado" className="flex items-center gap-1">
+                  <BookText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Legado</span>
+                </TabsTrigger>
+                <TabsTrigger value="rituais" className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden sm:inline">Rituais</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -396,6 +407,32 @@ const GovernanceConfig = () => {
                   )}
                 </TabsContent>
               ))}
+
+              {/* Aba Legado */}
+              <TabsContent value="legado" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium">Gestão de Legado</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manifesto de legado, valores e documentos da organização
+                    </p>
+                  </div>
+                </div>
+                <LegacyContent />
+              </TabsContent>
+
+              {/* Aba Rituais */}
+              <TabsContent value="rituais" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium">Rituais Corporativos</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Assembleias, fóruns e encontros de governança
+                    </p>
+                  </div>
+                </div>
+                <RitualsContent />
+              </TabsContent>
             </Tabs>
 
             {/* Modais de Membros */}
