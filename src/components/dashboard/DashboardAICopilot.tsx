@@ -69,7 +69,7 @@ function InsightCard({ insight, index }: { insight: PredictiveInsight; index: nu
   return (
     <div
       className={cn(
-        "relative p-3 rounded-lg transition-all hover:shadow-md",
+        "relative p-4 rounded-lg transition-all hover:shadow-md h-full flex flex-col",
         config.bgColor,
         config.borderColor,
         isCritical && "ring-1 ring-red-300 dark:ring-red-800"
@@ -80,12 +80,12 @@ function InsightCard({ insight, index }: { insight: PredictiveInsight; index: nu
         <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
       )}
       
-      <div className="flex items-start gap-2">
-        <div className={cn("p-1.5 rounded-md bg-background/80 shadow-sm", config.iconColor)}>
-          <Icon className="h-3.5 w-3.5" />
+      <div className="flex items-start gap-2 h-full">
+        <div className={cn("p-1.5 rounded-md bg-background/80 shadow-sm flex-shrink-0", config.iconColor)}>
+          <Icon className="h-4 w-4" />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex items-center gap-1.5 flex-wrap mb-2">
             <Badge variant={config.badgeVariant} className="text-[9px] px-1.5 py-0 font-medium">
               {config.label}
             </Badge>
@@ -93,10 +93,10 @@ function InsightCard({ insight, index }: { insight: PredictiveInsight; index: nu
               {priority.label}
             </Badge>
           </div>
-          <h4 className="font-semibold text-[11px] text-foreground leading-tight line-clamp-2">
+          <h4 className="font-semibold text-xs text-foreground leading-tight mb-2">
             {insight.title}
           </h4>
-          <p className="text-[10px] text-muted-foreground line-clamp-2 mt-1">
+          <p className="text-[11px] text-muted-foreground flex-1">
             <span className="font-medium">Ação:</span> {insight.suggestedAction}
           </p>
         </div>
@@ -213,7 +213,7 @@ export function DashboardAICopilot({
             </Button>
           </div>
         ) : sortedInsights.length > 0 ? (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 h-full">
             {sortedInsights.slice(0, 3).map((insight, index) => (
               <InsightCard key={index} insight={insight} index={index} />
             ))}
