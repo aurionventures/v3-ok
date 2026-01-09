@@ -37,29 +37,60 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Você é um especialista em governança corporativa, análise de riscos e estratégia empresarial.
-Sua função é analisar dados de governança de uma empresa e gerar insights preditivos acionáveis.
+    const systemPrompt = `Você é um Copiloto de Governança Corporativa assistido por IA, especializado em análise estratégica para conselhos e alta liderança.
 
-Diretrizes:
-- Seja objetivo e direto
-- Foque em riscos emergentes e oportunidades
-- Priorize ações de alto impacto
-- Use linguagem profissional mas acessível
-- Cada insight deve ter uma ação clara associada`;
+Sua função é:
+- Antecipar cenários críticos
+- Apoiar decisões estratégicas da liderança
+- Transformar sinais em ações concretas e executáveis
+- Atuar como um verdadeiro parceiro de governança
 
-    const userPrompt = `Analise os seguintes dados de governança da empresa:
+Você DEVE gerar insights em EXATAMENTE 3 categorias obrigatórias:
+
+1. RISCOS ESTRATÉGICOS (strategic_risks):
+   - Riscos estruturais e sistêmicos que ameaçam a organização
+   - Classificação clara: Crítico (crítico), Alto (high), Médio (medium)
+   - Linguagem objetiva e direta, nível conselho
+   - Foco em impacto na governança, continuidade e controle
+   - Gerar EXATAMENTE 2 riscos
+
+2. AMEAÇAS OPERACIONAIS/REGULATÓRIAS (operational_threats):
+   - Pressões externas ou internas emergentes
+   - Mudanças regulatórias, mercado, liquidez, compliance ou reputação
+   - Horizonte temporal explícito: immediate (imediato), 30_days, 90_days
+   - Categorias: Regulatório, Mercado, Liquidez, Compliance, Reputação
+   - Gerar EXATAMENTE 2 ameaças
+
+3. OPORTUNIDADES ESTRATÉGICAS (strategic_opportunities):
+   - Ganhos potenciais decorrentes de ação antecipada
+   - Otimização de controles, fortalecimento de governança, eficiência decisória
+   - Linguagem positiva, porém concreta
+   - Foco em criação de valor e redução de risco futuro
+   - Gerar EXATAMENTE 2 oportunidades
+
+DIRETRIZES PARA CADA INSIGHT:
+- Título: Curto e claro (máximo 50 caracteres)
+- Contexto: Resumido em 1 linha (máximo 80 caracteres)
+- Ações: SEMPRE 2 ações recomendadas pela IA:
+  • Ação Primária: A ação mais importante e urgente
+  • Ação Secundária: Ação complementar de suporte
+- As ações devem ser práticas, executáveis e conectáveis aos módulos do sistema`;
+
+    const userPrompt = `Analise os seguintes dados de governança da empresa e gere insights estratégicos:
 
 RISCOS MAPEADOS:
 ${systemData.risks.map(r => `- ${r.title} (${r.category}): Impacto ${r.impact}/5, Probabilidade ${r.probability}/5, Status: ${r.status}, Controles: ${r.controls.length}`).join('\n')}
 
-MÉTRICAS:
+MÉTRICAS ATUAIS:
 - Score de Maturidade de Governança: ${systemData.maturityScore}/5
 - Score ESG: ${systemData.esgScore}/100
 - Tarefas Pendentes: ${systemData.pendingTasks}
 - Tarefas Atrasadas: ${systemData.overduesTasks}
 - Riscos Críticos: ${systemData.criticalRisks}
 
-Com base nestes dados, gere insights preditivos estratégicos para o conselho.`;
+Com base nestes dados, gere insights preditivos estratégicos organizados em 3 categorias: Riscos Estratégicos, Ameaças Operacionais e Oportunidades Estratégicas.
+
+IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -77,57 +108,131 @@ Com base nestes dados, gere insights preditivos estratégicos para o conselho.`;
           {
             type: "function",
             function: {
-              name: "generate_predictive_insights",
-              description: "Gera insights preditivos estruturados para governança corporativa",
+              name: "generate_governance_insights",
+              description: "Gera insights de governança estruturados em 3 categorias estratégicas para o conselho",
               parameters: {
                 type: "object",
                 properties: {
-                  insights: {
+                  strategic_risks: {
                     type: "array",
+                    description: "2 riscos estratégicos estruturais para governança",
                     items: {
                       type: "object",
                       properties: {
-                        type: { 
-                          type: "string", 
-                          enum: ["risk_alert", "opportunity", "recommendation"],
-                          description: "Tipo do insight: alerta de risco, oportunidade ou recomendação"
-                        },
                         title: { 
                           type: "string",
-                          description: "Título curto e impactante do insight (máx 60 caracteres)"
+                          description: "Título curto e claro (máx 50 caracteres)"
                         },
-                        description: { 
+                        context: { 
                           type: "string",
-                          description: "Descrição detalhada do insight com contexto (máx 150 caracteres)"
+                          description: "Contexto resumido em 1 linha (máx 80 caracteres)"
                         },
                         priority: { 
                           type: "string", 
-                          enum: ["critical", "high", "medium", "low"],
-                          description: "Prioridade do insight baseado em urgência e impacto"
+                          enum: ["critical", "high", "medium"],
+                          description: "Classificação: critical, high, medium"
                         },
-                        category: { 
-                          type: "string",
-                          description: "Categoria: Estratégico, Operacional, Financeiro, Compliance, ESG, Governança"
-                        },
-                        suggestedAction: { 
-                          type: "string",
-                          description: "Ação específica recomendada (máx 100 caracteres)"
-                        },
-                        timeframe: { 
-                          type: "string",
-                          description: "Prazo sugerido: Imediato, 7 dias, 30 dias, 90 dias"
+                        actions: {
+                          type: "object",
+                          description: "2 ações recomendadas pela IA",
+                          properties: {
+                            primary: { 
+                              type: "string",
+                              description: "Ação prioritária principal"
+                            },
+                            secondary: { 
+                              type: "string",
+                              description: "Ação complementar de suporte"
+                            }
+                          },
+                          required: ["primary", "secondary"]
                         }
                       },
-                      required: ["type", "title", "description", "priority", "category", "suggestedAction", "timeframe"]
+                      required: ["title", "context", "priority", "actions"]
+                    }
+                  },
+                  operational_threats: {
+                    type: "array",
+                    description: "2 ameaças operacionais/regulatórias emergentes",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { 
+                          type: "string",
+                          description: "Título curto e claro (máx 50 caracteres)"
+                        },
+                        context: { 
+                          type: "string",
+                          description: "Contexto resumido em 1 linha (máx 80 caracteres)"
+                        },
+                        timeframe: { 
+                          type: "string", 
+                          enum: ["immediate", "30_days", "90_days"],
+                          description: "Horizonte temporal: immediate, 30_days, 90_days"
+                        },
+                        category: {
+                          type: "string",
+                          description: "Categoria: Regulatório, Mercado, Liquidez, Compliance, Reputação"
+                        },
+                        actions: {
+                          type: "object",
+                          description: "2 ações recomendadas pela IA",
+                          properties: {
+                            primary: { 
+                              type: "string",
+                              description: "Ação prioritária principal"
+                            },
+                            secondary: { 
+                              type: "string",
+                              description: "Ação complementar de suporte"
+                            }
+                          },
+                          required: ["primary", "secondary"]
+                        }
+                      },
+                      required: ["title", "context", "timeframe", "category", "actions"]
+                    }
+                  },
+                  strategic_opportunities: {
+                    type: "array",
+                    description: "2 oportunidades estratégicas de criação de valor",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { 
+                          type: "string",
+                          description: "Título curto e claro (máx 50 caracteres)"
+                        },
+                        context: { 
+                          type: "string",
+                          description: "Contexto resumido em 1 linha (máx 80 caracteres)"
+                        },
+                        actions: {
+                          type: "object",
+                          description: "2 ações recomendadas pela IA",
+                          properties: {
+                            primary: { 
+                              type: "string",
+                              description: "Ação prioritária principal"
+                            },
+                            secondary: { 
+                              type: "string",
+                              description: "Ação complementar de suporte"
+                            }
+                          },
+                          required: ["primary", "secondary"]
+                        }
+                      },
+                      required: ["title", "context", "actions"]
                     }
                   }
                 },
-                required: ["insights"]
+                required: ["strategic_risks", "operational_threats", "strategic_opportunities"]
               }
             }
           }
         ],
-        tool_choice: { type: "function", function: { name: "generate_predictive_insights" } }
+        tool_choice: { type: "function", function: { name: "generate_governance_insights" } }
       }),
     });
 
@@ -159,29 +264,40 @@ Com base nestes dados, gere insights preditivos estratégicos para o conselho.`;
     
     console.log("AI Response:", JSON.stringify(data, null, 2));
     
-    // Try to extract insights from different response formats
-    let insights = null;
+    // Try to extract governance insights from different response formats
+    let governanceInsights = null;
     
     // Format 1: Tool call response
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       try {
         const parsed = JSON.parse(toolCall.function.arguments);
-        insights = parsed.insights || parsed;
+        if (parsed.strategic_risks && parsed.operational_threats && parsed.strategic_opportunities) {
+          governanceInsights = {
+            strategicRisks: parsed.strategic_risks,
+            operationalThreats: parsed.operational_threats,
+            strategicOpportunities: parsed.strategic_opportunities,
+          };
+        }
       } catch (e) {
         console.error("Failed to parse tool call arguments:", e);
       }
     }
     
     // Format 2: Direct content with JSON
-    if (!insights && data.choices?.[0]?.message?.content) {
+    if (!governanceInsights && data.choices?.[0]?.message?.content) {
       const content = data.choices[0].message.content;
       try {
-        // Try to extract JSON from content
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          insights = parsed.insights || parsed;
+          if (parsed.strategic_risks && parsed.operational_threats && parsed.strategic_opportunities) {
+            governanceInsights = {
+              strategicRisks: parsed.strategic_risks,
+              operationalThreats: parsed.operational_threats,
+              strategicOpportunities: parsed.strategic_opportunities,
+            };
+          }
         }
       } catch (e) {
         console.error("Failed to parse content as JSON:", e);
@@ -189,54 +305,93 @@ Com base nestes dados, gere insights preditivos estratégicos para o conselho.`;
     }
     
     // Format 3: Function call (older format)
-    if (!insights && data.choices?.[0]?.message?.function_call?.arguments) {
+    if (!governanceInsights && data.choices?.[0]?.message?.function_call?.arguments) {
       try {
         const parsed = JSON.parse(data.choices[0].message.function_call.arguments);
-        insights = parsed.insights || parsed;
+        if (parsed.strategic_risks && parsed.operational_threats && parsed.strategic_opportunities) {
+          governanceInsights = {
+            strategicRisks: parsed.strategic_risks,
+            operationalThreats: parsed.operational_threats,
+            strategicOpportunities: parsed.strategic_opportunities,
+          };
+        }
       } catch (e) {
         console.error("Failed to parse function call arguments:", e);
       }
     }
     
-    if (insights && Array.isArray(insights)) {
-      return new Response(JSON.stringify({ insights }), {
+    if (governanceInsights) {
+      return new Response(JSON.stringify({ governanceInsights }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     
-    // Fallback: generate mock insights if AI fails
-    console.warn("Could not parse AI response, using fallback insights");
-    const fallbackInsights = [
-      {
-        type: "risk_alert",
-        title: "Concentração de Riscos Operacionais",
-        description: "Detectados múltiplos riscos operacionais sem plano de mitigação definido",
-        priority: "high",
-        category: "Operacional",
-        suggestedAction: "Revisar e definir planos de mitigação para riscos operacionais",
-        timeframe: "7 dias"
-      },
-      {
-        type: "opportunity",
-        title: "Melhoria no Score ESG",
-        description: "Potencial de ganho rápido com foco em práticas ambientais",
-        priority: "medium",
-        category: "ESG",
-        suggestedAction: "Implementar iniciativas de sustentabilidade de baixo custo",
-        timeframe: "30 dias"
-      },
-      {
-        type: "recommendation",
-        title: "Acelerar Resolução de Tarefas",
-        description: "Taxa de resolução abaixo do ideal, impactando governança",
-        priority: "high",
-        category: "Governança",
-        suggestedAction: "Priorizar tarefas atrasadas e definir responsáveis",
-        timeframe: "Imediato"
-      }
-    ];
+    // Fallback: generate mock governance insights if AI fails
+    console.warn("Could not parse AI response, using fallback governance insights");
+    const fallbackGovernanceInsights = {
+      strategicRisks: [
+        {
+          title: "Vulnerabilidade na Sucessão Executiva",
+          context: "Ausência de plano sucessório pode comprometer continuidade",
+          priority: "critical",
+          actions: {
+            primary: "Mapear posições-chave e candidatos potenciais",
+            secondary: "Desenvolver programa de mentoria executiva"
+          }
+        },
+        {
+          title: "Concentração de Decisões",
+          context: "Dependência excessiva de poucos decisores estratégicos",
+          priority: "high",
+          actions: {
+            primary: "Implementar comitês de governança temáticos",
+            secondary: "Documentar processos decisórios críticos"
+          }
+        }
+      ],
+      operationalThreats: [
+        {
+          title: "Pressão Regulatória ESG",
+          context: "Novas exigências de disclosure podem impactar operações",
+          timeframe: "30_days",
+          category: "Regulatório",
+          actions: {
+            primary: "Realizar gap analysis de compliance ESG",
+            secondary: "Contratar consultoria especializada"
+          }
+        },
+        {
+          title: "Risco de Liquidez Sazonal",
+          context: "Ciclo de caixa pode pressionar capital de giro",
+          timeframe: "90_days",
+          category: "Liquidez",
+          actions: {
+            primary: "Renegociar linhas de crédito preventivamente",
+            secondary: "Revisar política de gestão de recebíveis"
+          }
+        }
+      ],
+      strategicOpportunities: [
+        {
+          title: "Fortalecimento da Cultura de Compliance",
+          context: "Momento favorável para consolidar práticas éticas",
+          actions: {
+            primary: "Lançar programa de integridade corporativa",
+            secondary: "Criar canal de denúncias independente"
+          }
+        },
+        {
+          title: "Digitalização de Processos de Governança",
+          context: "Automação pode elevar eficiência em 40%",
+          actions: {
+            primary: "Implementar portal de governança digital",
+            secondary: "Capacitar conselheiros em ferramentas digitais"
+          }
+        }
+      ]
+    };
     
-    return new Response(JSON.stringify({ insights: fallbackInsights }), {
+    return new Response(JSON.stringify({ governanceInsights: fallbackGovernanceInsights }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
     

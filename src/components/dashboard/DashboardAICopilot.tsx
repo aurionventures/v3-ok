@@ -1,10 +1,17 @@
 import React, { useEffect } from "react";
-import { Brain, RefreshCw, AlertTriangle, Lightbulb, Target, Sparkles } from "lucide-react";
+import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePredictiveInsights, PredictiveInsight } from "@/hooks/usePredictiveInsights";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  usePredictiveInsights, 
+  StrategicRisk, 
+  OperationalThreat, 
+  StrategicOpportunity,
+  GovernanceInsights 
+} from "@/hooks/usePredictiveInsights";
 import { cn } from "@/lib/utils";
 
 interface RiskData {
@@ -26,100 +33,175 @@ interface DashboardAICopilotProps {
   criticalRisks: number;
 }
 
-const typeConfig = {
-  risk_alert: {
-    icon: AlertTriangle,
-    label: "Alerta",
-    bgColor: "bg-red-50 dark:bg-red-950/40",
-    borderColor: "border-l-4 border-l-red-500",
-    iconColor: "text-red-600",
-    badgeVariant: "destructive" as const,
-  },
-  opportunity: {
-    icon: Lightbulb,
-    label: "Oportunidade",
-    bgColor: "bg-emerald-50 dark:bg-emerald-950/40",
-    borderColor: "border-l-4 border-l-emerald-500",
-    iconColor: "text-emerald-600",
-    badgeVariant: "default" as const,
-  },
-  recommendation: {
-    icon: Target,
-    label: "Recomendação",
-    bgColor: "bg-blue-50 dark:bg-blue-950/40",
-    borderColor: "border-l-4 border-l-blue-500",
-    iconColor: "text-blue-600",
-    badgeVariant: "secondary" as const,
-  },
-};
-
+// Configuration for risk priorities
 const priorityConfig = {
-  critical: { label: "Crítico", color: "bg-red-600 text-white", order: 0 },
-  high: { label: "Alto", color: "bg-orange-500 text-white", order: 1 },
-  medium: { label: "Médio", color: "bg-yellow-500 text-white", order: 2 },
-  low: { label: "Baixo", color: "bg-green-500 text-white", order: 3 },
+  critical: { label: "Crítico", bgColor: "bg-red-600", textColor: "text-white" },
+  high: { label: "Alto", bgColor: "bg-orange-500", textColor: "text-white" },
+  medium: { label: "Médio", bgColor: "bg-yellow-500", textColor: "text-white" },
 };
 
-function InsightCard({ insight, index }: { insight: PredictiveInsight; index: number }) {
-  const config = typeConfig[insight.type];
-  const priority = priorityConfig[insight.priority];
-  const Icon = config.icon;
-  const isCritical = insight.priority === 'critical';
+// Configuration for threat timeframes
+const timeframeConfig = {
+  immediate: { label: "Imediato", bgColor: "bg-red-600", textColor: "text-white" },
+  "30_days": { label: "30 dias", bgColor: "bg-amber-500", textColor: "text-white" },
+  "90_days": { label: "90 dias", bgColor: "bg-blue-500", textColor: "text-white" },
+};
+
+// Strategic Risk Item Component
+function StrategicRiskItem({ risk }: { risk: StrategicRisk }) {
+  const priority = priorityConfig[risk.priority] || priorityConfig.medium;
+  const isCritical = risk.priority === 'critical';
 
   return (
-    <div
-      className={cn(
-        "relative p-4 rounded-lg transition-all hover:shadow-md h-full flex flex-col",
-        config.bgColor,
-        config.borderColor,
-        isCritical && "ring-1 ring-red-300 dark:ring-red-800"
-      )}
-    >
-      {/* Indicador de urgência para críticos */}
+    <div className={cn(
+      "relative p-3 rounded-lg bg-red-50/80 dark:bg-red-950/30 border-l-3 border-l-red-500",
+      isCritical && "ring-1 ring-red-300 dark:ring-red-800"
+    )}>
       {isCritical && (
-        <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+        <div className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full animate-pulse" />
       )}
-      
-      <div className="flex items-start gap-2 h-full">
-        <div className={cn("p-1.5 rounded-md bg-background/80 shadow-sm flex-shrink-0", config.iconColor)}>
-          <Icon className="h-4 w-4" />
+      <div className="flex items-start gap-2 mb-2">
+        <Badge className={cn("text-[9px] px-1.5 py-0 font-semibold", priority.bgColor, priority.textColor)}>
+          {priority.label}
+        </Badge>
+      </div>
+      <h4 className="font-semibold text-xs text-foreground leading-tight mb-1">
+        {risk.title}
+      </h4>
+      <p className="text-[10px] text-muted-foreground mb-2 line-clamp-2">
+        {risk.context}
+      </p>
+      <div className="space-y-1.5 pt-2 border-t border-red-200/50 dark:border-red-800/50">
+        <div className="flex items-start gap-1.5">
+          <ArrowRight className="h-2.5 w-2.5 text-red-600 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-foreground font-medium">{risk.actions.primary}</span>
         </div>
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-center gap-1.5 flex-wrap mb-2">
-            <Badge variant={config.badgeVariant} className="text-[9px] px-1.5 py-0 font-medium">
-              {config.label}
-            </Badge>
-            <Badge className={cn("text-[9px] px-1.5 py-0 font-medium", priority.color)}>
-              {priority.label}
-            </Badge>
-          </div>
-          <h4 className="font-semibold text-xs text-foreground leading-tight mb-2">
-            {insight.title}
-          </h4>
-          <p className="text-[11px] text-muted-foreground flex-1">
-            <span className="font-medium">Ação:</span> {insight.suggestedAction}
-          </p>
+        <div className="flex items-start gap-1.5">
+          <ArrowRight className="h-2.5 w-2.5 text-red-400 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-muted-foreground">{risk.actions.secondary}</span>
         </div>
       </div>
     </div>
   );
 }
 
+// Operational Threat Item Component
+function OperationalThreatItem({ threat }: { threat: OperationalThreat }) {
+  const timeframe = timeframeConfig[threat.timeframe] || timeframeConfig["30_days"];
+
+  return (
+    <div className="relative p-3 rounded-lg bg-amber-50/80 dark:bg-amber-950/30 border-l-3 border-l-amber-500">
+      <div className="flex items-start gap-2 mb-2 flex-wrap">
+        <Badge className={cn("text-[9px] px-1.5 py-0 font-semibold", timeframe.bgColor, timeframe.textColor)}>
+          <Clock className="h-2.5 w-2.5 mr-0.5" />
+          {timeframe.label}
+        </Badge>
+        <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-medium border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400">
+          {threat.category}
+        </Badge>
+      </div>
+      <h4 className="font-semibold text-xs text-foreground leading-tight mb-1">
+        {threat.title}
+      </h4>
+      <p className="text-[10px] text-muted-foreground mb-2 line-clamp-2">
+        {threat.context}
+      </p>
+      <div className="space-y-1.5 pt-2 border-t border-amber-200/50 dark:border-amber-800/50">
+        <div className="flex items-start gap-1.5">
+          <ArrowRight className="h-2.5 w-2.5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-foreground font-medium">{threat.actions.primary}</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <ArrowRight className="h-2.5 w-2.5 text-amber-400 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-muted-foreground">{threat.actions.secondary}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Strategic Opportunity Item Component
+function StrategicOpportunityItem({ opportunity }: { opportunity: StrategicOpportunity }) {
+  return (
+    <div className="relative p-3 rounded-lg bg-blue-50/80 dark:bg-blue-950/30 border-l-3 border-l-blue-500">
+      <div className="flex items-start gap-2 mb-2">
+        <Badge className="text-[9px] px-1.5 py-0 font-semibold bg-blue-600 text-white">
+          Estratégica
+        </Badge>
+      </div>
+      <h4 className="font-semibold text-xs text-foreground leading-tight mb-1">
+        {opportunity.title}
+      </h4>
+      <p className="text-[10px] text-muted-foreground mb-2 line-clamp-2">
+        {opportunity.context}
+      </p>
+      <div className="space-y-1.5 pt-2 border-t border-blue-200/50 dark:border-blue-800/50">
+        <div className="flex items-start gap-1.5">
+          <ArrowRight className="h-2.5 w-2.5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-foreground font-medium">{opportunity.actions.primary}</span>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <ArrowRight className="h-2.5 w-2.5 text-blue-400 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-muted-foreground">{opportunity.actions.secondary}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Column Component
+function InsightColumn({ 
+  title, 
+  icon: Icon, 
+  iconColor,
+  headerBg,
+  children 
+}: { 
+  title: string; 
+  icon: React.ElementType; 
+  iconColor: string;
+  headerBg: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col h-full min-h-0 overflow-hidden rounded-lg border border-border/50 bg-background/50">
+      <div className={cn("flex items-center gap-2 px-3 py-2 border-b border-border/50", headerBg)}>
+        <Icon className={cn("h-4 w-4", iconColor)} />
+        <span className="text-xs font-bold text-foreground">{title}</span>
+      </div>
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-2 space-y-2">
+          {children}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+// Loading Skeleton
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-3 gap-3 h-full">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="p-3 rounded-lg border-l-4 border-l-muted bg-muted/20">
-          <div className="flex items-start gap-2">
-            <Skeleton className="h-7 w-7 rounded-md" />
-            <div className="flex-1 space-y-1.5">
-              <div className="flex gap-1.5">
-                <Skeleton className="h-4 w-14" />
-                <Skeleton className="h-4 w-12" />
+        <div key={i} className="flex flex-col h-full rounded-lg border border-border/50 bg-background/50">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border/50 bg-muted/30">
+            <Skeleton className="h-4 w-4 rounded" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="p-2 space-y-2">
+            {[1, 2].map((j) => (
+              <div key={j} className="p-3 rounded-lg bg-muted/20 border-l-3 border-l-muted">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
+                  <div className="pt-2 border-t border-muted/30 space-y-1">
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-3/4" />
+                  </div>
+                </div>
               </div>
-              <Skeleton className="h-3.5 w-full" />
-              <Skeleton className="h-3 w-4/5" />
-            </div>
+            ))}
           </div>
         </div>
       ))}
@@ -135,7 +217,7 @@ export function DashboardAICopilot({
   overduesTasks,
   criticalRisks,
 }: DashboardAICopilotProps) {
-  const { insights, isLoading, error, lastUpdated, fetchInsights } = usePredictiveInsights();
+  const { governanceInsights, isLoading, error, lastUpdated, fetchInsights } = usePredictiveInsights();
 
   const handleRefresh = () => {
     fetchInsights({
@@ -150,7 +232,7 @@ export function DashboardAICopilot({
 
   // Auto-fetch on mount if no insights
   useEffect(() => {
-    if (insights.length === 0 && !isLoading && !error) {
+    if (!governanceInsights && !isLoading && !error) {
       const timer = setTimeout(() => {
         handleRefresh();
       }, 500);
@@ -158,14 +240,15 @@ export function DashboardAICopilot({
     }
   }, []);
 
-  // Sort insights by priority
-  const sortedInsights = [...insights].sort((a, b) => {
-    return priorityConfig[a.priority].order - priorityConfig[b.priority].order;
-  });
+  const hasInsights = governanceInsights && (
+    governanceInsights.strategicRisks.length > 0 ||
+    governanceInsights.operationalThreats.length > 0 ||
+    governanceInsights.strategicOpportunities.length > 0
+  );
 
   return (
     <Card className="flex flex-col min-h-0 overflow-hidden border-2 border-indigo-200/50 dark:border-indigo-800/50 bg-gradient-to-r from-indigo-50/30 via-purple-50/20 to-indigo-50/30 dark:from-indigo-950/20 dark:via-purple-950/10 dark:to-indigo-950/20">
-      <CardHeader className="py-2.5 px-4 flex-shrink-0 border-b border-indigo-100/50 dark:border-indigo-900/50">
+      <CardHeader className="py-2 px-4 flex-shrink-0 border-b border-indigo-100/50 dark:border-indigo-900/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
@@ -173,7 +256,7 @@ export function DashboardAICopilot({
             </div>
             <div className="flex items-center gap-2">
               <CardTitle className="text-sm font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Copiloto de Decisão
+                Copiloto de Governança
               </CardTitle>
               <span className="text-muted-foreground">|</span>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -201,7 +284,7 @@ export function DashboardAICopilot({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 py-3 flex-1 min-h-0">
+      <CardContent className="px-3 py-2 flex-1 min-h-0">
         {isLoading ? (
           <LoadingSkeleton />
         ) : error ? (
@@ -212,24 +295,56 @@ export function DashboardAICopilot({
               Tentar novamente
             </Button>
           </div>
-        ) : sortedInsights.length > 0 ? (
+        ) : hasInsights ? (
           <div className="grid grid-cols-3 gap-3 h-full">
-            {sortedInsights.slice(0, 3).map((insight, index) => (
-              <InsightCard key={index} insight={insight} index={index} />
-            ))}
+            {/* Column 1: Strategic Risks */}
+            <InsightColumn 
+              title="Riscos Estratégicos" 
+              icon={Shield} 
+              iconColor="text-red-600"
+              headerBg="bg-red-50/80 dark:bg-red-950/30"
+            >
+              {governanceInsights.strategicRisks.map((risk, index) => (
+                <StrategicRiskItem key={index} risk={risk} />
+              ))}
+            </InsightColumn>
+
+            {/* Column 2: Operational Threats */}
+            <InsightColumn 
+              title="Ameaças Operacionais" 
+              icon={AlertTriangle} 
+              iconColor="text-amber-600"
+              headerBg="bg-amber-50/80 dark:bg-amber-950/30"
+            >
+              {governanceInsights.operationalThreats.map((threat, index) => (
+                <OperationalThreatItem key={index} threat={threat} />
+              ))}
+            </InsightColumn>
+
+            {/* Column 3: Strategic Opportunities */}
+            <InsightColumn 
+              title="Oportunidades" 
+              icon={Lightbulb} 
+              iconColor="text-blue-600"
+              headerBg="bg-blue-50/80 dark:bg-blue-950/30"
+            >
+              {governanceInsights.strategicOpportunities.map((opportunity, index) => (
+                <StrategicOpportunityItem key={index} opportunity={opportunity} />
+              ))}
+            </InsightColumn>
           </div>
         ) : (
           <div className="text-center h-full flex flex-col items-center justify-center py-4">
             <div className="p-3 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 mb-3">
               <Brain className="h-6 w-6 text-indigo-500" />
             </div>
-            <p className="text-sm font-medium text-foreground mb-1">Análise Preditiva</p>
+            <p className="text-sm font-medium text-foreground mb-1">Copiloto de Governança</p>
             <p className="text-xs text-muted-foreground mb-3">
-              Clique para gerar insights baseados nos dados atuais
+              Clique para gerar análise estratégica baseada nos dados atuais
             </p>
             <Button onClick={handleRefresh} size="sm" className="gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
               <Sparkles className="h-3 w-3" />
-              Gerar Insights
+              Gerar Análise Estratégica
             </Button>
           </div>
         )}

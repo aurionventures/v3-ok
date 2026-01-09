@@ -2,6 +2,39 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+export interface InsightAction {
+  primary: string;
+  secondary: string;
+}
+
+export interface StrategicRisk {
+  title: string;
+  context: string;
+  priority: "critical" | "high" | "medium";
+  actions: InsightAction;
+}
+
+export interface OperationalThreat {
+  title: string;
+  context: string;
+  timeframe: "immediate" | "30_days" | "90_days";
+  category: string;
+  actions: InsightAction;
+}
+
+export interface StrategicOpportunity {
+  title: string;
+  context: string;
+  actions: InsightAction;
+}
+
+export interface GovernanceInsights {
+  strategicRisks: StrategicRisk[];
+  operationalThreats: OperationalThreat[];
+  strategicOpportunities: StrategicOpportunity[];
+}
+
+// Legacy interface for backward compatibility
 export interface PredictiveInsight {
   type: "risk_alert" | "opportunity" | "recommendation";
   title: string;
@@ -33,6 +66,7 @@ interface SystemData {
 
 interface UsePredictiveInsightsResult {
   insights: PredictiveInsight[];
+  governanceInsights: GovernanceInsights | null;
   isLoading: boolean;
   error: string | null;
   lastUpdated: Date | null;
@@ -40,8 +74,15 @@ interface UsePredictiveInsightsResult {
   clearInsights: () => void;
 }
 
+const emptyGovernanceInsights: GovernanceInsights = {
+  strategicRisks: [],
+  operationalThreats: [],
+  strategicOpportunities: [],
+};
+
 export function usePredictiveInsights(): UsePredictiveInsightsResult {
   const [insights, setInsights] = useState<PredictiveInsight[]>([]);
+  const [governanceInsights, setGovernanceInsights] = useState<GovernanceInsights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -77,10 +118,22 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
         throw new Error(responseData.message || "Erro ao gerar insights");
       }
 
+      // Handle new governance insights format
+      if (responseData?.governanceInsights) {
+        setGovernanceInsights(responseData.governanceInsights);
+        setLastUpdated(new Date());
+      }
+      
+      // Handle legacy insights format
       if (responseData?.insights && Array.isArray(responseData.insights)) {
         setInsights(responseData.insights);
-        setLastUpdated(new Date());
-      } else {
+        if (!responseData.governanceInsights) {
+          setLastUpdated(new Date());
+        }
+      }
+
+      // If we have no data at all, throw error
+      if (!responseData?.governanceInsights && !responseData?.insights) {
         throw new Error("Formato de resposta inválido");
       }
     } catch (err) {
@@ -94,12 +147,14 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
 
   const clearInsights = useCallback(() => {
     setInsights([]);
+    setGovernanceInsights(null);
     setLastUpdated(null);
     setError(null);
   }, []);
 
   return {
     insights,
+    governanceInsights,
     isLoading,
     error,
     lastUpdated,
