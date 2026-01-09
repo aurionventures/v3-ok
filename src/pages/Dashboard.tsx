@@ -322,13 +322,13 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-3 pt-0 flex-1 flex flex-col justify-evenly min-h-0">
+              <CardContent className="px-3 pb-3 pt-0 flex-1 flex flex-col justify-center gap-2 min-h-0">
                 {latestGovernanceAssessment ? (
                   <>
                     {convertStoredDataToRadarData(latestGovernanceAssessment).map(dim => (
                       <div key={dim.name} className="flex items-center gap-2">
                         <span className="text-[10px] w-16 truncate text-muted-foreground font-medium" title={dim.name}>{dim.name}</span>
-                        <Progress value={dim.score * 20} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
+                        <Progress value={dim.score * 20} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
                         <span className="text-[10px] font-bold w-6 text-right text-blue-600">{dim.score.toFixed(1)}</span>
                       </div>
                     ))}
@@ -359,24 +359,24 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-3 pt-0 flex-1 flex flex-col justify-evenly min-h-0">
+              <CardContent className="px-3 pb-3 pt-0 flex-1 flex flex-col justify-center gap-2 min-h-0">
                 {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
                   <>
                     {latestESGAssessment.pillarScores && (
                       <>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] w-16 text-muted-foreground font-medium">Ambiental</span>
-                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-green-500" />
+                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-green-500" />
                           <span className="text-[10px] font-bold w-8 text-right text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] w-16 text-muted-foreground font-medium">Social</span>
-                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-blue-500" />
+                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
                           <span className="text-[10px] font-bold w-8 text-right text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] w-16 text-muted-foreground font-medium">Governança</span>
-                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-1.5 [&>div]:bg-purple-500" />
+                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-purple-500" />
                           <span className="text-[10px] font-bold w-8 text-right text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
                         </div>
                       </>
