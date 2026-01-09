@@ -21,7 +21,7 @@ import {
   Layers, 
   Activity, 
   Building, 
-  Bot, 
+  Brain, 
   DollarSign, 
   PieChart,
   CheckCircle, 
@@ -130,10 +130,10 @@ const Sidebar = () => {
           moduleId: null
         },
         {
-          icon: <Bot className="h-5 w-5" />,
-          href: "/ai-agents",
-          name: "Agentes de IA",
-          moduleId: "ai-config"
+          icon: <Brain className="h-5 w-5" />,
+          href: "/copiloto-governanca",
+          name: "Copiloto de IA",
+          moduleId: "ai_copilot"
         },
       ]
     },

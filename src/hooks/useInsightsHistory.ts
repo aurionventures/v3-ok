@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { GovernanceInsights } from "./usePredictiveInsights";
 
 export interface InsightHistoryEntry {
@@ -11,9 +10,9 @@ export interface InsightHistoryEntry {
   pending_tasks: number;
   overdue_tasks: number;
   critical_risks: number;
-  strategic_risks: any[];
-  operational_threats: any[];
-  strategic_opportunities: any[];
+  strategic_risks: Array<{ title: string; priority: string; context: string }>;
+  operational_threats: Array<{ title: string; timeframe: string; context: string }>;
+  strategic_opportunities: Array<{ title: string; context: string }>;
   model_used: string;
   generation_time_ms: number;
 }
@@ -23,11 +22,107 @@ export interface TrendInfo {
   previousTitle?: string;
 }
 
-// Mock history for now until table is created
-const mockHistory: InsightHistoryEntry[] = [];
+// Dados mock para demonstração
+const mockHistory: InsightHistoryEntry[] = [
+  {
+    id: "demo-1",
+    company_id: "demo-company",
+    created_at: new Date().toISOString(),
+    maturity_score: 4.2,
+    esg_score: 68,
+    pending_tasks: 12,
+    overdue_tasks: 3,
+    critical_risks: 2,
+    strategic_risks: [
+      { title: "Ausência de plano de sucessão", priority: "critical", context: "CEO sem substituto definido há 2 anos" },
+      { title: "Concentração de decisões", priority: "high", context: "85% das decisões dependem de 2 pessoas" }
+    ],
+    operational_threats: [
+      { title: "Nova regulamentação ESG", timeframe: "30_days", context: "Resolução CVM exige adaptação até março" },
+      { title: "Pendências acumuladas", timeframe: "immediate", context: "23 tarefas atrasadas no conselho fiscal" }
+    ],
+    strategic_opportunities: [
+      { title: "Certificação B Corp", context: "Score ESG atual compatível com requisitos" },
+      { title: "Automação de compliance", context: "Potencial redução de 40% no tempo de auditorias" }
+    ],
+    model_used: "google/gemini-2.5-flash",
+    generation_time_ms: 2340
+  },
+  {
+    id: "demo-2",
+    company_id: "demo-company",
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    maturity_score: 4.0,
+    esg_score: 65,
+    pending_tasks: 18,
+    overdue_tasks: 5,
+    critical_risks: 3,
+    strategic_risks: [
+      { title: "Ausência de plano de sucessão", priority: "critical", context: "Identificado como risco principal" },
+      { title: "Documentação desatualizada", priority: "high", context: "Estatuto não revisado desde 2021" },
+      { title: "Falta de comitê de auditoria", priority: "medium", context: "Recomendação do IBGC não implementada" }
+    ],
+    operational_threats: [
+      { title: "Prazo fiscal iminente", timeframe: "immediate", context: "Obrigações fiscais vencem em 15 dias" },
+      { title: "Vencimento de mandatos", timeframe: "30_days", context: "3 conselheiros com mandato expirando" }
+    ],
+    strategic_opportunities: [
+      { title: "Parceria estratégica", context: "Proposta de investidor institucional em análise" },
+      { title: "Expansão de mercado", context: "Oportunidade identificada no setor de energia limpa" }
+    ],
+    model_used: "google/gemini-2.5-flash",
+    generation_time_ms: 2180
+  },
+  {
+    id: "demo-3",
+    company_id: "demo-company",
+    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    maturity_score: 3.8,
+    esg_score: 62,
+    pending_tasks: 22,
+    overdue_tasks: 8,
+    critical_risks: 4,
+    strategic_risks: [
+      { title: "Governança fragmentada", priority: "critical", context: "Órgãos não se comunicam adequadamente" },
+      { title: "Risco de compliance", priority: "high", context: "Políticas internas desatualizadas" }
+    ],
+    operational_threats: [
+      { title: "Auditoria externa", timeframe: "30_days", context: "Auditores identificaram 5 não-conformidades" },
+      { title: "Rotatividade alta", timeframe: "90_days", context: "Turnover de 25% no último semestre" }
+    ],
+    strategic_opportunities: [
+      { title: "Digitalização de processos", context: "Redução estimada de 30% nos custos operacionais" }
+    ],
+    model_used: "google/gemini-2.5-flash",
+    generation_time_ms: 1950
+  },
+  {
+    id: "demo-4",
+    company_id: "demo-company",
+    created_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
+    maturity_score: 3.6,
+    esg_score: 58,
+    pending_tasks: 28,
+    overdue_tasks: 12,
+    critical_risks: 5,
+    strategic_risks: [
+      { title: "Conflito de interesses", priority: "critical", context: "Conselheiros com participação em concorrentes" },
+      { title: "Falta de independência", priority: "high", context: "Nenhum conselheiro independente no board" }
+    ],
+    operational_threats: [
+      { title: "Mudança regulatória", timeframe: "60_days", context: "Nova lei de proteção de dados entra em vigor" }
+    ],
+    strategic_opportunities: [
+      { title: "Captação de recursos", context: "Janela favorável para emissão de debêntures" },
+      { title: "Aliança setorial", context: "Consórcio de empresas do setor em formação" }
+    ],
+    model_used: "google/gemini-2.5-flash",
+    generation_time_ms: 2100
+  }
+];
 
 export function useInsightsHistory() {
-  const [history, setHistory] = useState<InsightHistoryEntry[]>(mockHistory);
+  const [history, setHistory] = useState<InsightHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,26 +131,9 @@ export function useInsightsHistory() {
     setError(null);
 
     try {
-      // For now, use mock data since table doesn't exist yet
-      // Once table is created, uncomment the Supabase query
-      /*
-      let query = supabase
-        .from('ai_insights_history')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (companyId) {
-        query = query.eq('company_id', companyId);
-      }
-
-      const { data, error: fetchError } = await query;
-      if (fetchError) throw fetchError;
-      setHistory(data || []);
-      */
-      
-      // Mock implementation - returns empty array
-      setHistory([]);
+      // Simular delay de rede para demo
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setHistory(mockHistory);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao buscar histórico";
       setError(message);
@@ -76,7 +154,6 @@ export function useInsightsHistory() {
     const trends = new Map<string, TrendInfo>();
 
     if (!previousEntry) {
-      // All items are new
       currentInsights.strategicRisks.forEach((risk, i) => {
         trends.set(`risk_${i}`, { type: 'new' });
       });
@@ -92,7 +169,7 @@ export function useInsightsHistory() {
     // Compare risks
     currentInsights.strategicRisks.forEach((risk, i) => {
       const prevRisks = previousEntry.strategic_risks || [];
-      const matchingPrev = prevRisks.find((p: any) => 
+      const matchingPrev = prevRisks.find((p) => 
         p.title?.toLowerCase().includes(risk.title.toLowerCase().split(' ')[0]) ||
         risk.title.toLowerCase().includes(p.title?.toLowerCase().split(' ')[0] || '')
       );
@@ -116,7 +193,7 @@ export function useInsightsHistory() {
     // Compare threats
     currentInsights.operationalThreats.forEach((threat, i) => {
       const prevThreats = previousEntry.operational_threats || [];
-      const matchingPrev = prevThreats.find((p: any) => 
+      const matchingPrev = prevThreats.find((p) => 
         p.title?.toLowerCase().includes(threat.title.toLowerCase().split(' ')[0]) ||
         threat.title.toLowerCase().includes(p.title?.toLowerCase().split(' ')[0] || '')
       );
@@ -138,10 +215,10 @@ export function useInsightsHistory() {
       }
     });
 
-    // Opportunities - check if similar exists
+    // Opportunities
     currentInsights.strategicOpportunities.forEach((opp, i) => {
       const prevOpps = previousEntry.strategic_opportunities || [];
-      const matchingPrev = prevOpps.find((p: any) => 
+      const matchingPrev = prevOpps.find((p) => 
         p.title?.toLowerCase().includes(opp.title.toLowerCase().split(' ')[0]) ||
         opp.title.toLowerCase().includes(p.title?.toLowerCase().split(' ')[0] || '')
       );

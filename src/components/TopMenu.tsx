@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, BookOpen, BookText, 
-  Activity, Building, Bot, DollarSign, PieChart, CheckCircle, 
+  Activity, Building, Brain, DollarSign, PieChart, CheckCircle, 
   Clock, AlertCircle, Zap, Target, Map, Play, Send, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -219,10 +219,10 @@ export function TopMenu() {
           priority: true
         },
         {
-          icon: Bot,
-          href: "/ai-agents",
-          name: "Agentes de IA",
-          moduleId: "ai-config"
+          icon: Brain,
+          href: "/copiloto-governanca",
+          name: "Copiloto de IA",
+          moduleId: "ai_copilot"
         }
       ]
     }
