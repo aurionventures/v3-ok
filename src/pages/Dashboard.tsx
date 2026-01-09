@@ -1,18 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Calendar, FileText, Users, Award, ChevronRight, Shield, AlertTriangle, TrendingUp, PieChart, Leaf, Building2, BookOpen, Target, Settings, DollarSign, Clock, FileSignature, ListTodo, PlayCircle, CheckCircle2 } from "lucide-react";
+import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import MaturityRadarChart from "@/components/MaturityRadarChart";
-import ESGPillarChart from "@/components/ESGPillarChart";
 import { DashboardAICopilot } from "@/components/dashboard/DashboardAICopilot";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
-import { toast } from "@/hooks/use-toast";
 import { getCurrentMaturityAssessment, convertStoredDataToRadarData } from "@/utils/maturityStorage";
 import { loadLatestESGAssessment } from "@/utils/esgMaturityCalculator";
 import { getLatestESGAssessment } from "@/data/mockESGHistoricalData";
@@ -20,20 +16,15 @@ import { mockHistoricalAssessments } from "@/data/mockHistoricalData";
 
 // Risk data imported from shared source
 import { governanceRisks } from "@/data/riskData";
-import { calculateRiskStats, calculateRiskCategoryStats } from "@/utils/riskCalculator";
+import { calculateRiskStats } from "@/utils/riskCalculator";
 
 // Calculate real-time risk statistics
 const riskSummary = calculateRiskStats(governanceRisks);
-const riskCategories = calculateRiskCategoryStats(governanceRisks);
+
 const Dashboard = () => {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
-  const {
-    actions,
-    loading: loadingActions
-  } = useAllMeetingActions();
+  const { user } = useAuth();
+  const { actions, loading: loadingActions } = useAllMeetingActions();
 
   // Load latest assessments
   const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
@@ -47,16 +38,7 @@ const Dashboard = () => {
     const pending = actions.filter(a => a.status === 'PENDENTE').length;
     const completed = actions.filter(a => a.status === 'CONCLUIDA').length;
     const resolutionRate = total > 0 ? Math.round(completed / total * 100) : 0;
-    const pendingRate = total > 0 ? Math.round((pending + overdue) / total * 100) : 0;
-    return {
-      total,
-      overdue,
-      inProgress,
-      pending,
-      completed,
-      resolutionRate,
-      pendingRate
-    };
+    return { total, overdue, inProgress, pending, completed, resolutionRate };
   }, [actions]);
 
   // Metrics for meetings and ATAs (demo data)
@@ -67,14 +49,7 @@ const Dashboard = () => {
     const meetingsWithATA = 9;
     const pautasPercentual = Math.round(meetingsWithAgenda / totalMeetings * 100);
     const atasPercentual = totalConcluidas > 0 ? Math.round(meetingsWithATA / totalConcluidas * 100) : 0;
-    return {
-      totalMeetings,
-      meetingsWithAgenda,
-      totalConcluidas,
-      meetingsWithATA,
-      pautasPercentual,
-      atasPercentual
-    };
+    return { totalMeetings, meetingsWithAgenda, totalConcluidas, meetingsWithATA, pautasPercentual, atasPercentual };
   }, []);
 
   // ATA approval metrics (demo data)
@@ -83,13 +58,13 @@ const Dashboard = () => {
     aguardandoAssinatura: 1,
     finalizadas: 1
   }), []);
+
   React.useEffect(() => {
     // Load latest Governance assessment
     const governanceAssessment = getCurrentMaturityAssessment();
     if (governanceAssessment) {
       setLatestGovernanceAssessment(governanceAssessment);
     } else {
-      // Use latest mock data as fallback
       const latestMock = mockHistoricalAssessments[mockHistoricalAssessments.length - 1];
       if (latestMock) {
         setLatestGovernanceAssessment({
@@ -104,7 +79,6 @@ const Dashboard = () => {
     if (esgAssessment && esgAssessment.pillarScores) {
       setLatestESGAssessment(esgAssessment);
     } else {
-      // Always use mock data as fallback to ensure ESG section shows data
       const mockESG = getLatestESGAssessment();
       if (mockESG && mockESG.result) {
         setLatestESGAssessment({
@@ -117,153 +91,140 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Handle navigation to different sections
   const navigateTo = (path: string) => {
     navigate(path);
   };
-  return <div className="flex h-screen bg-background overflow-hidden">
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Dashboard" />
-        <div className="h-[calc(100vh-4rem)] overflow-y-auto p-6">
-          {/* Métricas Principais */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* Score Geral de Maturidade */}
-            <Card className="p-6">
+        <div className="h-[calc(100vh-4rem)] overflow-hidden p-3 flex flex-col gap-3">
+          {/* Row 1: 4 Métricas Principais */}
+          <div className="grid grid-cols-4 gap-3">
+            {/* Score Geral */}
+            <Card className="p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Score Geral de Maturidade</p>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <p className="text-2xl font-bold text-primary">3.6</p>
-                    <span className="text-sm text-green-600 font-medium">+9%</span>
+                  <p className="text-xs text-muted-foreground">Score Maturidade</p>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <p className="text-lg font-bold text-primary">3.6</p>
+                    <span className="text-xs text-green-600 font-medium">+9%</span>
                   </div>
-                  <Progress value={72} className="h-2 mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">Melhoria de 0.3 em 3 meses</p>
+                  <Progress value={72} className="h-1.5 mt-1" />
                 </div>
-                <BarChart3 className="h-5 w-5 text-primary" />
+                <BarChart3 className="h-4 w-4 text-primary" />
               </div>
             </Card>
             {/* Riscos Críticos */}
-            <Card className="p-6">
+            <Card className="p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Riscos Críticos</p>
-                  <p className="text-2xl font-bold text-red-600 mt-1">{riskSummary.criticalRisks}</p>
-                  <Progress value={(riskSummary.criticalRisks / riskSummary.totalRisks) * 100} className="h-2 mt-2 [&>div]:bg-red-500" />
-                  <p className="text-xs text-muted-foreground mt-1">{riskSummary.criticalRisks} de {riskSummary.totalRisks} riscos totais</p>
+                  <p className="text-xs text-muted-foreground">Riscos Críticos</p>
+                  <p className="text-lg font-bold text-red-600 mt-0.5">{riskSummary.criticalRisks}</p>
+                  <Progress value={(riskSummary.criticalRisks / riskSummary.totalRisks) * 100} className="h-1.5 mt-1 [&>div]:bg-red-500" />
                 </div>
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+                <AlertTriangle className="h-4 w-4 text-red-600" />
               </div>
             </Card>
-            {/* Pautas Definidas com Progress */}
-            <Card className="p-6">
+            {/* Pautas */}
+            <Card className="p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Pautas Definidas</p>
-                  <p className="text-2xl font-bold text-primary mt-1">{meetingMetrics.pautasPercentual}%</p>
-                  <Progress value={meetingMetrics.pautasPercentual} className="h-2 mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {meetingMetrics.meetingsWithAgenda} de {meetingMetrics.totalMeetings} reuniões
-                  </p>
+                  <p className="text-xs text-muted-foreground">Pautas Definidas</p>
+                  <p className="text-lg font-bold text-primary mt-0.5">{meetingMetrics.pautasPercentual}%</p>
+                  <Progress value={meetingMetrics.pautasPercentual} className="h-1.5 mt-1" />
                 </div>
-                <Clock className="h-5 w-5 text-primary" />
+                <Clock className="h-4 w-4 text-primary" />
               </div>
             </Card>
-            {/* ATAs Geradas */}
-            <Card className="p-6">
+            {/* ATAs */}
+            <Card className="p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">ATAs Geradas</p>
-                  <p className="text-2xl font-bold text-green-600 mt-1">{meetingMetrics.atasPercentual}%</p>
-                  <Progress value={meetingMetrics.atasPercentual} className="h-2 mt-2 [&>div]:bg-green-600" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {meetingMetrics.meetingsWithATA} de {meetingMetrics.totalConcluidas} reuniões realizadas
-                  </p>
+                  <p className="text-xs text-muted-foreground">ATAs Geradas</p>
+                  <p className="text-lg font-bold text-green-600 mt-0.5">{meetingMetrics.atasPercentual}%</p>
+                  <Progress value={meetingMetrics.atasPercentual} className="h-1.5 mt-1 [&>div]:bg-green-600" />
                 </div>
-                <FileText className="h-5 w-5 text-green-600" />
+                <FileText className="h-4 w-4 text-green-600" />
               </div>
             </Card>
           </div>
 
-          {/* Gestão de Riscos e Tarefas - Layout 2 Colunas */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Card Gestão de Riscos */}
+          {/* Row 2: Riscos + Tarefas */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Gestão de Riscos */}
             <Card>
-              <CardHeader className="pb-4">
+              <CardHeader className="py-2 px-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg">Gestão de Riscos</CardTitle>
+                  <Shield className="h-4 w-4 text-blue-600" />
+                  <CardTitle className="text-sm">Gestão de Riscos</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-100 dark:border-blue-900">
-                    <div className="text-3xl font-bold text-blue-600">{riskSummary.totalRisks}</div>
-                    <div className="text-sm text-blue-600 font-medium mt-1">Total de Riscos</div>
+              <CardContent className="px-3 pb-3 pt-0">
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/50 rounded-md">
+                    <div className="text-lg font-bold text-blue-600">{riskSummary.totalRisks}</div>
+                    <div className="text-[10px] text-blue-600 font-medium">Total</div>
                   </div>
-                  <div className="text-center p-4 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-100 dark:border-red-900">
-                    <div className="text-3xl font-bold text-red-600">{riskSummary.criticalRisks}</div>
-                    <div className="text-sm text-red-600 font-medium mt-1">Críticos</div>
+                  <div className="text-center p-2 bg-red-50 dark:bg-red-950/50 rounded-md">
+                    <div className="text-lg font-bold text-red-600">{riskSummary.criticalRisks}</div>
+                    <div className="text-[10px] text-red-600 font-medium">Críticos</div>
                   </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-100 dark:border-green-900">
-                    <div className="text-3xl font-bold text-green-600">{riskSummary.mitigationPlans}</div>
-                    <div className="text-sm text-green-600 font-medium mt-1">Com Mitigação</div>
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md">
+                    <div className="text-lg font-bold text-green-600">{riskSummary.mitigationPlans}</div>
+                    <div className="text-[10px] text-green-600 font-medium">Mitigados</div>
                   </div>
-                  <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg border border-yellow-100 dark:border-yellow-900">
-                    <div className="text-3xl font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
-                    <div className="text-sm text-yellow-600 font-medium mt-1">Sem Mitigação</div>
+                  <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-950/50 rounded-md">
+                    <div className="text-lg font-bold text-yellow-600">{riskSummary.withoutMitigation}</div>
+                    <div className="text-[10px] text-yellow-600 font-medium">Sem Mitigação</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card Gestão de Tarefas */}
+            {/* Gestão de Tarefas */}
             <Card>
-              <CardHeader className="pb-4">
+              <CardHeader className="py-2 px-3">
                 <div className="flex items-center gap-2">
-                  <ListTodo className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">Gestão de Tarefas</CardTitle>
+                  <ListTodo className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm">Gestão de Tarefas</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 space-y-4">
-                {/* KPIs de Tarefas - 4 cards horizontais */}
-                <div className="grid grid-cols-4 gap-3">
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-xl font-bold text-foreground">{taskMetrics.total}</div>
-                    <div className="text-xs text-muted-foreground font-medium">Total Criadas</div>
+              <CardContent className="px-3 pb-3 pt-0 space-y-2">
+                {/* KPIs */}
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="text-center p-2 bg-muted/50 rounded-md">
+                    <div className="text-lg font-bold">{taskMetrics.total}</div>
+                    <div className="text-[10px] text-muted-foreground font-medium">Total</div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg">
-                    <div className="text-xl font-bold text-green-600">{taskMetrics.completed}</div>
-                    <div className="text-xs text-green-600 font-medium">Resolvidas</div>
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-950/50 rounded-md">
+                    <div className="text-lg font-bold text-green-600">{taskMetrics.completed}</div>
+                    <div className="text-[10px] text-green-600 font-medium">Resolvidas</div>
                   </div>
-                  <div className="text-center p-3 bg-orange-50 dark:bg-orange-950/50 rounded-lg">
-                    <div className="text-xl font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
-                    <div className="text-xs text-orange-600 font-medium">Pendentes</div>
+                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-950/50 rounded-md">
+                    <div className="text-lg font-bold text-orange-600">{taskMetrics.pending + taskMetrics.overdue}</div>
+                    <div className="text-[10px] text-orange-600 font-medium">Pendentes</div>
                   </div>
-                  <div className="text-center p-3 bg-primary/10 rounded-lg">
-                    <div className="text-xl font-bold text-primary">{taskMetrics.resolutionRate}%</div>
-                    <div className="text-xs text-primary font-medium">Taxa Resolução</div>
+                  <div className="text-center p-2 bg-primary/10 rounded-md">
+                    <div className="text-lg font-bold text-primary">{taskMetrics.resolutionRate}%</div>
+                    <div className="text-[10px] text-primary font-medium">Resolução</div>
                   </div>
                 </div>
-
-                {/* ATAs Pendentes de Aprovação/Assinatura */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileSignature className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="text-sm font-medium text-muted-foreground">ATAs Pendentes de Aprovação/Assinatura</h4>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-950/50 rounded-lg border border-yellow-200 dark:border-yellow-900">
-                      <div className="text-2xl font-bold text-yellow-600">{ataApprovalMetrics.aguardandoAprovacao}</div>
-                      <div className="text-xs text-yellow-600 font-medium">Aguardando Aprovação</div>
+                {/* ATAs Pendentes */}
+                <div className="flex items-center gap-2">
+                  <FileSignature className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground font-medium">ATAs:</span>
+                  <div className="flex gap-2 flex-1">
+                    <div className="flex-1 text-center p-1 bg-yellow-50 dark:bg-yellow-950/50 rounded text-[10px]">
+                      <span className="font-bold text-yellow-600">{ataApprovalMetrics.aguardandoAprovacao}</span> aprovação
                     </div>
-                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-900">
-                      <div className="text-2xl font-bold text-blue-600">{ataApprovalMetrics.aguardandoAssinatura}</div>
-                      <div className="text-xs text-blue-600 font-medium">Aguardando Assinatura</div>
+                    <div className="flex-1 text-center p-1 bg-blue-50 dark:bg-blue-950/50 rounded text-[10px]">
+                      <span className="font-bold text-blue-600">{ataApprovalMetrics.aguardandoAssinatura}</span> assinatura
                     </div>
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-900">
-                      <div className="text-2xl font-bold text-green-600">{ataApprovalMetrics.finalizadas}</div>
-                      <div className="text-xs text-green-600 font-medium">Finalizadas</div>
+                    <div className="flex-1 text-center p-1 bg-green-50 dark:bg-green-950/50 rounded text-[10px]">
+                      <span className="font-bold text-green-600">{ataApprovalMetrics.finalizadas}</span> finalizadas
                     </div>
                   </div>
                 </div>
@@ -271,123 +232,112 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* IA Preditiva Copilot */}
-          <div className="mb-8">
-            <DashboardAICopilot
-              risks={governanceRisks.map(r => ({
-                id: r.id,
-                category: r.category,
-                title: r.title,
-                impact: r.impact,
-                probability: r.probability,
-                status: r.status,
-                controls: r.controls,
-              }))}
-              maturityScore={latestGovernanceAssessment?.result?.overallScore || 3.6}
-              esgScore={latestESGAssessment?.overallScore || 65}
-              pendingTasks={taskMetrics.pending}
-              overduesTasks={taskMetrics.overdue}
-              criticalRisks={riskSummary.criticalRisks}
-            />
-          </div>
+          {/* Row 3: IA Preditiva */}
+          <DashboardAICopilot
+            risks={governanceRisks.map(r => ({
+              id: r.id,
+              category: r.category,
+              title: r.title,
+              impact: r.impact,
+              probability: r.probability,
+              status: r.status,
+              controls: r.controls,
+            }))}
+            maturityScore={latestGovernanceAssessment?.result?.overallScore || 3.6}
+            esgScore={latestESGAssessment?.overallScore || 65}
+            pendingTasks={taskMetrics.pending}
+            overduesTasks={taskMetrics.overdue}
+            criticalRisks={riskSummary.criticalRisks}
+          />
 
-          {/* Avaliações de Maturidade - Layout Otimizado */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Governance Maturity Assessment */}
-            <Card className="flex flex-col">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg">Maturidade de Governança</CardTitle>
+          {/* Row 4: Maturidade GOV + ESG compactas */}
+          <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
+            {/* Maturidade Governança */}
+            <Card className="flex flex-col overflow-hidden">
+              <CardHeader className="py-2 px-3 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-blue-600" />
+                    <CardTitle className="text-sm">Maturidade Governança</CardTitle>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => navigateTo("/maturity")}>
+                    Ver detalhes
+                  </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 flex flex-col flex-1">
-                {latestGovernanceAssessment ? <>
-                    {/* KPIs com Progress Bars */}
-                    <div className="space-y-4 flex-1">
-                      {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 5).map(dim => <div key={dim.name} className="flex items-center gap-3">
-                          <span className="text-base w-32 truncate text-muted-foreground">{dim.name}</span>
-                          <Progress value={dim.score * 20} className="flex-1 h-3 [&>div]:bg-blue-500" />
-                          <span className="text-base font-bold w-10 text-blue-600">{dim.score.toFixed(1)}</span>
-                        </div>)}
-                    </div>
-
-                    {/* Botões de Ação */}
-                    <div className="flex gap-3 mt-auto pt-6">
-                      <Button variant="outline" className="flex-1" onClick={() => navigateTo("/maturity")}>
-                        Ver Detalhes
-                      </Button>
-                      <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => navigateTo("/maturity-quiz")}>
-                        Nova Avaliação
-                      </Button>
-                    </div>
-                  </> : <div className="text-center py-6 flex-1 flex flex-col justify-center">
-                    <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-sm text-muted-foreground mb-4">Nenhuma avaliação realizada</p>
-                    <Button onClick={() => navigateTo("/maturity-quiz")} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      Iniciar Avaliação
+              <CardContent className="px-3 pb-2 pt-0 flex-1 flex flex-col justify-center min-h-0">
+                {latestGovernanceAssessment ? (
+                  <div className="space-y-1.5">
+                    {convertStoredDataToRadarData(latestGovernanceAssessment).slice(0, 3).map(dim => (
+                      <div key={dim.name} className="flex items-center gap-2">
+                        <span className="text-[11px] w-24 truncate text-muted-foreground">{dim.name}</span>
+                        <Progress value={dim.score * 20} className="flex-1 h-2 [&>div]:bg-blue-500" />
+                        <span className="text-xs font-bold w-8 text-blue-600">{dim.score.toFixed(1)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-2">
+                    <p className="text-xs text-muted-foreground">Nenhuma avaliação</p>
+                    <Button onClick={() => navigateTo("/maturity-quiz")} size="sm" className="mt-1 h-6 text-xs">
+                      Iniciar
                     </Button>
-                  </div>}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* ESG Maturity Assessment */}
-            <Card className="flex flex-col">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Leaf className="h-5 w-5 text-green-600" />
-                  <CardTitle className="text-lg">Maturidade ESG</CardTitle>
+            {/* Maturidade ESG */}
+            <Card className="flex flex-col overflow-hidden">
+              <CardHeader className="py-2 px-3 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="h-4 w-4 text-green-600" />
+                    <CardTitle className="text-sm">Maturidade ESG</CardTitle>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => navigateTo("/esg")}>
+                    Ver detalhes
+                  </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 flex flex-col flex-1">
-                {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? <>
-                    {/* KPIs com Progress Bars */}
-                    <div className="space-y-4 flex-1">
-                      {latestESGAssessment.pillarScores && <>
-                          <div className="flex items-center gap-3">
-                            <span className="text-base w-32 text-muted-foreground">Ambiental</span>
-                            <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-3 [&>div]:bg-green-500" />
-                            <span className="text-base font-bold w-10 text-green-600">{((latestESGAssessment.pillarScores.environmental?.percentage || 0) / 20).toFixed(1)}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-base w-32 text-muted-foreground">Social</span>
-                            <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-3 [&>div]:bg-blue-500" />
-                            <span className="text-base font-bold w-10 text-blue-600">{((latestESGAssessment.pillarScores.social?.percentage || 0) / 20).toFixed(1)}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-base w-32 text-muted-foreground">Governança</span>
-                            <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-3 [&>div]:bg-purple-500" />
-                            <span className="text-base font-bold w-10 text-purple-600">{((latestESGAssessment.pillarScores.governance?.percentage || 0) / 20).toFixed(1)}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-base w-32 text-muted-foreground">Estratégia</span>
-                            <Progress value={latestESGAssessment.pillarScores.strategy?.percentage || 0} className="flex-1 h-3 [&>div]:bg-orange-500" />
-                            <span className="text-base font-bold w-10 text-orange-600">{((latestESGAssessment.pillarScores.strategy?.percentage || 0) / 20).toFixed(1)}</span>
-                          </div>
-                        </>}
-                    </div>
-
-                    {/* Botões de Ação */}
-                    <div className="flex gap-3 mt-auto pt-6">
-                      <Button variant="outline" className="flex-1" onClick={() => navigateTo("/esg")}>
-                        Ver Detalhes
-                      </Button>
-                      <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => navigateTo("/esg?tab=new-assessment")}>
-                        Nova Avaliação
-                      </Button>
-                    </div>
-                  </> : <div className="text-center py-6 flex-1 flex flex-col justify-center">
-                    <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-sm text-muted-foreground mb-4">Nenhuma avaliação realizada</p>
-                    <Button onClick={() => navigateTo("/esg?tab=new-assessment")} size="sm" className="bg-green-600 hover:bg-green-700">
-                      Iniciar Avaliação
+              <CardContent className="px-3 pb-2 pt-0 flex-1 flex flex-col justify-center min-h-0">
+                {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
+                  <div className="space-y-1.5">
+                    {latestESGAssessment.pillarScores && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] w-24 text-muted-foreground">Ambiental</span>
+                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-2 [&>div]:bg-green-500" />
+                          <span className="text-xs font-bold w-8 text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] w-24 text-muted-foreground">Social</span>
+                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-2 [&>div]:bg-blue-500" />
+                          <span className="text-xs font-bold w-8 text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] w-24 text-muted-foreground">Governança</span>
+                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-2 [&>div]:bg-purple-500" />
+                          <span className="text-xs font-bold w-8 text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-2">
+                    <p className="text-xs text-muted-foreground">Nenhuma avaliação</p>
+                    <Button onClick={() => navigateTo("/esg")} size="sm" className="mt-1 h-6 text-xs bg-green-600 hover:bg-green-700">
+                      Iniciar
                     </Button>
-                  </div>}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Dashboard;
