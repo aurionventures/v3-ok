@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
 import ESGPillarChart from "@/components/ESGPillarChart";
+import { DashboardAICopilot } from "@/components/dashboard/DashboardAICopilot";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
 import { toast } from "@/hooks/use-toast";
@@ -268,6 +269,26 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* IA Preditiva Copilot */}
+          <div className="mb-8">
+            <DashboardAICopilot
+              risks={governanceRisks.map(r => ({
+                id: r.id,
+                category: r.category,
+                title: r.title,
+                impact: r.impact,
+                probability: r.probability,
+                status: r.status,
+                controls: r.controls,
+              }))}
+              maturityScore={latestGovernanceAssessment?.result?.overallScore || 3.6}
+              esgScore={latestESGAssessment?.overallScore || 65}
+              pendingTasks={taskMetrics.pending}
+              overduesTasks={taskMetrics.overdue}
+              criticalRisks={riskSummary.criticalRisks}
+            />
           </div>
 
           {/* Avaliações de Maturidade - Layout Otimizado */}
