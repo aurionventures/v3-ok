@@ -160,12 +160,6 @@ const Sidebar = () => {
           name: "Maturidade de Governança",
           moduleId: "maturity-results"
         },
-        {
-          icon: <BookText className="h-5 w-5" />,
-          href: "/legacy",
-          name: "Legado e Rituais",
-          moduleId: null
-        }
       ]
     },
     {
@@ -257,12 +251,6 @@ const Sidebar = () => {
           href: "/governance-risk-management",
           name: "Riscos",
           moduleId: "governance-risks"
-        },
-        {
-          icon: <ActivitySquare className="h-5 w-5" />,
-          href: "/activities",
-          name: "Atividades",
-          moduleId: null
         }
       ]
     },
