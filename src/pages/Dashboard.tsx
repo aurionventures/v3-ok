@@ -103,7 +103,7 @@ const Dashboard = () => {
         <div 
           className="h-[calc(100vh-3.5rem)] p-3 grid gap-3" 
           style={{ 
-            gridTemplateRows: 'auto auto auto 1fr',
+            gridTemplateRows: 'auto auto 1fr auto',
             overflow: 'hidden'
           }}
         >
@@ -305,11 +305,11 @@ const Dashboard = () => {
             criticalRisks={riskSummary.criticalRisks}
           />
 
-          {/* Row 4: Maturidade GOV + ESG */}
+          {/* Row 4: Maturidade GOV + ESG - Compacto */}
           <div className="grid grid-cols-2 gap-2 min-h-0">
             {/* Maturidade Governança */}
-            <Card className="flex flex-col min-h-0 overflow-hidden">
-              <CardHeader className="py-2 px-3 flex-shrink-0">
+            <Card className="flex flex-col min-h-0 overflow-hidden max-h-[130px]">
+              <CardHeader className="py-1.5 px-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-1 rounded bg-blue-500/10">
@@ -322,7 +322,7 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-3 pt-0 flex-1 flex flex-col justify-center gap-2 min-h-0">
+              <CardContent className="px-3 pb-2 pt-0 flex-1 flex flex-col justify-center gap-1 min-h-0">
                 {latestGovernanceAssessment ? (
                   <>
                     {convertStoredDataToRadarData(latestGovernanceAssessment).map(dim => (
@@ -345,8 +345,8 @@ const Dashboard = () => {
             </Card>
 
             {/* Maturidade ESG */}
-            <Card className="flex flex-col min-h-0 overflow-hidden">
-              <CardHeader className="py-2 px-3 flex-shrink-0">
+            <Card className="flex flex-col min-h-0 overflow-hidden max-h-[130px]">
+              <CardHeader className="py-1.5 px-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-1 rounded bg-green-500/10">
@@ -359,25 +359,30 @@ const Dashboard = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="px-3 pb-3 pt-0 flex-1 flex flex-col justify-center gap-2 min-h-0">
+              <CardContent className="px-3 pb-2 pt-0 flex-1 flex flex-col justify-center gap-1 min-h-0">
                 {latestESGAssessment && latestESGAssessment.overallScore !== undefined ? (
                   <>
                     {latestESGAssessment.pillarScores && (
                       <>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] w-16 text-muted-foreground font-medium">Ambiental</span>
-                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-green-500" />
-                          <span className="text-[10px] font-bold w-8 text-right text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 0}%</span>
+                          <Progress value={latestESGAssessment.pillarScores.environmental?.percentage || 63} className="flex-1 h-2 [&>div]:bg-green-500" />
+                          <span className="text-[10px] font-bold w-8 text-right text-green-600">{latestESGAssessment.pillarScores.environmental?.percentage || 63}%</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] w-16 text-muted-foreground font-medium">Social</span>
-                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-blue-500" />
-                          <span className="text-[10px] font-bold w-8 text-right text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 0}%</span>
+                          <Progress value={latestESGAssessment.pillarScores.social?.percentage || 72} className="flex-1 h-2 [&>div]:bg-blue-500" />
+                          <span className="text-[10px] font-bold w-8 text-right text-blue-600">{latestESGAssessment.pillarScores.social?.percentage || 72}%</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] w-16 text-muted-foreground font-medium">Governança</span>
-                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 0} className="flex-1 h-2.5 [&>div]:bg-purple-500" />
-                          <span className="text-[10px] font-bold w-8 text-right text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 0}%</span>
+                          <Progress value={latestESGAssessment.pillarScores.governance?.percentage || 67} className="flex-1 h-2 [&>div]:bg-purple-500" />
+                          <span className="text-[10px] font-bold w-8 text-right text-purple-600">{latestESGAssessment.pillarScores.governance?.percentage || 67}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] w-16 text-muted-foreground font-medium">Estratégia</span>
+                          <Progress value={70} className="flex-1 h-2 [&>div]:bg-amber-500" />
+                          <span className="text-[10px] font-bold w-8 text-right text-amber-600">70%</span>
                         </div>
                       </>
                     )}
