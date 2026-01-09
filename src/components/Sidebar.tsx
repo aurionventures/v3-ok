@@ -326,7 +326,7 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <div className="overflow-y-auto flex-1 py-1 scrollbar-thin max-h-[calc(100vh-8rem)]">
+      <div className="overflow-y-auto flex-1 py-1 scrollbar-thin">
         <div className="px-3 py-1">
           {isAdminRoute ? (
             // Admin menu (simple list)
