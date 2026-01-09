@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar
 } from "@/components/ui/sidebar";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -175,6 +176,7 @@ export function AppSidebar() {
                 className="h-8 w-auto brightness-0 invert"
               />
             </Link>
+            <SidebarTrigger className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md" />
           </div>
         </SidebarHeader>
 
@@ -218,15 +220,6 @@ export function AppSidebar() {
               
               {/* Seções ADD-ON - todas visíveis (bloqueadas ou não) */}
               {ADDON_SECTIONS.map(section => renderSection(section, true))}
-              
-              {/* Itens Fixos */}
-              <SidebarGroup className="mt-auto border-t border-sidebar-border pt-2">
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {FIXED_ITEMS.map(item => renderMenuItem(item))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
             </>
           )}
         </SidebarContent>
