@@ -261,11 +261,7 @@ const App = () => (
           />
           <Route 
             path="/legacy" 
-            element={
-              <ProtectedRoute >
-                <Legacy />
-              </ProtectedRoute>
-            } 
+            element={<Navigate to="/governance-config?tab=legado" replace />}
           />
           <Route 
             path="/annual-agenda" 
@@ -310,11 +306,7 @@ const App = () => (
           />
           <Route 
             path="/rituals" 
-            element={
-              <ProtectedRoute >
-                <Rituals />
-              </ProtectedRoute>
-            } 
+            element={<Navigate to="/governance-config?tab=rituais" replace />}
           />
           <Route 
             path="/succession" 
@@ -410,11 +402,7 @@ const App = () => (
           />
           <Route 
             path="/activities" 
-            element={
-              <ProtectedRoute >
-                <Activities />
-              </ProtectedRoute>
-            } 
+            element={<Navigate to="/settings?tab=activities" replace />}
           />
           <Route 
             path="/monitoring" 

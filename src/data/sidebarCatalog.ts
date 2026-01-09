@@ -142,7 +142,6 @@ export const BASE_SECTIONS: SidebarSection[] = [
       { key: 'structure', label: 'Estrutura Societária', path: '/shareholder-structure', icon: Users },
       { key: 'cap_table', label: 'Cap Table', path: '/cap-table', icon: BarChart3 },
       { key: 'gov_maturity', label: 'Maturidade de Governança', path: '/maturity', icon: BarChart3 },
-      { key: 'legacy_rituals', label: 'Legado e Rituais', path: '/legacy', icon: BookText },
     ]
   },
   {
@@ -223,7 +222,6 @@ export const ADDON_SECTIONS: SidebarSection[] = [
 // ITENS FIXOS (sempre visíveis na base do sidebar)
 // ==========================================
 export const FIXED_ITEMS: SidebarItem[] = [
-  { key: 'activities', label: 'Atividades', path: '/activities', icon: ActivitySquare },
   { key: 'settings', label: 'Configurações', path: '/settings', icon: Settings },
 ];
 
