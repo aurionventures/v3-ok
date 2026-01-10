@@ -8,7 +8,7 @@ import { Briefcase, Lightbulb, BarChart3, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import legacyLogo from "@/assets/legacy-logo-new.png";
+import legacyLogoFull from "@/assets/legacy-logo-full.png";
 
 interface LoginParceiroProps {
   onBack?: () => void;
@@ -76,11 +76,10 @@ export default function LoginParceiro({ onBack, initialEmail = '' }: LoginParcei
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <img 
-              src={legacyLogo} 
-              alt="Legacy" 
-              className="h-12 w-auto mx-auto mb-2"
+              src={legacyLogoFull} 
+              alt="Legacy OS - Governança Corporativa" 
+              className="h-20 w-auto mx-auto"
             />
-            <p className="text-gray-600 mt-2">Governança Corporativa e Patrimonial</p>
           </div>
           
           <Card>
