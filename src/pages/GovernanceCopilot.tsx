@@ -531,14 +531,6 @@ export default function GovernanceCopilot() {
                 <LayoutGrid className="h-4 w-4" />
                 SWOT Dinâmica
               </TabsTrigger>
-              <TabsTrigger value="history" className="gap-2">
-                <History className="h-4 w-4" />
-                Histórico
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2">
-                <SettingsIcon className="h-4 w-4" />
-                Configurações
-              </TabsTrigger>
             </TabsList>
 
             {/* Analysis Tab */}
@@ -621,104 +613,6 @@ export default function GovernanceCopilot() {
               <SWOTDynamicTab />
             </TabsContent>
 
-            {/* History Tab */}
-            <TabsContent value="history" className="h-[calc(100%-3rem)] m-0">
-              <Card className="h-full">
-                <CardHeader className="border-b">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Histórico de Análises</CardTitle>
-                      <CardDescription>
-                        Acompanhe a evolução das recomendações ao longo do tempo
-                      </CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => fetchHistory()}>
-                      <RefreshCw className={cn("h-4 w-4 mr-2", historyLoading && "animate-spin")} />
-                      Atualizar
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <ScrollArea className="h-[calc(100vh-24rem)]">
-                    {historyLoading ? (
-                      <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="pl-8 pb-6">
-                            <Skeleton className="h-24 w-full rounded-lg" />
-                          </div>
-                        ))}
-                      </div>
-                    ) : history.length > 0 ? (
-                      <div className="space-y-0">
-                        {history.map((entry, index) => (
-                          <HistoryTimelineItem 
-                            key={entry.id} 
-                            entry={entry} 
-                            isFirst={index === history.length - 1}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <History className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">
-                          Nenhum histórico de análises disponível.
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Gere sua primeira análise na aba "Análise Atual".
-                        </p>
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="h-[calc(100%-3rem)] m-0">
-              <Card className="h-full">
-                <CardHeader className="border-b">
-                  <CardTitle className="text-lg">Configurações do Copiloto</CardTitle>
-                  <CardDescription>
-                    Personalize o comportamento e as preferências da IA
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-6 max-w-2xl">
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Modelo de IA</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Modelo utilizado para gerar análises estratégicas
-                      </p>
-                      <Badge variant="outline" className="gap-1">
-                        <Sparkles className="h-3 w-3" />
-                        google/gemini-2.5-flash
-                      </Badge>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Frequência de Análise</h4>
-                      <p className="text-sm text-muted-foreground">
-                        As análises são geradas sob demanda quando você clica em "Atualizar Análise".
-                        O histórico é salvo automaticamente para comparação de tendências.
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Dados de Entrada</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        A IA considera os seguintes dados do sistema:
-                      </p>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Riscos cadastrados e seus controles</li>
-                        <li>• Score de maturidade de governança</li>
-                        <li>• Score ESG</li>
-                        <li>• Tarefas pendentes e atrasadas</li>
-                        <li>• Riscos críticos identificados</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </main>
       </div>

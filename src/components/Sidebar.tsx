@@ -161,69 +161,58 @@ const Sidebar = () => {
 
   // Render company menu with Base + Add-ons structure
   const renderCompanyMenu = () => (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* ===== SISTEMA BASE ===== */}
-      <div>
-        {open && (
-          <div className="flex items-center gap-2 px-3 py-2 mb-3">
-            <Layers className="h-4 w-4 text-blue-400" />
-            <span className="text-xs font-bold uppercase tracking-widest text-blue-400">
-              Sistema Base
-            </span>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {BASE_SECTIONS.map(section => (
-            <div key={section.key}>
-              {open && (
-                <div className="flex items-center gap-2 px-3 mb-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400">
-                    {section.label}
-                  </span>
-                  <div className="flex-1 h-px bg-white/10" />
-                </div>
-              )}
-
-              <div className="space-y-0.5">
-                {section.items.map(item => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.path;
-
-                  return (
-                    <TooltipProvider key={item.path} delayDuration={0}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Link
-                            to={item.path}
-                            className={cn(
-                              "flex items-center gap-3 py-2.5 px-3 rounded-lg text-base font-medium transition-all",
-                              isActive
-                                ? "bg-[#C0A062] text-white"
-                                : "text-white/80 hover:bg-white/10 hover:text-white"
-                            )}
-                          >
-                            <Icon className="h-5 w-5 shrink-0" />
-                            {open && <span>{item.label}</span>}
-                          </Link>
-                        </TooltipTrigger>
-                        {!open && (
-                          <TooltipContent side="right">
-                            <p>{item.label}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
+      <div className="space-y-2">
+        {BASE_SECTIONS.map(section => (
+          <div key={section.key}>
+            {open && (
+              <div className="flex items-center gap-2 px-3 mb-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+                  {section.label}
+                </span>
+                <div className="flex-1 h-px bg-white/10" />
               </div>
+            )}
+
+            <div className="space-y-0">
+              {section.items.map(item => {
+                const Icon = item.icon;
+                const isActive = pathname === item.path;
+
+                return (
+                  <TooltipProvider key={item.path} delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={item.path}
+                          className={cn(
+                            "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
+                            isActive
+                              ? "bg-[#C0A062] text-white"
+                              : "text-white/80 hover:bg-white/10 hover:text-white"
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {open && <span>{item.label}</span>}
+                        </Link>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       {/* ===== SEPARADOR ===== */}
-      <div className="relative py-2">
+      <div className="relative py-1">
         <div className="absolute inset-0 flex items-center px-3">
           <div className="w-full border-t-2 border-[#C0A062]/40" />
         </div>
@@ -232,15 +221,15 @@ const Sidebar = () => {
       {/* ===== ADD-ONS ===== */}
       <div>
         {open && (
-          <div className="flex items-center gap-2 px-3 py-2 mb-3">
-            <Gift className="h-4 w-4 text-[#C0A062]" />
-            <span className="text-xs font-bold uppercase tracking-widest text-[#C0A062]">
+          <div className="flex items-center gap-2 px-3 py-1 mb-0.5">
+            <Gift className="h-3 w-3 text-[#C0A062]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C0A062]">
               Add-ons
             </span>
           </div>
         )}
 
-        <div className="space-y-0.5">
+        <div className="space-y-0">
           {ADDON_ITEMS.map(item => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
@@ -252,17 +241,17 @@ const Sidebar = () => {
                     <Link
                       to={item.path}
                       className={cn(
-                        "flex items-center gap-3 py-2.5 px-3 rounded-lg text-base font-medium transition-all",
+                        "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
                         isActive
                           ? "bg-[#C0A062] text-white"
                           : "text-white/80 hover:bg-white/10 hover:text-white"
                       )}
                     >
-                      <Icon className="h-5 w-5 shrink-0" />
+                      <Icon className="h-4 w-4 shrink-0" />
                       {open && (
                         <>
                           <span className="flex-1 text-left">{item.label}</span>
-                          <Lock className="h-4 w-4 text-[#C0A062]/70" />
+                          <Lock className="h-3 w-3 text-[#C0A062]/70" />
                         </>
                       )}
                     </Link>
