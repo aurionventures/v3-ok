@@ -178,7 +178,7 @@ const Sidebar = () => {
             <div key={section.key}>
               {open && (
                 <div className="flex items-center gap-2 px-3 mb-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400">
                     {section.label}
                   </span>
                   <div className="flex-1 h-px bg-white/10" />
@@ -199,7 +199,7 @@ const Sidebar = () => {
                             className={cn(
                               "flex items-center gap-3 py-2.5 px-3 rounded-lg text-base font-medium transition-all",
                               isActive
-                                ? "bg-amber-500 text-white"
+                                ? "bg-[#C0A062] text-white"
                                 : "text-white/80 hover:bg-white/10 hover:text-white"
                             )}
                           >
@@ -225,7 +225,7 @@ const Sidebar = () => {
       {/* ===== SEPARADOR ===== */}
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center px-3">
-          <div className="w-full border-t-2 border-amber-500/40" />
+          <div className="w-full border-t-2 border-[#C0A062]/40" />
         </div>
       </div>
 
@@ -233,8 +233,8 @@ const Sidebar = () => {
       <div>
         {open && (
           <div className="flex items-center gap-2 px-3 py-2 mb-3">
-            <Gift className="h-4 w-4 text-amber-500" />
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-500">
+            <Gift className="h-4 w-4 text-[#C0A062]" />
+            <span className="text-xs font-bold uppercase tracking-widest text-[#C0A062]">
               Add-ons
             </span>
           </div>
@@ -244,39 +244,6 @@ const Sidebar = () => {
           {ADDON_ITEMS.map(item => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
-            // @ts-ignore - hasAccess can take string
-            const isLocked = !hasAccess(item.key as any);
-
-            if (isLocked) {
-              return (
-                <TooltipProvider key={item.path} delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => handleLockedClick(item.key, item.label)}
-                        className={cn(
-                          "w-full flex items-center gap-3 py-2.5 px-3 rounded-lg text-base font-medium transition-all",
-                          "text-white/50 hover:bg-white/5 hover:text-white/60 cursor-pointer"
-                        )}
-                      >
-                        <Icon className="h-5 w-5 shrink-0" />
-                        {open && (
-                          <>
-                            <span className="flex-1 text-left">{item.label}</span>
-                            <Lock className="h-4 w-4 text-amber-500/70" />
-                          </>
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    {!open && (
-                      <TooltipContent side="right">
-                        <p>{item.label} (Upgrade)</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            }
 
             return (
               <TooltipProvider key={item.path} delayDuration={0}>
@@ -287,12 +254,17 @@ const Sidebar = () => {
                       className={cn(
                         "flex items-center gap-3 py-2.5 px-3 rounded-lg text-base font-medium transition-all",
                         isActive
-                          ? "bg-amber-500 text-white"
+                          ? "bg-[#C0A062] text-white"
                           : "text-white/80 hover:bg-white/10 hover:text-white"
                       )}
                     >
                       <Icon className="h-5 w-5 shrink-0" />
-                      {open && <span>{item.label}</span>}
+                      {open && (
+                        <>
+                          <span className="flex-1 text-left">{item.label}</span>
+                          <Lock className="h-4 w-4 text-[#C0A062]/70" />
+                        </>
+                      )}
                     </Link>
                   </TooltipTrigger>
                   {!open && (
