@@ -138,6 +138,61 @@ const quizQuestions = [
       { label: "Preciso melhorar neste aspecto", score: 50 },
     ]
   },
+  {
+    id: "strategic_vision",
+    dimension: "Visão Estratégica",
+    question: "Como você avalia sua capacidade de pensar no longo prazo da empresa?",
+    options: [
+      { label: "Excelente - sempre considero cenários futuros", score: 100 },
+      { label: "Boa - frequentemente penso estrategicamente", score: 85 },
+      { label: "Regular - foco mais no operacional", score: 70 },
+      { label: "Preciso desenvolver essa competência", score: 50 },
+    ]
+  },
+  {
+    id: "communication",
+    dimension: "Comunicação",
+    question: "Como você avalia a clareza da sua comunicação nas reuniões?",
+    options: [
+      { label: "Muito clara e objetiva", score: 100 },
+      { label: "Geralmente clara", score: 85 },
+      { label: "Poderia ser mais objetiva", score: 70 },
+      { label: "Preciso melhorar neste aspecto", score: 50 },
+    ]
+  },
+  {
+    id: "governance",
+    dimension: "Governança",
+    question: "Qual seu nível de conhecimento sobre práticas de governança corporativa?",
+    options: [
+      { label: "Avançado - atualizado constantemente", score: 100 },
+      { label: "Bom - conheço as principais práticas", score: 85 },
+      { label: "Básico - poderia estudar mais", score: 70 },
+      { label: "Iniciante - estou aprendendo", score: 50 },
+    ]
+  },
+  {
+    id: "esg",
+    dimension: "ESG",
+    question: "Como você avalia seu engajamento com temas de sustentabilidade e ESG?",
+    options: [
+      { label: "Muito engajado - proponho iniciativas", score: 100 },
+      { label: "Engajado - participo ativamente", score: 85 },
+      { label: "Moderado - acompanho quando surge", score: 70 },
+      { label: "Baixo - poderia me envolver mais", score: 50 },
+    ]
+  },
+  {
+    id: "ethics",
+    dimension: "Ética",
+    question: "Como você lida com situações de conflito de interesse?",
+    options: [
+      { label: "Sempre declaro e me abstenho de votar", score: 100 },
+      { label: "Declaro quando identifico", score: 85 },
+      { label: "Às vezes tenho dúvidas sobre o que declarar", score: 70 },
+      { label: "Preciso entender melhor o tema", score: 50 },
+    ]
+  },
 ];
 
 export function MemberAvaliacao360Tab() {
@@ -154,12 +209,12 @@ export function MemberAvaliacao360Tab() {
   const handleQuizAnswer = (questionId: string, score: number) => {
     setQuizAnswers(prev => ({ ...prev, [questionId]: score }));
     
-    // Auto-advance after 400ms
-    setTimeout(() => {
-      if (quizStep < totalSteps - 1) {
+    // Auto-advance after 400ms only if NOT the last question
+    if (quizStep < totalSteps - 1) {
+      setTimeout(() => {
         setQuizStep(prev => prev + 1);
-      }
-    }, 400);
+      }, 400);
+    }
   };
 
   const handleSubmitQuiz = () => {
@@ -198,7 +253,7 @@ export function MemberAvaliacao360Tab() {
   };
 
   const currentQuestion = quizQuestions[quizStep];
-  const progressPercentage = ((quizStep) / totalSteps) * 100;
+  const progressPercentage = ((quizStep + 1) / totalSteps) * 100;
   const allQuestionsAnswered = Object.keys(quizAnswers).length === totalSteps;
 
   return (
@@ -368,9 +423,10 @@ export function MemberAvaliacao360Tab() {
             {quizStep === totalSteps - 1 ? (
               <Button 
                 onClick={handleSubmitQuiz}
-                disabled={!allQuestionsAnswered}
+                disabled={!quizAnswers[currentQuestion.id]}
+                className="bg-green-600 hover:bg-green-700"
               >
-                <CheckCircle2 className="h-4 w-4 mr-2" /> Calcular Meu Score
+                <CheckCircle2 className="h-4 w-4 mr-2" /> Ver Resultado
               </Button>
             ) : (
               <Button 
