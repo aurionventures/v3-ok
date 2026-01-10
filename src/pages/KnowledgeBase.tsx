@@ -196,7 +196,7 @@ export default function KnowledgeBase() {
                 <div>
                   <h1 className="text-2xl font-bold">Base de Conhecimento</h1>
                   <p className="text-muted-foreground">
-                    Configure o contexto da sua empresa para o MOAT Engine
+                    Configure o contexto da sua empresa para o AI Engine ter máxima efetividade
                   </p>
                 </div>
               </div>

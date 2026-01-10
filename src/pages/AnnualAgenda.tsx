@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { 
   Calendar, TrendingUp, Clock, CheckCircle2, CalendarDays, Settings, Filter,
   Building2, Users, UserCog, CalendarCheck, FileText, Send, CheckCheck, 
-  FileCheck, Scale, Zap, BarChart3, AlertCircle
+  FileCheck, Scale, Zap, BarChart3, AlertCircle, Sparkles
 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -35,6 +35,7 @@ import ParticipantsManager from "@/components/councils/ParticipantsManager";
 import { MeetingParticipant } from "@/types/annualSchedule";
 import { useMeetingNotifications } from "@/hooks/useMeetingNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+import { AgendaSuggestionsTab } from "@/components/copilot/AgendaSuggestionsTab";
 
 const AnnualAgenda = () => {
   const [searchParams] = useSearchParams();
@@ -270,6 +271,19 @@ const AnnualAgenda = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Agenda Anual 2025" />
         <div className="flex-1 overflow-y-auto p-4">
+          <Tabs defaultValue="calendario" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="calendario" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                Calendário
+              </TabsTrigger>
+              <TabsTrigger value="pautas-ia" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Pautas Sugeridas pela IA
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="calendario">
 
           {/* Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -863,6 +877,12 @@ const AnnualAgenda = () => {
               </div>
             </DialogContent>
           </Dialog>
+            </TabsContent>
+
+            <TabsContent value="pautas-ia">
+              <AgendaSuggestionsTab />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
