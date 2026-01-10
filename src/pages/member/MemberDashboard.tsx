@@ -131,7 +131,7 @@ const MemberDashboard = () => {
       <div className="space-y-6">
         {/* Hero Section - Next Meeting */}
         {nextMeeting && (
-          <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white overflow-hidden">
+          <Card className="bg-[#1a2942] text-white overflow-hidden">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-4">
@@ -188,9 +188,6 @@ const MemberDashboard = () => {
             <TabsTrigger value="briefing" className="gap-2">
               <FileText className="h-4 w-4" />
               Meu Briefing
-              {briefing && !briefing.readAt && (
-                <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1.5">Novo</Badge>
-              )}
             </TabsTrigger>
             <TabsTrigger value="copilot" className="gap-2">
               <Brain className="h-4 w-4" />

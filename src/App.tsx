@@ -77,6 +77,7 @@ import MemberReunioes from "./pages/member/MemberReunioes";
 import MemberATAs from "./pages/member/MemberATAs";
 import MemberPendencias from "./pages/member/MemberPendencias";
 import MemberOrgaos from "./pages/member/MemberOrgaos";
+import MemberDesempenho from "./pages/member/MemberDesempenho";
 import PlanResult from "./pages/PlanResult";
 import Checkout from "./pages/Checkout";
 import Payment from "./pages/Payment";
@@ -203,6 +204,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <MemberOrgaos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/desempenho" 
+            element={
+              <ProtectedRoute>
+                <MemberDesempenho />
               </ProtectedRoute>
             } 
           />
