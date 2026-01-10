@@ -22,13 +22,15 @@ import {
   BarChart3,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  ClipboardCheck,
+  GraduationCap,
+  LineChart,
 } from "lucide-react";
 import { useBoardPerformance } from "@/hooks/useBoardPerformance";
 import { 
   PERFORMANCE_LEVEL_LABELS, 
   PERFORMANCE_LEVEL_COLORS,
-  PERIOD_TYPE_LABELS
 } from "@/types/boardPerformance";
 import { cn } from "@/lib/utils";
 import {
@@ -47,9 +49,13 @@ import {
   Legend
 } from "recharts";
 
+// Importar novos componentes
+import { Evaluations360Tab, PDITab, TrendsTab } from "@/components/board-performance";
+
 export default function BoardPerformance() {
   const [selectedCouncil, setSelectedCouncil] = useState<string>("all");
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("ranking");
   
   const { 
     isLoading, 
@@ -101,6 +107,12 @@ export default function BoardPerformance() {
     return "bg-red-500";
   };
 
+  // Handler para selecionar membro a partir de outras abas
+  const handleSelectMember = (memberId: string) => {
+    setSelectedMember(memberId);
+    setActiveTab("individual");
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -116,7 +128,7 @@ export default function BoardPerformance() {
                   Desempenho do Conselho
                 </h1>
                 <p className="text-muted-foreground">
-                  Avaliação e acompanhamento de performance dos conselheiros
+                  Avaliação 360°, PDI com IA e análise preditiva de performance
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -225,8 +237,8 @@ export default function BoardPerformance() {
               </Card>
             </div>
 
-            <Tabs defaultValue="ranking" className="space-y-4">
-              <TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <TabsList className="flex-wrap h-auto gap-1">
                 <TabsTrigger value="ranking" className="flex items-center gap-1">
                   <BarChart3 className="h-4 w-4" />
                   Ranking
@@ -234,6 +246,18 @@ export default function BoardPerformance() {
                 <TabsTrigger value="individual" className="flex items-center gap-1">
                   <Target className="h-4 w-4" />
                   Análise Individual
+                </TabsTrigger>
+                <TabsTrigger value="evaluations" className="flex items-center gap-1">
+                  <ClipboardCheck className="h-4 w-4" />
+                  Avaliações 360°
+                </TabsTrigger>
+                <TabsTrigger value="pdi" className="flex items-center gap-1">
+                  <GraduationCap className="h-4 w-4" />
+                  PDI
+                </TabsTrigger>
+                <TabsTrigger value="trends" className="flex items-center gap-1">
+                  <LineChart className="h-4 w-4" />
+                  Tendências
                 </TabsTrigger>
                 <TabsTrigger value="alerts" className="flex items-center gap-1">
                   <AlertTriangle className="h-4 w-4" />
@@ -484,6 +508,33 @@ export default function BoardPerformance() {
                 )}
               </TabsContent>
 
+              {/* Tab Avaliações 360° */}
+              <TabsContent value="evaluations">
+                <Evaluations360Tab
+                  periodId={currentPeriod?.id || 'current-period'}
+                  periodName={currentPeriod?.name || '1º Semestre 2026'}
+                  selfDeadline={currentPeriod?.self_evaluation_deadline}
+                  peerDeadline={currentPeriod?.peer_evaluation_deadline}
+                />
+              </TabsContent>
+
+              {/* Tab PDI */}
+              <TabsContent value="pdi">
+                <PDITab
+                  memberId="current-user"
+                  periodId={currentPeriod?.id}
+                />
+              </TabsContent>
+
+              {/* Tab Tendências */}
+              <TabsContent value="trends">
+                <TrendsTab
+                  companyId="demo-company"
+                  periodId={currentPeriod?.id}
+                  onSelectMember={handleSelectMember}
+                />
+              </TabsContent>
+
               {/* Tab Alertas */}
               <TabsContent value="alerts" className="space-y-4">
                 <Card>
@@ -499,9 +550,9 @@ export default function BoardPerformance() {
                             key={index}
                             className={cn(
                               "flex items-center gap-3 p-3 rounded-lg border",
-                              alert.severity === 'error' ? "border-red-200 bg-red-50" :
-                              alert.severity === 'warning' ? "border-amber-200 bg-amber-50" :
-                              "border-blue-200 bg-blue-50"
+                              alert.severity === 'error' ? "border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800" :
+                              alert.severity === 'warning' ? "border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800" :
+                              "border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800"
                             )}
                           >
                             {alert.severity === 'error' ? (
@@ -518,7 +569,7 @@ export default function BoardPerformance() {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => alert.memberId && setSelectedMember(alert.memberId)}
+                              onClick={() => alert.memberId && handleSelectMember(alert.memberId)}
                             >
                               Ver detalhes
                             </Button>

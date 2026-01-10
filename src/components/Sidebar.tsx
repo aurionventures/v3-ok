@@ -293,7 +293,7 @@ const Sidebar = () => {
   const menuData = isAdminRoute ? adminMenuItems : menuPhases;
 
   return (
-    <aside className={cn("bg-legacy-500 h-screen border-r border-legacy-600 transition-all duration-300 ease-in-out z-10 relative", 
+    <aside className={cn("bg-legacy-500 h-screen border-r border-legacy-600 transition-all duration-300 ease-in-out z-10 sticky top-0", 
       open ? "flex flex-col w-64 sm:w-64 md:w-72 max-w-full" : "w-16 flex flex-col"
     )}>
       <div className="overflow-hidden p-4 border-b border-legacy-600 bg-legacy-500 text-white">

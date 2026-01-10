@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { 
   Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, 
   Clock, ArrowRight, TrendingUp, TrendingDown, History, Settings as SettingsIcon,
-  ExternalLink, Calendar, Target, BarChart3
+  ExternalLink, Calendar, Target, BarChart3, FileText, LayoutGrid
 } from "lucide-react";
+import { AgendaSuggestionsTab } from "@/components/copilot/AgendaSuggestionsTab";
+import { SWOTDynamicTab } from "@/components/copilot/SWOTDynamicTab";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -521,6 +523,14 @@ export default function GovernanceCopilot() {
                 <Brain className="h-4 w-4" />
                 Análise Atual
               </TabsTrigger>
+              <TabsTrigger value="agendas" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Pautas Sugeridas
+              </TabsTrigger>
+              <TabsTrigger value="swot" className="gap-2">
+                <LayoutGrid className="h-4 w-4" />
+                SWOT Dinâmica
+              </TabsTrigger>
               <TabsTrigger value="history" className="gap-2">
                 <History className="h-4 w-4" />
                 Histórico
@@ -599,6 +609,16 @@ export default function GovernanceCopilot() {
                   </InsightColumn>
                 </div>
               )}
+            </TabsContent>
+
+            {/* Agendas Tab */}
+            <TabsContent value="agendas" className="h-[calc(100%-3rem)] m-0 overflow-auto">
+              <AgendaSuggestionsTab />
+            </TabsContent>
+
+            {/* SWOT Tab */}
+            <TabsContent value="swot" className="h-[calc(100%-3rem)] m-0 overflow-auto">
+              <SWOTDynamicTab />
             </TabsContent>
 
             {/* History Tab */}
