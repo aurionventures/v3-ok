@@ -24,7 +24,7 @@ import {
   CheckCircle2,
   XCircle,
   ClipboardCheck,
-  GraduationCap,
+  
   LineChart,
 } from "lucide-react";
 import { useBoardPerformance } from "@/hooks/useBoardPerformance";
@@ -50,7 +50,7 @@ import {
 } from "recharts";
 
 // Importar novos componentes
-import { Evaluations360Tab, PDITab, TrendsTab } from "@/components/board-performance";
+import { Evaluations360Tab, TrendsTab } from "@/components/board-performance";
 
 export default function BoardPerformance() {
   const [selectedCouncil, setSelectedCouncil] = useState<string>("all");
@@ -250,10 +250,6 @@ export default function BoardPerformance() {
                 <TabsTrigger value="evaluations" className="flex items-center gap-1">
                   <ClipboardCheck className="h-4 w-4" />
                   Avaliações 360°
-                </TabsTrigger>
-                <TabsTrigger value="pdi" className="flex items-center gap-1">
-                  <GraduationCap className="h-4 w-4" />
-                  PDI
                 </TabsTrigger>
                 <TabsTrigger value="trends" className="flex items-center gap-1">
                   <LineChart className="h-4 w-4" />
@@ -525,13 +521,6 @@ export default function BoardPerformance() {
                 />
               </TabsContent>
 
-              {/* Tab PDI */}
-              <TabsContent value="pdi">
-                <PDITab
-                  memberId="current-user"
-                  periodId={currentPeriod?.id}
-                />
-              </TabsContent>
 
               {/* Tab Tendências */}
               <TabsContent value="trends">
