@@ -91,6 +91,7 @@ import SecurityDashboard from "./pages/SecurityDashboard";
 import SecretariatPanel from "./pages/SecretariatPanel";
 import BoardPerformance from "./pages/BoardPerformance";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import AdminPromptLibrary from "./pages/AdminPromptLibrary";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -829,6 +830,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <SecurityDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/prompt-library" 
+            element={
+              <ProtectedRoute>
+                <AdminPromptLibrary />
               </ProtectedRoute>
             } 
           />
