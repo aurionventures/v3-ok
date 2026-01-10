@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare, BookOpen } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare, BookOpen, Building2, Target, LayoutDashboard } from "lucide-react";
 import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { AIParameterizationTab } from "@/components/settings/AIParameterizationTab";
 import ActivitiesLogTab from "@/components/settings/ActivitiesLogTab";
@@ -18,12 +18,54 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import {
+  Phase1BasicSetup,
+  Phase2DocumentUpload,
+  Phase3StrategicContext,
+  OnboardingDashboard
+} from '@/components/onboarding';
+import {
+  useCompanyProfile,
+  useStrategicContext,
+  useDocumentLibrary,
+  useOnboardingProgress
+} from '@/hooks/useOnboarding';
+import type { Phase1FormData, Phase3FormData, DocumentCategory } from '@/types/onboarding';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { preferences, loading, updatePreferences, resetToDefaults } = useNotificationPreferences();
-  const { progress, score } = useMockOnboardingProgress();
+  const { progress: mockProgress, score: mockScore } = useMockOnboardingProgress();
   const isOrgAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
+  
+  // Knowledge Base Onboarding Hooks
+  const { profile, saveProfile, isSaving: isSavingProfile } = useCompanyProfile();
+  const { context, saveContext, isSaving: isSavingContext } = useStrategicContext();
+  const {
+    documents,
+    uploadDocument,
+    deleteDocument,
+    isUploading
+  } = useDocumentLibrary();
+  const {
+    progress,
+    score,
+    getNextSteps,
+    initProgress,
+    updatePhase,
+    completeOnboarding,
+    isReadyForUse
+  } = useOnboardingProgress();
+
+  // Knowledge Base active phase tab
+  const [kbActiveTab, setKbActiveTab] = useState<'dashboard' | 'phase-1' | 'phase-2' | 'phase-3'>('dashboard');
+
+  // Initialize onboarding progress
+  useEffect(() => {
+    initProgress();
+  }, [initProgress]);
   
   // Local state for notification preferences
   const [formData, setFormData] = useState({
@@ -96,6 +138,104 @@ const Settings = () => {
 
   const handleSaveNotifications = () => {
     updatePreferences(formData);
+  };
+
+  // Knowledge Base handlers
+  const navigateToPhase = (phase: 1 | 2 | 3) => {
+    setKbActiveTab(`phase-${phase}` as 'phase-1' | 'phase-2' | 'phase-3');
+  };
+
+  const handlePhase1Complete = async (data: Phase1FormData) => {
+    await saveProfile(data);
+    await updatePhase({ phase: 1, completed: true });
+    navigateToPhase(2);
+  };
+
+  const handleDocumentUpload = async (
+    file: File,
+    category: DocumentCategory,
+    title: string
+  ) => {
+    await uploadDocument({ file, category, title });
+  };
+
+  const handlePhase2Complete = async () => {
+    await updatePhase({ phase: 2, completed: true });
+    navigateToPhase(3);
+  };
+
+  const handlePhase3Complete = async (data: Phase3FormData) => {
+    await saveContext(data);
+    await updatePhase({ phase: 3, completed: true });
+    setKbActiveTab('dashboard');
+  };
+
+  const handleLaunchMOAT = async () => {
+    await completeOnboarding();
+    navigate('/copiloto-governanca');
+  };
+
+  // Map profile to form data
+  const getPhase1InitialData = (): Partial<Phase1FormData> | undefined => {
+    if (!profile) return undefined;
+    return {
+      legalName: profile.legal_name,
+      tradeName: profile.trade_name || '',
+      taxId: profile.tax_id,
+      foundedDate: profile.founded_date || '',
+      companySize: profile.company_size,
+      primarySector: profile.primary_sector,
+      secondarySectors: profile.secondary_sectors || [],
+      industryVertical: profile.industry_vertical || '',
+      headquarters: {
+        country: profile.headquarters_country || 'BR',
+        state: profile.headquarters_state || '',
+        city: profile.headquarters_city || ''
+      },
+      operatingStates: profile.operating_states || [],
+      annualRevenueRange: profile.annual_revenue_range,
+      isPubliclyTraded: profile.is_publicly_traded,
+      stockTicker: profile.stock_ticker || '',
+      ownershipStructure: profile.ownership_structure,
+      numberOfShareholders: profile.number_of_shareholders || 0,
+      productsServices: profile.products_services || [],
+      targetMarkets: profile.target_markets || [],
+      erpSystem: profile.erp_system || '',
+      crmSystem: profile.crm_system || '',
+      biTools: profile.bi_tools || [],
+      availableData: {
+        financial: profile.has_financial_data,
+        operational: profile.has_operational_data,
+        hr: profile.has_hr_data,
+        sales: profile.has_sales_data,
+        compliance: profile.has_compliance_data
+      },
+      certifications: profile.certifications || [],
+      regulatoryBodies: profile.regulatory_bodies || [],
+      complianceFrameworks: profile.compliance_frameworks || []
+    };
+  };
+
+  const getPhase3InitialData = (): Partial<Phase3FormData> | undefined => {
+    if (!context) return undefined;
+    return {
+      mission: context.mission || '',
+      vision: context.vision || '',
+      values: context.values || [],
+      businessModel: context.business_model || '',
+      competitiveAdvantages: context.competitive_advantages || [],
+      keySuccessFactors: context.key_success_factors || [],
+      strategicObjectives: context.strategic_objectives || [],
+      okrs: context.okrs || [],
+      keyStakeholders: context.key_stakeholders || [],
+      marketPosition: context.market_position,
+      mainCompetitors: context.main_competitors || [],
+      competitiveIntensity: context.competitive_intensity,
+      knownRisks: context.known_risks || [],
+      riskAppetite: context.risk_appetite,
+      esgCommitments: context.esg_commitments || [],
+      sustainabilityGoals: context.sustainability_goals || []
+    };
   };
   
   return (
@@ -549,6 +689,70 @@ const Settings = () => {
                       </p>
                     </div>
                     <KnowledgeBaseWidget progress={progress} score={score} isCompact={false} />
+                    
+                    <Separator />
+                    
+                    {/* Inline Onboarding Phases */}
+                    <Tabs value={kbActiveTab} onValueChange={(v) => setKbActiveTab(v as typeof kbActiveTab)}>
+                      <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="dashboard" className="gap-2">
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </TabsTrigger>
+                        <TabsTrigger value="phase-1" className="gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Fase 1
+                        </TabsTrigger>
+                        <TabsTrigger value="phase-2" className="gap-2">
+                          <FileText className="h-4 w-4" />
+                          Fase 2
+                        </TabsTrigger>
+                        <TabsTrigger value="phase-3" className="gap-2">
+                          <Target className="h-4 w-4" />
+                          Fase 3
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="dashboard" className="mt-4">
+                        <OnboardingDashboard
+                          progress={progress}
+                          score={score}
+                          nextSteps={getNextSteps()}
+                          onNavigateToPhase={navigateToPhase}
+                          onLaunchMOAT={handleLaunchMOAT}
+                          isReadyForUse={isReadyForUse}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="phase-1" className="mt-4">
+                        <Phase1BasicSetup
+                          initialData={getPhase1InitialData()}
+                          onComplete={handlePhase1Complete}
+                          onBack={() => setKbActiveTab('dashboard')}
+                          isSaving={isSavingProfile}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="phase-2" className="mt-4">
+                        <Phase2DocumentUpload
+                          documents={documents || []}
+                          onUpload={handleDocumentUpload}
+                          onDelete={deleteDocument}
+                          onComplete={handlePhase2Complete}
+                          onBack={() => navigateToPhase(1)}
+                          isUploading={isUploading}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="phase-3" className="mt-4">
+                        <Phase3StrategicContext
+                          initialData={getPhase3InitialData()}
+                          onComplete={handlePhase3Complete}
+                          onBack={() => navigateToPhase(2)}
+                          isSaving={isSavingContext}
+                        />
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </TabsContent>
               </Tabs>
