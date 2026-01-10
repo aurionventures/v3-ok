@@ -7,8 +7,10 @@ import {
   Building2, 
   LogOut,
   BarChart3,
-  Shield
+  Shield,
+  Award
 } from "lucide-react";
+import memberLogo from "@/assets/member-logo-white.png";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
@@ -38,6 +40,7 @@ const menuItems = [
   { id: 'atas', icon: FileText, label: 'ATAs Pendentes', path: '/member-portal/atas' },
   { id: 'pendencias', icon: AlertTriangle, label: 'Tarefas Pendentes', path: '/member-portal/pendencias' },
   { id: 'orgaos', icon: Building2, label: 'Meus Conselhos', path: '/member-portal/orgaos' },
+  { id: 'desempenho', icon: Award, label: 'Meu Desempenho', path: '/member-portal/desempenho' },
 ];
 
 export function MemberSidebar({ activeSection, onSectionClick, onLogout }: MemberSidebarProps) {
@@ -58,14 +61,14 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar className="bg-[#1a2942] border-r-0">
+      <SidebarHeader className="border-b border-white/10">
         <div className="flex items-center justify-between p-3">
           <Link to="/member-portal" className="flex items-center gap-2">
             <img 
-              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png" 
+              src={memberLogo}
               alt="Legacy" 
-              className="h-9 w-auto brightness-0 invert"
+              className="h-9 w-auto"
             />
           </Link>
         </div>
@@ -115,11 +118,8 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
           <div className="space-y-4">
             {/* User Info */}
             <div className="space-y-1">
-              <p className="text-lg font-semibold text-sidebar-foreground">{user?.name}</p>
-              <p className="text-base text-sidebar-foreground/70">
-                {memberCouncils[0]}
-                {memberCouncils.length > 1 && ` +${memberCouncils.length - 1}`}
-              </p>
+              <p className="text-lg font-semibold text-white">{user?.name}</p>
+              <p className="text-base text-white/70">Membro</p>
             </div>
             
             {/* Logout */}
