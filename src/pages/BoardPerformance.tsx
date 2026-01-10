@@ -98,7 +98,12 @@ export default function BoardPerformance() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                {currentPeriod}
+                {currentPeriod?.name && (
+                  <Badge variant="outline" className="text-sm font-normal">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {currentPeriod.name}
+                  </Badge>
+                )}
                 <Button variant="outline" size="sm" onClick={refresh}>
                   <RefreshCw className="h-4 w-4 mr-1" />
                   Atualizar
