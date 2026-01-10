@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { pdf } from "@react-pdf/renderer";
 import { BriefingPDFDocument } from "./BriefingPDFDocument";
+import { DocumentReaderModal } from "./DocumentReaderModal";
 import type { MemberBriefing, TopicBriefing } from "@/types/copilot";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -134,6 +136,25 @@ export function BriefingPreview({
 }: BriefingPreviewProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<number[]>([]);
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+
+  const handleCheckItem = (index: number) => {
+    setCheckedItems(prev => {
+      const newItems = prev.includes(index) 
+        ? prev.filter(i => i !== index) 
+        : [...prev, index];
+      
+      // Update progress based on checked items
+      if (onUpdateProgress) {
+        const totalItems = briefing.content.preparationChecklist.length;
+        const progress = Math.round((newItems.length / totalItems) * 100);
+        onUpdateProgress(progress);
+      }
+      
+      return newItems;
+    });
+  };
 
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
@@ -285,21 +306,54 @@ export function BriefingPreview({
             <FileText className="h-5 w-5 text-indigo-600" />
             Checklist de Preparação
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Marque os itens conforme você se prepara para a reunião
+          </p>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {briefing.content.preparationChecklist.map((item, i) => (
               <li
                 key={i}
-                className="flex items-center gap-3 text-sm"
+                className={cn(
+                  "flex items-center gap-3 text-sm p-2 rounded-lg transition-colors",
+                  checkedItems.includes(i) && "bg-green-50 dark:bg-green-950/20"
+                )}
               >
-                <div className="h-5 w-5 rounded border-2 border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
-                  <div className="h-2 w-2 rounded-full bg-muted-foreground/20" />
-                </div>
-                {item}
+                <Checkbox
+                  id={`checklist-${i}`}
+                  checked={checkedItems.includes(i)}
+                  onCheckedChange={() => handleCheckItem(i)}
+                />
+                <label 
+                  htmlFor={`checklist-${i}`}
+                  className={cn(
+                    "cursor-pointer flex-1",
+                    checkedItems.includes(i) && "line-through text-muted-foreground"
+                  )}
+                >
+                  {item}
+                </label>
+                {checkedItems.includes(i) && (
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                )}
               </li>
             ))}
           </ul>
+          
+          {/* Progress indicator */}
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-muted-foreground">Progresso do checklist</span>
+              <span className="font-semibold">
+                {checkedItems.length}/{briefing.content.preparationChecklist.length} itens
+              </span>
+            </div>
+            <Progress 
+              value={(checkedItems.length / briefing.content.preparationChecklist.length) * 100} 
+              className="h-2" 
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -308,6 +362,9 @@ export function BriefingPreview({
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Documentos Relacionados</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Clique para visualizar o documento
+            </p>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -315,7 +372,8 @@ export function BriefingPreview({
                 <Badge
                   key={i}
                   variant="secondary"
-                  className="cursor-pointer hover:bg-secondary/80"
+                  className="cursor-pointer hover:bg-primary/20 hover:text-primary transition-colors"
+                  onClick={() => setSelectedDocument(doc)}
                 >
                   <FileText className="h-3 w-3 mr-1" />
                   {doc}
@@ -325,6 +383,13 @@ export function BriefingPreview({
           </CardContent>
         </Card>
       )}
+
+      {/* Document Reader Modal */}
+      <DocumentReaderModal
+        open={!!selectedDocument}
+        onOpenChange={(open) => !open && setSelectedDocument(null)}
+        documentName={selectedDocument || ""}
+      />
 
       {/* Mark as Read Button */}
       {!briefing.readAt && onMarkAsRead && (

@@ -21,8 +21,8 @@ interface MockDocument {
 }
 
 interface DocumentReaderModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   documentName: string;
 }
 
@@ -230,7 +230,7 @@ O documento apresenta as principais conclusões e recomendações para delibera�
   }
 };
 
-export function DocumentReaderModal({ isOpen, onClose, documentName }: DocumentReaderModalProps) {
+export function DocumentReaderModal({ open, onOpenChange, documentName }: DocumentReaderModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const { trackEvent } = useMemberTracking();
   
@@ -258,7 +258,7 @@ export function DocumentReaderModal({ isOpen, onClose, documentName }: DocumentR
   };
 
   // Track document read when modal opens
-  if (isOpen && documentName) {
+  if (open && documentName) {
     trackEvent('document_read', { 
       document_name: documentName,
       document_type: doc.type 
@@ -266,7 +266,7 @@ export function DocumentReaderModal({ isOpen, onClose, documentName }: DocumentR
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
         <DialogHeader className="p-6 pb-4 border-b">
           <div className="flex items-center justify-between">
@@ -350,7 +350,7 @@ export function DocumentReaderModal({ isOpen, onClose, documentName }: DocumentR
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
         </div>

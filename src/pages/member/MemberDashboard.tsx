@@ -11,14 +11,9 @@ import {
   CalendarDays, 
   FileText, 
   AlertTriangle, 
-  Building2,
   ChevronRight,
   BarChart3,
-  Shield,
   Brain,
-  Sparkles,
-  Clock,
-  CheckCircle2,
   Calendar
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
@@ -64,18 +59,6 @@ const MemberDashboard = () => {
       badge: null
     },
     {
-      id: 'riscos',
-      path: '/member-portal/riscos',
-      icon: Shield,
-      iconBg: 'bg-red-500/10',
-      iconColor: 'text-red-500',
-      title: 'Riscos',
-      subtitle: `${mockCounts.totalRisks} riscos mapeados`,
-      detail: `${mockCounts.criticalRisks} críticos`,
-      badge: mockCounts.criticalRisks,
-      badgeVariant: 'destructive' as const
-    },
-    {
       id: 'reunioes',
       path: '/member-portal/reunioes',
       icon: CalendarDays,
@@ -109,17 +92,6 @@ const MemberDashboard = () => {
       detail: mockCounts.overdueTasks > 0 ? `${mockCounts.overdueTasks} atrasada` : null,
       badge: mockCounts.pendingTasks,
       badgeVariant: 'secondary' as const
-    },
-    {
-      id: 'orgaos',
-      path: '/member-portal/orgaos',
-      icon: Building2,
-      iconBg: 'bg-blue-500/10',
-      iconColor: 'text-blue-500',
-      title: 'Meus Conselhos',
-      subtitle: `${mockCounts.organs} órgãos de governança`,
-      detail: 'Conselho de Administração +1',
-      badge: null
     }
   ];
 
