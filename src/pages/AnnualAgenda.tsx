@@ -251,7 +251,7 @@ const AnnualAgenda = () => {
       <div className="flex h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header title="Agenda Anual 2025" />
+          <Header title="Agenda Anual 2026" />
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -269,7 +269,7 @@ const AnnualAgenda = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Agenda Anual 2025" />
+        <Header title="Agenda Anual 2026" />
         <div className="flex-1 overflow-y-auto p-4">
           <Tabs defaultValue="calendario" className="w-full">
             <TabsList className="mb-4">
