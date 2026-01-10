@@ -11,7 +11,12 @@ import {
   PolarRadiusAxis, 
   Radar, 
   ResponsiveContainer,
-  Legend
+  Legend,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip
 } from "recharts";
 import { 
   TrendingUp, 
@@ -487,18 +492,51 @@ export function MemberAvaliacao360Tab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-end justify-between gap-4 h-32">
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={mockEvaluationData.historicalScores}>
+                <defs>
+                  <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="period" 
+                  axisLine={false} 
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  domain={[60, 100]} 
+                  axisLine={false} 
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                  width={30}
+                />
+                <Tooltip 
+                  formatter={(value) => [`${value}`, 'Score']}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="score"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={3}
+                  fill="url(#scoreGradient)"
+                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 6, stroke: 'hsl(var(--background))' }}
+                  activeDot={{ r: 8 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Labels with values below the chart */}
+          <div className="flex justify-between mt-4 px-2">
             {mockEvaluationData.historicalScores.map((item, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div 
-                  className="w-full bg-primary/20 rounded-t-lg transition-all hover:bg-primary/30 relative"
-                  style={{ height: `${item.score}%` }}
-                >
-                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-sm font-semibold">
-                    {item.score}
-                  </span>
-                </div>
-                <span className="text-xs text-muted-foreground">{item.period}</span>
+              <div key={i} className="text-center">
+                <p className="text-lg font-bold text-foreground">{item.score}</p>
+                <p className="text-xs text-muted-foreground">{item.period}</p>
               </div>
             ))}
           </div>
