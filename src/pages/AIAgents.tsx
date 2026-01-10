@@ -35,7 +35,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/hooks/use-toast";
 
-// MOAT Engine Agents
+// MOAT Engine Agents - Sistema de IA especializado
 const moatAgents = [
   {
     id: "agent-a",
