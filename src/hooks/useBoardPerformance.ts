@@ -47,6 +47,12 @@ const generateMockPerformanceData = (councilMembers: any[]): MemberPerformanceWi
     else if (finalScore >= 40) performanceLevel = 'below_expectations';
     else performanceLevel = 'critical';
     
+    // Generate self-assessment score for some members (simulating who has completed it)
+    const hasSelfAssessment = seededRandom(seed + 'selfassess') > 0.4;
+    const selfAssessmentScore = hasSelfAssessment 
+      ? Math.round((65 + seededRandom(seed + 'selfscore') * 30) * 10) / 10
+      : undefined;
+
     return {
       id: `perf-${member.id}`,
       period_id: 'current-period',
@@ -65,6 +71,8 @@ const generateMockPerformanceData = (councilMembers: any[]): MemberPerformanceWi
       final_score: Math.round(finalScore * 10) / 10,
       performance_level: performanceLevel,
       rank_in_council: index + 1,
+      self_assessment_score: selfAssessmentScore,
+      self_assessment_date: hasSelfAssessment ? '2026-01-10' : undefined,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       metrics: {

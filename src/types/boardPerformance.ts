@@ -439,6 +439,9 @@ export interface MemberPerformanceWithDetails extends BoardMemberPerformance {
   pdi?: MemberPDIPlan;
   alerts?: PerformanceAlert[];
   prediction?: MemberRiskPrediction;
+  // Self-assessment score from member quiz
+  self_assessment_score?: number;
+  self_assessment_date?: string;
 }
 
 export interface CouncilPerformanceSummary {

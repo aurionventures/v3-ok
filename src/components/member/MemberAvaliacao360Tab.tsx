@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   RadarChart, 
   PolarGrid, 
@@ -14,7 +13,19 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { TrendingUp, TrendingDown, Calendar, Users, Star, Target, ClipboardCheck, CheckCircle2 } from "lucide-react";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Calendar, 
+  Star, 
+  Target, 
+  ClipboardCheck, 
+  CheckCircle2,
+  ArrowLeft,
+  ArrowRight,
+  ThumbsUp,
+  Sparkles
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 // Mock data for 360 evaluation
@@ -24,7 +35,6 @@ const mockEvaluationData = {
   level: "Excelente",
   evaluationDate: "Dezembro 2025",
   nextEvaluation: "Junho 2026",
-  respondents: 12,
   dimensions: [
     { name: "Presença", score: 85, average: 78 },
     { name: "Contribuição", score: 88, average: 75 },
@@ -129,12 +139,22 @@ export function MemberAvaliacao360Tab() {
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [calculatedScore, setCalculatedScore] = useState<number | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
 
+  const totalSteps = quizQuestions.length;
   const scoreDiff = mockEvaluationData.currentScore - mockEvaluationData.previousScore;
   const isImproving = scoreDiff > 0;
 
   const handleQuizAnswer = (questionId: string, score: number) => {
     setQuizAnswers(prev => ({ ...prev, [questionId]: score }));
+    
+    // Auto-advance after 400ms
+    setTimeout(() => {
+      if (quizStep < totalSteps - 1) {
+        setQuizStep(prev => prev + 1);
+      }
+    }, 400);
   };
 
   const handleSubmitQuiz = () => {
@@ -151,6 +171,7 @@ export function MemberAvaliacao360Tab() {
     const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     setCalculatedScore(avgScore);
     setQuizSubmitted(true);
+    setShowQuiz(false);
     
     toast({
       title: "Autoavaliação enviada!",
@@ -165,10 +186,20 @@ export function MemberAvaliacao360Tab() {
     return { label: "Precisa Melhorar", color: "text-orange-600" };
   };
 
+  const startQuiz = () => {
+    setShowQuiz(true);
+    setQuizStep(0);
+    setQuizAnswers({});
+  };
+
+  const currentQuestion = quizQuestions[quizStep];
+  const progressPercentage = ((quizStep) / totalSteps) * 100;
+  const allQuestionsAnswered = Object.keys(quizAnswers).length === totalSteps;
+
   return (
     <div className="space-y-6">
       {/* Score Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="col-span-1 md:col-span-2 bg-gradient-to-br from-primary/10 to-primary/5">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -209,23 +240,9 @@ export function MemberAvaliacao360Tab() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Avaliadores</p>
-                <p className="font-semibold">{mockEvaluationData.respondents} respondentes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Self-Assessment Quiz */}
+      {/* Self-Assessment Section */}
       <Card className="border-2 border-primary/20">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
@@ -233,44 +250,10 @@ export function MemberAvaliacao360Tab() {
             Autoavaliação Rápida
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Responda às perguntas abaixo para calcular seu score de autoavaliação
+            Realize sua autoavaliação para comparar com a avaliação 360° e identificar gaps de percepção
           </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {quizQuestions.map((q, index) => (
-            <div key={q.id} className="space-y-3">
-              <div className="flex items-start gap-2">
-                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">
-                  {index + 1}
-                </span>
-                <div className="flex-1">
-                  <p className="font-medium text-sm mb-3">{q.question}</p>
-                  <RadioGroup
-                    value={quizAnswers[q.id]?.toString()}
-                    onValueChange={(value) => handleQuizAnswer(q.id, parseInt(value))}
-                    disabled={quizSubmitted}
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {q.options.map((opt) => (
-                        <div key={opt.score} className="flex items-center space-x-2">
-                          <RadioGroupItem value={opt.score.toString()} id={`${q.id}-${opt.score}`} />
-                          <Label 
-                            htmlFor={`${q.id}-${opt.score}`}
-                            className="text-sm cursor-pointer"
-                          >
-                            {opt.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-              {index < quizQuestions.length - 1 && <hr className="my-4" />}
-            </div>
-          ))}
-
-          {/* Quiz Result or Submit Button */}
+        <CardContent>
           {quizSubmitted && calculatedScore !== null ? (
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200">
               <CardContent className="p-6">
@@ -303,16 +286,98 @@ export function MemberAvaliacao360Tab() {
             </Card>
           ) : (
             <Button 
-              onClick={handleSubmitQuiz}
+              onClick={startQuiz}
               className="w-full"
               size="lg"
             >
-              <ClipboardCheck className="h-5 w-5 mr-2" />
-              Calcular Meu Score
+              <Sparkles className="h-5 w-5 mr-2" />
+              Iniciar Autoavaliação
             </Button>
           )}
         </CardContent>
       </Card>
+
+      {/* Quiz Dialog */}
+      <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-primary" />
+              Autoavaliação
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Pergunta {quizStep + 1} de {totalSteps}</span>
+              <span>{Math.round(progressPercentage)}%</span>
+            </div>
+            <Progress value={progressPercentage} className="h-2" />
+          </div>
+
+          {/* Current Question */}
+          <div className="py-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-xs">
+                {currentQuestion.dimension}
+              </Badge>
+            </div>
+            <p className="text-lg font-medium mb-6">{currentQuestion.question}</p>
+            
+            <div className="space-y-3">
+              {currentQuestion.options.map((opt) => (
+                <Button
+                  key={opt.score}
+                  variant={quizAnswers[currentQuestion.id] === opt.score ? "default" : "outline"}
+                  className="w-full justify-start text-left h-auto py-4 px-4"
+                  onClick={() => handleQuizAnswer(currentQuestion.id, opt.score)}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                      quizAnswers[currentQuestion.id] === opt.score 
+                        ? 'border-primary-foreground bg-primary-foreground' 
+                        : 'border-muted-foreground'
+                    }`}>
+                      {quizAnswers[currentQuestion.id] === opt.score && (
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                    </span>
+                    {opt.label}
+                  </span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex justify-between pt-4 border-t">
+            <Button 
+              variant="ghost" 
+              onClick={() => setQuizStep(prev => Math.max(0, prev - 1))}
+              disabled={quizStep === 0}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Anterior
+            </Button>
+            
+            {quizStep === totalSteps - 1 ? (
+              <Button 
+                onClick={handleSubmitQuiz}
+                disabled={!allQuestionsAnswered}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" /> Calcular Meu Score
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => setQuizStep(prev => prev + 1)}
+                disabled={!quizAnswers[currentQuestion.id]}
+              >
+                Próxima <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Radar Chart and Dimensions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -383,13 +448,18 @@ export function MemberAvaliacao360Tab() {
         </Card>
       </div>
 
-      {/* Feedback */}
+      {/* Feedback - with Lucide icons instead of emojis */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {mockEvaluationData.feedback.map((section) => (
           <Card key={section.category}>
             <CardHeader>
-              <CardTitle className="text-lg">
-                {section.category === "Pontos Fortes" ? "💪" : "🎯"} {section.category}
+              <CardTitle className="text-lg flex items-center gap-2">
+                {section.category === "Pontos Fortes" ? (
+                  <ThumbsUp className="h-5 w-5 text-green-600" />
+                ) : (
+                  <Target className="h-5 w-5 text-amber-600" />
+                )}
+                {section.category}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -411,7 +481,10 @@ export function MemberAvaliacao360Tab() {
       {/* Historical Evolution */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Evolução Histórica</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Evolução Histórica
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-end justify-between gap-4 h-32">

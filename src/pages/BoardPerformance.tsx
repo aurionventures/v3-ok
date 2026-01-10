@@ -315,9 +315,16 @@ export default function BoardPerformance() {
                             <div className="font-medium truncate">{perf.member_name}</div>
                             <div className="text-xs text-muted-foreground">{perf.member_role}</div>
                           </div>
-                          <div className="text-right">
-                            <div className={cn("text-lg font-bold", getScoreColor(perf.final_score))}>
-                              {perf.final_score.toFixed(1)}
+                          <div className="text-right space-y-1">
+                            <div className="flex items-center gap-2 justify-end">
+                              <div className={cn("text-lg font-bold", getScoreColor(perf.final_score))}>
+                                {perf.final_score.toFixed(1)}
+                              </div>
+                              {perf.self_assessment_score && (
+                                <Badge variant="outline" className="text-xs font-normal">
+                                  Auto: {perf.self_assessment_score.toFixed(0)}
+                                </Badge>
+                              )}
                             </div>
                             {perf.performance_level && (
                               <Badge 
