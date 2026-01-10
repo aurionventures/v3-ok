@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Building, DollarSign, Rocket, Building2, Globe, TrendingUp, Crown, Sparkles, Leaf, Check, Lock, Handshake, FileText, Shield, ScrollText } from "lucide-react";
+import { 
+  LayoutDashboard, Building, DollarSign, Rocket, Building2, Globe, 
+  TrendingUp, Crown, Sparkles, Leaf, Check, Lock, Handshake, 
+  FileText, Shield, ScrollText, Layers, Gift 
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
@@ -18,7 +22,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
-import { BASE_SECTIONS, ADDON_SECTIONS, FIXED_ITEMS, DYNAMIC_ADDONS, SidebarSection, SidebarItem } from "@/data/sidebarCatalog";
+import { BASE_SECTIONS, ADDON_ITEMS, DYNAMIC_ADDONS, SidebarSection, SidebarItem } from "@/data/sidebarCatalog";
 import { CompanySize, GovernancePlan, COMPANY_SIZE_LABELS, PLAN_LABELS, ModuleKey } from "@/types/organization";
 import { UpgradeModal } from "./UpgradeModal";
 
@@ -51,7 +55,7 @@ export function AppSidebar() {
   
   const isAdminRoute = pathname.startsWith("/admin");
   
-  // Admin menu items - reorganized structure
+  // Admin menu items
   const adminMenuItems = [
     { icon: LayoutDashboard, href: "/admin", name: "Dashboard" },
     { icon: Building2, href: "/admin/clientes", name: "Gestão de Empresas" },
@@ -86,8 +90,8 @@ export function AppSidebar() {
     });
   };
 
-  // Renderiza um item do menu
-  const renderMenuItem = (item: SidebarItem) => {
+  // Renderiza um item do menu BASE
+  const renderBaseMenuItem = (item: SidebarItem) => {
     const isActive = pathname === item.path;
     const isLocked = !hasAccess(item.key);
     
@@ -96,19 +100,11 @@ export function AppSidebar() {
         <SidebarMenuItem key={item.path}>
           <SidebarMenuButton 
             onClick={() => handleLockedClick(item.key, item.label)}
-            className="cursor-pointer opacity-60 hover:opacity-80"
+            className="cursor-pointer opacity-50 hover:opacity-70 py-2.5 min-h-[40px]"
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <item.icon className="h-5 w-5 text-sidebar-foreground/50" />
-                {!collapsed && <span className="flex-1 text-sidebar-foreground/70">{item.label}</span>}
-              </div>
-              {!collapsed && (
-                <div className="flex items-center gap-1">
-                  <Lock className="h-3 w-3 text-amber-500" />
-                </div>
-              )}
-            </div>
+            <item.icon className="h-5 w-5 text-sidebar-foreground/50" />
+            {!collapsed && <span className="text-base text-sidebar-foreground/60">{item.label}</span>}
+            {!collapsed && <Lock className="h-3.5 w-3.5 ml-auto text-sidebar-foreground/40" />}
           </SidebarMenuButton>
         </SidebarMenuItem>
       );
@@ -116,46 +112,61 @@ export function AppSidebar() {
     
     return (
       <SidebarMenuItem key={item.path}>
-        <SidebarMenuButton asChild isActive={isActive}>
-          <Link to={item.path} className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <item.icon className="h-5 w-5 text-sidebar-foreground/90" />
-              {!collapsed && <span className="flex-1">{item.label}</span>}
-            </div>
-            {!collapsed && item.isAddon && (
-              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3 bg-amber-500/20 text-amber-600 border-0">
-                Add-on
-              </Badge>
-            )}
+        <SidebarMenuButton asChild isActive={isActive} className="py-2.5 min-h-[40px]">
+          <Link to={item.path}>
+            <item.icon className="h-5 w-5" />
+            {!collapsed && <span className="text-base">{item.label}</span>}
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
   };
 
-  // Renderiza uma seção do sidebar
-  const renderSection = (section: SidebarSection, showLocked: boolean = false) => {
+  // Renderiza um item do menu ADD-ON
+  const renderAddonMenuItem = (item: SidebarItem) => {
+    const isActive = pathname === item.path;
+    const isLocked = !hasAccess(item.key);
+    
+    if (isLocked) {
+      return (
+        <SidebarMenuItem key={item.path}>
+          <SidebarMenuButton 
+            onClick={() => handleLockedClick(item.key, item.label)}
+            className="cursor-pointer opacity-50 hover:opacity-70 py-2.5 min-h-[40px]"
+          >
+            <item.icon className="h-5 w-5 text-sidebar-foreground/50" />
+            {!collapsed && <span className="text-base text-sidebar-foreground/60 flex-1">{item.label}</span>}
+            {!collapsed && <Lock className="h-3.5 w-3.5 text-amber-500/70" />}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+    
+    return (
+      <SidebarMenuItem key={item.path}>
+        <SidebarMenuButton asChild isActive={isActive} className="py-2.5 min-h-[40px]">
+          <Link to={item.path}>
+            <item.icon className="h-5 w-5" />
+            {!collapsed && <span className="text-base">{item.label}</span>}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
+  // Renderiza uma seção BASE do sidebar
+  const renderBaseSection = (section: SidebarSection) => {
     const sectionItems = section.items;
     if (sectionItems.length === 0) return null;
     
     return (
-      <SidebarGroup key={section.key}>
-        <SidebarGroupLabel className={cn("flex items-center gap-2 text-sm font-semibold", section.color)}>
-          <section.icon className="h-4 w-4" />
-          {!collapsed && (
-            <>
-              {section.label}
-              {section.isAddon && (
-                <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0 h-4 border-amber-500/50 text-amber-500">
-                  Add-on
-                </Badge>
-              )}
-            </>
-          )}
+      <SidebarGroup key={section.key} className="py-1">
+        <SidebarGroupLabel className="text-[11px] font-semibold tracking-widest uppercase text-sidebar-foreground/50 px-3 py-2">
+          {!collapsed && section.label}
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {sectionItems.map(item => renderMenuItem(item))}
+            {sectionItems.map(item => renderBaseMenuItem(item))}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -168,7 +179,7 @@ export function AppSidebar() {
     <>
       <Sidebar>
         <SidebarHeader className="border-b border-sidebar-border">
-          <div className="flex items-center justify-between p-2">
+          <div className="flex items-center justify-between p-3">
             <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2">
               <img 
                 src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png" 
@@ -180,10 +191,12 @@ export function AppSidebar() {
           </div>
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent className="px-2">
           {isAdminRoute ? (
             <SidebarGroup>
-              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[11px] font-semibold tracking-widest uppercase text-sidebar-foreground/50 px-3 py-2">
+                Administração
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminMenuItems.map(item => (
@@ -191,10 +204,11 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={pathname === item.href || (item.href === "/admin/clientes" && pathname.startsWith("/admin/clientes"))}
+                        className="py-2.5 min-h-[40px]"
                       >
                         <Link to={item.href}>
                           <item.icon className="h-5 w-5" />
-                          {!collapsed && <span>{item.name}</span>}
+                          {!collapsed && <span className="text-base">{item.name}</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -204,22 +218,41 @@ export function AppSidebar() {
             </SidebarGroup>
           ) : (
             <>
-              {/* Seções BASE */}
-              {baseSectionsWithAddons.map(section => renderSection(section))}
-              
-              {/* Separador ADD-ONS - sempre visível */}
-              <div className="px-3 py-2 mt-4 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-px bg-sidebar-border" />
-                  <span className="text-xs text-amber-500 font-semibold tracking-wider">
-                    ADD-ONS
-                  </span>
-                  <div className="flex-1 h-px bg-sidebar-border" />
+              {/* ===== SISTEMA BASE ===== */}
+              <div className="mb-2">
+                <div className="flex items-center gap-2 px-3 py-3">
+                  <Layers className="h-4 w-4 text-blue-400" />
+                  {!collapsed && (
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+                      Sistema Base
+                    </span>
+                  )}
                 </div>
+                
+                {/* Seções BASE */}
+                {baseSectionsWithAddons.map(section => renderBaseSection(section))}
               </div>
               
-              {/* Seções ADD-ON - todas visíveis (bloqueadas ou não) */}
-              {ADDON_SECTIONS.map(section => renderSection(section, true))}
+              {/* ===== SEPARADOR ===== */}
+              <div className="relative py-3 px-3">
+                <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+              </div>
+              
+              {/* ===== ADD-ONS ===== */}
+              <div>
+                <div className="flex items-center gap-2 px-3 py-3">
+                  <Gift className="h-4 w-4 text-amber-500" />
+                  {!collapsed && (
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-amber-500">
+                      Add-ons
+                    </span>
+                  )}
+                </div>
+                
+                <SidebarMenu>
+                  {ADDON_ITEMS.map(item => renderAddonMenuItem(item))}
+                </SidebarMenu>
+              </div>
             </>
           )}
         </SidebarContent>
