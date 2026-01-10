@@ -1,14 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   CalendarDays, 
   FileText, 
   AlertTriangle, 
-  Building2, 
   LogOut,
   BarChart3,
   Shield,
-  Award
+  Award,
+  Settings
 } from "lucide-react";
 import memberLogo from "@/assets/member-logo-white.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,7 +39,6 @@ const menuItems = [
   { id: 'reunioes', icon: CalendarDays, label: 'Próximas Reuniões', path: '/member-portal/reunioes' },
   { id: 'atas', icon: FileText, label: 'ATAs Pendentes', path: '/member-portal/atas' },
   { id: 'pendencias', icon: AlertTriangle, label: 'Tarefas Pendentes', path: '/member-portal/pendencias' },
-  { id: 'orgaos', icon: Building2, label: 'Meus Conselhos', path: '/member-portal/orgaos' },
   { id: 'desempenho', icon: Award, label: 'Meu Desempenho', path: '/member-portal/desempenho' },
 ];
 
@@ -47,11 +46,8 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
   const { user } = useAuth();
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const collapsed = state === "collapsed";
-
-  const memberCouncils = user?.councilMemberships?.length 
-    ? ['Conselho de Administração', 'Comitê de Auditoria'] 
-    : ['Conselho de Administração'];
 
   const isActive = (path: string) => {
     if (path === '/member-portal') {
@@ -117,9 +113,19 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
         ) : (
           <div className="space-y-4">
             {/* User Info */}
-            <div className="space-y-1">
-              <p className="text-lg font-semibold text-white">{user?.name}</p>
-              <p className="text-base text-white/70">Membro</p>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-lg font-semibold text-white">{user?.name}</p>
+                <p className="text-base text-white/70">Membro</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-white/70 hover:text-white hover:bg-white/10"
+                onClick={() => navigate('/member-portal/perfil')}
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
             </div>
             
             {/* Logout */}

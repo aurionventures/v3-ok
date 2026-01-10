@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { 
   RadarChart, 
   PolarGrid, 
@@ -10,7 +14,8 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { TrendingUp, TrendingDown, Calendar, Users, Star, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar, Users, Star, Target, ClipboardCheck, CheckCircle2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data for 360 evaluation
 const mockEvaluationData = {
@@ -61,9 +66,104 @@ const mockEvaluationData = {
   ]
 };
 
+// Quiz questions for self-assessment
+const quizQuestions = [
+  {
+    id: "presence",
+    dimension: "Presença",
+    question: "Com que frequência você está presente nas reuniões do conselho?",
+    options: [
+      { label: "Sempre (100%)", score: 100 },
+      { label: "Quase sempre (80-99%)", score: 85 },
+      { label: "Frequentemente (60-79%)", score: 70 },
+      { label: "Às vezes (menos de 60%)", score: 50 },
+    ]
+  },
+  {
+    id: "contribution",
+    dimension: "Contribuição",
+    question: "Como você avalia suas contribuições nas discussões?",
+    options: [
+      { label: "Contribuo ativamente em todos os temas", score: 100 },
+      { label: "Contribuo na maioria dos temas relevantes", score: 85 },
+      { label: "Contribuo ocasionalmente", score: 70 },
+      { label: "Prefiro ouvir mais do que falar", score: 50 },
+    ]
+  },
+  {
+    id: "preparation",
+    dimension: "Preparação",
+    question: "Quanto tempo você dedica à preparação antes das reuniões?",
+    options: [
+      { label: "Leio todos os materiais com antecedência", score: 100 },
+      { label: "Leio a maior parte dos materiais", score: 85 },
+      { label: "Leio os materiais mais importantes", score: 70 },
+      { label: "Tenho pouco tempo para preparação", score: 50 },
+    ]
+  },
+  {
+    id: "leadership",
+    dimension: "Liderança",
+    question: "Com que frequência você lidera discussões ou propõe novos temas?",
+    options: [
+      { label: "Frequentemente lidero discussões", score: 100 },
+      { label: "Ocasionalmente proponho temas", score: 85 },
+      { label: "Raramente tomo a liderança", score: 70 },
+      { label: "Prefiro seguir a pauta estabelecida", score: 50 },
+    ]
+  },
+  {
+    id: "collaboration",
+    dimension: "Colaboração",
+    question: "Como você avalia seu trabalho em conjunto com outros conselheiros?",
+    options: [
+      { label: "Excelente - busco sempre o consenso", score: 100 },
+      { label: "Bom - colaboro bem na maioria das vezes", score: 85 },
+      { label: "Regular - poderia colaborar mais", score: 70 },
+      { label: "Preciso melhorar neste aspecto", score: 50 },
+    ]
+  },
+];
+
 export function MemberAvaliacao360Tab() {
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [calculatedScore, setCalculatedScore] = useState<number | null>(null);
+
   const scoreDiff = mockEvaluationData.currentScore - mockEvaluationData.previousScore;
   const isImproving = scoreDiff > 0;
+
+  const handleQuizAnswer = (questionId: string, score: number) => {
+    setQuizAnswers(prev => ({ ...prev, [questionId]: score }));
+  };
+
+  const handleSubmitQuiz = () => {
+    const scores = Object.values(quizAnswers);
+    if (scores.length < quizQuestions.length) {
+      toast({
+        title: "Questionário incompleto",
+        description: "Por favor, responda todas as perguntas antes de enviar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    setCalculatedScore(avgScore);
+    setQuizSubmitted(true);
+    
+    toast({
+      title: "Autoavaliação enviada!",
+      description: `Seu score calculado é ${avgScore}/100.`,
+    });
+  };
+
+  const getScoreLevel = (score: number) => {
+    if (score >= 90) return { label: "Excepcional", color: "text-green-600" };
+    if (score >= 80) return { label: "Excelente", color: "text-blue-600" };
+    if (score >= 70) return { label: "Bom", color: "text-yellow-600" };
+    return { label: "Precisa Melhorar", color: "text-orange-600" };
+  };
 
   return (
     <div className="space-y-6">
@@ -73,7 +173,7 @@ export function MemberAvaliacao360Tab() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Score Atual</p>
+                <p className="text-sm text-muted-foreground mb-1">Score Atual (Avaliação 360°)</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-bold text-primary">{mockEvaluationData.currentScore}</span>
                   <span className="text-2xl text-muted-foreground">/100</span>
@@ -124,6 +224,95 @@ export function MemberAvaliacao360Tab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Self-Assessment Quiz */}
+      <Card className="border-2 border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ClipboardCheck className="h-5 w-5 text-primary" />
+            Autoavaliação Rápida
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Responda às perguntas abaixo para calcular seu score de autoavaliação
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {quizQuestions.map((q, index) => (
+            <div key={q.id} className="space-y-3">
+              <div className="flex items-start gap-2">
+                <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">
+                  {index + 1}
+                </span>
+                <div className="flex-1">
+                  <p className="font-medium text-sm mb-3">{q.question}</p>
+                  <RadioGroup
+                    value={quizAnswers[q.id]?.toString()}
+                    onValueChange={(value) => handleQuizAnswer(q.id, parseInt(value))}
+                    disabled={quizSubmitted}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {q.options.map((opt) => (
+                        <div key={opt.score} className="flex items-center space-x-2">
+                          <RadioGroupItem value={opt.score.toString()} id={`${q.id}-${opt.score}`} />
+                          <Label 
+                            htmlFor={`${q.id}-${opt.score}`}
+                            className="text-sm cursor-pointer"
+                          >
+                            {opt.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+              {index < quizQuestions.length - 1 && <hr className="my-4" />}
+            </div>
+          ))}
+
+          {/* Quiz Result or Submit Button */}
+          {quizSubmitted && calculatedScore !== null ? (
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Seu Score de Autoavaliação</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold text-green-600">{calculatedScore}</span>
+                        <span className="text-xl text-muted-foreground">/100</span>
+                      </div>
+                      <Badge className={`mt-1 ${getScoreLevel(calculatedScore).color} bg-transparent`}>
+                        {getScoreLevel(calculatedScore).label}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground mb-1">Comparativo</p>
+                    <div className={`text-lg font-semibold ${
+                      calculatedScore >= mockEvaluationData.currentScore ? 'text-green-600' : 'text-amber-600'
+                    }`}>
+                      {calculatedScore >= mockEvaluationData.currentScore ? '+' : ''}
+                      {calculatedScore - mockEvaluationData.currentScore}pts
+                    </div>
+                    <p className="text-xs text-muted-foreground">vs avaliação 360°</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Button 
+              onClick={handleSubmitQuiz}
+              className="w-full"
+              size="lg"
+            >
+              <ClipboardCheck className="h-5 w-5 mr-2" />
+              Calcular Meu Score
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Radar Chart and Dimensions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
