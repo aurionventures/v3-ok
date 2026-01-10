@@ -7,10 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { DashboardAICopilot } from "@/components/dashboard/DashboardAICopilot";
-import { KnowledgeBaseWidget } from "@/components/dashboard/KnowledgeBaseWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
-import { useMockOnboardingProgress } from "@/hooks/useMockOnboarding";
 import { getCurrentMaturityAssessment, convertStoredDataToRadarData } from "@/utils/maturityStorage";
 import { loadLatestESGAssessment } from "@/utils/esgMaturityCalculator";
 import { getLatestESGAssessment } from "@/data/mockESGHistoricalData";
@@ -27,7 +25,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { actions, loading: loadingActions } = useAllMeetingActions();
-  const { progress, score } = useMockOnboardingProgress();
 
   // Load latest assessments
   const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
@@ -110,10 +107,8 @@ const Dashboard = () => {
             overflow: 'hidden'
           }}
         >
-          {/* Row 1: Knowledge Base Widget + 4 KPIs Executivos */}
-          <div className="grid grid-cols-5 gap-2">
-            {/* Knowledge Base Widget */}
-            <KnowledgeBaseWidget progress={progress} score={score} isCompact={true} />
+          {/* Row 1: KPIs Executivos */}
+          <div className="grid grid-cols-6 gap-2">
             {/* Score Geral */}
             <Card className="p-2.5 border-border/50">
               <div className="flex justify-between items-start">
@@ -158,6 +153,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </Card>
+            
             
             {/* Pautas Definidas */}
             <Card className="p-2.5 border-border/50">

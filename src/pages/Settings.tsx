@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare, BookOpen } from "lucide-react";
 import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { AIParameterizationTab } from "@/components/settings/AIParameterizationTab";
 import ActivitiesLogTab from "@/components/settings/ActivitiesLogTab";
+import { KnowledgeBaseWidget } from "@/components/dashboard/KnowledgeBaseWidget";
+import { useMockOnboardingProgress } from "@/hooks/useMockOnboarding";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 const Settings = () => {
   const { user } = useAuth();
   const { preferences, loading, updatePreferences, resetToDefaults } = useNotificationPreferences();
+  const { progress, score } = useMockOnboardingProgress();
   const isOrgAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   
   // Local state for notification preferences
@@ -129,6 +132,10 @@ const Settings = () => {
                   <TabsTrigger value="activities">
                     <ActivitySquare className="h-4 w-4 mr-2" />
                     Log de Atividades
+                  </TabsTrigger>
+                  <TabsTrigger value="knowledge-base">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Base de Conhecimento
                   </TabsTrigger>
                 </TabsList>
                 
@@ -530,6 +537,19 @@ const Settings = () => {
                 {/* ABA LOG DE ATIVIDADES */}
                 <TabsContent value="activities">
                   <ActivitiesLogTab />
+                </TabsContent>
+
+                {/* ABA BASE DE CONHECIMENTO */}
+                <TabsContent value="knowledge-base">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">Configuração da Base de Conhecimento</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Configure o contexto da empresa para o MOAT Engine funcionar com máxima efetividade
+                      </p>
+                    </div>
+                    <KnowledgeBaseWidget progress={progress} score={score} isCompact={false} />
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
