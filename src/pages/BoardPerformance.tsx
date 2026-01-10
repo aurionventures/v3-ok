@@ -7,82 +7,52 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, 
-  TrendingUp, 
-  AlertTriangle, 
-  Trophy, 
-  Target,
-  Calendar,
-  Settings,
-  Download,
-  RefreshCw,
-  ChevronRight,
-  Award,
-  BarChart3,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  ClipboardCheck,
-  
-  LineChart,
-} from "lucide-react";
+import { Users, TrendingUp, AlertTriangle, Trophy, Target, Calendar, Settings, Download, RefreshCw, ChevronRight, Award, BarChart3, Clock, CheckCircle2, XCircle, ClipboardCheck, GraduationCap, LineChart } from "lucide-react";
 import { useBoardPerformance } from "@/hooks/useBoardPerformance";
-import { 
-  PERFORMANCE_LEVEL_LABELS, 
-  PERFORMANCE_LEVEL_COLORS,
-} from "@/types/boardPerformance";
+import { PERFORMANCE_LEVEL_LABELS, PERFORMANCE_LEVEL_COLORS } from "@/types/boardPerformance";
 import { cn } from "@/lib/utils";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
-} from "recharts";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 // Importar novos componentes
-import { Evaluations360Tab, TrendsTab } from "@/components/board-performance";
-
+import { Evaluations360Tab, PDITab, TrendsTab } from "@/components/board-performance";
 export default function BoardPerformance() {
   const [selectedCouncil, setSelectedCouncil] = useState<string>("all");
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("ranking");
-  
-  const { 
-    isLoading, 
-    currentPeriod, 
-    performances, 
+  const {
+    isLoading,
+    currentPeriod,
+    performances,
     councilSummaries,
     getAlerts,
-    refresh 
+    refresh
   } = useBoardPerformance();
-
   const alerts = getAlerts();
-  const filteredPerformances = selectedCouncil === "all" 
-    ? performances 
-    : performances.filter(p => p.council_id === selectedCouncil);
+  const filteredPerformances = selectedCouncil === "all" ? performances : performances.filter(p => p.council_id === selectedCouncil);
 
   // Dados para o gráfico radar do membro selecionado
-  const selectedPerformance = selectedMember 
-    ? performances.find(p => p.member_id === selectedMember) 
-    : null;
-
-  const radarData = selectedPerformance ? [
-    { dimension: 'Presença', score: selectedPerformance.presence_score, fullMark: 100 },
-    { dimension: 'Contribuição', score: selectedPerformance.contribution_score, fullMark: 100 },
-    { dimension: 'Entrega', score: selectedPerformance.delivery_score, fullMark: 100 },
-    { dimension: 'Engajamento', score: selectedPerformance.engagement_score, fullMark: 100 },
-    { dimension: 'Liderança', score: selectedPerformance.leadership_score, fullMark: 100 },
-  ] : [];
+  const selectedPerformance = selectedMember ? performances.find(p => p.member_id === selectedMember) : null;
+  const radarData = selectedPerformance ? [{
+    dimension: 'Presença',
+    score: selectedPerformance.presence_score,
+    fullMark: 100
+  }, {
+    dimension: 'Contribuição',
+    score: selectedPerformance.contribution_score,
+    fullMark: 100
+  }, {
+    dimension: 'Entrega',
+    score: selectedPerformance.delivery_score,
+    fullMark: 100
+  }, {
+    dimension: 'Engajamento',
+    score: selectedPerformance.engagement_score,
+    fullMark: 100
+  }, {
+    dimension: 'Liderança',
+    score: selectedPerformance.leadership_score,
+    fullMark: 100
+  }] : [];
 
   // Dados para o gráfico de barras comparativo
   const barChartData = filteredPerformances.slice(0, 10).map(p => ({
@@ -90,7 +60,6 @@ export default function BoardPerformance() {
     score: p.final_score,
     meta: 75
   }));
-
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-emerald-600";
     if (score >= 75) return "text-blue-600";
@@ -98,7 +67,6 @@ export default function BoardPerformance() {
     if (score >= 40) return "text-orange-600";
     return "text-red-600";
   };
-
   const getScoreBgColor = (score: number) => {
     if (score >= 90) return "bg-emerald-500";
     if (score >= 75) return "bg-blue-500";
@@ -112,9 +80,7 @@ export default function BoardPerformance() {
     setSelectedMember(memberId);
     setActiveTab("individual");
   };
-
-  return (
-    <div className="flex min-h-screen bg-background">
+  return <div className="flex min-h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
@@ -132,12 +98,7 @@ export default function BoardPerformance() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                {currentPeriod && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {currentPeriod.name}
-                  </Badge>
-                )}
+                {currentPeriod}
                 <Button variant="outline" size="sm" onClick={refresh}>
                   <RefreshCw className="h-4 w-4 mr-1" />
                   Atualizar
@@ -177,21 +138,10 @@ export default function BoardPerformance() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className={cn("text-2xl font-bold", getScoreColor(
-                    performances.reduce((sum, p) => sum + p.final_score, 0) / (performances.length || 1)
-                  ))}>
-                    {performances.length > 0 
-                      ? (performances.reduce((sum, p) => sum + p.final_score, 0) / performances.length).toFixed(1)
-                      : '-'
-                    }
+                  <div className={cn("text-2xl font-bold", getScoreColor(performances.reduce((sum, p) => sum + p.final_score, 0) / (performances.length || 1)))}>
+                    {performances.length > 0 ? (performances.reduce((sum, p) => sum + p.final_score, 0) / performances.length).toFixed(1) : '-'}
                   </div>
-                  <Progress 
-                    value={performances.length > 0 
-                      ? performances.reduce((sum, p) => sum + p.final_score, 0) / performances.length 
-                      : 0
-                    } 
-                    className="h-2 mt-2"
-                  />
+                  <Progress value={performances.length > 0 ? performances.reduce((sum, p) => sum + p.final_score, 0) / performances.length : 0} className="h-2 mt-2" />
                 </CardContent>
               </Card>
 
@@ -203,8 +153,7 @@ export default function BoardPerformance() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {performances[0] ? (
-                    <>
+                  {performances[0] ? <>
                       <div className="text-lg font-bold truncate">{performances[0].member_name}</div>
                       <div className="flex items-center gap-2">
                         <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
@@ -212,10 +161,7 @@ export default function BoardPerformance() {
                         </Badge>
                         <span className="text-xs text-muted-foreground">{performances[0].member_role}</span>
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-muted-foreground">-</div>
-                  )}
+                    </> : <div className="text-muted-foreground">-</div>}
                 </CardContent>
               </Card>
 
@@ -251,6 +197,10 @@ export default function BoardPerformance() {
                   <ClipboardCheck className="h-4 w-4" />
                   Avaliações 360°
                 </TabsTrigger>
+                <TabsTrigger value="pdi" className="flex items-center gap-1">
+                  <GraduationCap className="h-4 w-4" />
+                  PDI
+                </TabsTrigger>
                 <TabsTrigger value="trends" className="flex items-center gap-1">
                   <LineChart className="h-4 w-4" />
                   Tendências
@@ -270,11 +220,9 @@ export default function BoardPerformance() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os órgãos</SelectItem>
-                      {councilSummaries.map(s => (
-                        <SelectItem key={s.council_id} value={s.council_id}>
+                      {councilSummaries.map(s => <SelectItem key={s.council_id} value={s.council_id}>
                           {s.council_name}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -287,53 +235,24 @@ export default function BoardPerformance() {
                       <CardDescription>Ordenado por score final</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3 max-h-[500px] overflow-auto">
-                      {filteredPerformances.map((perf, index) => (
-                        <div 
-                          key={perf.id}
-                          className={cn(
-                            "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
-                            selectedMember === perf.member_id 
-                              ? "border-primary bg-primary/5" 
-                              : "hover:bg-muted/50"
-                          )}
-                          onClick={() => setSelectedMember(perf.member_id)}
-                        >
-                          <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white",
-                            index === 0 ? "bg-amber-500" :
-                            index === 1 ? "bg-slate-400" :
-                            index === 2 ? "bg-amber-700" :
-                            "bg-muted-foreground/30"
-                          )}>
+                      {filteredPerformances.map((perf, index) => <div key={perf.id} className={cn("flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors", selectedMember === perf.member_id ? "border-primary bg-primary/5" : "hover:bg-muted/50")} onClick={() => setSelectedMember(perf.member_id)}>
+                          <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white", index === 0 ? "bg-amber-500" : index === 1 ? "bg-slate-400" : index === 2 ? "bg-amber-700" : "bg-muted-foreground/30")}>
                             {index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{perf.member_name}</div>
                             <div className="text-xs text-muted-foreground">{perf.member_role}</div>
                           </div>
-                          <div className="text-right space-y-1">
-                            <div className="flex items-center gap-2 justify-end">
-                              <div className={cn("text-lg font-bold", getScoreColor(perf.final_score))}>
-                                {perf.final_score.toFixed(1)}
-                              </div>
-                              {perf.self_assessment_score && (
-                                <Badge variant="outline" className="text-xs font-normal">
-                                  Auto: {perf.self_assessment_score.toFixed(0)}
-                                </Badge>
-                              )}
+                          <div className="text-right">
+                            <div className={cn("text-lg font-bold", getScoreColor(perf.final_score))}>
+                              {perf.final_score.toFixed(1)}
                             </div>
-                            {perf.performance_level && (
-                              <Badge 
-                                variant="secondary" 
-                                className={cn("text-xs", PERFORMANCE_LEVEL_COLORS[perf.performance_level])}
-                              >
+                            {perf.performance_level && <Badge variant="secondary" className={cn("text-xs", PERFORMANCE_LEVEL_COLORS[perf.performance_level])}>
                                 {PERFORMANCE_LEVEL_LABELS[perf.performance_level]}
-                              </Badge>
-                            )}
+                              </Badge>}
                           </div>
                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      ))}
+                        </div>)}
                     </CardContent>
                   </Card>
 
@@ -364,48 +283,33 @@ export default function BoardPerformance() {
               <TabsContent value="individual" className="space-y-4">
                 {/* Dropdown de seleção - sempre visível */}
                 <div className="flex items-center gap-4">
-                  <Select 
-                    value={selectedMember || ""} 
-                    onValueChange={(value) => setSelectedMember(value || null)}
-                  >
+                  <Select value={selectedMember || ""} onValueChange={value => setSelectedMember(value || null)}>
                     <SelectTrigger className="w-[350px]">
                       <SelectValue placeholder="Selecione um conselheiro para análise" />
                     </SelectTrigger>
                     <SelectContent className="bg-background z-50">
-                      {performances.map((perf) => (
-                        <SelectItem key={perf.member_id} value={perf.member_id}>
+                      {performances.map(perf => <SelectItem key={perf.member_id} value={perf.member_id}>
                           <div className="flex items-center gap-2">
                             <span>{perf.member_name}</span>
                             <span className="text-muted-foreground text-xs">
                               ({perf.member_role})
                             </span>
                           </div>
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                   
-                  {selectedMember && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setSelectedMember(null)}
-                    >
+                  {selectedMember && <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)}>
                       Limpar seleção
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
 
-                {selectedPerformance ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {selectedPerformance ? <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Informações do Membro */}
                     <Card>
                       <CardHeader>
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold",
-                            getScoreBgColor(selectedPerformance.final_score)
-                          )}>
+                          <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white font-bold", getScoreBgColor(selectedPerformance.final_score))}>
                             {selectedPerformance.final_score.toFixed(0)}
                           </div>
                           <div>
@@ -417,11 +321,9 @@ export default function BoardPerformance() {
                       <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Classificação</span>
-                          {selectedPerformance.performance_level && (
-                            <Badge className={PERFORMANCE_LEVEL_COLORS[selectedPerformance.performance_level]}>
+                          {selectedPerformance.performance_level && <Badge className={PERFORMANCE_LEVEL_COLORS[selectedPerformance.performance_level]}>
                               {PERFORMANCE_LEVEL_LABELS[selectedPerformance.performance_level]}
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Ranking</span>
@@ -434,8 +336,7 @@ export default function BoardPerformance() {
                         
                         <div className="pt-4 border-t space-y-3">
                           <h4 className="font-medium text-sm">Métricas Detalhadas</h4>
-                          {selectedPerformance.metrics && (
-                            <>
+                          {selectedPerformance.metrics && <>
                               <div className="flex items-center justify-between text-sm">
                                 <span className="flex items-center gap-2">
                                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -457,8 +358,7 @@ export default function BoardPerformance() {
                                 </span>
                                 <span>{selectedPerformance.metrics.avg_response_time_hours}h</span>
                               </div>
-                            </>
-                          )}
+                            </>}
                         </div>
                       </CardContent>
                     </Card>
@@ -475,31 +375,21 @@ export default function BoardPerformance() {
                             <PolarGrid />
                             <PolarAngleAxis dataKey="dimension" />
                             <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                            <Radar
-                              name="Score"
-                              dataKey="score"
-                              stroke="hsl(var(--primary))"
-                              fill="hsl(var(--primary))"
-                              fillOpacity={0.5}
-                            />
+                            <Radar name="Score" dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.5} />
                           </RadarChart>
                         </ResponsiveContainer>
                         
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
-                          {radarData.map((item) => (
-                            <div key={item.dimension} className="text-center p-2 rounded-lg bg-muted/50">
+                          {radarData.map(item => <div key={item.dimension} className="text-center p-2 rounded-lg bg-muted/50">
                               <div className={cn("text-lg font-bold", getScoreColor(item.score))}>
                                 {item.score.toFixed(0)}
                               </div>
                               <div className="text-xs text-muted-foreground">{item.dimension}</div>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </CardContent>
                     </Card>
-                  </div>
-                ) : (
-                  <Card>
+                  </div> : <Card>
                     <CardContent className="py-12 text-center">
                       <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                       <h3 className="font-medium text-lg">Selecione um conselheiro</h3>
@@ -507,28 +397,22 @@ export default function BoardPerformance() {
                         Use o dropdown acima para escolher um conselheiro
                       </p>
                     </CardContent>
-                  </Card>
-                )}
+                  </Card>}
               </TabsContent>
 
               {/* Tab Avaliações 360° */}
               <TabsContent value="evaluations">
-                <Evaluations360Tab
-                  periodId={currentPeriod?.id || 'current-period'}
-                  periodName={currentPeriod?.name || '1º Semestre 2026'}
-                  selfDeadline={currentPeriod?.self_evaluation_deadline}
-                  peerDeadline={currentPeriod?.peer_evaluation_deadline}
-                />
+                <Evaluations360Tab periodId={currentPeriod?.id || 'current-period'} periodName={currentPeriod?.name || '1º Semestre 2026'} selfDeadline={currentPeriod?.self_evaluation_deadline} peerDeadline={currentPeriod?.peer_evaluation_deadline} />
               </TabsContent>
 
+              {/* Tab PDI */}
+              <TabsContent value="pdi">
+                <PDITab memberId="current-user" periodId={currentPeriod?.id} />
+              </TabsContent>
 
               {/* Tab Tendências */}
               <TabsContent value="trends">
-                <TrendsTab
-                  companyId="demo-company"
-                  periodId={currentPeriod?.id}
-                  onSelectMember={handleSelectMember}
-                />
+                <TrendsTab companyId="demo-company" periodId={currentPeriod?.id} onSelectMember={handleSelectMember} />
               </TabsContent>
 
               {/* Tab Alertas */}
@@ -539,48 +423,23 @@ export default function BoardPerformance() {
                     <CardDescription>Situações que requerem atenção</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {alerts.length > 0 ? (
-                      <div className="space-y-3">
-                        {alerts.map((alert, index) => (
-                          <div 
-                            key={index}
-                            className={cn(
-                              "flex items-center gap-3 p-3 rounded-lg border",
-                              alert.severity === 'error' ? "border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800" :
-                              alert.severity === 'warning' ? "border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800" :
-                              "border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800"
-                            )}
-                          >
-                            {alert.severity === 'error' ? (
-                              <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                            ) : (
-                              <AlertTriangle className={cn(
-                                "h-5 w-5 shrink-0",
-                                alert.severity === 'warning' ? "text-amber-500" : "text-blue-500"
-                              )} />
-                            )}
+                    {alerts.length > 0 ? <div className="space-y-3">
+                        {alerts.map((alert, index) => <div key={index} className={cn("flex items-center gap-3 p-3 rounded-lg border", alert.severity === 'error' ? "border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-800" : alert.severity === 'warning' ? "border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800" : "border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800")}>
+                            {alert.severity === 'error' ? <XCircle className="h-5 w-5 text-red-500 shrink-0" /> : <AlertTriangle className={cn("h-5 w-5 shrink-0", alert.severity === 'warning' ? "text-amber-500" : "text-blue-500")} />}
                             <div className="flex-1">
                               <p className="text-sm font-medium">{alert.message}</p>
                             </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => alert.memberId && handleSelectMember(alert.memberId)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => alert.memberId && handleSelectMember(alert.memberId)}>
                               Ver detalhes
                             </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
+                          </div>)}
+                      </div> : <div className="text-center py-8">
                         <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-500 mb-4" />
                         <h3 className="font-medium">Nenhum alerta</h3>
                         <p className="text-muted-foreground text-sm">
                           Todos os conselheiros estão com performance adequada
                         </p>
-                      </div>
-                    )}
+                      </div>}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -588,6 +447,5 @@ export default function BoardPerformance() {
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 }
