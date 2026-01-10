@@ -545,7 +545,7 @@ const Settings = () => {
                     <div>
                       <h3 className="text-lg font-medium">Configuração da Base de Conhecimento</h3>
                       <p className="text-sm text-muted-foreground">
-                        Configure o contexto da empresa para o MOAT Engine funcionar com máxima efetividade
+                        Configure o contexto da empresa para o AI Engine ter máxima efetividade
                       </p>
                     </div>
                     <KnowledgeBaseWidget progress={progress} score={score} isCompact={false} />
