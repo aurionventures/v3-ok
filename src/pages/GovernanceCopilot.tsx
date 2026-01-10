@@ -501,14 +501,6 @@ export default function GovernanceCopilot() {
                     Última atualização: {lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 )}
-                <Button
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                  className="gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
-                >
-                  <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-                  {isLoading ? "Analisando..." : "Atualizar Análise"}
-                </Button>
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-2xl">
