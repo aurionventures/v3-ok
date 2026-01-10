@@ -150,7 +150,7 @@ export function KnowledgeBaseWidget({ progress, score, isCompact = false }: Know
             {isReady && (
               <Badge className="bg-green-500 text-white text-[10px]">
                 <Sparkles className="h-3 w-3 mr-1" />
-                MOAT Ready
+                AI Ready
               </Badge>
             )}
           </CardTitle>
@@ -239,7 +239,7 @@ export function KnowledgeBaseWidget({ progress, score, isCompact = false }: Know
                 onClick={() => navigate('/governance-copilot')}
               >
                 <Zap className="mr-1 h-3 w-3" />
-                Ativar MOAT Engine
+                Ativar AI Engine
               </Button>
             )}
           </div>

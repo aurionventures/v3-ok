@@ -860,7 +860,7 @@ const App = () => (
             } 
           />
           <Route 
-            path="/admin/prompt-library" 
+            path="/admin/prompts" 
             element={
               <ProtectedRoute>
                 <AdminPromptLibrary />
