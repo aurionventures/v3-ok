@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, TrendingUp, AlertTriangle, Trophy, Target, Calendar, Settings, Download, RefreshCw, ChevronRight, Award, BarChart3, Clock, CheckCircle2, XCircle, ClipboardCheck, GraduationCap, LineChart } from "lucide-react";
+import { Users, TrendingUp, AlertTriangle, Trophy, Target, Calendar, Settings, Download, RefreshCw, ChevronRight, Award, BarChart3, Clock, CheckCircle2, XCircle, LineChart } from "lucide-react";
 import { useBoardPerformance } from "@/hooks/useBoardPerformance";
 import { PERFORMANCE_LEVEL_LABELS, PERFORMANCE_LEVEL_COLORS } from "@/types/boardPerformance";
 import { cn } from "@/lib/utils";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 // Importar novos componentes
-import { Evaluations360Tab, PDITab, TrendsTab } from "@/components/board-performance";
+import { TrendsTab } from "@/components/board-performance";
 export default function BoardPerformance() {
   const [selectedCouncil, setSelectedCouncil] = useState<string>("all");
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -197,14 +197,6 @@ export default function BoardPerformance() {
                 <TabsTrigger value="individual" className="flex items-center gap-1">
                   <Target className="h-4 w-4" />
                   Análise Individual
-                </TabsTrigger>
-                <TabsTrigger value="evaluations" className="flex items-center gap-1">
-                  <ClipboardCheck className="h-4 w-4" />
-                  Avaliações 360°
-                </TabsTrigger>
-                <TabsTrigger value="pdi" className="flex items-center gap-1">
-                  <GraduationCap className="h-4 w-4" />
-                  PDI
                 </TabsTrigger>
                 <TabsTrigger value="trends" className="flex items-center gap-1">
                   <LineChart className="h-4 w-4" />
@@ -405,15 +397,6 @@ export default function BoardPerformance() {
                   </Card>}
               </TabsContent>
 
-              {/* Tab Avaliações 360° */}
-              <TabsContent value="evaluations">
-                <Evaluations360Tab periodId={currentPeriod?.id || 'current-period'} periodName={currentPeriod?.name || '1º Semestre 2026'} selfDeadline={currentPeriod?.self_evaluation_deadline} peerDeadline={currentPeriod?.peer_evaluation_deadline} />
-              </TabsContent>
-
-              {/* Tab PDI */}
-              <TabsContent value="pdi">
-                <PDITab memberId="current-user" periodId={currentPeriod?.id} />
-              </TabsContent>
 
               {/* Tab Tendências */}
               <TabsContent value="trends">
