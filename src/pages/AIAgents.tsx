@@ -284,46 +284,6 @@ const AIAgents = () => {
             ))}
           </div>
 
-          {/* Configuração de Pesos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configuração de Pesos
-              </CardTitle>
-              <CardDescription>
-                Ajuste a influência de cada agente nas análises do AI Engine
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {moatAgents.map(agent => {
-                const Icon = agent.icon;
-                return (
-                  <div key={agent.id} className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="flex items-center gap-2">
-                        <Icon className="h-4 w-4" style={{ color: agent.color }} />
-                        {agent.shortName}
-                      </span>
-                      <span className="font-medium">{weights[agent.id]}%</span>
-                    </div>
-                    <Slider 
-                      value={[weights[agent.id]]} 
-                      onValueChange={([v]) => setWeights({...weights, [agent.id]: v})}
-                      max={100}
-                      step={5}
-                      className="cursor-pointer"
-                    />
-                  </div>
-                );
-              })}
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={handleSaveWeights}>
-                <Save className="h-4 w-4 mr-2" /> Salvar Configuração
-              </Button>
-            </CardFooter>
-          </Card>
 
           {/* Dialog de Configuração */}
           <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
