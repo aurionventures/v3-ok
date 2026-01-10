@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { 
-  TrendingUp, 
-  BookOpen, 
-  Target, 
-  FileText, 
+  FileSearch,
+  Building2,
+  Brain,
   Settings, 
   Play, 
   Sparkles,
@@ -12,7 +11,6 @@ import {
   MessageCircle,
   Zap,
   BarChart3,
-  Clock,
   CheckCircle2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,79 +33,61 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/hooks/use-toast";
 
-// MOAT Engine Agents - Sistema de IA especializado
+// AI Engine Agents - Sistema de IA especializado
 const moatAgents = [
   {
-    id: "agent-a",
-    name: "Agent A: Sinais Externos",
-    shortName: "Sinais Externos",
-    icon: TrendingUp,
+    id: "analista-documentos",
+    name: "Analista de Documentos",
+    shortName: "Analista de Documentos",
+    icon: FileSearch,
     color: "#3b82f6",
     status: "active",
-    description: "Monitora sinais externos do mercado, concorrência e ambiente regulatório em tempo real.",
+    description: "Especialista em análise inteligente de documentos corporativos. Utiliza OCR avançado, classificação automática e validação para acelerar o processo de due diligence.",
     capabilities: [
-      "Monitoramento de notícias e tendências do setor",
-      "Análise de movimentos da concorrência",
-      "Alertas de mudanças regulatórias",
-      "Identificação de ameaças e oportunidades",
-      "Integração com fontes públicas de dados"
+      "OCR e extração de dados de documentos complexos",
+      "Classificação automática por tipo e categoria",
+      "Validação de conformidade documental",
+      "Detecção de inconsistências e gaps",
+      "Geração de resumos executivos automáticos"
     ],
-    integrations: ["Inteligência de Mercado", "Riscos", "Alertas"],
-    metrics: { processed: 1247, alerts: 23, insights: 156 }
+    integrations: ["Checklist de Documentos", "Upload", "Análise Documental"],
+    metrics: { documentos: 342, processados: 298, insights: 67 }
   },
   {
-    id: "agent-b",
-    name: "Agent B: Memória de Governança",
-    shortName: "Memória de Governança",
-    icon: BookOpen,
-    color: "#8b5cf6",
+    id: "assistente-governanca",
+    name: "Assistente de Governança",
+    shortName: "Assistente de Governança",
+    icon: Building2,
+    color: "#6366f1",
     status: "active",
-    description: "Mantém e consulta toda a memória institucional da governança corporativa.",
+    description: "Assistente prático para estruturação de conselhos e governança corporativa. Especializado em apoiar a organização de reuniões, agenda anual e processos decisórios eficazes.",
     capabilities: [
-      "Indexação de todas as ATAs e deliberações",
-      "Busca semântica em documentos históricos",
-      "Contextualização de decisões passadas",
-      "Identificação de precedentes",
-      "Resumos executivos automáticos"
+      "Apoio na estruturação de conselhos e comitês",
+      "Organização de processos decisórios e reuniões",
+      "Geração automática de pautas otimizadas",
+      "Preparação de materiais de apoio",
+      "Acompanhamento de deliberações e pendências"
     ],
-    integrations: ["Conselhos", "ATAs", "Documentos", "Secretariado"],
-    metrics: { documents: 342, searches: 89, citations: 67 }
+    integrations: ["Conselhos", "Projetos", "Agenda Anual", "Rituais"],
+    metrics: { reunioes: 45, pautas: 89, deliberacoes: 156 }
   },
   {
-    id: "agent-c",
-    name: "Agent C: Priorização Inteligente",
-    shortName: "Priorização Inteligente",
-    icon: Target,
-    color: "#f59e0b",
+    id: "inteligencia-estrategica",
+    name: "Inteligência Estratégica",
+    shortName: "Inteligência Estratégica",
+    icon: Brain,
+    color: "#ec4899",
     status: "active",
-    description: "Analisa e prioriza temas para discussão com base em urgência e impacto estratégico.",
+    description: "Inteligência estratégica unificada para monitoramento e otimização contínua. Consolida análise de riscos IBGC, métricas ESG, maturidade e inteligência competitiva.",
     capabilities: [
-      "Matriz de urgência vs importância automática",
-      "Scoring de temas por impacto financeiro",
-      "Análise de dependências entre assuntos",
-      "Recomendação de sequência de discussão",
-      "Alertas de temas críticos pendentes"
+      "Análise preditiva de riscos usando machine learning",
+      "Monitoramento ESG em tempo real com benchmarking automático",
+      "Avaliação contínua de maturidade de governança",
+      "Inteligência competitiva e de mercado",
+      "Geração de alertas e recomendações proativas"
     ],
-    integrations: ["Agenda Anual", "Riscos", "Pendências"],
-    metrics: { topics: 78, prioritized: 45, critical: 8 }
-  },
-  {
-    id: "agent-d",
-    name: "Agent D: Geração de Pautas",
-    shortName: "Geração de Pautas",
-    icon: FileText,
-    color: "#10b981",
-    status: "active",
-    description: "Gera automaticamente pautas otimizadas para reuniões de governança.",
-    capabilities: [
-      "Geração de pauta baseada em prioridades",
-      "Sugestão de tempo por item",
-      "Inclusão de materiais de apoio",
-      "Templates por tipo de reunião",
-      "Exportação para convocação"
-    ],
-    integrations: ["Conselhos", "Agenda Anual", "Materiais"],
-    metrics: { agendas: 34, items: 156, approved: 31 }
+    integrations: ["Riscos IBGC", "ESG", "Maturidade", "Atividades", "Alertas"],
+    metrics: { riscos: 23, alertas: 15, recomendacoes: 42 }
   }
 ];
 
@@ -120,18 +100,15 @@ interface AgentCardProps {
 const AgentCard = ({ agent, onConfigure, onExecute }: AgentCardProps) => {
   const Icon = agent.icon;
   const metricsLabels: Record<string, string> = {
-    processed: "Processados",
-    alerts: "Alertas",
+    documentos: "Documentos",
+    processados: "Processados",
     insights: "Insights",
-    documents: "Documentos",
-    searches: "Buscas",
-    citations: "Citações",
-    topics: "Tópicos",
-    prioritized: "Priorizados",
-    critical: "Críticos",
-    agendas: "Agendas",
-    items: "Itens",
-    approved: "Aprovadas"
+    reunioes: "Reuniões",
+    pautas: "Pautas",
+    deliberacoes: "Deliberações",
+    riscos: "Riscos",
+    alertas: "Alertas",
+    recomendacoes: "Recomendações"
   };
 
   return (
@@ -224,10 +201,9 @@ const AIAgents = () => {
   const isAdmin = user?.role === 'admin';
   
   const [weights, setWeights] = useState<Record<string, number>>({
-    "agent-a": 80,
-    "agent-b": 60,
-    "agent-c": 90,
-    "agent-d": 70
+    "analista-documentos": 80,
+    "assistente-governanca": 70,
+    "inteligencia-estrategica": 90
   });
   
   const [selectedAgent, setSelectedAgent] = useState<typeof moatAgents[0] | null>(null);
@@ -302,9 +278,9 @@ const AIAgents = () => {
                 <Bot className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Agentes de IA - MOAT Engine</h1>
+                <h1 className="text-2xl font-bold">Agentes de IA - AI Engine</h1>
                 <p className="text-muted-foreground">
-                  Acesso completo aos agentes especializados do MOAT Engine
+                  Acesso completo aos agentes especializados de inteligência artificial
                 </p>
               </div>
             </div>
@@ -315,7 +291,7 @@ const AIAgents = () => {
           </div>
 
           {/* Grid de Agentes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {moatAgents.map(agent => (
               <AgentCard 
                 key={agent.id}
@@ -334,7 +310,7 @@ const AIAgents = () => {
                 Configuração de Pesos
               </CardTitle>
               <CardDescription>
-                Ajuste a influência de cada agente nas análises do MOAT Engine
+                Ajuste a influência de cada agente nas análises do AI Engine
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
