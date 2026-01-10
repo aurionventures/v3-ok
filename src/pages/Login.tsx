@@ -9,7 +9,7 @@ import { invitationService } from '@/utils/invitationService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import legacyLogo from "@/assets/legacy-logo-new.png";
+import legacyLogoFull from "@/assets/legacy-logo-full.png";
 import LoginCliente from '@/components/auth/LoginCliente';
 import LoginParceiro from '@/components/auth/LoginParceiro';
 import LoginAdmin from '@/components/auth/LoginAdmin';
@@ -180,12 +180,11 @@ export default function Login() {
           <div className="w-full max-w-md space-y-6">
             <div className="text-center mb-8">
               <img 
-                src={legacyLogo} 
-                alt="Legacy" 
-                className="h-12 w-auto mx-auto mb-2"
+                src={legacyLogoFull} 
+                alt="Legacy OS - Governança Corporativa" 
+                className="h-20 w-auto mx-auto mb-4"
               />
-              <h1 className="text-2xl font-bold tracking-tight">Legacy Governance</h1>
-              <p className="text-muted-foreground mt-2">Escolha como deseja acessar</p>
+              <p className="text-muted-foreground">Escolha como deseja acessar</p>
             </div>
             
             <div className="grid gap-4">
@@ -284,12 +283,11 @@ export default function Login() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <img 
-              src={legacyLogo} 
-              alt="Legacy" 
-              className="h-12 w-auto mx-auto mb-2"
+              src={legacyLogoFull} 
+              alt="Legacy OS - Governança Corporativa" 
+              className="h-20 w-auto mx-auto mb-4"
             />
-            <h1 className="text-2xl font-bold tracking-tight">Legacy Governance</h1>
-            <p className="text-muted-foreground mt-2">Escolha como deseja acessar</p>
+            <p className="text-muted-foreground">Escolha como deseja acessar</p>
           </div>
           <div className="grid gap-4">
             <Card 
