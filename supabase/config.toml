@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.predictive-insights]
 verify_jwt = false
+
+[functions.calculate-member-metrics]
+verify_jwt = false
+
+[functions.generate-member-pdi]
+verify_jwt = false

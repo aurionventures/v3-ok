@@ -24,6 +24,7 @@ import type {
   HistoricalDataPoint,
   EvaluationScores,
   EvaluationFeedback,
+  TrendDirection,
 } from '@/types/boardPerformance';
 
 // ================== HOOK: AVALIAÇÕES 360° ==================
@@ -396,7 +397,7 @@ export function useHistoricalPerformance(companyId?: string, months: number = 12
   }, [historicalData]);
 
   // Calcular tendência
-  const calculateTrend = useCallback(() => {
+  const calculateTrend = useCallback((): TrendDirection => {
     if (historicalData.length < 2) return 'stable';
     
     const recent = historicalData.slice(-3);

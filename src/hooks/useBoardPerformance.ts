@@ -5,7 +5,7 @@ import { mockCouncilMembers, getCouncilName } from '@/data/mockCouncilsData';
 import type {
   BoardEvaluationPeriod,
   BoardMemberMetrics,
-  BoardMemberEvaluation,
+  BoardEvaluation,
   BoardMemberPerformance,
   BoardEvaluationConfig,
   MemberPerformanceWithDetails,
