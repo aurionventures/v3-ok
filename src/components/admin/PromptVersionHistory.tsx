@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +8,7 @@ import {
   Clock,
   RotateCcw
 } from 'lucide-react';
-import { usePrompts, AIPrompt } from '@/hooks/usePrompts';
+import { usePrompts } from '@/hooks/usePrompts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -36,36 +34,16 @@ const getStatusBadge = (status: string, isDefault: boolean) => {
 };
 
 export function PromptVersionHistory({ category, currentVersion }: PromptVersionHistoryProps) {
-  const { activatePrompt } = usePrompts();
+  const { prompts, activatePrompt } = usePrompts();
 
-  // Fetch all versions for this category
-  const { data: versions, isLoading } = useQuery({
-    queryKey: ['prompt_versions', category],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .select('*')
-        .eq('category', category)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as AIPrompt[];
-    }
-  });
+  // Filter versions by category
+  const versions = prompts
+    ?.filter(p => p.category === category)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) || [];
 
   const handleRollback = async (promptId: string) => {
     await activatePrompt.mutateAsync(promptId);
   };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>

@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { mockPromptsData } from '@/data/mockPromptsData';
 
 export interface AIPrompt {
   id: string;
@@ -60,202 +60,188 @@ export interface CreatePromptInput {
   tags?: string[] | null;
 }
 
+// Create a store for mock prompts that persists across hook instances
+let mockPromptsStore: AIPrompt[] = [...mockPromptsData];
+
 export function usePrompts() {
-  const queryClient = useQueryClient();
+  const [prompts, setPromptsState] = useState<AIPrompt[]>(mockPromptsStore);
+  const [isLoading] = useState(false);
+  const [error] = useState<Error | null>(null);
 
-  // Fetch all prompts
-  const { data: prompts, isLoading, error, refetch } = useQuery({
-    queryKey: ['ai_prompts'],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .select('*')
-        .order('category', { ascending: true })
-        .order('version', { ascending: false });
-      
-      if (error) throw error;
-      return data as AIPrompt[];
+  // Update both local state and store
+  const setPrompts = useCallback((newPrompts: AIPrompt[] | ((prev: AIPrompt[]) => AIPrompt[])) => {
+    if (typeof newPrompts === 'function') {
+      mockPromptsStore = newPrompts(mockPromptsStore);
+    } else {
+      mockPromptsStore = newPrompts;
     }
-  });
+    setPromptsState(mockPromptsStore);
+  }, []);
 
-  // Fetch single prompt
-  const getPrompt = async (promptId: string) => {
-    const { data, error } = await (supabase as any)
-      .from('ai_prompt_library')
-      .select('*')
-      .eq('id', promptId)
-      .single();
-    
-    if (error) throw error;
-    return data as AIPrompt;
-  };
+  // Refetch just updates state from store
+  const refetch = useCallback(() => {
+    setPromptsState([...mockPromptsStore]);
+  }, []);
+
+  // Get single prompt
+  const getPrompt = useCallback(async (promptId: string) => {
+    const prompt = mockPromptsStore.find(p => p.id === promptId);
+    if (!prompt) throw new Error('Prompt não encontrado');
+    return prompt;
+  }, []);
 
   // Create prompt mutation
-  const createPrompt = useMutation({
-    mutationFn: async (input: CreatePromptInput) => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .insert(input)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
+  const createPrompt = {
+    mutateAsync: async (input: CreatePromptInput) => {
+      const newPrompt: AIPrompt = {
+        id: `prompt-${Date.now()}`,
+        name: input.name,
+        category: input.category,
+        version: input.version,
+        system_prompt: input.system_prompt,
+        user_prompt_template: input.user_prompt_template || null,
+        model: input.model || 'google/gemini-3-flash-preview',
+        temperature: input.temperature ?? 0.7,
+        max_tokens: input.max_tokens ?? 4000,
+        top_p: input.top_p ?? 1.0,
+        frequency_penalty: input.frequency_penalty ?? 0,
+        presence_penalty: input.presence_penalty ?? 0,
+        functions: input.functions || null,
+        tool_choice: input.tool_choice || 'auto',
+        examples: input.examples || null,
+        status: input.status || 'draft',
+        is_default: false,
+        ab_test_enabled: false,
+        ab_test_traffic_percentage: 0,
+        ab_test_competing_version: null,
+        total_executions: 0,
+        avg_latency_ms: null,
+        avg_tokens_used: null,
+        avg_cost_usd: null,
+        success_rate: null,
+        avg_quality_score: null,
+        description: input.description || null,
+        changelog: input.changelog || null,
+        tags: input.tags || null,
+        created_by: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activated_at: null,
+        deprecated_at: null
+      };
+
+      setPrompts(prev => [...prev, newPrompt]);
       toast.success('Prompt criado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['ai_prompts'] });
+      return newPrompt;
     },
-    onError: (error: any) => {
-      toast.error('Erro ao criar prompt: ' + error.message);
-    }
-  });
+    isPending: false
+  };
 
   // Update prompt mutation
-  const updatePrompt = useMutation({
-    mutationFn: async ({ id, ...input }: Partial<AIPrompt> & { id: string }) => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .update({ ...input, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
+  const updatePrompt = {
+    mutateAsync: async ({ id, ...input }: Partial<AIPrompt> & { id: string }) => {
+      setPrompts(prev => prev.map(p => 
+        p.id === id 
+          ? { ...p, ...input, updated_at: new Date().toISOString() }
+          : p
+      ));
       toast.success('Prompt atualizado!');
-      queryClient.invalidateQueries({ queryKey: ['ai_prompts'] });
+      return mockPromptsStore.find(p => p.id === id);
     },
-    onError: (error: any) => {
-      toast.error('Erro ao atualizar prompt: ' + error.message);
-    }
-  });
+    isPending: false
+  };
 
   // Activate prompt mutation
-  const activatePrompt = useMutation({
-    mutationFn: async (promptId: string) => {
-      const prompt = await getPrompt(promptId);
-      
-      await (supabase as any)
-        .from('ai_prompt_library')
-        .update({ is_default: false })
-        .eq('category', prompt.category)
-        .eq('is_default', true);
-      
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .update({ 
-          status: 'active',
-          is_default: true,
-          activated_at: new Date().toISOString()
-        })
-        .eq('id', promptId)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
+  const activatePrompt = {
+    mutateAsync: async (promptId: string) => {
+      const prompt = mockPromptsStore.find(p => p.id === promptId);
+      if (!prompt) throw new Error('Prompt não encontrado');
+
+      // Deactivate other prompts in same category
+      setPrompts(prev => prev.map(p => {
+        if (p.category === prompt.category && p.is_default) {
+          return { ...p, is_default: false };
+        }
+        if (p.id === promptId) {
+          return { 
+            ...p, 
+            status: 'active', 
+            is_default: true, 
+            activated_at: new Date().toISOString() 
+          };
+        }
+        return p;
+      }));
+
       toast.success('Prompt ativado como padrão!');
-      queryClient.invalidateQueries({ queryKey: ['ai_prompts'] });
+      return mockPromptsStore.find(p => p.id === promptId);
     },
-    onError: (error: any) => {
-      toast.error('Erro ao ativar prompt: ' + error.message);
-    }
-  });
+    isPending: false
+  };
 
   // Deprecate prompt mutation
-  const deprecatePrompt = useMutation({
-    mutationFn: async (promptId: string) => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .update({ 
-          status: 'deprecated',
-          is_default: false,
-          deprecated_at: new Date().toISOString()
-        })
-        .eq('id', promptId)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
+  const deprecatePrompt = {
+    mutateAsync: async (promptId: string) => {
+      setPrompts(prev => prev.map(p => 
+        p.id === promptId 
+          ? { 
+              ...p, 
+              status: 'deprecated', 
+              is_default: false, 
+              deprecated_at: new Date().toISOString() 
+            }
+          : p
+      ));
       toast.success('Prompt depreciado');
-      queryClient.invalidateQueries({ queryKey: ['ai_prompts'] });
+      return mockPromptsStore.find(p => p.id === promptId);
     },
-    onError: (error: any) => {
-      toast.error('Erro ao depreciar prompt: ' + error.message);
-    }
-  });
+    isPending: false
+  };
 
   // Duplicate prompt mutation
-  const duplicatePrompt = useMutation({
-    mutationFn: async (promptId: string) => {
-      const prompt = await getPrompt(promptId);
+  const duplicatePrompt = {
+    mutateAsync: async (promptId: string) => {
+      const prompt = mockPromptsStore.find(p => p.id === promptId);
+      if (!prompt) throw new Error('Prompt não encontrado');
+
       const [major, minor] = prompt.version.split('.').map(Number);
       const newVersion = `${major}.${minor + 1}.0`;
-      
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .insert({
-          name: `${prompt.name} (Cópia)`,
-          category: prompt.category,
-          version: newVersion,
-          system_prompt: prompt.system_prompt,
-          user_prompt_template: prompt.user_prompt_template,
-          model: prompt.model,
-          temperature: prompt.temperature,
-          max_tokens: prompt.max_tokens,
-          top_p: prompt.top_p,
-          frequency_penalty: prompt.frequency_penalty,
-          presence_penalty: prompt.presence_penalty,
-          functions: prompt.functions,
-          tool_choice: prompt.tool_choice,
-          examples: prompt.examples,
-          status: 'draft',
-          is_default: false,
-          description: prompt.description,
-          tags: prompt.tags,
-          changelog: `Duplicado de v${prompt.version}`
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
+
+      const duplicated: AIPrompt = {
+        ...prompt,
+        id: `prompt-${Date.now()}`,
+        name: `${prompt.name} (Cópia)`,
+        version: newVersion,
+        status: 'draft',
+        is_default: false,
+        total_executions: 0,
+        avg_latency_ms: null,
+        avg_tokens_used: null,
+        avg_cost_usd: null,
+        success_rate: null,
+        avg_quality_score: null,
+        changelog: `Duplicado de v${prompt.version}`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        activated_at: null,
+        deprecated_at: null
+      };
+
+      setPrompts(prev => [...prev, duplicated]);
       toast.success('Prompt duplicado!');
-      queryClient.invalidateQueries({ queryKey: ['ai_prompts'] });
+      return duplicated;
     },
-    onError: (error: any) => {
-      toast.error('Erro ao duplicar prompt: ' + error.message);
-    }
-  });
+    isPending: false
+  };
 
   // Delete prompt mutation
-  const deletePrompt = useMutation({
-    mutationFn: async (promptId: string) => {
-      const { error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .delete()
-        .eq('id', promptId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
+  const deletePrompt = {
+    mutateAsync: async (promptId: string) => {
+      setPrompts(prev => prev.filter(p => p.id !== promptId));
       toast.success('Prompt removido');
-      queryClient.invalidateQueries({ queryKey: ['ai_prompts'] });
     },
-    onError: (error: any) => {
-      toast.error('Erro ao remover prompt: ' + error.message);
-    }
-  });
+    isPending: false
+  };
 
   const getPromptsByCategory = (category: string) => prompts?.filter(p => p.category === category) || [];
   const getActivePromptForCategory = (category: string) => prompts?.find(p => p.category === category && p.is_default);
