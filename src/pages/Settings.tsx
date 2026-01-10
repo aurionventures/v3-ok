@@ -4,7 +4,13 @@ import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { AIParameterizationTab } from "@/components/settings/AIParameterizationTab";
 import ActivitiesLogTab from "@/components/settings/ActivitiesLogTab";
 import { KnowledgeBaseWidget } from "@/components/dashboard/KnowledgeBaseWidget";
-import { useMockOnboardingProgress } from "@/hooks/useMockOnboarding";
+import { 
+  useMockOnboarding,
+  useMockCompanyProfile,
+  useMockStrategicContext,
+  useMockDocumentLibrary,
+  useMockOnboardingProgress 
+} from "@/hooks/useMockOnboarding";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,12 +30,6 @@ import {
   Phase3StrategicContext,
   OnboardingDashboard
 } from '@/components/onboarding';
-import {
-  useCompanyProfile,
-  useStrategicContext,
-  useDocumentLibrary,
-  useOnboardingProgress
-} from '@/hooks/useOnboarding';
 import type { Phase1FormData, Phase3FormData, DocumentCategory } from '@/types/onboarding';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,35 +37,28 @@ const Settings = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { preferences, loading, updatePreferences, resetToDefaults } = useNotificationPreferences();
-  const { progress: mockProgress, score: mockScore } = useMockOnboardingProgress();
   const isOrgAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   
-  // Knowledge Base Onboarding Hooks
-  const { profile, saveProfile, isSaving: isSavingProfile } = useCompanyProfile();
-  const { context, saveContext, isSaving: isSavingContext } = useStrategicContext();
+  // Knowledge Base Onboarding Hooks - USANDO DADOS MOCK
+  const { profile, saveProfile, isSaving: isSavingProfile, initialFormData: phase1FormData } = useMockCompanyProfile();
+  const { context, saveContext, isSaving: isSavingContext, initialFormData: phase3FormData } = useMockStrategicContext();
   const {
     documents,
     uploadDocument,
     deleteDocument,
     isUploading
-  } = useDocumentLibrary();
+  } = useMockDocumentLibrary();
   const {
     progress,
     score,
     getNextSteps,
-    initProgress,
     updatePhase,
     completeOnboarding,
     isReadyForUse
-  } = useOnboardingProgress();
+  } = useMockOnboardingProgress();
 
   // Knowledge Base active phase tab
   const [kbActiveTab, setKbActiveTab] = useState<'dashboard' | 'phase-1' | 'phase-2' | 'phase-3'>('dashboard');
-
-  // Initialize onboarding progress
-  useEffect(() => {
-    initProgress();
-  }, [initProgress]);
   
   // Local state for notification preferences
   const [formData, setFormData] = useState({
@@ -175,67 +168,14 @@ const Settings = () => {
     navigate('/copiloto-governanca');
   };
 
-  // Map profile to form data
+  // Usar dados mock diretamente para Phase 1
   const getPhase1InitialData = (): Partial<Phase1FormData> | undefined => {
-    if (!profile) return undefined;
-    return {
-      legalName: profile.legal_name,
-      tradeName: profile.trade_name || '',
-      taxId: profile.tax_id,
-      foundedDate: profile.founded_date || '',
-      companySize: profile.company_size,
-      primarySector: profile.primary_sector,
-      secondarySectors: profile.secondary_sectors || [],
-      industryVertical: profile.industry_vertical || '',
-      headquarters: {
-        country: profile.headquarters_country || 'BR',
-        state: profile.headquarters_state || '',
-        city: profile.headquarters_city || ''
-      },
-      operatingStates: profile.operating_states || [],
-      annualRevenueRange: profile.annual_revenue_range,
-      isPubliclyTraded: profile.is_publicly_traded,
-      stockTicker: profile.stock_ticker || '',
-      ownershipStructure: profile.ownership_structure,
-      numberOfShareholders: profile.number_of_shareholders || 0,
-      productsServices: profile.products_services || [],
-      targetMarkets: profile.target_markets || [],
-      erpSystem: profile.erp_system || '',
-      crmSystem: profile.crm_system || '',
-      biTools: profile.bi_tools || [],
-      availableData: {
-        financial: profile.has_financial_data,
-        operational: profile.has_operational_data,
-        hr: profile.has_hr_data,
-        sales: profile.has_sales_data,
-        compliance: profile.has_compliance_data
-      },
-      certifications: profile.certifications || [],
-      regulatoryBodies: profile.regulatory_bodies || [],
-      complianceFrameworks: profile.compliance_frameworks || []
-    };
+    return phase1FormData;
   };
 
+  // Usar dados mock diretamente para Phase 3
   const getPhase3InitialData = (): Partial<Phase3FormData> | undefined => {
-    if (!context) return undefined;
-    return {
-      mission: context.mission || '',
-      vision: context.vision || '',
-      values: context.values || [],
-      businessModel: context.business_model || '',
-      competitiveAdvantages: context.competitive_advantages || [],
-      keySuccessFactors: context.key_success_factors || [],
-      strategicObjectives: context.strategic_objectives || [],
-      okrs: context.okrs || [],
-      keyStakeholders: context.key_stakeholders || [],
-      marketPosition: context.market_position,
-      mainCompetitors: context.main_competitors || [],
-      competitiveIntensity: context.competitive_intensity,
-      knownRisks: context.known_risks || [],
-      riskAppetite: context.risk_appetite,
-      esgCommitments: context.esg_commitments || [],
-      sustainabilityGoals: context.sustainability_goals || []
-    };
+    return phase3FormData;
   };
   
   return (
