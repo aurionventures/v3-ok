@@ -90,6 +90,7 @@ import AuditLogs from "./pages/AuditLogs";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import SecretariatPanel from "./pages/SecretariatPanel";
 import BoardPerformance from "./pages/BoardPerformance";
+import KnowledgeBase from "./pages/KnowledgeBase";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -449,6 +450,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <Onboarding />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/knowledge-base" 
+            element={
+              <ProtectedRoute >
+                <KnowledgeBase />
               </ProtectedRoute>
             } 
           />
