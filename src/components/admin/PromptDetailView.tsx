@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { 
   Edit, 
   Play, 
@@ -21,7 +20,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/integrations/supabase/client';
 import { usePrompts, AIPrompt } from '@/hooks/usePrompts';
 import { PromptTestPlayground } from './PromptTestPlayground';
 import { PromptVersionHistory } from './PromptVersionHistory';
@@ -62,31 +60,10 @@ const getStatusBadge = (status: string) => {
 
 export function PromptDetailView({ promptId, onEdit, onRefresh }: PromptDetailViewProps) {
   const [testPlaygroundOpen, setTestPlaygroundOpen] = useState(false);
-  const { activatePrompt, deprecatePrompt, duplicatePrompt } = usePrompts();
+  const { prompts, activatePrompt, deprecatePrompt, duplicatePrompt } = usePrompts();
 
-  // Fetch prompt details
-  const { data: prompt, isLoading } = useQuery({
-    queryKey: ['prompt', promptId],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .select('*')
-        .eq('id', promptId)
-        .single();
-      
-      if (error) throw error;
-      return data as AIPrompt;
-    },
-    enabled: !!promptId
-  });
-
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Find prompt from mock data
+  const prompt = prompts?.find(p => p.id === promptId);
 
   if (!prompt) {
     return (

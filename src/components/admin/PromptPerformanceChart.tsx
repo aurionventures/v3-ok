@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   AreaChart, 
@@ -17,48 +15,15 @@ import {
 import { TrendingUp, Clock, DollarSign, Star, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { mockTestExecutions } from '@/data/mockPromptsData';
 
 interface PromptPerformanceChartProps {
   promptId: string;
 }
 
-interface TestExecution {
-  id: string;
-  prompt_id: string;
-  success: boolean;
-  latency_ms: number;
-  tokens_used: number;
-  cost_usd: number;
-  quality_score: number | null;
-  created_at: string;
-}
-
 export function PromptPerformanceChart({ promptId }: PromptPerformanceChartProps) {
-  // Fetch test executions for this prompt
-  const { data: executions, isLoading } = useQuery({
-    queryKey: ['prompt_executions', promptId],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('prompt_test_executions')
-        .select('*')
-        .eq('prompt_id', promptId)
-        .order('created_at', { ascending: true })
-        .limit(100);
-      
-      if (error) throw error;
-      return data as TestExecution[];
-    }
-  });
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Filter executions for this prompt from mock data
+  const executions = mockTestExecutions.filter(e => e.prompt_id === promptId);
 
   if (!executions || executions.length === 0) {
     return (

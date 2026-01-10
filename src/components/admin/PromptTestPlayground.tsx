@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -13,9 +12,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Play, Loader2, Clock, Zap, DollarSign, Star } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AIPrompt } from '@/hooks/usePrompts';
+import { usePrompts } from '@/hooks/usePrompts';
 
 interface PromptTestPlaygroundProps {
   open: boolean;
@@ -39,21 +37,8 @@ export function PromptTestPlayground({ open, onClose, promptId }: PromptTestPlay
   const [isRunning, setIsRunning] = useState(false);
   const [qualityScore, setQualityScore] = useState<number | null>(null);
 
-  // Fetch prompt details
-  const { data: prompt } = useQuery({
-    queryKey: ['prompt', promptId],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('ai_prompt_library')
-        .select('*')
-        .eq('id', promptId)
-        .single();
-      
-      if (error) throw error;
-      return data as AIPrompt;
-    },
-    enabled: !!promptId && open
-  });
+  const { prompts } = usePrompts();
+  const prompt = prompts?.find(p => p.id === promptId);
 
   const runTest = async () => {
     setIsRunning(true);
@@ -70,18 +55,21 @@ export function PromptTestPlayground({ open, onClose, promptId }: PromptTestPlay
         throw new Error('Input JSON inválido. Verifique a sintaxe.');
       }
 
-      // Call edge function to test prompt
-      const { data, error: fnError } = await supabase.functions.invoke('test-prompt', {
-        body: {
-          promptId,
-          testInput: parsedInput,
-          testContext
-        }
-      });
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      if (fnError) throw fnError;
+      // Mock response based on prompt category
+      const mockOutput = generateMockOutput(prompt?.category || '', parsedInput);
+      
+      const mockResult: TestResult = {
+        output: mockOutput,
+        latency_ms: 1500 + Math.floor(Math.random() * 1500),
+        tokens_used: 2000 + Math.floor(Math.random() * 2000),
+        cost_usd: 0.01 + Math.random() * 0.02,
+        success: true
+      };
 
-      setResult(data);
+      setResult(mockResult);
       toast.success('Teste executado com sucesso!');
     } catch (err: any) {
       setError(err.message || 'Erro ao executar teste');
@@ -93,24 +81,7 @@ export function PromptTestPlayground({ open, onClose, promptId }: PromptTestPlay
 
   const saveQualityScore = async (score: number) => {
     setQualityScore(score);
-    
-    try {
-      await (supabase as any).from('prompt_test_executions').insert({
-        prompt_id: promptId,
-        test_input: JSON.parse(testInput),
-        test_context: testContext || null,
-        output: result?.output,
-        success: result?.success || false,
-        latency_ms: result?.latency_ms,
-        tokens_used: result?.tokens_used,
-        cost_usd: result?.cost_usd,
-        quality_score: score,
-        feedback: null
-      });
-      toast.success('Avaliação salva!');
-    } catch (err) {
-      console.error('Error saving test result:', err);
-    }
+    toast.success('Avaliação salva!');
   };
 
   return (
@@ -280,4 +251,146 @@ function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: stri
       <p className="text-lg font-bold">{value}</p>
     </div>
   );
+}
+
+// Generate mock output based on prompt category
+function generateMockOutput(category: string, input: any) {
+  const companyName = input.company_name || 'Empresa';
+  
+  switch (category) {
+    case 'agent_a_collector':
+      return {
+        signals: [
+          {
+            title: "Alta taxa Selic impacta custo de capital",
+            source: "Banco Central do Brasil",
+            date: "2026-01-08",
+            category: "macroeconomic",
+            theme: "interest_rates",
+            impact: "high",
+            relevance_score: 85,
+            summary: `A manutenção da taxa Selic em patamares elevados afeta diretamente o custo de financiamento de ${companyName}.`,
+            implications: ["Renegociar dívidas", "Avaliar alternativas de funding", "Revisar plano de investimentos"]
+          },
+          {
+            title: "Nova regulamentação ESG para setor",
+            source: "CVM",
+            date: "2026-01-05",
+            category: "regulatory",
+            theme: "new_law",
+            impact: "medium",
+            relevance_score: 72,
+            summary: "Novas exigências de disclosure ESG entram em vigor em março de 2026.",
+            implications: ["Preparar relatório de sustentabilidade", "Adequar processos internos"]
+          }
+        ],
+        metadata: {
+          sources_consulted: 12,
+          signals_found: 2,
+          avg_relevance: 78.5
+        }
+      };
+
+    case 'agent_b_analyzer':
+      return {
+        patterns: [
+          {
+            id: "pattern_001",
+            type: "recurrence",
+            description: "Tema de expansão internacional volta ao conselho pela 4ª vez em 12 meses",
+            frequency: 4,
+            root_cause: "Falta de definição estratégica clara",
+            cost_of_non_decision: "R$ 15M em oportunidades perdidas",
+            severity: "high"
+          }
+        ],
+        recommendations: [
+          "Agendar sessão estratégica dedicada ao tema de internacionalização",
+          "Definir critérios objetivos de go/no-go"
+        ],
+        governance_health_score: 72
+      };
+
+    case 'agent_c_scorer':
+      return {
+        ranked_topics: [
+          {
+            topic: "Revisão orçamentária Q1 2026",
+            priority_score: 92,
+            urgency: 95,
+            impact: 85,
+            exposure: 80,
+            governance: 90,
+            strategy: 88,
+            severity: "critical",
+            recommended_time: 30,
+            decision_type: "approval"
+          },
+          {
+            topic: "Status projeto de transformação digital",
+            priority_score: 78,
+            urgency: 70,
+            impact: 80,
+            exposure: 65,
+            governance: 75,
+            strategy: 85,
+            severity: "high",
+            recommended_time: 25,
+            decision_type: "information"
+          }
+        ]
+      };
+
+    case 'agent_d_agenda_generator':
+      return {
+        agenda: {
+          meeting_date: input.meeting_date || "2026-01-15",
+          duration_minutes: 180,
+          topics: [
+            {
+              order: 1,
+              title: "Abertura e aprovação de ata anterior",
+              time_allocated: 10,
+              type: "administrative",
+              presenter: "Presidente do Conselho"
+            },
+            {
+              order: 2,
+              title: "Revisão orçamentária Q1 2026",
+              time_allocated: 30,
+              type: "decision",
+              presenter: "CFO",
+              critical_questions: [
+                "Qual o impacto no fluxo de caixa?",
+                "Há contingências suficientes?"
+              ]
+            }
+          ]
+        }
+      };
+
+    case 'agent_d_briefing_generator':
+      return {
+        briefing: {
+          member_name: input.member_name || "Conselheiro",
+          executive_summary: `Esta reunião é crítica para ${companyName} pois serão tomadas decisões sobre orçamento e estratégia de crescimento.`,
+          your_focus: [
+            "Sua expertise será fundamental na análise do impacto financeiro das propostas",
+            "Considere questionar sobre riscos de execução"
+          ],
+          critical_questions: [
+            "Qual o ROIC projetado para cada iniciativa?",
+            "Como estamos em relação ao guidance do mercado?"
+          ],
+          preparation_time_minutes: 45
+        }
+      };
+
+    default:
+      return {
+        message: `Teste executado com sucesso para categoria: ${category}`,
+        input_received: input,
+        timestamp: new Date().toISOString()
+      };
+  }
 }
