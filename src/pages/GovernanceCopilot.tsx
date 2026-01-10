@@ -533,10 +533,7 @@ export default function GovernanceCopilot() {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-[calc(100%-8rem)]">
             <TabsList className="mb-4">
-              <TabsTrigger value="analysis" className="gap-2">
-                <Brain className="h-4 w-4" />
-                Análise Atual
-              </TabsTrigger>
+              
               <TabsTrigger value="agendas" className="gap-2">
                 <FileText className="h-4 w-4" />
                 Pautas Sugeridas
