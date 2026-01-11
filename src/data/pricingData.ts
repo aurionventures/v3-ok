@@ -100,7 +100,7 @@ export const PLANS: Plan[] = [
     nome: 'Profissional',
     descricao: 'Para empresas em crescimento com governança estruturada',
     features: [
-      'Até 5 empresas',
+      'Até 1 empresa',
       'Usuários ilimitados',
       'AI Engine v2',
       '13 módulos core',
@@ -110,7 +110,7 @@ export const PLANS: Plan[] = [
       'Relatórios customizados',
     ],
     limites: {
-      empresas: 5,
+      empresas: 1,
       usuarios: 'Ilimitados',
       aiEngine: 'v2',
       modulos: 13,
@@ -124,7 +124,7 @@ export const PLANS: Plan[] = [
     nome: 'Business',
     descricao: 'Para grupos empresariais com múltiplas subsidiárias',
     features: [
-      'Até 15 empresas',
+      'Até 1 empresa',
       'Usuários ilimitados',
       'AI Engine v2',
       '13 módulos core',
@@ -135,7 +135,7 @@ export const PLANS: Plan[] = [
       'Onboarding assistido',
     ],
     limites: {
-      empresas: 15,
+      empresas: 1,
       usuarios: 'Ilimitados',
       aiEngine: 'v2',
       modulos: 13,
@@ -148,7 +148,7 @@ export const PLANS: Plan[] = [
     nome: 'Enterprise',
     descricao: 'Solução completa para grandes corporações e holdings',
     features: [
-      'Empresas ilimitadas',
+      'Até 1 empresa',
       'Usuários ilimitados',
       'AI Engine v3 (Premium)',
       '13 módulos core',
@@ -160,7 +160,7 @@ export const PLANS: Plan[] = [
       'Implementação exclusiva',
     ],
     limites: {
-      empresas: 'ilimitado',
+      empresas: 1,
       usuarios: 'Ilimitados',
       aiEngine: 'v3',
       modulos: 13,
@@ -437,12 +437,24 @@ export function recommendPlan(
     return 'enterprise';
   }
 
-  // Baseado no complexity score
-  if (complexityScore <= 10) {
+  // Faturamento alto sugere plano maior
+  if (faturamento === '1b-plus') {
+    if (complexityScore <= 20) return 'business';
+    return 'enterprise';
+  }
+
+  if (faturamento === '300m-1b') {
+    if (complexityScore <= 10) return 'profissional';
+    if (complexityScore <= 40) return 'business';
+    return 'enterprise';
+  }
+
+  // Faturamento normal - baseado no complexity score
+  if (complexityScore <= 5) {
     return 'essencial';
-  } else if (complexityScore <= 30) {
+  } else if (complexityScore <= 15) {
     return 'profissional';
-  } else if (complexityScore <= 60) {
+  } else if (complexityScore <= 40) {
     return 'business';
   } else {
     return 'enterprise';

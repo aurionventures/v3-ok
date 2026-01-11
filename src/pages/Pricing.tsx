@@ -398,39 +398,9 @@ export default function Pricing() {
                 </CardHeader>
 
                 <CardContent className="flex-1">
-                  {/* Limites resumidos */}
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Building2 className="h-4 w-4 text-primary" />
-                      <span>
-                        {plan.limites.empresas === 'ilimitado'
-                          ? 'Empresas ilimitadas'
-                          : `Até ${plan.limites.empresas} empresa${Number(plan.limites.empresas) > 1 ? 's' : ''}`}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-primary" />
-                      <span>{plan.limites.usuarios}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Zap className="h-4 w-4 text-primary" />
-                      <span>AI Engine {plan.limites.aiEngine}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Crown className="h-4 w-4 text-primary" />
-                      <span>
-                        {plan.limites.addonsInclusos === 0
-                          ? 'Sem add-ons'
-                          : plan.limites.addonsInclusos === 9
-                            ? 'Todos os add-ons'
-                            : `${plan.limites.addonsInclusos} add-ons`}
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Features */}
                   <ul className="space-y-2">
-                    {plan.features.slice(0, 5).map((feature, idx) => (
+                    {plan.features.slice(0, 6).map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm">
                         <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
                         <span>{feature}</span>
