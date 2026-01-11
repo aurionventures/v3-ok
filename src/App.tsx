@@ -95,6 +95,7 @@ import SecretariatPanel from "./pages/SecretariatPanel";
 import BoardPerformance from "./pages/BoardPerformance";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import AdminPromptLibrary from "./pages/AdminPromptLibrary";
+import SimuladorCenarios from "./pages/SimuladorCenarios";
 
 // Parceiro Components
 import BancaDashboard from "./pages/BancaDashboard";
@@ -582,6 +583,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <BoardMembers />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/simulador-cenarios" 
+            element={
+              <ProtectedRoute >
+                <SimuladorCenarios />
               </ProtectedRoute>
             } 
           />
