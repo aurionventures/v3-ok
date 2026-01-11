@@ -315,28 +315,71 @@ export const COMPETITORS: Competitor[] = [
   },
 ];
 
-// Tabela de preços (BACKEND ONLY - não expor diretamente no frontend)
-// Revelado apenas após cálculo da calculadora
+// PRD v3.0 - Matriz de Pricing (Porte × Plano)
+// Novo piso: R$ 2.997/mês | Desconto anual: 2 meses grátis (16,67%)
+export const PRICING_MATRIX: Record<string, Record<string, { mensal: number; anual: number; setup: number }>> = {
+  // SMB+ (R$ 50M - R$ 300M/ano)
+  smb_plus: {
+    essencial: { mensal: 2997, anual: 29970, setup: 2997 },
+    profissional: { mensal: 5997, anual: 59970, setup: 4497 },
+    business: { mensal: 11997, anual: 119970, setup: 5997 },
+    enterprise: { mensal: 25000, anual: 250000, setup: 9997 },
+  },
+  // Mid-Market (R$ 300M - R$ 1B/ano)
+  mid_market: {
+    essencial: { mensal: 4997, anual: 49970, setup: 4997 },
+    profissional: { mensal: 9997, anual: 99970, setup: 7497 },
+    business: { mensal: 19997, anual: 199970, setup: 11997 },
+    enterprise: { mensal: 40000, anual: 400000, setup: 19997 },
+  },
+  // Large (R$ 1B - R$ 5B/ano)
+  large: {
+    essencial: { mensal: 7997, anual: 79970, setup: 7997 },
+    profissional: { mensal: 14997, anual: 149970, setup: 11997 },
+    business: { mensal: 29997, anual: 299970, setup: 19997 },
+    enterprise: { mensal: 60000, anual: 600000, setup: 34997 },
+  },
+  // Enterprise (R$ 5B+ ou Listada B3)
+  enterprise: {
+    essencial: { mensal: 12997, anual: 129970, setup: 12997 },
+    profissional: { mensal: 24997, anual: 249970, setup: 19997 },
+    business: { mensal: 49997, anual: 499970, setup: 34997 },
+    enterprise: { mensal: 100000, anual: 1000000, setup: 59997 },
+  },
+};
+
+// Descontos de Setup
+export const SETUP_DISCOUNTS = {
+  annual_upfront: 0.50, // 50% OFF para pagamento anual à vista
+  referral: 1.00, // 100% OFF (waived) para indicações
+  trial_conversion: 0.30, // 30% OFF para conversão durante trial
+};
+
+// Tabela simplificada para compatibilidade (usa SMB+ como base)
 export const PRICING_TABLE = {
   essencial: {
-    mensal: 1997,
-    anual: 19970,
-    economia: 3964, // 2 meses
+    mensal: 2997,
+    anual: 29970,
+    economia: 5994, // 2 meses
+    setup: 2997,
   },
   profissional: {
-    mensal: 4997,
-    anual: 49970,
-    economia: 9964,
+    mensal: 5997,
+    anual: 59970,
+    economia: 11994,
+    setup: 4497,
   },
   business: {
-    mensal: 9997,
-    anual: 99970,
-    economia: 19964,
+    mensal: 11997,
+    anual: 119970,
+    economia: 23994,
+    setup: 5997,
   },
   enterprise: {
-    mensal: null, // Custom
-    anual: null,
-    economia: null,
+    mensal: 25000,
+    anual: 250000,
+    economia: 50000,
+    setup: 9997,
   },
 };
 
@@ -462,36 +505,62 @@ export function recommendPlan(
 }
 
 // Revelar preço baseado no plano
-export function revealPricing(planoId: string): {
+export function revealPricing(planoId: string, porte: string = 'smb_plus'): {
   mensal: number | null;
   anual: number | null;
   economia: number | null;
+  setup: number | null;
   mensalFormatted: string;
   anualFormatted: string;
   economiaFormatted: string;
+  setupFormatted: string;
+  setupDescontos: {
+    anualVista: number;
+    referral: number;
+    trial: number;
+  };
 } {
-  const pricing = PRICING_TABLE[planoId as keyof typeof PRICING_TABLE];
+  // Tentar pegar da matriz completa primeiro
+  const matrixPricing = PRICING_MATRIX[porte]?.[planoId];
+  
+  // Fallback para tabela simplificada
+  const simplePricing = PRICING_TABLE[planoId as keyof typeof PRICING_TABLE];
+  
+  const pricing = matrixPricing || simplePricing;
 
   if (!pricing || !pricing.mensal) {
     return {
       mensal: null,
       anual: null,
       economia: null,
+      setup: null,
       mensalFormatted: 'Sob consulta',
       anualFormatted: 'Sob consulta',
       economiaFormatted: '',
+      setupFormatted: 'Sob consulta',
+      setupDescontos: { anualVista: 0, referral: 0, trial: 0 },
     };
   }
+
+  const economia = pricing.mensal * 12 - pricing.anual;
+  const setup = pricing.setup || 0;
 
   return {
     mensal: pricing.mensal,
     anual: pricing.anual,
-    economia: pricing.economia,
+    economia: economia,
+    setup: setup,
     mensalFormatted: `R$ ${pricing.mensal.toLocaleString('pt-BR')}`,
     anualFormatted: `R$ ${pricing.anual?.toLocaleString('pt-BR')}`,
-    economiaFormatted: pricing.economia
-      ? `Economize R$ ${pricing.economia.toLocaleString('pt-BR')}`
+    economiaFormatted: economia > 0
+      ? `Economize R$ ${economia.toLocaleString('pt-BR')}`
       : '',
+    setupFormatted: `R$ ${setup.toLocaleString('pt-BR')}`,
+    setupDescontos: {
+      anualVista: Math.round(setup * (1 - SETUP_DISCOUNTS.annual_upfront)),
+      referral: Math.round(setup * (1 - SETUP_DISCOUNTS.referral)),
+      trial: Math.round(setup * (1 - SETUP_DISCOUNTS.trial_conversion)),
+    },
   };
 }
 

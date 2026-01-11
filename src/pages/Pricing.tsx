@@ -358,7 +358,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Planos Section */}
+      {/* Planos e Add-ons Section - Visão Unificada */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
@@ -372,23 +372,13 @@ export default function Pricing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {/* Planos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
             {PLANS.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-xl ${
-                  plan.isPopular
-                    ? 'border-2 border-accent ring-2 ring-accent/20'
-                    : 'border hover:border-primary/30'
-                }`}
+                className="relative flex flex-col h-full transition-all duration-300 hover:shadow-xl border hover:border-primary/30"
               >
-                {plan.isPopular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-primary-foreground">
-                    <Star className="h-3 w-3 mr-1" />
-                    Mais Popular
-                  </Badge>
-                )}
-
                 <CardHeader className="pb-4">
                   <CardTitle className="text-xl">{plan.nome}</CardTitle>
                   <CardDescription className="text-sm">
@@ -415,12 +405,8 @@ export default function Pricing() {
                         ? handleContactSpecialist()
                         : setCalculatorOpen(true)
                     }
-                    variant={plan.isPopular ? 'default' : 'outline'}
-                    className={`w-full ${
-                      plan.isPopular
-                        ? 'bg-accent hover:bg-accent/90 text-primary-foreground'
-                        : ''
-                    }`}
+                    variant="outline"
+                    className="w-full"
                   >
                     {plan.isEnterprise ? (
                       <>
@@ -433,6 +419,63 @@ export default function Pricing() {
                         {plan.cta}
                       </>
                     )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+
+          {/* Divisor */}
+          <div className="flex items-center gap-4 mb-12 max-w-7xl mx-auto">
+            <div className="flex-1 h-px bg-border"></div>
+            <Badge variant="outline" className="px-4 py-1.5 text-sm font-medium">
+              <Crown className="h-3.5 w-3.5 mr-2" />
+              Módulos Add-ons
+            </Badge>
+            <div className="flex-1 h-px bg-border"></div>
+          </div>
+
+          {/* Add-ons na mesma seção */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            {ADDONS.map((addon) => (
+              <Card
+                key={addon.id}
+                className="relative flex flex-col h-full hover:shadow-lg transition-all duration-300 border hover:border-primary/30"
+              >
+                {(addon.popular || addon.novo) && (
+                  <Badge
+                    className={`absolute -top-2 right-4 ${
+                      addon.novo
+                        ? 'bg-green-500 text-white'
+                        : 'bg-primary/80 text-primary-foreground'
+                    }`}
+                  >
+                    {addon.novo ? 'Novo' : 'Popular'}
+                  </Badge>
+                )}
+
+                <CardHeader className="pb-3">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-3 text-primary">
+                    {renderAddonIcon(addon.icone)}
+                  </div>
+                  <CardTitle className="text-base">{addon.nome}</CardTitle>
+                </CardHeader>
+
+                <CardContent className="flex-1 pt-0">
+                  <p className="text-sm text-muted-foreground">
+                    {addon.descricao}
+                  </p>
+                </CardContent>
+
+                <CardFooter className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => handleAddonConsultar(addon)}
+                  >
+                    <Lock className="h-3.5 w-3.5 mr-2" />
+                    Consultar
                   </Button>
                 </CardFooter>
               </Card>
@@ -467,19 +510,9 @@ export default function Pricing() {
                         {PLANS.map((plan) => (
                           <th
                             key={plan.id}
-                            className={`text-center p-4 font-medium min-w-[120px] ${
-                              plan.isPopular ? 'bg-accent/10' : ''
-                            }`}
+                            className="text-center p-4 font-medium min-w-[120px]"
                           >
                             {plan.nome}
-                            {plan.isPopular && (
-                              <Badge
-                                variant="secondary"
-                                className="ml-2 text-xs"
-                              >
-                                Popular
-                              </Badge>
-                            )}
                           </th>
                         ))}
                       </tr>
@@ -513,11 +546,7 @@ export default function Pricing() {
                                 <td className="p-4 text-center">
                                   {renderFeatureValue(feature.essencial)}
                                 </td>
-                                <td
-                                  className={`p-4 text-center ${
-                                    PLANS[1].isPopular ? 'bg-accent/5' : ''
-                                  }`}
-                                >
+                                <td className="p-4 text-center">
                                   {renderFeatureValue(feature.profissional)}
                                 </td>
                                 <td className="p-4 text-center">
@@ -540,68 +569,6 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Add-ons Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <Badge className="mb-4">
-              <Crown className="h-3 w-3 mr-1" />
-              Módulos Adicionais
-            </Badge>
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
-              Add-ons Poderosos
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Escolha os módulos que fazem sentido para sua governança.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {ADDONS.map((addon) => (
-              <Card
-                key={addon.id}
-                className="relative flex flex-col h-full hover:shadow-lg transition-all duration-300"
-              >
-                {(addon.popular || addon.novo) && (
-                  <Badge
-                    className={`absolute -top-2 right-4 ${
-                      addon.novo
-                        ? 'bg-green-500 text-white'
-                        : 'bg-accent text-primary-foreground'
-                    }`}
-                  >
-                    {addon.novo ? 'Novo' : 'Popular'}
-                  </Badge>
-                )}
-
-                <CardHeader>
-                  <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-4 text-primary">
-                    {renderAddonIcon(addon.icone)}
-                  </div>
-                  <CardTitle className="text-lg">{addon.nome}</CardTitle>
-                </CardHeader>
-
-                <CardContent className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {addon.descricao}
-                  </p>
-                </CardContent>
-
-                <CardFooter>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => handleAddonConsultar(addon)}
-                  >
-                    <Lock className="h-4 w-4 mr-2" />
-                    Consultar
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* FAQ Section */}
       <section className="py-20 bg-muted/30">
@@ -988,6 +955,26 @@ export default function Pricing() {
                           <Badge className="bg-green-600 text-white">
                             {calculatorResult.pricing.economiaFormatted} (2 meses)
                           </Badge>
+                        )}
+
+                        {/* Setup Fee - PRD v3.0 */}
+                        {calculatorResult.pricing.setup && calculatorResult.pricing.setup > 0 && (
+                          <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-dashed">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium">Taxa de Setup (única vez)</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Onboarding personalizado + treinamento
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-lg font-bold">{calculatorResult.pricing.setupFormatted}</span>
+                                <p className="text-xs text-green-600">
+                                  50% OFF no anual à vista
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         )}
 
                         <div className="pt-4 border-t space-y-2">
