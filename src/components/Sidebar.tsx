@@ -236,6 +236,39 @@ const Sidebar = () => {
           {ADDON_ITEMS.map(item => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
+            const isLocked = item.key === "scenario_simulator";
+
+            // Itens bloqueados abrem modal de upgrade
+            if (isLocked) {
+              return (
+                <TooltipProvider key={item.key} delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => handleLockedClick(item.key, item.label)}
+                        className={cn(
+                          "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all w-full",
+                          "text-white/80 hover:bg-white/10 hover:text-white"
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {open && (
+                          <>
+                            <span className="flex-1 text-left">{item.label}</span>
+                            <Lock className="h-3 w-3 text-[#C0A062]/70" />
+                          </>
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    {!open && (
+                      <TooltipContent side="right">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            }
 
             return (
               <TooltipProvider key={item.path} delayDuration={0}>
