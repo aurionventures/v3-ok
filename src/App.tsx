@@ -112,6 +112,10 @@ import GenerateAdminToken from "./pages/GenerateAdminToken";
 import GeneratePartnerToken from "./pages/GeneratePartnerToken";
 import EmpresasLanding from "./pages/EmpresasLanding";
 import ParceirosLanding from "./pages/ParceirosLanding";
+import Pricing from "./pages/Pricing";
+import Signup from "./pages/Signup";
+import OnboardingWizard from "./pages/OnboardingWizard";
+import AcceptInvite from "./pages/AcceptInvite";
 
 
 const queryClient = new QueryClient();
@@ -138,6 +142,10 @@ const App = () => (
               <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
+          <Route path="/invite/accept" element={<AcceptInvite />} />
           <Route path="/empresas" element={<EmpresasLanding />} />
           <Route path="/parceiros" element={<ParceirosLanding />} />
           <Route path="/investors" element={<Investors />} />
