@@ -16,14 +16,15 @@ import {
   Clock,
   FileText,
   CheckCircle2,
-  XCircle,
   Loader2,
+  Brain,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useGeneratedAgendas, useUpcomingMeetings } from "@/hooks/useMockCopilot";
 import { AgendaCard } from "./AgendaCard";
+import { BriefingGenerationStatus } from "./BriefingGenerationStatus";
 
 export function AgendaSuggestionsTab() {
   const { meetings, nextMeeting } = useUpcomingMeetings();
@@ -35,10 +36,12 @@ export function AgendaSuggestionsTab() {
     generateAgenda,
     approveAgenda,
     rejectAgenda,
+    briefingGeneratorState,
   } = useGeneratedAgendas();
 
   const [selectedMeetingId, setSelectedMeetingId] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
+  const [showBriefingStatus, setShowBriefingStatus] = useState(true);
 
   const meetingsWithoutAgenda = meetings.filter(
     (m) => !agendas.some((a) => a.meetingId === m.id)
@@ -60,6 +63,18 @@ export function AgendaSuggestionsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Status de Geração de Briefings */}
+      {showBriefingStatus && (briefingGeneratorState.isGenerating || briefingGeneratorState.generatedBriefings.length > 0) && (
+        <BriefingGenerationStatus
+          isGenerating={briefingGeneratorState.isGenerating}
+          progress={briefingGeneratorState.progress}
+          currentMember={briefingGeneratorState.currentMember}
+          totalMembers={briefingGeneratorState.totalMembers}
+          completedBriefings={briefingGeneratorState.generatedBriefings}
+          onClose={() => setShowBriefingStatus(false)}
+        />
+      )}
+
       {/* Upcoming Meetings Timeline */}
       <Card>
         <CardHeader className="pb-3">
@@ -76,14 +91,19 @@ export function AgendaSuggestionsTab() {
             {meetings.map((meeting) => {
               const daysUntil = differenceInDays(new Date(meeting.date), new Date());
               const hasAgenda = agendas.some((a) => a.meetingId === meeting.id);
+              const hasApprovedAgenda = agendas.some(
+                (a) => a.meetingId === meeting.id && a.status === "approved"
+              );
 
               return (
                 <div
                   key={meeting.id}
                   className={cn(
                     "flex-1 min-w-[200px] p-4 rounded-lg border-2 transition-all",
-                    hasAgenda
+                    hasApprovedAgenda
                       ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+                      : hasAgenda
+                      ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800"
                       : "bg-muted/50 border-dashed hover:border-indigo-300 cursor-pointer"
                   )}
                 >
@@ -106,10 +126,15 @@ export function AgendaSuggestionsTab() {
                     {meeting.councilName}
                   </p>
                   <div className="flex items-center gap-1">
-                    {hasAgenda ? (
+                    {hasApprovedAgenda ? (
                       <Badge className="text-[10px] bg-green-600">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Pauta Gerada
+                        Aprovada
+                      </Badge>
+                    ) : hasAgenda ? (
+                      <Badge className="text-[10px] bg-yellow-600">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Pendente
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-[10px]">
@@ -179,6 +204,25 @@ export function AgendaSuggestionsTab() {
         </Card>
       )}
 
+      {/* Info sobre briefings automáticos */}
+      <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50">
+              <Brain className="h-5 w-5 text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                Geração Automática de Briefings
+              </p>
+              <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                Ao aprovar uma pauta, o sistema gera automaticamente briefings personalizados para cada membro do conselho usando IA.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Filters */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Pautas Geradas</h3>
@@ -241,7 +285,3 @@ export function AgendaSuggestionsTab() {
 }
 
 export default AgendaSuggestionsTab;
-
-
-
-

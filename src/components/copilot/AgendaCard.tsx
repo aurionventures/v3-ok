@@ -22,6 +22,9 @@ import {
   Clock,
   Sparkles,
   FileText,
+  Brain,
+  Send,
+  Users,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -236,6 +239,35 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
             </div>
           )}
 
+          {/* Briefing Info (quando aprovada) */}
+          {agenda.status === "approved" && (
+            <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/50">
+                  <Brain className="h-5 w-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                    Briefings Personalizados Gerados
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    Os membros do conselho receberam seus briefings personalizados com análises e perguntas críticas.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-600 text-white">
+                    <Users className="h-3 w-3 mr-1" />
+                    Enviados
+                  </Badge>
+                  <Badge variant="outline" className="border-green-300 text-green-700 dark:text-green-300">
+                    <Send className="h-3 w-3 mr-1" />
+                    Notificados
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Generation Metadata */}
           {agenda.generationMetadata && (
             <div className="pt-4 border-t text-xs text-muted-foreground flex items-center justify-between">
@@ -253,14 +285,46 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
 
       {/* Approve Dialog */}
       <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Aprovar Agenda</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-green-600" />
+              Aprovar Agenda
+            </DialogTitle>
             <DialogDescription>
-              Ao aprovar, a pauta será disponibilizada para todos os membros do conselho
-              e os briefings personalizados serão gerados automaticamente.
+              Ao aprovar, a pauta será disponibilizada para todos os membros do conselho.
             </DialogDescription>
           </DialogHeader>
+          
+          {/* Info sobre briefings */}
+          <div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+            <div className="flex items-start gap-3">
+              <Brain className="h-5 w-5 text-indigo-600 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                  Geração Automática de Briefings
+                </p>
+                <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-1">
+                  O Agent D irá gerar briefings personalizados para cada membro do conselho com:
+                </p>
+                <ul className="text-xs text-indigo-600 dark:text-indigo-400 mt-2 space-y-1">
+                  <li className="flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Resumo executivo personalizado
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Análise por pauta
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Perguntas críticas específicas
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Checklist de preparação
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
               Cancelar
@@ -272,7 +336,8 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
                 setShowApproveDialog(false);
               }}
             >
-              Confirmar Aprovação
+              <Check className="h-4 w-4 mr-1" />
+              Aprovar e Gerar Briefings
             </Button>
           </DialogFooter>
         </DialogContent>
