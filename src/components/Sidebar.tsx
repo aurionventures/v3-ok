@@ -29,7 +29,8 @@ import {
   Gift,
   Lock,
   ActivitySquare,
-  CheckCircle
+  CheckCircle,
+  Calculator
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,7 @@ const ADDON_ITEMS = [
   { key: "market_intel", label: "Inteligência de Mercado", path: "/market-intelligence", icon: TrendingUp },
   { key: "benchmarking", label: "Benchmarking Global", path: "/benchmarking", icon: Target },
   { key: "ai_agents", label: "Agentes de IA", path: "/ai-agents", icon: Bot },
+  { key: "scenario_simulator", label: "Simulador de Cenários", path: "/simulador-cenarios", icon: Calculator },
 ];
 
 // Admin menu items
