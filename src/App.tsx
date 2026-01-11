@@ -38,6 +38,7 @@ import Admin from "./pages/Admin";
 import AdminFinances from "./pages/AdminFinances";
 import AdminAgentConfig from "./pages/AdminAgentConfig";
 import AdminPlansComparison from "./pages/AdminPlansComparison";
+import AdminPricingConfig from "./pages/AdminPricingConfig";
 import AdminPlanConfigurator from "./pages/AdminPlanConfigurator";
 import AdminClientManagement from "./pages/AdminClientManagement";
 import AdminPartners from "./pages/AdminPartners";
@@ -711,7 +712,7 @@ const App = () => (
             path="/admin/planos" 
             element={
               <ProtectedRoute >
-                <AdminPlansComparison />
+                <AdminPricingConfig />
               </ProtectedRoute>
             } 
           />
