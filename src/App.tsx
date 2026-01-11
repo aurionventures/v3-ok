@@ -116,6 +116,7 @@ import Pricing from "./pages/Pricing";
 import Signup from "./pages/Signup";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import AcceptInvite from "./pages/AcceptInvite";
+import StripeCheckout from "./pages/StripeCheckout";
 
 
 const queryClient = new QueryClient();
@@ -154,7 +155,8 @@ const App = () => (
           <Route path="/standalone-quiz" element={<StandaloneQuiz />} />
           <Route path="/plan-discovery" element={<PlanDiscoveryQuiz />} />
           <Route path="/plan-result" element={<PlanResult />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout" element={<StripeCheckout />} />
+          <Route path="/checkout-legacy" element={<Checkout />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/payment-confirmed" element={<PaymentConfirmed />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />

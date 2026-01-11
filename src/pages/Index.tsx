@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search, Globe, AlertTriangle, LineChart, Bot } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search, Globe, AlertTriangle, LineChart, Bot, MapPin, ExternalLink } from "lucide-react";
 import DiagnosticModal from "@/components/DiagnosticModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import legacyLogo from "@/assets/legacy-logo-new.png";
+import { PLANS, ADDONS } from "@/data/pricingData";
 const Index = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -145,14 +146,71 @@ const Index = () => {
     answer: "Empresas sem governança estruturada enfrentam riscos como conflitos familiares, decisões centralizadas inadequadas, falta de transparência, dificuldades na sucessão e perda de competitividade. Estatísticas mostram que 90% das empresas familiares não chegam à terceira geração, sendo a ausência de governança uma das principais causas."
   }];
   return <div className="min-h-screen bg-background">
-      {/* Professional Header */}
+      {/* Professional Header with Full Navigation */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <img src={legacyLogo} alt="Legacy" className="h-8 w-auto" />
+            <img 
+              src={legacyLogo} 
+              alt="Legacy" 
+              className="h-8 w-auto cursor-pointer" 
+              onClick={() => navigate("/")}
+            />
           </div>
+          
+          {/* Navigation Menu */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+            >
+              Home
+            </a>
+            <a 
+              href="#solucao" 
+              onClick={(e) => { e.preventDefault(); document.getElementById('solucao')?.scrollIntoView({ behavior: 'smooth' }); }}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Solução
+            </a>
+            <a 
+              href="#planos" 
+              onClick={(e) => { e.preventDefault(); document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' }); }}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Planos
+            </a>
+            <a 
+              href="#blog" 
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Blog
+            </a>
+            <a 
+              href="#contato" 
+              onClick={(e) => { e.preventDefault(); document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' }); }}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Contato
+            </a>
+          </nav>
+
           <div className="flex items-center space-x-4">
-            <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => navigate("/login")}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hidden sm:inline-flex"
+              onClick={() => navigate("/pricing")}
+            >
+              Ver Planos
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground" 
+              onClick={() => navigate("/login")}
+            >
               Login
             </Button>
           </div>
@@ -292,7 +350,7 @@ const Index = () => {
       </section>
 
       {/* Legacy Tripod Section - 3 Pillars */}
-      <section className="py-24 bg-background">
+      <section id="solucao" className="py-24 bg-background">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -438,63 +496,106 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Plan Discovery Quiz CTA Section */}
+      {/* Plans Section - Showing 4 Plans */}
       <section id="planos" className="py-24 bg-gradient-to-br from-muted/30 via-background to-muted/30">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="text-center mb-12">
+              <Badge className="mb-4">
+                <Crown className="h-3 w-3 mr-1" />
+                Planos
+              </Badge>
               <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
                 Planos criados para cada etapa da{" "}
                 <span className="text-accent">governança</span>
               </h2>
-              <p className="text-lg text-muted-foreground">
-                A Legacy evolui junto com a sua empresa. Descubra qual plano é ideal para o seu momento.
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                A Legacy evolui junto com a sua empresa. Escolha o plano ideal para o seu momento de governança.
               </p>
             </div>
 
-            {/* Quiz CTA Card */}
-            <Card className="relative overflow-hidden border-2 border-accent/30 bg-gradient-to-br from-card via-accent/5 to-card shadow-xl">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-primary to-accent" />
-              <CardContent className="p-10 text-center">
-                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Target className="h-8 w-8 text-accent" />
-                </div>
-                
-                <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
-                  Descubra qual o plano ideal para sua governança
-                </h3>
-                
-                <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-                  Faça o teste aqui, leva menos de 1 minuto
-                </p>
-                
-                <Button 
-                  size="lg" 
-                  className="bg-accent hover:bg-accent/90 text-primary-foreground text-lg px-10 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 mb-8"
-                  onClick={() => navigate('/plan-discovery')}
+            {/* 4 Plans Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {PLANS.map((plan) => (
+                <Card 
+                  key={plan.id} 
+                  className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-xl ${
+                    plan.isPopular ? 'border-2 border-accent shadow-lg' : 'border hover:border-accent/30'
+                  }`}
                 >
-                  <Rocket className="h-5 w-5 mr-2" />
-                  Fazer o Quiz Agora
-                </Button>
-                
-                {/* Micro-benefits */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    <span>6 perguntas rápidas</span>
+                  {plan.isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="bg-accent text-primary-foreground">
+                        <Star className="h-3 w-3 mr-1 fill-current" />
+                        Mais Popular
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <CardHeader className="text-center pb-4 pt-6">
+                    <CardTitle className="text-xl">{plan.nome}</CardTitle>
+                    <p className="text-sm text-muted-foreground">{plan.descricao}</p>
+                  </CardHeader>
+                  
+                  <CardContent className="flex-1 pt-0">
+                    <ul className="space-y-2 text-sm">
+                      {plan.features.slice(0, 4).map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <span className="text-muted-foreground">{feature}</span>
+                        </li>
+                      ))}
+                      {plan.features.length > 4 && (
+                        <li className="text-sm text-accent font-medium">
+                          +{plan.features.length - 4} recursos
+                        </li>
+                      )}
+                    </ul>
+                  </CardContent>
+                  
+                  <div className="p-4 pt-0">
+                    <Button 
+                      variant={plan.isPopular ? "default" : "outline"}
+                      className={`w-full ${plan.isPopular ? 'bg-accent hover:bg-accent/90 text-primary-foreground' : ''}`}
+                      onClick={() => navigate('/pricing')}
+                    >
+                      Ver Detalhes
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    <span>Recomendação personalizada</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    <span>Contato direto com especialista</span>
-                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* CTA to Pricing Page */}
+            <div className="text-center">
+              <Button 
+                size="lg" 
+                className="bg-accent hover:bg-accent/90 text-primary-foreground text-lg px-10 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => navigate('/pricing')}
+              >
+                <Target className="h-5 w-5 mr-2" />
+                Ver Todos os Planos e Calcular Investimento
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
+              
+              {/* Micro-benefits */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted-foreground mt-6">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-accent" />
+                  <span>Usuários ilimitados em todos os planos</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-accent" />
+                  <span>Calculadora de investimento personalizada</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-accent" />
+                  <span>Trial de 30 dias grátis</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -594,54 +695,113 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-muted/30 py-12">
+      {/* Full Footer */}
+      <footer className="border-t bg-muted/30 py-16">
         <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="space-y-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+              {/* Logo e Descrição */}
+              <div className="lg:col-span-2 space-y-4">
                 <img src={legacyLogo} alt="Legacy" className="h-8 w-auto" />
-                <p className="text-sm text-muted-foreground">
-                  Sistema Operacional de Governança para empresas de controle concentrado.
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Sistema Operacional de Governança para empresas de controle concentrado. 
+                  Automatize processos, gerencie riscos e tome decisões com inteligência.
                 </p>
-              </div>
-              
-              <div className="space-y-4">
-                <h4 className="font-semibold">Soluções</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>Governança Corporativa</div>
-                  <div>Estrutura Societária</div>
-                  <div>Planejamento Sucessório</div>
-                  <div>Gestão de Riscos</div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>contato@governancalegacy.com</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Phone className="h-4 w-4" />
+                  <span>+55 (47) 99162-2220</span>
                 </div>
               </div>
               
+              {/* Navegação */}
               <div className="space-y-4">
-                <h4 className="font-semibold">Parcerias</h4>
+                <h4 className="font-semibold">Navegação</h4>
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>Bancas Jurídicas</div>
-                  <div>Consultorias</div>
-                  <div>Family Offices</div>
-                  <div>Auditorias</div>
+                  <div><a href="#" className="hover:text-foreground transition-colors">Home</a></div>
+                  <div><a href="#solucao" className="hover:text-foreground transition-colors">Solução</a></div>
+                  <div><a href="#planos" className="hover:text-foreground transition-colors">Planos</a></div>
+                  <div><a href="#blog" className="hover:text-foreground transition-colors">Blog</a></div>
+                  <div><a href="#contato" className="hover:text-foreground transition-colors">Contato</a></div>
+                </div>
+              </div>
+
+              {/* Planos */}
+              <div className="space-y-4">
+                <h4 className="font-semibold">Planos</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  {PLANS.map((plan) => (
+                    <div key={plan.id}>
+                      <button 
+                        onClick={() => navigate('/pricing')}
+                        className="hover:text-foreground transition-colors flex items-center gap-1"
+                      >
+                        {plan.nome}
+                        {plan.isPopular && <Star className="h-3 w-3 text-accent fill-accent" />}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
               
+              {/* Add-ons */}
               <div className="space-y-4">
-                <h4 className="font-semibold">Contato</h4>
+                <h4 className="font-semibold">Add-ons</h4>
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>contato@governancalegacy.com</div>
-                  <div>+55 (47) 99162-2220</div>
-                  <div className="leading-relaxed">
-                    Av. Brig. Faria Lima, 1811. ESC 1119<br />
-                    Jardim Paulistano, São Paulo - SP<br />
-                    01452-001, Brasil
+                  {ADDONS.slice(0, 6).map((addon) => (
+                    <div key={addon.id}>
+                      <button 
+                        onClick={() => navigate('/pricing')}
+                        className="hover:text-foreground transition-colors"
+                      >
+                        {addon.nome}
+                      </button>
+                    </div>
+                  ))}
+                  {ADDONS.length > 6 && (
+                    <div>
+                      <button 
+                        onClick={() => navigate('/pricing')}
+                        className="text-accent hover:text-accent/80 transition-colors flex items-center gap-1"
+                      >
+                        +{ADDONS.length - 6} mais
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Endereço Comercial */}
+              <div className="space-y-4">
+                <h4 className="font-semibold">Endereço Comercial</h4>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                    <div className="leading-relaxed">
+                      Av. Brig. Faria Lima, 1811<br />
+                      Escritório 1119<br />
+                      Jardim Paulistano<br />
+                      São Paulo - SP<br />
+                      CEP: 01452-001<br />
+                      Brasil
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-              <p>&copy; 2025 Legacy. Todos os direitos reservados.</p>
+            {/* Bottom Bar */}
+            <div className="border-t mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+              <p>&copy; 2025 Legacy OS. Todos os direitos reservados.</p>
+              <div className="flex items-center gap-6">
+                <a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a>
+                <a href="#" className="hover:text-foreground transition-colors">Política de Privacidade</a>
+                <a href="#" className="hover:text-foreground transition-colors">Cookies</a>
+              </div>
             </div>
           </div>
         </div>

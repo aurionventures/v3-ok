@@ -185,7 +185,7 @@ export default function Pricing() {
     toast.success('Abrindo WhatsApp...');
   };
 
-  // Função para iniciar trial
+  // Função para ir para checkout Stripe
   const handleStartTrial = () => {
     if (!calculatorResult) return;
 
@@ -195,7 +195,8 @@ export default function Pricing() {
       source: 'calculator',
     });
 
-    navigate(`/signup?${params.toString()}`);
+    // Redirecionar para checkout Stripe
+    navigate(`/checkout?${params.toString()}`);
   };
 
   // Função para falar com especialista
