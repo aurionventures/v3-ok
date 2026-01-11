@@ -267,6 +267,20 @@ export default function Pricing() {
     if (value === false) {
       return <X className="h-5 w-5 text-muted-foreground/30 mx-auto" />;
     }
+    if (value === 'Escolher') {
+      return (
+        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">
+          Escolher
+        </span>
+      );
+    }
+    if (value === 'Comprar') {
+      return (
+        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+          Comprar
+        </span>
+      );
+    }
     return <span className="text-sm">{value}</span>;
   };
 
@@ -372,131 +386,7 @@ export default function Pricing() {
             </p>
           </div>
 
-          {/* Planos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
-            {PLANS.map((plan) => (
-              <Card
-                key={plan.id}
-                className="relative flex flex-col h-full transition-all duration-300 hover:shadow-xl border hover:border-primary/30"
-              >
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl">{plan.nome}</CardTitle>
-                  <CardDescription className="text-sm">
-                    {plan.descricao}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="flex-1">
-                  {/* Features */}
-                  <ul className="space-y-2">
-                    {plan.features.slice(0, 6).map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-
-                <CardFooter className="pt-4">
-                  <Button
-                    onClick={() =>
-                      plan.isEnterprise
-                        ? handleContactSpecialist()
-                        : setCalculatorOpen(true)
-                    }
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {plan.isEnterprise ? (
-                      <>
-                        <Phone className="h-4 w-4 mr-2" />
-                        {plan.cta}
-                      </>
-                    ) : (
-                      <>
-                        <Calculator className="h-4 w-4 mr-2" />
-                        {plan.cta}
-                      </>
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-
-          {/* Divisor */}
-          <div className="flex items-center gap-4 mb-12 max-w-7xl mx-auto">
-            <div className="flex-1 h-px bg-border"></div>
-            <Badge variant="outline" className="px-4 py-1.5 text-sm font-medium">
-              <Crown className="h-3.5 w-3.5 mr-2" />
-              Módulos Add-ons
-            </Badge>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
-
-          {/* Add-ons na mesma seção */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {ADDONS.map((addon) => (
-              <Card
-                key={addon.id}
-                className="relative flex flex-col h-full hover:shadow-lg transition-all duration-300 border hover:border-primary/30"
-              >
-                {(addon.popular || addon.novo) && (
-                  <Badge
-                    className={`absolute -top-2 right-4 ${
-                      addon.novo
-                        ? 'bg-green-500 text-white'
-                        : 'bg-primary/80 text-primary-foreground'
-                    }`}
-                  >
-                    {addon.novo ? 'Novo' : 'Popular'}
-                  </Badge>
-                )}
-
-                <CardHeader className="pb-3">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-3 text-primary">
-                    {renderAddonIcon(addon.icone)}
-                  </div>
-                  <CardTitle className="text-base">{addon.nome}</CardTitle>
-                </CardHeader>
-
-                <CardContent className="flex-1 pt-0">
-                  <p className="text-sm text-muted-foreground">
-                    {addon.descricao}
-                  </p>
-                </CardContent>
-
-                <CardFooter className="pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleAddonConsultar(addon)}
-                  >
-                    <Lock className="h-3.5 w-3.5 mr-2" />
-                    Consultar
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Comparação Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
-              Compare os Planos em Detalhe
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Veja todas as funcionalidades e escolha o plano ideal para sua
-              governança.
-            </p>
-          </div>
-
+          {/* Tabela de Comparação Unificada - Planos + Add-ons */}
           <div className="max-w-6xl mx-auto overflow-x-auto">
             <Card>
               <CardContent className="p-0">
@@ -512,24 +402,52 @@ export default function Pricing() {
                             key={plan.id}
                             className="text-center p-4 font-medium min-w-[120px]"
                           >
-                            {plan.nome}
+                            <div className="flex flex-col items-center gap-1">
+                              <span>{plan.nome}</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs h-7 mt-1"
+                                onClick={() =>
+                                  plan.isEnterprise
+                                    ? handleContactSpecialist()
+                                    : setCalculatorOpen(true)
+                                }
+                              >
+                                {plan.isEnterprise ? 'Consultar' : 'Ver Preço'}
+                              </Button>
+                            </div>
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {['Core', 'AI Engine', 'Limites', 'Suporte', 'Segurança'].map(
+                      {['Core', 'AI Engine', 'Limites', 'Suporte', 'Segurança', 'Add-ons'].map(
                         (categoria) => (
                           <React.Fragment key={categoria}>
                             {/* Categoria Header */}
                             <tr
-                              className="bg-muted/30 border-t-2 border-primary/20"
+                              className={`bg-muted/30 border-t-2 ${
+                                categoria === 'Add-ons' 
+                                  ? 'border-accent/40 bg-accent/5' 
+                                  : 'border-primary/20'
+                              }`}
                             >
                               <td
                                 colSpan={5}
-                                className="p-3 font-semibold text-sm text-primary uppercase tracking-wide"
+                                className={`p-3 font-semibold text-sm uppercase tracking-wide flex items-center gap-2 ${
+                                  categoria === 'Add-ons' 
+                                    ? 'text-accent' 
+                                    : 'text-primary'
+                                }`}
                               >
+                                {categoria === 'Add-ons' && <Crown className="h-4 w-4" />}
                                 {categoria}
+                                {categoria === 'Add-ons' && (
+                                  <span className="text-xs font-normal text-muted-foreground ml-2">
+                                    (Módulos Premium)
+                                  </span>
+                                )}
                               </td>
                             </tr>
                             {/* Features da categoria */}
@@ -538,7 +456,9 @@ export default function Pricing() {
                             ).map((feature, idx) => (
                               <tr
                                 key={`${categoria}-${idx}`}
-                                className="border-t hover:bg-muted/20"
+                                className={`border-t hover:bg-muted/20 ${
+                                  categoria === 'Add-ons' ? 'bg-accent/[0.02]' : ''
+                                }`}
                               >
                                 <td className="p-4 text-sm">
                                   {feature.nome}
@@ -565,6 +485,24 @@ export default function Pricing() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Legenda Add-ons */}
+          <div className="max-w-6xl mx-auto mt-6">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-600" />
+                <span>Incluído no plano</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">Escolher</span>
+                <span>Escolha entre os add-ons disponíveis</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Comprar</span>
+                <span>Disponível para compra separada</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -28,6 +28,7 @@ export interface AddOn {
   id: string;
   nome: string;
   descricao: string;
+  features: string[];
   icone: string;
   popular?: boolean;
   novo?: boolean;
@@ -208,6 +209,17 @@ export const COMPARISON_FEATURES = [
   { categoria: 'Segurança', nome: 'SSO/SAML', essencial: false, profissional: false, business: true, enterprise: true },
   { categoria: 'Segurança', nome: 'IP Whitelist', essencial: false, profissional: false, business: true, enterprise: true },
   { categoria: 'Segurança', nome: 'Ambiente Dedicado', essencial: false, profissional: false, business: false, enterprise: true },
+  
+  // Add-ons (disponibilidade por plano)
+  { categoria: 'Add-ons', nome: 'Projetos Estratégicos', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Gestão de Pessoas', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Desempenho Conselho', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Riscos Avançados', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'ESG Completo', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Inteligência Mercado', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Benchmarking Global', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Agentes AI Premium', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Simulador Cenários', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
 ];
 
 // Add-ons (COM PREÇOS)
@@ -216,6 +228,12 @@ export const ADDONS: AddOn[] = [
     id: 'projetos',
     nome: 'Projetos Estratégicos',
     descricao: 'Submeter, votar e acompanhar iniciativas estratégicas com transparência e rastreabilidade total.',
+    features: [
+      'Submissão de iniciativas',
+      'Votação estruturada',
+      'Rastreabilidade completa',
+      'Relatórios de progresso',
+    ],
     icone: 'ClipboardList',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Projetos Estratégicos',
     precoMensal: 497,
@@ -225,6 +243,12 @@ export const ADDONS: AddOn[] = [
     id: 'pessoas',
     nome: 'Gestão de Pessoas',
     descricao: 'PDI, succession planning, matriz 9-box e feedback contínuo para desenvolvimento de lideranças.',
+    features: [
+      'PDI estruturado',
+      'Succession planning',
+      'Matriz 9-box',
+      'Feedback contínuo',
+    ],
     icone: 'Users',
     popular: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Gestão de Pessoas',
@@ -235,6 +259,12 @@ export const ADDONS: AddOn[] = [
     id: 'desempenho',
     nome: 'Desempenho Conselho',
     descricao: 'Avaliação 360° dos membros, NPS de reuniões e feedback anônimo estruturado.',
+    features: [
+      'Avaliação 360° membros',
+      'NPS de reuniões',
+      'Feedback anônimo',
+      'Dashboards de desempenho',
+    ],
     icone: 'Star',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Desempenho Conselho',
     precoMensal: 597,
@@ -244,6 +274,12 @@ export const ADDONS: AddOn[] = [
     id: 'riscos',
     nome: 'Riscos Avançados',
     descricao: 'Matriz de riscos corporativos, heat maps, indicadores de risco e alertas automatizados.',
+    features: [
+      'Matriz de riscos',
+      'Heat maps visuais',
+      'Indicadores de risco',
+      'Alertas automatizados',
+    ],
     icone: 'ShieldAlert',
     popular: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Riscos Avançados',
@@ -254,6 +290,12 @@ export const ADDONS: AddOn[] = [
     id: 'esg',
     nome: 'ESG Completo',
     descricao: 'Indicadores ESG, relatórios de sustentabilidade e compliance com frameworks internacionais.',
+    features: [
+      'Indicadores ESG',
+      'Relatórios sustentabilidade',
+      'Compliance internacional',
+      'Frameworks GRI, SASB',
+    ],
     icone: 'Leaf',
     novo: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on ESG Completo',
@@ -264,6 +306,12 @@ export const ADDONS: AddOn[] = [
     id: 'inteligencia',
     nome: 'Inteligência Mercado',
     descricao: 'Monitoramento de concorrentes, tendências setoriais e alertas regulatórios em tempo real.',
+    features: [
+      'Monitoramento concorrentes',
+      'Tendências setoriais',
+      'Alertas regulatórios',
+      'Insights em tempo real',
+    ],
     icone: 'Globe',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Inteligência Mercado',
     precoMensal: 997,
@@ -273,6 +321,12 @@ export const ADDONS: AddOn[] = [
     id: 'benchmarking',
     nome: 'Benchmarking Global',
     descricao: 'Comparação com melhores práticas do mercado e ranking setorial de governança.',
+    features: [
+      'Melhores práticas mercado',
+      'Ranking setorial',
+      'Comparativo governança',
+      'Relatórios benchmark',
+    ],
     icone: 'BarChart3',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Benchmarking Global',
     precoMensal: 697,
@@ -282,6 +336,12 @@ export const ADDONS: AddOn[] = [
     id: 'agentes-ai',
     nome: 'Agentes AI Premium',
     descricao: 'Agentes especializados para análise jurídica, financeira, tributária e compliance.',
+    features: [
+      'Agente jurídico AI',
+      'Agente financeiro AI',
+      'Agente tributário AI',
+      'Agente compliance AI',
+    ],
     icone: 'Bot',
     novo: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Agentes AI Premium',
@@ -292,6 +352,12 @@ export const ADDONS: AddOn[] = [
     id: 'simulador',
     nome: 'Simulador Cenários',
     descricao: 'Modelagem de cenários estratégicos, análise de impacto e tomada de decisão baseada em dados.',
+    features: [
+      'Modelagem cenários',
+      'Análise de impacto',
+      'Simulações what-if',
+      'Decisões data-driven',
+    ],
     icone: 'LineChart',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Simulador Cenários',
     precoMensal: 1197,
