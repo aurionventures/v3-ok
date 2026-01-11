@@ -174,7 +174,7 @@ export const PLANS: Plan[] = [
 
 // Features para tabela comparativa
 export const COMPARISON_FEATURES = [
-  // Core
+  // Core - Módulos Base
   { categoria: 'Core', nome: 'Estrutura Societária', essencial: true, profissional: true, business: true, enterprise: true },
   { categoria: 'Core', nome: 'Gestão de Conselhos', essencial: true, profissional: true, business: true, enterprise: true },
   { categoria: 'Core', nome: 'Reuniões e ATAs', essencial: true, profissional: true, business: true, enterprise: true },
@@ -183,18 +183,36 @@ export const COMPARISON_FEATURES = [
   { categoria: 'Core', nome: 'Tarefas e Pendências', essencial: true, profissional: true, business: true, enterprise: true },
   { categoria: 'Core', nome: 'Portal do Membro', essencial: true, profissional: true, business: true, enterprise: true },
   
-  // AI Engine
-  { categoria: 'AI Engine', nome: 'Análise de Documentos', essencial: 'Básico', profissional: 'Avançado', business: 'Avançado', enterprise: 'Premium' },
-  { categoria: 'AI Engine', nome: 'Busca Inteligente', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Sugestões de Pauta', essencial: false, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Agentes Especializados', essencial: false, profissional: '3 agentes', business: '6 agentes', enterprise: 'Ilimitados' },
-  { categoria: 'AI Engine', nome: 'Inteligência de Mercado', essencial: false, profissional: false, business: true, enterprise: true },
+  // AI Engine - 14 Funcionalidades de IA (ordem alfabética, todos inclusos em todos os planos)
+  { categoria: 'AI Engine', nome: 'Agentes Especializados', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Análise de Documentos', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Análise de Sentimento', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Briefings Personalizados', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Busca Inteligente (Semântica)', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Classificação Automática', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Extração de Entidades', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Geração de ATAs', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Geração de PDI', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Identificação de GAPs', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Insights Preditivos', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Inteligência de Mercado', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'OCR e Extração de Dados', essencial: true, profissional: true, business: true, enterprise: true },
+  { categoria: 'AI Engine', nome: 'Sugestões de Pauta', essencial: true, profissional: true, business: true, enterprise: true },
   
+  // Add-ons (disponibilidade por plano) - 7 módulos premium
+  { categoria: 'Add-ons', nome: 'Riscos Avançados', essencial: 'Comprar', profissional: true, business: true, enterprise: true },
+  { categoria: 'Add-ons', nome: 'Desempenho Conselho', essencial: 'Comprar', profissional: true, business: true, enterprise: true },
+  { categoria: 'Add-ons', nome: 'Gestão de Pessoas', essencial: 'Comprar', profissional: true, business: true, enterprise: true },
+  { categoria: 'Add-ons', nome: 'Agentes AI Premium', essencial: 'Comprar', profissional: 'Comprar', business: true, enterprise: true },
+  { categoria: 'Add-ons', nome: 'Inteligência Mercado', essencial: 'Comprar', profissional: 'Comprar', business: true, enterprise: true },
+  { categoria: 'Add-ons', nome: 'ESG Completo', essencial: 'Comprar', profissional: 'Comprar', business: 'Comprar', enterprise: true },
+  { categoria: 'Add-ons', nome: 'Projetos Estratégicos', essencial: 'Comprar', profissional: 'Comprar', business: 'Comprar', enterprise: true },
+
   // Limites
   { categoria: 'Limites', nome: 'Empresas (por CNPJ)', essencial: '1 Empresa', profissional: '1 Empresa', business: '1 Empresa', enterprise: '1 Empresa' },
   { categoria: 'Limites', nome: 'Usuários', essencial: 'Ilimitados', profissional: 'Ilimitados', business: 'Ilimitados', enterprise: 'Ilimitados' },
   { categoria: 'Limites', nome: 'Armazenamento', essencial: '10 GB', profissional: '50 GB', business: '200 GB', enterprise: 'Ilimitado' },
-  { categoria: 'Limites', nome: 'Add-ons Inclusos', essencial: '0', profissional: '3', business: '6', enterprise: 'Todos (9)' },
+  { categoria: 'Limites', nome: 'Add-ons Inclusos', essencial: '0', profissional: '3', business: '5', enterprise: 'Todos (7)' },
   
   // Suporte
   { categoria: 'Suporte', nome: 'Email', essencial: true, profissional: true, business: true, enterprise: true },
@@ -209,17 +227,6 @@ export const COMPARISON_FEATURES = [
   { categoria: 'Segurança', nome: 'SSO/SAML', essencial: false, profissional: false, business: true, enterprise: true },
   { categoria: 'Segurança', nome: 'IP Whitelist', essencial: false, profissional: false, business: true, enterprise: true },
   { categoria: 'Segurança', nome: 'Ambiente Dedicado', essencial: false, profissional: false, business: false, enterprise: true },
-  
-  // Add-ons (disponibilidade por plano)
-  { categoria: 'Add-ons', nome: 'Projetos Estratégicos', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Gestão de Pessoas', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Desempenho Conselho', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Riscos Avançados', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'ESG Completo', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Inteligência Mercado', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Benchmarking Global', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Agentes AI Premium', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
-  { categoria: 'Add-ons', nome: 'Simulador Cenários', essencial: 'Comprar', profissional: 'Escolher', business: 'Escolher', enterprise: true },
 ];
 
 // Add-ons (COM PREÇOS)
@@ -318,21 +325,6 @@ export const ADDONS: AddOn[] = [
     precoAnual: 9970,
   },
   {
-    id: 'benchmarking',
-    nome: 'Benchmarking Global',
-    descricao: 'Comparação com melhores práticas do mercado e ranking setorial de governança.',
-    features: [
-      'Melhores práticas mercado',
-      'Ranking setorial',
-      'Comparativo governança',
-      'Relatórios benchmark',
-    ],
-    icone: 'BarChart3',
-    whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Benchmarking Global',
-    precoMensal: 697,
-    precoAnual: 6970,
-  },
-  {
     id: 'agentes-ai',
     nome: 'Agentes AI Premium',
     descricao: 'Agentes especializados para análise jurídica, financeira, tributária e compliance.',
@@ -347,21 +339,6 @@ export const ADDONS: AddOn[] = [
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Agentes AI Premium',
     precoMensal: 1497,
     precoAnual: 14970,
-  },
-  {
-    id: 'simulador',
-    nome: 'Simulador Cenários',
-    descricao: 'Modelagem de cenários estratégicos, análise de impacto e tomada de decisão baseada em dados.',
-    features: [
-      'Modelagem cenários',
-      'Análise de impacto',
-      'Simulações what-if',
-      'Decisões data-driven',
-    ],
-    icone: 'LineChart',
-    whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Simulador Cenários',
-    precoMensal: 1197,
-    precoAnual: 11970,
   },
 ];
 

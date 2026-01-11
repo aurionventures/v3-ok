@@ -422,7 +422,7 @@ export default function Pricing() {
                       </tr>
                     </thead>
                     <tbody>
-                      {['Core', 'AI Engine', 'Limites', 'Suporte', 'Segurança', 'Add-ons'].map(
+                      {['Core', 'AI Engine', 'Add-ons', 'Limites', 'Suporte', 'Segurança'].map(
                         (categoria) => (
                           <React.Fragment key={categoria}>
                             {/* Categoria Header */}
@@ -487,23 +487,6 @@ export default function Pricing() {
             </Card>
           </div>
 
-          {/* Legenda Add-ons */}
-          <div className="max-w-6xl mx-auto mt-6">
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-600" />
-                <span>Incluído no plano</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">Escolher</span>
-                <span>Escolha entre os add-ons disponíveis</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Comprar</span>
-                <span>Disponível para compra separada</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
