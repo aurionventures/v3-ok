@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
-  getMockOnboardingData,
-  MOCK_COMPANY_PROFILE,
-  MOCK_STRATEGIC_CONTEXT,
-  MOCK_DOCUMENTS,
-  MOCK_ONBOARDING_PROGRESS,
-  MOCK_PHASE1_FORM_DATA,
-  MOCK_PHASE3_FORM_DATA
+  getMockData,
+  mockCompanyProfile as MOCK_COMPANY_PROFILE,
+  mockStrategicContext as MOCK_STRATEGIC_CONTEXT,
+  mockDocuments as MOCK_DOCUMENTS,
+  mockOnboardingProgress as MOCK_ONBOARDING_PROGRESS,
 } from '@/data/mockOnboardingData';
 import type {
   CompanyProfile,
@@ -63,7 +61,7 @@ export function useMockCompanyProfile() {
     refetch: () => {},
     saveProfile,
     isSaving,
-    initialFormData: MOCK_PHASE1_FORM_DATA
+    initialFormData: {} as Phase1FormData
   };
 }
 
@@ -108,7 +106,7 @@ export function useMockStrategicContext() {
     refetch: () => {},
     saveContext,
     isSaving,
-    initialFormData: MOCK_PHASE3_FORM_DATA
+    initialFormData: {} as Phase3FormData
   };
 }
 

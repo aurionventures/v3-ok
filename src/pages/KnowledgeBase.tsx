@@ -1,272 +1,312 @@
+// =====================================================
+// KNOWLEDGE BASE - ONBOARDING WIZARD
+// Pagina principal do sistema de carga inicial de contexto
+// =====================================================
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Database, FileText, Target, CheckCircle, Rocket, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import {
-  Building2,
-  FileText,
-  Target,
-  LayoutDashboard,
-  ArrowLeft
-} from 'lucide-react';
-import {
+  OnboardingDashboard,
   Phase1BasicSetup,
   Phase2DocumentUpload,
-  Phase3StrategicContext,
-  OnboardingDashboard
+  Phase3StrategicContext
 } from '@/components/onboarding';
-import {
-  useCompanyProfile,
-  useStrategicContext,
-  useDocumentLibrary,
-  useOnboardingProgress
-} from '@/hooks/useOnboarding';
-import type { Phase1FormData, Phase3FormData, DocumentCategory } from '@/types/onboarding';
-import legacyLogo from '@/assets/legacy-logo-new.png';
+import { useOnboardingProgress, useCompanyProfile } from '@/hooks/useOnboardingMock';
+import { ONBOARDING_STEPS } from '@/types/onboarding';
 
-type TabValue = 'dashboard' | 'phase-1' | 'phase-2' | 'phase-3';
+type OnboardingStepId = 'welcome' | 'phase-1-basic' | 'phase-2-documents' | 'phase-3-strategic' | 'processing' | 'complete';
 
 export default function KnowledgeBase() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get('tab') as TabValue | null;
-  const [activeTab, setActiveTab] = useState<TabValue>(tabParam || 'dashboard');
+  const [searchParams] = useSearchParams();
+  const { progress, isLoading } = useOnboardingProgress();
+  const { profile } = useCompanyProfile();
+  const [currentStepId, setCurrentStepId] = useState<OnboardingStepId>('welcome');
+  const [processingProgress, setProcessingProgress] = useState(0);
 
-  // Hooks
-  const { profile, saveProfile, isSaving: isSavingProfile } = useCompanyProfile();
-  const { context, saveContext, isSaving: isSavingContext } = useStrategicContext();
-  const {
-    documents,
-    uploadDocument,
-    deleteDocument,
-    isUploading
-  } = useDocumentLibrary();
-  const {
-    progress,
-    score,
-    getNextSteps,
-    initProgress,
-    updatePhase,
-    completeOnboarding,
-    isReadyForUse
-  } = useOnboardingProgress();
-
-  // Initialize progress on mount
+  // Check URL params for direct navigation
   useEffect(() => {
-    initProgress();
-  }, [initProgress]);
+    const tab = searchParams.get('tab');
+    if (tab === 'phase-1') setCurrentStepId('phase-1-basic');
+    else if (tab === 'phase-2') setCurrentStepId('phase-2-documents');
+    else if (tab === 'phase-3') setCurrentStepId('phase-3-strategic');
+    else if (tab === 'dashboard') setCurrentStepId('complete');
+  }, [searchParams]);
 
-  // Sync tab with URL
+  // Determine initial step based on progress
   useEffect(() => {
-    if (tabParam && tabParam !== activeTab) {
-      setActiveTab(tabParam);
+    if (!isLoading && progress) {
+      if (progress.status === 'completed' || progress.overall_score >= 50) {
+        setCurrentStepId('complete');
+      } else if (progress.phase_2_document_upload) {
+        setCurrentStepId('phase-3-strategic');
+      } else if (progress.phase_1_basic_setup) {
+        setCurrentStepId('phase-2-documents');
+      }
     }
-  }, [tabParam]);
+  }, [isLoading, progress]);
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as TabValue);
-    setSearchParams({ tab: value });
+  // Simulate processing
+  useEffect(() => {
+    if (currentStepId === 'processing') {
+      const interval = setInterval(() => {
+        setProcessingProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setCurrentStepId('complete');
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [currentStepId]);
+
+  const currentStepIndex = ONBOARDING_STEPS.findIndex(step => step.id === currentStepId);
+
+  const navigateToPhase = (phase: number) => {
+    if (phase === 1) setCurrentStepId('phase-1-basic');
+    else if (phase === 2) setCurrentStepId('phase-2-documents');
+    else if (phase === 3) setCurrentStepId('phase-3-strategic');
   };
 
-  const navigateToPhase = (phase: 1 | 2 | 3) => {
-    const tabValue = `phase-${phase}` as TabValue;
-    setActiveTab(tabValue);
-    setSearchParams({ tab: tabValue });
-  };
+  const renderWelcomeScreen = () => (
+    <div className="max-w-3xl mx-auto text-center space-y-8 py-12">
+      <div className="space-y-4">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-primary/60 rounded-2xl flex items-center justify-center">
+          <Database className="w-10 h-10 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold">Bem-vindo a Knowledge Base</h1>
+        <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+          Configure sua base de conhecimento em 3 etapas simples para obter o maximo do MOAT Engine.
+        </p>
+      </div>
 
-  // Phase 1 handlers
-  const handlePhase1Complete = async (data: Phase1FormData) => {
-    await saveProfile(data);
-    await updatePhase({ phase: 1, completed: true });
-    navigateToPhase(2);
-  };
-
-  // Phase 2 handlers
-  const handleDocumentUpload = async (
-    file: File,
-    category: DocumentCategory,
-    title: string
-  ) => {
-    await uploadDocument({ file, category, title });
-  };
-
-  const handlePhase2Complete = async () => {
-    await updatePhase({ phase: 2, completed: true });
-    navigateToPhase(3);
-  };
-
-  // Phase 3 handlers
-  const handlePhase3Complete = async (data: Phase3FormData) => {
-    await saveContext(data);
-    await updatePhase({ phase: 3, completed: true });
-    setActiveTab('dashboard');
-    setSearchParams({ tab: 'dashboard' });
-  };
-
-  // Launch MOAT
-  const handleLaunchMOAT = async () => {
-    await completeOnboarding();
-    navigate('/copiloto-governanca');
-  };
-
-  // Map profile to form data
-  const getPhase1InitialData = (): Partial<Phase1FormData> | undefined => {
-    if (!profile) return undefined;
-    return {
-      legalName: profile.legal_name,
-      tradeName: profile.trade_name || '',
-      taxId: profile.tax_id,
-      foundedDate: profile.founded_date || '',
-      companySize: profile.company_size,
-      primarySector: profile.primary_sector,
-      secondarySectors: profile.secondary_sectors || [],
-      industryVertical: profile.industry_vertical || '',
-      headquarters: {
-        country: profile.headquarters_country || 'BR',
-        state: profile.headquarters_state || '',
-        city: profile.headquarters_city || ''
-      },
-      operatingStates: profile.operating_states || [],
-      annualRevenueRange: profile.annual_revenue_range,
-      isPubliclyTraded: profile.is_publicly_traded,
-      stockTicker: profile.stock_ticker || '',
-      ownershipStructure: profile.ownership_structure,
-      numberOfShareholders: profile.number_of_shareholders || 0,
-      productsServices: profile.products_services || [],
-      targetMarkets: profile.target_markets || [],
-      erpSystem: profile.erp_system || '',
-      crmSystem: profile.crm_system || '',
-      biTools: profile.bi_tools || [],
-      availableData: {
-        financial: profile.has_financial_data,
-        operational: profile.has_operational_data,
-        hr: profile.has_hr_data,
-        sales: profile.has_sales_data,
-        compliance: profile.has_compliance_data
-      },
-      certifications: profile.certifications || [],
-      regulatoryBodies: profile.regulatory_bodies || [],
-      complianceFrameworks: profile.compliance_frameworks || []
-    };
-  };
-
-  // Map context to form data
-  const getPhase3InitialData = (): Partial<Phase3FormData> | undefined => {
-    if (!context) return undefined;
-    return {
-      mission: context.mission || '',
-      vision: context.vision || '',
-      values: context.values || [],
-      businessModel: context.business_model || '',
-      competitiveAdvantages: context.competitive_advantages || [],
-      keySuccessFactors: context.key_success_factors || [],
-      strategicObjectives: context.strategic_objectives || [],
-      okrs: context.okrs || [],
-      keyStakeholders: context.key_stakeholders || [],
-      marketPosition: context.market_position,
-      mainCompetitors: context.main_competitors || [],
-      competitiveIntensity: context.competitive_intensity,
-      knownRisks: context.known_risks || [],
-      riskAppetite: context.risk_appetite,
-      esgCommitments: context.esg_commitments || [],
-      sustainabilityGoals: context.sustainability_goals || []
-    };
-  };
-
-  return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-6">
-              <div className="flex items-center gap-4 mb-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold">Base de Conhecimento</h1>
-                  <p className="text-muted-foreground">
-                    Configure o contexto da sua empresa para o AI Engine ter máxima efetividade
-                  </p>
+      <div className="grid md:grid-cols-3 gap-6 py-8">
+        {[
+          {
+            icon: FileText,
+            title: 'Fase 1: Setup Basico',
+            description: 'Informacoes essenciais da empresa',
+            time: '15 min'
+          },
+          {
+            icon: Database,
+            title: 'Fase 2: Documentos',
+            description: 'Upload de documentos historicos',
+            time: '30 min'
+          },
+          {
+            icon: Target,
+            title: 'Fase 3: Estrategia',
+            description: 'Contexto estrategico e objetivos',
+            time: '20 min'
+          }
+        ].map((phase, index) => {
+          const Icon = phase.icon;
+          return (
+            <Card key={index} className="text-left">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{phase.title}</CardTitle>
+                    <CardDescription className="text-xs">{phase.time}</CardDescription>
+                  </div>
                 </div>
-              </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{phase.description}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="space-y-4">
+        <Button size="lg" onClick={() => setCurrentStepId('phase-1-basic')}>
+          Comecar Agora
+          <ChevronRight className="w-5 h-5 ml-2" />
+        </Button>
+        <p className="text-sm text-muted-foreground">
+          Tempo estimado total: ~65 minutos
+        </p>
+      </div>
+
+      {progress?.overall_score && progress.overall_score > 0 && (
+        <Card className="mt-8 max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground mb-2">Progresso anterior detectado</p>
+            <div className="flex items-center gap-4">
+              <Progress value={progress.overall_score} className="flex-1" />
+              <span className="font-bold">{progress.overall_score}%</span>
             </div>
+            <Button variant="link" className="mt-2" onClick={() => setCurrentStepId('complete')}>
+              Ir para Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 
-            {/* Main Content */}
-            <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="dashboard" className="gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </TabsTrigger>
-                <TabsTrigger value="phase-1" className="gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Fase 1
-                </TabsTrigger>
-                <TabsTrigger value="phase-2" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Fase 2
-                </TabsTrigger>
-                <TabsTrigger value="phase-3" className="gap-2">
-                  <Target className="h-4 w-4" />
-                  Fase 3
-                </TabsTrigger>
-              </TabsList>
+  const renderProcessingScreen = () => (
+    <div className="max-w-xl mx-auto text-center space-y-8 py-12">
+      <div className="space-y-4">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center animate-pulse">
+          <Rocket className="w-10 h-10 text-white" />
+        </div>
+        <h1 className="text-2xl font-bold">Processando sua Knowledge Base</h1>
+        <p className="text-muted-foreground">
+          Estamos analisando os dados e preparando o MOAT Engine...
+        </p>
+      </div>
 
-              <TabsContent value="dashboard">
-                <OnboardingDashboard
-                  progress={progress}
-                  score={score}
-                  nextSteps={getNextSteps()}
-                  onNavigateToPhase={navigateToPhase}
-                  onLaunchMOAT={handleLaunchMOAT}
-                  isReadyForUse={isReadyForUse}
-                />
-              </TabsContent>
+      <div className="space-y-2">
+        <Progress value={processingProgress} className="h-3" />
+        <p className="text-sm font-medium">{processingProgress}%</p>
+      </div>
 
-              <TabsContent value="phase-1">
-                <Phase1BasicSetup
-                  initialData={getPhase1InitialData()}
-                  onComplete={handlePhase1Complete}
-                  onBack={() => handleTabChange('dashboard')}
-                  isSaving={isSavingProfile}
-                />
-              </TabsContent>
-
-              <TabsContent value="phase-2">
-                <Phase2DocumentUpload
-                  documents={documents || []}
-                  onUpload={handleDocumentUpload}
-                  onDelete={deleteDocument}
-                  onComplete={handlePhase2Complete}
-                  onBack={() => navigateToPhase(1)}
-                  isUploading={isUploading}
-                />
-              </TabsContent>
-
-              <TabsContent value="phase-3">
-                <Phase3StrategicContext
-                  initialData={getPhase3InitialData()}
-                  onComplete={handlePhase3Complete}
-                  onBack={() => navigateToPhase(2)}
-                  isSaving={isSavingContext}
-                />
-              </TabsContent>
-            </Tabs>
+      <div className="space-y-3 text-left max-w-md mx-auto">
+        {[
+          { text: 'Validando dados basicos', done: processingProgress >= 20 },
+          { text: 'Processando documentos', done: processingProgress >= 40 },
+          { text: 'Extraindo entidades', done: processingProgress >= 60 },
+          { text: 'Gerando embeddings', done: processingProgress >= 80 },
+          { text: 'Configurando MOAT Engine', done: processingProgress >= 100 }
+        ].map((step, index) => (
+          <div key={index} className="flex items-center gap-3">
+            {step.done ? (
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            ) : (
+              <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
+            )}
+            <span className={step.done ? 'text-green-700' : 'text-muted-foreground'}>
+              {step.text}
+            </span>
           </div>
-        </main>
+        ))}
       </div>
     </div>
   );
-}
 
+  const renderContent = () => {
+    switch (currentStepId) {
+      case 'welcome':
+        return renderWelcomeScreen();
+      
+      case 'phase-1-basic':
+        return (
+          <Phase1BasicSetup
+            onComplete={() => setCurrentStepId('phase-2-documents')}
+            onBack={() => setCurrentStepId('welcome')}
+          />
+        );
+      
+      case 'phase-2-documents':
+        return (
+          <Phase2DocumentUpload
+            onComplete={() => setCurrentStepId('phase-3-strategic')}
+            onBack={() => setCurrentStepId('phase-1-basic')}
+          />
+        );
+      
+      case 'phase-3-strategic':
+        return (
+          <Phase3StrategicContext
+            onComplete={() => setCurrentStepId('processing')}
+            onBack={() => setCurrentStepId('phase-2-documents')}
+          />
+        );
+      
+      case 'processing':
+        return renderProcessingScreen();
+      
+      case 'complete':
+        return <OnboardingDashboard onNavigateToPhase={navigateToPhase} />;
+      
+      default:
+        return <OnboardingDashboard onNavigateToPhase={navigateToPhase} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50/50">
+      {/* Header */}
+      <header className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="font-semibold">Knowledge Base</h1>
+                <p className="text-xs text-muted-foreground">
+                  {profile?.trade_name || profile?.legal_name || 'Nova Empresa'}
+                </p>
+              </div>
+            </div>
+
+            {/* Step Indicator */}
+            {currentStepId !== 'welcome' && currentStepId !== 'complete' && (
+              <div className="hidden md:flex items-center gap-2">
+                {ONBOARDING_STEPS.slice(1, 4).map((step, index) => {
+                  const isActive = currentStepIndex === index + 1;
+                  const isPast = currentStepIndex > index + 1;
+                  return (
+                    <div
+                      key={step.id}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground'
+                          : isPast
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {isPast ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full bg-current/20 flex items-center justify-center text-xs">
+                          {index + 1}
+                        </span>
+                      )}
+                      <span className="hidden lg:inline">{step.title.replace('Fase ', '').replace(': ', ': ')}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {currentStepId === 'complete' && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Score:</span>
+                <span className="font-bold text-lg">{progress?.overall_score || 0}</span>
+                <span className="text-sm text-muted-foreground">/100</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-pulse text-muted-foreground">Carregando...</div>
+          </div>
+        ) : (
+          renderContent()
+        )}
+      </main>
+    </div>
+  );
+}

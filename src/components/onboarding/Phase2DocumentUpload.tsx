@@ -1,294 +1,268 @@
+// =====================================================
+// PHASE 2: DOCUMENT UPLOAD
+// Upload e processamento de documentos historicos
+// =====================================================
+
 import { useState, useCallback } from 'react';
+import { ChevronRight, ChevronLeft, Upload, FileText, Check, Clock, AlertCircle, Trash2, Eye, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Upload,
-  FileText,
-  File,
-  Trash2,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  ArrowRight,
-  ArrowLeft,
-  SkipForward,
-  Loader2
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { DocumentLibrary, DocumentCategory } from '@/types/onboarding';
-import { DOCUMENT_ZONES } from '@/types/onboarding';
+import { useToast } from '@/hooks/use-toast';
+import { useDocumentLibrary, useOnboardingProgress } from '@/hooks/useOnboardingMock';
+import { DOCUMENT_ZONES, DocumentCategory, DocumentLibrary } from '@/types/onboarding';
 
 interface Phase2DocumentUploadProps {
-  documents: DocumentLibrary[];
-  onUpload: (file: File, category: DocumentCategory, title: string) => Promise<void>;
-  onDelete: (documentId: string) => Promise<void>;
   onComplete: () => void;
   onBack?: () => void;
-  isUploading?: boolean;
 }
 
-export function Phase2DocumentUpload({
-  documents,
-  onUpload,
-  onDelete,
-  onComplete,
-  onBack,
-  isUploading
-}: Phase2DocumentUploadProps) {
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function getStatusIcon(status: string) {
+  switch (status) {
+    case 'completed':
+      return <Check className="w-4 h-4 text-green-600" />;
+    case 'processing':
+      return <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />;
+    case 'failed':
+      return <AlertCircle className="w-4 h-4 text-red-600" />;
+    default:
+      return <Clock className="w-4 h-4 text-amber-600" />;
+  }
+}
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case 'completed':
+      return 'Processado';
+    case 'processing':
+      return 'Processando...';
+    case 'failed':
+      return 'Erro';
+    default:
+      return 'Pendente';
+  }
+}
+
+export function Phase2DocumentUpload({ onComplete, onBack }: Phase2DocumentUploadProps) {
+  const { documents, uploadDocument, deleteDocument, isUploading, getDocumentsByCategory } = useDocumentLibrary();
+  const { completePhase } = useOnboardingProgress();
+  const { toast } = useToast();
+  const [activeZone, setActiveZone] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
-  const [uploadingCategory, setUploadingCategory] = useState<string | null>(null);
 
-  const documentsByCategory = documents.reduce((acc, doc) => {
-    if (!acc[doc.category]) {
-      acc[doc.category] = [];
-    }
-    acc[doc.category].push(doc);
-    return acc;
-  }, {} as Record<DocumentCategory, DocumentLibrary[]>);
-
-  const handleDragOver = (e: React.DragEvent, category: string) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, category: DocumentCategory) => {
     e.preventDefault();
-    setDragOver(category);
-  };
-
-  const handleDragLeave = () => {
     setDragOver(null);
-  };
-
-  const handleDrop = useCallback(
-    async (e: React.DragEvent, category: DocumentCategory) => {
-      e.preventDefault();
-      setDragOver(null);
-      setUploadingCategory(category);
-
-      const files = Array.from(e.dataTransfer.files);
-      for (const file of files) {
-        await onUpload(file, category, file.name.replace(/\.[^/.]+$/, ''));
+    
+    const files = Array.from(e.dataTransfer.files);
+    
+    for (const file of files) {
+      if (file.type === 'application/pdf' || file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+        await uploadDocument(file, category, { title: file.name });
+        toast({
+          title: 'Documento enviado',
+          description: `${file.name} esta sendo processado.`
+        });
+      } else {
+        toast({
+          title: 'Formato nao suportado',
+          description: 'Por favor, envie apenas arquivos PDF ou Word.',
+          variant: 'destructive'
+        });
       }
-
-      setUploadingCategory(null);
-    },
-    [onUpload]
-  );
-
-  const handleFileSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>, category: DocumentCategory) => {
-      const files = Array.from(e.target.files || []);
-      if (files.length === 0) return;
-
-      setUploadingCategory(category);
-
-      for (const file of files) {
-        await onUpload(file, category, file.name.replace(/\.[^/.]+$/, ''));
-      }
-
-      setUploadingCategory(null);
-      e.target.value = '';
-    },
-    [onUpload]
-  );
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <Badge variant="default" className="bg-green-500">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Processado
-          </Badge>
-        );
-      case 'processing':
-        return (
-          <Badge variant="secondary">
-            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            Processando
-          </Badge>
-        );
-      case 'pending':
-        return (
-          <Badge variant="outline">
-            <Clock className="mr-1 h-3 w-3" />
-            Pendente
-          </Badge>
-        );
-      case 'failed':
-        return (
-          <Badge variant="destructive">
-            <AlertCircle className="mr-1 h-3 w-3" />
-            Falhou
-          </Badge>
-        );
-      default:
-        return null;
     }
-  };
+  }, [uploadDocument, toast]);
 
-  const getFileIcon = (fileType?: string) => {
-    if (fileType === 'pdf') {
-      return <FileText className="h-5 w-5 text-red-500" />;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: DocumentCategory) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      await uploadDocument(file, category, { title: file.name });
+      toast({
+        title: 'Documento enviado',
+        description: `${file.name} esta sendo processado.`
+      });
     }
-    return <File className="h-5 w-5 text-blue-500" />;
+    
+    e.target.value = '';
   };
 
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const handleComplete = async () => {
+    await completePhase(2);
+    toast({
+      title: 'Fase 2 concluida!',
+      description: `${documents.length} documentos carregados.`
+    });
+    onComplete();
   };
 
-  const totalDocuments = documents.length;
-  const processedDocuments = documents.filter(d => d.processing_status === 'completed').length;
-  const progress = totalDocuments > 0 ? (processedDocuments / totalDocuments) * 100 : 0;
-
-  const hasMinimumDocuments = () => {
-    const governanceDocs = documentsByCategory['governance']?.length || 0;
-    const minutesDocs = documentsByCategory['minutes']?.length || 0;
-    return governanceDocs >= 1 || minutesDocs >= 1;
-  };
+  const processedCount = documents.filter(d => d.processing_status === 'completed').length;
+  const pendingCount = documents.filter(d => d.processing_status === 'pending' || d.processing_status === 'processing').length;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header Stats */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Documentos Enviados</h3>
-              <p className="text-sm text-muted-foreground">
-                {totalDocuments} documentos | {processedDocuments} processados
-              </p>
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Documentos</p>
+                <p className="text-3xl font-bold">{documents.length}</p>
+              </div>
+              <FileText className="w-8 h-8 text-slate-400" />
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-primary">{Math.round(progress)}%</div>
-              <p className="text-sm text-muted-foreground">Processamento</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Processados</p>
+                <p className="text-3xl font-bold text-green-600">{processedCount}</p>
+              </div>
+              <Check className="w-8 h-8 text-green-400" />
             </div>
-          </div>
-          <Progress value={progress} className="mt-4 h-2" />
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Em Processamento</p>
+                <p className="text-3xl font-bold text-amber-600">{pendingCount}</p>
+              </div>
+              <Clock className="w-8 h-8 text-amber-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Upload Zones */}
-      <div className="space-y-4">
+      <div className="grid md:grid-cols-2 gap-6">
         {DOCUMENT_ZONES.map((zone) => {
-          const categoryDocs = documentsByCategory[zone.category] || [];
-          const isUploading = uploadingCategory === zone.category;
+          const categoryDocs = getDocumentsByCategory(zone.category);
+          const isActive = activeZone === zone.category;
           const isDragOver = dragOver === zone.category;
 
           return (
-            <Card key={zone.category}>
-              <CardHeader>
+            <Card
+              key={zone.category}
+              className={`transition-all ${
+                isDragOver ? 'ring-2 ring-primary border-primary bg-primary/5' : ''
+              } ${zone.required ? 'border-l-4 border-l-amber-400' : ''}`}
+            >
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {zone.title}
-                      {zone.required && (
-                        <Badge variant="destructive" className="text-xs">
-                          Obrigatorio
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <CardDescription>{zone.description}</CardDescription>
-                  </div>
-                  <Badge variant="outline">
-                    {categoryDocs.length}{' '}
-                    {zone.maxFiles ? `/ ${zone.maxFiles}` : ''} arquivos
-                  </Badge>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {zone.title}
+                    {zone.required && (
+                      <Badge variant="outline" className="text-amber-600 border-amber-400">
+                        Recomendado
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <Badge variant="secondary">{categoryDocs.length} arquivos</Badge>
                 </div>
+                <CardDescription className="text-xs">
+                  {zone.description}
+                </CardDescription>
               </CardHeader>
+              
               <CardContent className="space-y-4">
                 {/* Drop Zone */}
                 <div
-                  onDragOver={(e) => handleDragOver(e, zone.category)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, zone.category)}
-                  className={cn(
-                    'relative rounded-lg border-2 border-dashed p-6 text-center transition-all',
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
                     isDragOver
-                      ? 'border-primary bg-primary/5'
-                      : 'border-muted-foreground/25 hover:border-primary/50',
-                    isUploading && 'pointer-events-none opacity-50'
-                  )}
+                      ? 'border-primary bg-primary/10'
+                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(zone.category);
+                  }}
+                  onDragLeave={() => setDragOver(null)}
+                  onDrop={(e) => handleDrop(e, zone.category)}
+                  onClick={() => document.getElementById(`file-${zone.category}`)?.click()}
                 >
-                  {isUploading ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">
-                        Enviando...
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Arraste arquivos aqui ou{' '}
-                        <Label
-                          htmlFor={`upload-${zone.category}`}
-                          className="cursor-pointer text-primary hover:underline"
-                        >
-                          clique para selecionar
-                        </Label>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        PDF, DOCX, XLSX (max 10MB por arquivo)
-                      </p>
-                      <Input
-                        id={`upload-${zone.category}`}
-                        type="file"
-                        multiple
-                        accept=".pdf,.docx,.xlsx,.doc,.xls"
-                        className="hidden"
-                        onChange={(e) => handleFileSelect(e, zone.category)}
-                      />
-                    </>
-                  )}
+                  <input
+                    id={`file-${zone.category}`}
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e, zone.category)}
+                  />
+                  <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragOver ? 'text-primary' : 'text-slate-400'}`} />
+                  <p className="text-sm font-medium">
+                    {isDragOver ? 'Solte os arquivos aqui' : 'Arraste ou clique para enviar'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    PDF, Word (max. 10MB cada)
+                  </p>
                 </div>
 
                 {/* Examples */}
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Exemplos de documentos:
-                  </p>
-                  <ul className="mt-1 text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
+                  <p className="font-medium mb-1">Exemplos:</p>
+                  <ul className="list-disc list-inside space-y-0.5">
                     {zone.examples.slice(0, 3).map((example, i) => (
-                      <li key={i}>- {example}</li>
+                      <li key={i}>{example}</li>
                     ))}
                   </ul>
                 </div>
 
-                {/* Uploaded Documents */}
+                {/* Uploaded Files */}
                 {categoryDocs.length > 0 && (
                   <div className="space-y-2">
-                    {categoryDocs.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="flex items-center justify-between rounded-lg border bg-background p-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          {getFileIcon(doc.file_type)}
-                          <div>
-                            <p className="text-sm font-medium">{doc.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatFileSize(doc.file_size)} | {doc.file_type?.toUpperCase()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(doc.processing_status)}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onDelete(doc.id)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-between"
+                      onClick={() => setActiveZone(isActive ? null : zone.category)}
+                    >
+                      Ver arquivos ({categoryDocs.length})
+                      <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? 'rotate-90' : ''}`} />
+                    </Button>
+                    
+                    {isActive && (
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {categoryDocs.map((doc) => (
+                          <div
+                            key={doc.id}
+                            className="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-sm"
                           >
-                            <Trash2 className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </div>
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {getStatusIcon(doc.processing_status)}
+                              <span className="truncate">{doc.title}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">
+                                {doc.file_size ? formatFileSize(doc.file_size) : ''}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => deleteDocument(doc.id)}
+                              >
+                                <Trash2 className="w-3 h-3 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -297,45 +271,79 @@ export function Phase2DocumentUpload({
         })}
       </div>
 
-      {/* Skip Option */}
-      <Card className="bg-muted/30">
-        <CardContent className="py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Nao tem documentos agora?</p>
-              <p className="text-xs text-muted-foreground">
-                Voce pode adicionar documentos depois em Configuracoes
-              </p>
+      {/* All Documents Table */}
+      {documents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Todos os Documentos</CardTitle>
+            <CardDescription>
+              Status de processamento de todos os documentos enviados
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="font-medium text-sm">{doc.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {doc.category} • {doc.file_size ? formatFileSize(doc.file_size) : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Badge
+                      variant={doc.processing_status === 'completed' ? 'default' : 'secondary'}
+                      className={doc.processing_status === 'completed' ? 'bg-green-600' : ''}
+                    >
+                      {getStatusIcon(doc.processing_status)}
+                      <span className="ml-1">{getStatusLabel(doc.processing_status)}</span>
+                    </Badge>
+                    {doc.processing_status === 'completed' && doc.topics && (
+                      <div className="hidden md:flex gap-1">
+                        {doc.topics.slice(0, 2).map((topic, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-            <Button variant="ghost" size="sm" onClick={onComplete}>
-              <SkipForward className="mr-2 h-4 w-4" />
-              Pular esta etapa
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Navigation */}
-      <div className="flex justify-between">
+      <div className="flex items-center justify-between">
         <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ChevronLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
-        <Button onClick={onComplete} disabled={isUploading}>
-          {hasMinimumDocuments() ? (
-            <>
-              Concluir Fase 2
-              <CheckCircle className="ml-2 h-4 w-4" />
-            </>
-          ) : (
-            <>
-              Proxima Fase
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
+        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {pendingCount > 0 && (
+            <span className="flex items-center gap-1">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Processando {pendingCount} documento(s)...
+            </span>
           )}
+        </div>
+
+        <Button onClick={handleComplete}>
+          {documents.length === 0 ? 'Pular esta etapa' : 'Continuar'}
+          <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
     </div>
   );
 }
 
+export default Phase2DocumentUpload;

@@ -190,7 +190,7 @@ export const COMPARISON_FEATURES = [
   { categoria: 'AI Engine', nome: 'Inteligência de Mercado', essencial: false, profissional: false, business: true, enterprise: true },
   
   // Limites
-  { categoria: 'Limites', nome: 'Empresas', essencial: '1', profissional: 'Até 5', business: 'Até 15', enterprise: 'Ilimitadas' },
+  { categoria: 'Limites', nome: 'Empresas (por CNPJ)', essencial: '1 Empresa', profissional: '1 Empresa', business: '1 Empresa', enterprise: '1 Empresa' },
   { categoria: 'Limites', nome: 'Usuários', essencial: 'Ilimitados', profissional: 'Ilimitados', business: 'Ilimitados', enterprise: 'Ilimitados' },
   { categoria: 'Limites', nome: 'Armazenamento', essencial: '10 GB', profissional: '50 GB', business: '200 GB', enterprise: 'Ilimitado' },
   { categoria: 'Limites', nome: 'Add-ons Inclusos', essencial: '0', profissional: '3', business: '6', enterprise: 'Todos (9)' },

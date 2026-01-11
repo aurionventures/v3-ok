@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -25,7 +25,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   Calculator,
@@ -456,89 +455,87 @@ export default function Pricing() {
           </div>
 
           <div className="max-w-6xl mx-auto overflow-x-auto">
-            <Tabs defaultValue="Core">
-              <TabsList className="mb-6 flex flex-wrap justify-center gap-2">
-                {['Core', 'AI Engine', 'Limites', 'Suporte', 'Segurança'].map(
-                  (cat) => (
-                    <TabsTrigger key={cat} value={cat}>
-                      {cat}
-                    </TabsTrigger>
-                  )
-                )}
-              </TabsList>
-
-              {['Core', 'AI Engine', 'Limites', 'Suporte', 'Segurança'].map(
-                (categoria) => (
-                  <TabsContent key={categoria} value={categoria}>
-                    <Card>
-                      <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead className="bg-muted/50">
-                              <tr>
-                                <th className="text-left p-4 font-medium">
-                                  Funcionalidade
-                                </th>
-                                {PLANS.map((plan) => (
-                                  <th
-                                    key={plan.id}
-                                    className={`text-center p-4 font-medium ${
-                                      plan.isPopular
-                                        ? 'bg-accent/10'
-                                        : ''
-                                    }`}
-                                  >
-                                    {plan.nome}
-                                    {plan.isPopular && (
-                                      <Badge
-                                        variant="secondary"
-                                        className="ml-2 text-xs"
-                                      >
-                                        Popular
-                                      </Badge>
-                                    )}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {COMPARISON_FEATURES.filter(
-                                (f) => f.categoria === categoria
-                              ).map((feature, idx) => (
-                                <tr
-                                  key={idx}
-                                  className="border-t hover:bg-muted/20"
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50 sticky top-0">
+                      <tr>
+                        <th className="text-left p-4 font-medium min-w-[200px]">
+                          Funcionalidade
+                        </th>
+                        {PLANS.map((plan) => (
+                          <th
+                            key={plan.id}
+                            className={`text-center p-4 font-medium min-w-[120px] ${
+                              plan.isPopular ? 'bg-accent/10' : ''
+                            }`}
+                          >
+                            {plan.nome}
+                            {plan.isPopular && (
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 text-xs"
+                              >
+                                Popular
+                              </Badge>
+                            )}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {['Core', 'AI Engine', 'Limites', 'Suporte', 'Segurança'].map(
+                        (categoria) => (
+                          <React.Fragment key={categoria}>
+                            {/* Categoria Header */}
+                            <tr
+                              className="bg-muted/30 border-t-2 border-primary/20"
+                            >
+                              <td
+                                colSpan={5}
+                                className="p-3 font-semibold text-sm text-primary uppercase tracking-wide"
+                              >
+                                {categoria}
+                              </td>
+                            </tr>
+                            {/* Features da categoria */}
+                            {COMPARISON_FEATURES.filter(
+                              (f) => f.categoria === categoria
+                            ).map((feature, idx) => (
+                              <tr
+                                key={`${categoria}-${idx}`}
+                                className="border-t hover:bg-muted/20"
+                              >
+                                <td className="p-4 text-sm">
+                                  {feature.nome}
+                                </td>
+                                <td className="p-4 text-center">
+                                  {renderFeatureValue(feature.essencial)}
+                                </td>
+                                <td
+                                  className={`p-4 text-center ${
+                                    PLANS[1].isPopular ? 'bg-accent/5' : ''
+                                  }`}
                                 >
-                                  <td className="p-4 text-sm">
-                                    {feature.nome}
-                                  </td>
-                                  <td className="p-4 text-center">
-                                    {renderFeatureValue(feature.essencial)}
-                                  </td>
-                                  <td
-                                    className={`p-4 text-center ${
-                                      PLANS[1].isPopular ? 'bg-accent/5' : ''
-                                    }`}
-                                  >
-                                    {renderFeatureValue(feature.profissional)}
-                                  </td>
-                                  <td className="p-4 text-center">
-                                    {renderFeatureValue(feature.business)}
-                                  </td>
-                                  <td className="p-4 text-center">
-                                    {renderFeatureValue(feature.enterprise)}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                )
-              )}
-            </Tabs>
+                                  {renderFeatureValue(feature.profissional)}
+                                </td>
+                                <td className="p-4 text-center">
+                                  {renderFeatureValue(feature.business)}
+                                </td>
+                                <td className="p-4 text-center">
+                                  {renderFeatureValue(feature.enterprise)}
+                                </td>
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

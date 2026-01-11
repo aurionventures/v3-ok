@@ -35,7 +35,7 @@ export type GovernancePlan = 'core' | 'governance_plus' | 'people_esg' | 'legacy
 
 // Chaves de todos os módulos
 export type ModuleKey =
-  | 'dashboard' | 'settings' | 'start'
+  | 'dashboard' | 'settings' | 'start' | 'knowledge_base'
   | 'structure' | 'cap_table' | 'gov_maturity' | 'legacy_rituals'
   | 'checklist' | 'interviews' | 'analysis_actions'
   | 'gov_config' | 'annual_agenda' | 'secretariat' | 'councils'

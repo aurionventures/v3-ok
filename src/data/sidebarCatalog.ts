@@ -2,7 +2,7 @@ import { LucideIcon } from "lucide-react";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, BookText, 
-  Brain, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award, Bot, Calculator
+  Brain, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award, Database
 } from "lucide-react";
 import { ModuleKey } from "@/types/organization";
 
@@ -27,18 +27,7 @@ export interface SidebarSection {
 }
 
 // Descrições de módulos para o UpgradeModal
-export const MODULE_DESCRIPTIONS: Record<string, { 
-  description: string; 
-  benefits: string[];
-  pricing?: {
-    monthly: number;
-    annual: number;
-    annualMonthly: number;
-    discount: number;
-    savingsMonths: number;
-  };
-  valueProposition?: string;
-}> = {
+export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits: string[] }> = {
   dashboard: {
     description: 'Painel central com visão geral de todos os indicadores de governança.',
     benefits: ['Métricas em tempo real', 'Alertas de pendências', 'Visão consolidada da governança']
@@ -127,30 +116,9 @@ export const MODULE_DESCRIPTIONS: Record<string, {
     description: 'Copiloto de Governança com IA preditiva para decisões estratégicas.',
     benefits: ['Análise preditiva de riscos', 'Identificação de oportunidades', 'Histórico de tendências', 'Ações recomendadas navegáveis']
   },
-  ai_agents: {
-    description: 'Agentes de IA especializados do MOAT Engine.',
-    benefits: ['Agent A: Sinais Externos', 'Agent B: Memória de Governança', 'Agent C: Priorização Inteligente', 'Agent D: Geração de Pautas']
-  },
-  scenario_simulator: {
-    description: 'Simule cenários estratégicos e teste decisões antes de implementá-las no mundo real.',
-    benefits: [
-      'Simulações Monte Carlo para análise de riscos',
-      'Modelagem What-If com múltiplas variáveis',
-      'Árvores de Decisão interativas',
-      'Análise de Sensibilidade automatizada',
-      'Cenários Pré-configurados (otimista, realista, pessimista)',
-      'Visualizações 3D de impactos multi-dimensionais',
-      'Comparação Lado-a-Lado de alternativas estratégicas',
-      'Integração com Dados Reais (financeiros, operacionais, mercado)'
-    ],
-    pricing: {
-      monthly: 697.00,
-      annual: 6970.00,
-      annualMonthly: 581.67,
-      discount: 16.7,
-      savingsMonths: 2
-    },
-    valueProposition: 'Tome decisões estratégicas com confiança, testando cenários e seus impactos antes de implementá-los. Simule fusões, expansões, cortes de custos e mudanças de mercado para visualizar impactos financeiros, operacionais e competitivos antes de comprometer recursos.'
+  knowledge_base: {
+    description: 'Base de conhecimento e onboarding para configuração do MOAT Engine.',
+    benefits: ['Setup inicial da empresa', 'Upload de documentos históricos', 'Contexto estratégico', 'Knowledge Base Score']
   }
 };
 
@@ -162,17 +130,18 @@ export const BASE_SECTIONS: SidebarSection[] = [
     key: 'inicio',
     label: 'INÍCIO',
     icon: Target,
-    color: 'text-sidebar-foreground/70',
+    color: 'text-blue-400',
     isBase: true,
     items: [
       { key: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { key: 'knowledge_base', label: 'Knowledge Base', path: '/knowledge-base', icon: Database },
     ]
   },
   {
     key: 'parametrizacao',
     label: 'PARAMETRIZAÇÃO',
     icon: Zap,
-    color: 'text-sidebar-foreground/70',
+    color: 'text-green-400',
     isBase: true,
     items: [
       { key: 'structure', label: 'Estrutura Societária', path: '/shareholder-structure', icon: Users },
@@ -184,7 +153,7 @@ export const BASE_SECTIONS: SidebarSection[] = [
     key: 'preparacao',
     label: 'PREPARAÇÃO',
     icon: BookOpen,
-    color: 'text-sidebar-foreground/70',
+    color: 'text-blue-400',
     isBase: true,
     items: [
       { key: 'checklist', label: 'Checklist', path: '/document-checklist', icon: FileText },
@@ -196,7 +165,7 @@ export const BASE_SECTIONS: SidebarSection[] = [
     key: 'estruturacao',
     label: 'ESTRUTURAÇÃO',
     icon: Shield,
-    color: 'text-sidebar-foreground/70',
+    color: 'text-purple-400',
     isBase: true,
     items: [
       { key: 'gov_config', label: 'Config. Governança', path: '/governance-config', icon: Shield },
@@ -207,22 +176,7 @@ export const BASE_SECTIONS: SidebarSection[] = [
 ];
 
 // ==========================================
-// ADD-ONS FLAT LIST (para exibição simples)
-// ==========================================
-export const ADDON_ITEMS: SidebarItem[] = [
-  { key: 'project_submission', label: 'Submeter Projetos', path: '/submit-projects', icon: Send, isAddon: true },
-  { key: 'leadership_performance', label: 'Desenvolvimento e PDI', path: '/people-management', icon: Users, isAddon: true },
-  { key: 'board_performance', label: 'Desempenho do Conselho', path: '/board-performance', icon: Award, isAddon: true },
-  { key: 'risks', label: 'Riscos', path: '/governance-risk-management', icon: Shield, isAddon: true },
-  { key: 'esg_maturity', label: 'Maturidade ESG', path: '/esg', icon: Leaf, isAddon: true },
-  { key: 'market_intel', label: 'Inteligência de Mercado', path: '/market-intelligence', icon: TrendingUp, isAddon: true },
-  { key: 'benchmarking', label: 'Benchmarking Global', path: '/benchmarking', icon: BarChart3, isAddon: true },
-  { key: 'ai_agents', label: 'Agentes de IA', path: '/ai-agents', icon: Bot, isAddon: true },
-  { key: 'scenario_simulator', label: 'Simulador de Cenários', path: '/simulador-cenarios', icon: Calculator, isAddon: true },
-];
-
-// ==========================================
-// SEÇÕES ADD-ON (mantido para compatibilidade)
+// SEÇÕES ADD-ON (módulos pagos separadamente)
 // ==========================================
 export const ADDON_SECTIONS: SidebarSection[] = [
   {
