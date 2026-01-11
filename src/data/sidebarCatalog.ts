@@ -2,7 +2,7 @@ import { LucideIcon } from "lucide-react";
 import { 
   ActivitySquare, BarChart3, Calendar, FileText, LayoutDashboard, 
   Leaf, Settings, Shield, Users, BookText, 
-  Brain, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award, Bot
+  Brain, Send, TrendingUp, Target, Zap, BookOpen, AlertCircle, Award, Bot, Calculator
 } from "lucide-react";
 import { ModuleKey } from "@/types/organization";
 
@@ -27,7 +27,18 @@ export interface SidebarSection {
 }
 
 // Descrições de módulos para o UpgradeModal
-export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits: string[] }> = {
+export const MODULE_DESCRIPTIONS: Record<string, { 
+  description: string; 
+  benefits: string[];
+  pricing?: {
+    monthly: number;
+    annual: number;
+    annualMonthly: number;
+    discount: number;
+    savingsMonths: number;
+  };
+  valueProposition?: string;
+}> = {
   dashboard: {
     description: 'Painel central com visão geral de todos os indicadores de governança.',
     benefits: ['Métricas em tempo real', 'Alertas de pendências', 'Visão consolidada da governança']
@@ -119,6 +130,27 @@ export const MODULE_DESCRIPTIONS: Record<string, { description: string; benefits
   ai_agents: {
     description: 'Agentes de IA especializados do MOAT Engine.',
     benefits: ['Agent A: Sinais Externos', 'Agent B: Memória de Governança', 'Agent C: Priorização Inteligente', 'Agent D: Geração de Pautas']
+  },
+  scenario_simulator: {
+    description: 'Simule cenários estratégicos e teste decisões antes de implementá-las no mundo real.',
+    benefits: [
+      'Simulações Monte Carlo para análise de riscos',
+      'Modelagem What-If com múltiplas variáveis',
+      'Árvores de Decisão interativas',
+      'Análise de Sensibilidade automatizada',
+      'Cenários Pré-configurados (otimista, realista, pessimista)',
+      'Visualizações 3D de impactos multi-dimensionais',
+      'Comparação Lado-a-Lado de alternativas estratégicas',
+      'Integração com Dados Reais (financeiros, operacionais, mercado)'
+    ],
+    pricing: {
+      monthly: 697.00,
+      annual: 6970.00,
+      annualMonthly: 581.67,
+      discount: 16.7,
+      savingsMonths: 2
+    },
+    valueProposition: 'Tome decisões estratégicas com confiança, testando cenários e seus impactos antes de implementá-los. Simule fusões, expansões, cortes de custos e mudanças de mercado para visualizar impactos financeiros, operacionais e competitivos antes de comprometer recursos.'
   }
 };
 
@@ -186,6 +218,7 @@ export const ADDON_ITEMS: SidebarItem[] = [
   { key: 'market_intel', label: 'Inteligência de Mercado', path: '/market-intelligence', icon: TrendingUp, isAddon: true },
   { key: 'benchmarking', label: 'Benchmarking Global', path: '/benchmarking', icon: BarChart3, isAddon: true },
   { key: 'ai_agents', label: 'Agentes de IA', path: '/ai-agents', icon: Bot, isAddon: true },
+  { key: 'scenario_simulator', label: 'Simulador de Cenários', path: '/simulador-cenarios', icon: Calculator, isAddon: true },
 ];
 
 // ==========================================
