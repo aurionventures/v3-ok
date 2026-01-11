@@ -35,6 +35,7 @@ export interface PlanPricingMatrix {
   plan_id: string;
   monthly_price: number;
   annual_price: number;
+  setup_fee: number;
   is_active: boolean;
   is_recommended: boolean;
 }
@@ -79,10 +80,10 @@ const INITIAL_SIZES: CompanySize[] = [
 ];
 
 const INITIAL_PLANS: SubscriptionPlan[] = [
-  { id: "1", key: "essencial", name: "Essencial", description: "Plano básico", max_companies: 1, max_councils: 1, max_users: 10, included_addons: 0, features: ["13 módulos core", "1 empresa", "10 usuários"], order_index: 1, is_active: true },
-  { id: "2", key: "profissional", name: "Profissional", description: "Para crescimento", max_companies: 3, max_councils: 3, max_users: 0, included_addons: 3, features: ["13 módulos core", "3 empresas", "3 add-ons"], order_index: 2, is_active: true },
-  { id: "3", key: "business", name: "Business", description: "Médias empresas", max_companies: 10, max_councils: 10, max_users: 0, included_addons: 6, features: ["13 módulos core", "10 empresas", "6 add-ons"], order_index: 3, is_active: true },
-  { id: "4", key: "enterprise", name: "Enterprise", description: "Solução completa", max_companies: 0, max_councils: 0, max_users: 0, included_addons: 9, features: ["Tudo ilimitado", "9 add-ons"], order_index: 4, is_active: true },
+  { id: "1", key: "essencial", name: "Essencial", description: "Plano básico", max_companies: 1, max_councils: 1, max_users: 0, included_addons: 0, features: ["13 módulos core", "1 empresa", "Usuários ilimitados"], order_index: 1, is_active: true },
+  { id: "2", key: "profissional", name: "Profissional", description: "Para crescimento", max_companies: 1, max_councils: 3, max_users: 0, included_addons: 2, features: ["13 módulos core", "1 empresa", "Usuários ilimitados", "2 add-ons"], order_index: 2, is_active: true },
+  { id: "3", key: "business", name: "Business", description: "Médias empresas", max_companies: 1, max_councils: 10, max_users: 0, included_addons: 3, features: ["13 módulos core", "1 empresa", "Usuários ilimitados", "3 add-ons"], order_index: 3, is_active: true },
+  { id: "4", key: "enterprise", name: "Enterprise", description: "Solução completa", max_companies: 1, max_councils: 0, max_users: 0, included_addons: 6, features: ["13 módulos core", "1 empresa", "Usuários ilimitados", "6 add-ons"], order_index: 4, is_active: true },
 ];
 
 const INITIAL_ADDONS: AddonCatalog[] = [
@@ -113,26 +114,53 @@ const INITIAL_MODULES: Module[] = [
   { id: "13", key: "conselhos", name: "Conselhos", description: "Reuniões e deliberações", icon: "Users", section: "estruturacao", section_label: "ESTRUTURAÇÃO", path: "/reunioes", is_core: true, is_addon: false, order_index: 13, is_active: true },
 ];
 
-// Generate initial pricing matrix
+// Generate initial pricing matrix - PRD v3.0 (Novo Mínimo R$ 2.997/mês)
 function generatePricingMatrix(): PlanPricingMatrix[] {
   const matrix: PlanPricingMatrix[] = [];
-  const prices: Record<string, Record<string, { monthly: number; annual: number }>> = {
-    smb_plus: { essencial: { monthly: 997, annual: 9970 }, profissional: { monthly: 2997, annual: 29970 }, business: { monthly: 6997, annual: 69970 }, enterprise: { monthly: 15000, annual: 150000 } },
-    mid_market: { essencial: { monthly: 997, annual: 9970 }, profissional: { monthly: 2997, annual: 29970 }, business: { monthly: 6997, annual: 69970 }, enterprise: { monthly: 15000, annual: 150000 } },
-    large: { essencial: { monthly: 1497, annual: 14970 }, profissional: { monthly: 3997, annual: 39970 }, business: { monthly: 8997, annual: 89970 }, enterprise: { monthly: 20000, annual: 200000 } },
-    enterprise: { essencial: { monthly: 1997, annual: 19970 }, profissional: { monthly: 4997, annual: 49970 }, business: { monthly: 9997, annual: 99970 }, enterprise: { monthly: 25000, annual: 250000 } },
+  
+  // Matriz completa: Porte × Plano com preços mensais, anuais e setup fee
+  const prices: Record<string, Record<string, { monthly: number; annual: number; setup: number }>> = {
+    // SMB+ (R$ 50M - R$ 300M/ano)
+    smb_plus: { 
+      essencial: { monthly: 2997, annual: 29970, setup: 2997 }, 
+      profissional: { monthly: 5997, annual: 59970, setup: 4497 }, 
+      business: { monthly: 11997, annual: 119970, setup: 5997 }, 
+      enterprise: { monthly: 25000, annual: 250000, setup: 9997 } 
+    },
+    // Mid-Market (R$ 300M - R$ 1B/ano)
+    mid_market: { 
+      essencial: { monthly: 4997, annual: 49970, setup: 4997 }, 
+      profissional: { monthly: 9997, annual: 99970, setup: 7497 }, 
+      business: { monthly: 19997, annual: 199970, setup: 11997 }, 
+      enterprise: { monthly: 40000, annual: 400000, setup: 19997 } 
+    },
+    // Large (R$ 1B - R$ 5B/ano)
+    large: { 
+      essencial: { monthly: 7997, annual: 79970, setup: 7997 }, 
+      profissional: { monthly: 14997, annual: 149970, setup: 11997 }, 
+      business: { monthly: 29997, annual: 299970, setup: 19997 }, 
+      enterprise: { monthly: 60000, annual: 600000, setup: 34997 } 
+    },
+    // Enterprise (R$ 5B+ ou Listada B3)
+    enterprise: { 
+      essencial: { monthly: 12997, annual: 129970, setup: 12997 }, 
+      profissional: { monthly: 24997, annual: 249970, setup: 19997 }, 
+      business: { monthly: 49997, annual: 499970, setup: 34997 }, 
+      enterprise: { monthly: 100000, annual: 1000000, setup: 59997 } 
+    },
   };
 
   let id = 1;
   INITIAL_SIZES.forEach((size) => {
     INITIAL_PLANS.forEach((plan) => {
-      const price = prices[size.key]?.[plan.key] || { monthly: 997, annual: 9970 };
+      const price = prices[size.key]?.[plan.key] || { monthly: 2997, annual: 29970, setup: 2997 };
       matrix.push({
         id: String(id++),
         company_size_id: size.id,
         plan_id: plan.id,
         monthly_price: price.monthly,
         annual_price: price.annual,
+        setup_fee: price.setup,
         is_active: true,
         is_recommended: plan.key === "profissional" && (size.key === "smb_plus" || size.key === "mid_market"),
       });

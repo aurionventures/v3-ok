@@ -99,7 +99,7 @@ const ADMIN_MENU_ITEMS = [
   { icon: Layers, href: "/admin/addons", name: "Add-ons" },
   { icon: TrendingUp, href: "/admin/vendas", name: "Vendas & Ativações" },
   { icon: DollarSign, href: "/admin/finances", name: "Financeiro" },
-  { icon: Bot, href: "/admin/prompts", name: "Configurador de IA" },
+  { icon: Bot, href: "/admin/prompts", name: "AI Engine" },
   { icon: ScrollText, href: "/admin/auditoria", name: "Auditoria" },
   { icon: Shield, href: "/admin/seguranca", name: "Segurança" },
   { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },

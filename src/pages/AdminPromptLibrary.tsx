@@ -9,44 +9,87 @@ import {
   Circle,
   CheckCircle2,
   AlertCircle,
-  Archive
+  Archive,
+  Sparkles,
+  Cpu,
+  Zap,
+  FileText,
+  Settings2,
+  Play,
+  Copy,
+  MoreVertical,
+  Eye,
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { PromptDetailView } from '@/components/admin/PromptDetailView';
 import { PromptEditor } from '@/components/admin/PromptEditor';
 import { usePrompts } from '@/hooks/usePrompts';
 
-// Category configuration
+// Agent configuration with enhanced metadata
 const AGENT_CATEGORIES = [
   { 
+    id: 'agent_a',
     agent: 'Agent A', 
     label: 'Coleta & Classificação',
+    description: 'Coleta sinais externos e classifica informações relevantes',
     categories: ['agent_a_collector', 'agent_a_classifier'],
-    color: 'bg-blue-500'
+    color: 'bg-blue-500',
+    textColor: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+    borderColor: 'border-blue-500/30',
+    icon: Sparkles
   },
   { 
+    id: 'agent_b',
     agent: 'Agent B', 
     label: 'Análise & Padrões',
+    description: 'Analisa dados e detecta padrões de governança',
     categories: ['agent_b_analyzer', 'agent_b_pattern_detector'],
-    color: 'bg-purple-500'
+    color: 'bg-purple-500',
+    textColor: 'text-purple-500',
+    bgColor: 'bg-purple-500/10',
+    borderColor: 'border-purple-500/30',
+    icon: Cpu
   },
   { 
+    id: 'agent_c',
     agent: 'Agent C', 
     label: 'Scoring & Priorização',
+    description: 'Pontua e prioriza itens para a agenda',
     categories: ['agent_c_scorer', 'agent_c_prioritizer'],
-    color: 'bg-green-500'
+    color: 'bg-green-500',
+    textColor: 'text-green-500',
+    bgColor: 'bg-green-500/10',
+    borderColor: 'border-green-500/30',
+    icon: Zap
   },
   { 
+    id: 'agent_d',
     agent: 'Agent D', 
     label: 'Geração de Conteúdo',
+    description: 'Gera pautas, briefings e documentos',
     categories: ['agent_d_agenda_generator', 'agent_d_briefing_generator'],
-    color: 'bg-amber-500'
+    color: 'bg-amber-500',
+    textColor: 'text-amber-500',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/30',
+    icon: FileText
   },
 ];
 
@@ -64,16 +107,30 @@ const getCategoryLabel = (category: string) => {
   return labels[category] || category;
 };
 
+const getCategoryDescription = (category: string) => {
+  const descriptions: Record<string, string> = {
+    'agent_a_collector': 'Coleta dados de fontes externas e internas',
+    'agent_a_classifier': 'Classifica e categoriza informações coletadas',
+    'agent_b_analyzer': 'Analisa dados para extrair insights',
+    'agent_b_pattern_detector': 'Detecta padrões e anomalias nos dados',
+    'agent_c_scorer': 'Calcula scores de relevância e urgência',
+    'agent_c_prioritizer': 'Ordena e prioriza itens para decisão',
+    'agent_d_agenda_generator': 'Gera pautas automáticas para reuniões',
+    'agent_d_briefing_generator': 'Cria briefings executivos e relatórios',
+  };
+  return descriptions[category] || '';
+};
+
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'active':
-      return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
     case 'testing':
-      return <AlertCircle className="h-3 w-3 text-yellow-500" />;
+      return <AlertCircle className="h-4 w-4 text-yellow-500" />;
     case 'deprecated':
-      return <Archive className="h-3 w-3 text-gray-500" />;
+      return <Archive className="h-4 w-4 text-gray-500" />;
     default:
-      return <Circle className="h-3 w-3 text-gray-400" />;
+      return <Circle className="h-4 w-4 text-gray-400" />;
   }
 };
 
@@ -94,25 +151,19 @@ export default function AdminPromptLibrary() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
-  const [expandedAgents, setExpandedAgents] = useState<string[]>(AGENT_CATEGORIES.map(a => a.agent));
+  const [activeAgent, setActiveAgent] = useState('agent_a');
   
   const { prompts, isLoading, refetch } = usePrompts();
-
-  const toggleAgent = (agent: string) => {
-    setExpandedAgents(prev => 
-      prev.includes(agent) 
-        ? prev.filter(a => a !== agent)
-        : [...prev, agent]
-    );
-  };
 
   const filteredPrompts = prompts?.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.category.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  const getPromptsForCategories = (categories: string[]) => {
-    return filteredPrompts.filter(p => categories.includes(p.category));
+  const getPromptsForAgent = (agentId: string) => {
+    const agentConfig = AGENT_CATEGORIES.find(a => a.id === agentId);
+    if (!agentConfig) return [];
+    return filteredPrompts.filter(p => agentConfig.categories.includes(p.category));
   };
 
   const handleEditorClose = () => {
@@ -134,129 +185,78 @@ export default function AdminPromptLibrary() {
     setEditorOpen(true);
   };
 
+  const currentAgentConfig = AGENT_CATEGORIES.find(a => a.id === activeAgent);
+  const currentAgentPrompts = getPromptsForAgent(activeAgent);
+  const AgentIcon = currentAgentConfig?.icon || Brain;
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Configurador de Prompts de IA" />
+        <Header title="AI Engine" />
         
-        <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar - Categories & Prompts List */}
-          <div className="w-80 border-r border-border flex flex-col bg-card">
-            <div className="p-4 border-b border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-primary" />
-                  <span className="font-semibold">MOAT Engine</span>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Navigation - Agent Tabs */}
+          <div className="border-b border-border bg-card">
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Brain className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold">MOAT Engine</h1>
+                    <p className="text-sm text-muted-foreground">
+                      Gerencie os prompts de IA dos 4 agentes do sistema
+                    </p>
+                  </div>
                 </div>
-                <Button size="sm" onClick={handleCreateNew}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Novo
-                </Button>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar prompts..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Button onClick={handleCreateNew}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Prompt
+                  </Button>
+                </div>
               </div>
-              
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar prompts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
 
-            {/* Agents & Prompts List */}
-            <ScrollArea className="flex-1">
-              <div className="p-2 space-y-1">
-                {AGENT_CATEGORIES.map(agentConfig => {
-                  const agentPrompts = getPromptsForCategories(agentConfig.categories);
-                  const isExpanded = expandedAgents.includes(agentConfig.agent);
-                  
-                  return (
-                    <div key={agentConfig.agent} className="space-y-1">
-                      {/* Agent Header */}
-                      <button
-                        onClick={() => toggleAgent(agentConfig.agent)}
-                        className="w-full flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors"
+              {/* Agent Tabs */}
+              <Tabs value={activeAgent} onValueChange={setActiveAgent}>
+                <TabsList className="h-auto p-1 bg-muted/50 gap-1">
+                  {AGENT_CATEGORIES.map(agent => {
+                    const Icon = agent.icon;
+                    const agentPrompts = getPromptsForAgent(agent.id);
+                    const activeCount = agentPrompts.filter(p => p.status === 'active').length;
+                    
+                    return (
+                      <TabsTrigger
+                        key={agent.id}
+                        value={agent.id}
+                        className={`flex items-center gap-2 px-4 py-2.5 data-[state=active]:${agent.bgColor} data-[state=active]:${agent.textColor} data-[state=active]:shadow-sm`}
                       >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${agentConfig.color}`} />
-                          <span className="font-medium text-sm">{agentConfig.agent}</span>
-                          <span className="text-xs text-muted-foreground">({agentConfig.label})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {agentPrompts.length}
-                          </Badge>
-                          {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
-                      </button>
-
-                      {/* Prompts List */}
-                      {isExpanded && (
-                        <div className="ml-4 space-y-1">
-                          {agentPrompts.length === 0 ? (
-                            <p className="text-xs text-muted-foreground p-2">
-                              Nenhum prompt encontrado
-                            </p>
-                          ) : (
-                            agentPrompts.map(prompt => (
-                              <button
-                                key={prompt.id}
-                                onClick={() => handlePromptSelect(prompt.id)}
-                                className={`w-full text-left p-2 rounded-lg transition-colors ${
-                                  selectedPromptId === prompt.id
-                                    ? 'bg-primary/10 border border-primary/30'
-                                    : 'hover:bg-accent'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {getStatusIcon(prompt.status)}
-                                  <span className="text-sm font-medium truncate flex-1">
-                                    {getCategoryLabel(prompt.category)}
-                                  </span>
-                                  {prompt.is_default && (
-                                    <Badge variant="outline" className="text-[10px] px-1">
-                                      Default
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-xs text-muted-foreground">v{prompt.version}</span>
-                                  <span className="text-xs text-muted-foreground">•</span>
-                                  <span className="text-xs text-muted-foreground truncate">
-                                    {prompt.model}
-                                  </span>
-                                </div>
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </ScrollArea>
-
-            {/* Stats Footer */}
-            <div className="p-3 border-t border-border bg-muted/50">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Total: {prompts?.length || 0} prompts</span>
-                <span>
-                  {prompts?.filter(p => p.status === 'active').length || 0} ativos
-                </span>
-              </div>
+                        <div className={`w-2 h-2 rounded-full ${agent.color}`} />
+                        <Icon className="h-4 w-4" />
+                        <span className="font-medium">{agent.agent}</span>
+                        <Badge variant="secondary" className="ml-1 text-xs">
+                          {agentPrompts.length}
+                        </Badge>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+              </Tabs>
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Main Content Area */}
           <div className="flex-1 overflow-hidden">
             {isLoading ? (
               <div className="h-full flex items-center justify-center">
@@ -267,20 +267,148 @@ export default function AdminPromptLibrary() {
                 promptId={selectedPromptId} 
                 onEdit={() => handleEditPrompt(selectedPromptId)}
                 onRefresh={refetch}
+                onBack={() => setSelectedPromptId(null)}
               />
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                <Code className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">MOAT Engine Prompt Library</h3>
-                <p className="text-muted-foreground max-w-md mb-6">
-                  Gerencie, versione e teste os prompts de IA dos 4 agentes do sistema MOAT.
-                  Selecione um prompt na lista ou crie um novo.
-                </p>
-                <Button onClick={handleCreateNew}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Novo Prompt
-                </Button>
-              </div>
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  {/* Agent Info Header */}
+                  <div className={`rounded-xl p-6 mb-6 ${currentAgentConfig?.bgColor} border ${currentAgentConfig?.borderColor}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${currentAgentConfig?.color}`}>
+                          <AgentIcon className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h2 className={`text-2xl font-bold ${currentAgentConfig?.textColor}`}>
+                            {currentAgentConfig?.agent}
+                          </h2>
+                          <p className="text-lg text-muted-foreground">
+                            {currentAgentConfig?.label}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {currentAgentConfig?.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">{currentAgentPrompts.length}</div>
+                          <div className="text-muted-foreground">Prompts</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-500">
+                            {currentAgentPrompts.filter(p => p.status === 'active').length}
+                          </div>
+                          <div className="text-muted-foreground">Ativos</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Prompts Grid */}
+                  {currentAgentPrompts.length === 0 ? (
+                    <Card className="border-dashed">
+                      <CardContent className="flex flex-col items-center justify-center py-16">
+                        <Code className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">
+                          Nenhum prompt encontrado
+                        </h3>
+                        <p className="text-muted-foreground text-center max-w-md mb-6">
+                          {searchQuery 
+                            ? `Nenhum prompt corresponde à busca "${searchQuery}"`
+                            : `Crie o primeiro prompt para ${currentAgentConfig?.agent}`
+                          }
+                        </p>
+                        <Button onClick={handleCreateNew}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Criar Prompt
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {currentAgentPrompts.map(prompt => (
+                        <Card 
+                          key={prompt.id}
+                          className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 ${
+                            selectedPromptId === prompt.id ? 'ring-2 ring-primary' : ''
+                          }`}
+                          onClick={() => handlePromptSelect(prompt.id)}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                {getStatusIcon(prompt.status)}
+                                <CardTitle className="text-base">
+                                  {getCategoryLabel(prompt.category)}
+                                </CardTitle>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePromptSelect(prompt.id);
+                                  }}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Visualizar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditPrompt(prompt.id);
+                                  }}>
+                                    <Edit3 className="h-4 w-4 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    Duplicar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Testar
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                            <CardDescription className="text-xs mt-1">
+                              {getCategoryDescription(prompt.category)}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="flex items-center justify-between mb-3">
+                              {getStatusBadge(prompt.status)}
+                              {prompt.is_default && (
+                                <Badge variant="outline" className="text-xs">
+                                  Default
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Code className="h-3 w-3" />
+                                v{prompt.version}
+                              </span>
+                              <span className="truncate">{prompt.model}</span>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-border">
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {prompt.system_prompt?.substring(0, 100)}...
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
             )}
           </div>
         </div>

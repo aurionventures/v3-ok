@@ -12,7 +12,8 @@ import {
   Zap,
   DollarSign,
   BarChart3,
-  Code
+  Code,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,6 +30,7 @@ interface PromptDetailViewProps {
   promptId: string;
   onEdit: () => void;
   onRefresh: () => void;
+  onBack?: () => void;
 }
 
 const getCategoryLabel = (category: string) => {
@@ -58,7 +60,7 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-export function PromptDetailView({ promptId, onEdit, onRefresh }: PromptDetailViewProps) {
+export function PromptDetailView({ promptId, onEdit, onRefresh, onBack }: PromptDetailViewProps) {
   const [testPlaygroundOpen, setTestPlaygroundOpen] = useState(false);
   const { prompts, activatePrompt, deprecatePrompt, duplicatePrompt } = usePrompts();
 
@@ -91,6 +93,14 @@ export function PromptDetailView({ promptId, onEdit, onRefresh }: PromptDetailVi
   return (
     <ScrollArea className="h-full">
       <div className="p-6 space-y-6">
+        {/* Back Button */}
+        {onBack && (
+          <Button variant="ghost" size="sm" onClick={onBack} className="mb-2">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para lista
+          </Button>
+        )}
+
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-start justify-between">

@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Star } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pencil, Star, Receipt, Calendar, Zap } from "lucide-react";
 
 export function MatrizPricingTab() {
   const { companySizes, subscriptionPlans, pricingMatrix, updatePricingMatrix, getPricing } = usePricingConfig();
   const [editingPricing, setEditingPricing] = useState<PlanPricingMatrix | null>(null);
+  const [viewMode, setViewMode] = useState<'mensal' | 'anual' | 'setup'>('mensal');
 
   const handleSave = () => {
     if (!editingPricing) return;
@@ -23,13 +25,55 @@ export function MatrizPricingTab() {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 }).format(price);
   };
 
+  const getDisplayPrice = (pricing: PlanPricingMatrix) => {
+    switch (viewMode) {
+      case 'anual':
+        return pricing.annual_price;
+      case 'setup':
+        return pricing.setup_fee || 0;
+      default:
+        return pricing.monthly_price;
+    }
+  };
+
+  const getPriceLabel = () => {
+    switch (viewMode) {
+      case 'anual':
+        return '/ano';
+      case 'setup':
+        return '(único)';
+      default:
+        return '/mês';
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Matriz de Pricing (Porte × Plano)</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Configure o preço mensal e anual para cada combinação de porte e plano
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Matriz de Pricing (Porte × Plano)</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Configure o preço mensal, anual e setup para cada combinação de porte e plano
+            </p>
+          </div>
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'mensal' | 'anual' | 'setup')}>
+            <TabsList>
+              <TabsTrigger value="mensal" className="gap-1">
+                <Calendar className="h-3 w-3" />
+                Mensal
+              </TabsTrigger>
+              <TabsTrigger value="anual" className="gap-1">
+                <Receipt className="h-3 w-3" />
+                Anual
+              </TabsTrigger>
+              <TabsTrigger value="setup" className="gap-1">
+                <Zap className="h-3 w-3" />
+                Setup
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -60,10 +104,10 @@ export function MatrizPricingTab() {
                               <Star className="h-2 w-2" />
                             </Badge>
                           )}
-                          <div className="font-semibold text-foreground">
-                            {formatPrice(pricing.monthly_price)}
+                          <div className={`font-semibold ${viewMode === 'setup' ? 'text-green-600' : 'text-foreground'}`}>
+                            {formatPrice(getDisplayPrice(pricing))}
                           </div>
-                          <div className="text-xs text-muted-foreground">/mês</div>
+                          <div className="text-xs text-muted-foreground">{getPriceLabel()}</div>
                           <Button variant="ghost" size="sm" className="mt-1 h-6 text-xs" onClick={() => setEditingPricing(pricing)}>
                             <Pencil className="h-3 w-3 mr-1" /> Editar
                           </Button>
@@ -83,11 +127,34 @@ export function MatrizPricingTab() {
           </div>
           <div>— = Combinação não disponível</div>
         </div>
+
+        {/* Resumo PRD v3.0 */}
+        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-semibold mb-2">PRD v3.0 - Resumo Pricing</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <div className="text-muted-foreground">Piso Mensal</div>
+              <div className="font-semibold text-lg">R$ 2.997</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Teto Mensal</div>
+              <div className="font-semibold text-lg">R$ 100.000</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Setup Mínimo</div>
+              <div className="font-semibold text-lg text-green-600">R$ 2.997</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Setup Máximo</div>
+              <div className="font-semibold text-lg text-green-600">R$ 59.997</div>
+            </div>
+          </div>
+        </div>
       </CardContent>
 
       {/* Modal Editar Pricing */}
       <Dialog open={!!editingPricing} onOpenChange={() => setEditingPricing(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Editar Pricing</DialogTitle>
           </DialogHeader>
@@ -106,14 +173,37 @@ export function MatrizPricingTab() {
 
               <div>
                 <Label>Preço Mensal (R$)</Label>
-                <Input type="number" value={editingPricing.monthly_price} onChange={(e) => setEditingPricing({ ...editingPricing, monthly_price: Number(e.target.value) })} />
+                <Input 
+                  type="number" 
+                  value={editingPricing.monthly_price} 
+                  onChange={(e) => setEditingPricing({ ...editingPricing, monthly_price: Number(e.target.value) })} 
+                />
               </div>
 
               <div>
                 <Label>Preço Anual (R$)</Label>
-                <Input type="number" value={editingPricing.annual_price} onChange={(e) => setEditingPricing({ ...editingPricing, annual_price: Number(e.target.value) })} />
+                <Input 
+                  type="number" 
+                  value={editingPricing.annual_price} 
+                  onChange={(e) => setEditingPricing({ ...editingPricing, annual_price: Number(e.target.value) })} 
+                />
                 <p className="text-xs text-muted-foreground mt-1">
                   Economia: {formatPrice(editingPricing.monthly_price * 12 - editingPricing.annual_price)} ({Math.round((1 - editingPricing.annual_price / (editingPricing.monthly_price * 12)) * 100)}%)
+                </p>
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-green-600" />
+                  Taxa de Setup (R$)
+                </Label>
+                <Input 
+                  type="number" 
+                  value={editingPricing.setup_fee || 0} 
+                  onChange={(e) => setEditingPricing({ ...editingPricing, setup_fee: Number(e.target.value) })} 
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Descontos: 50% (anual), 100% (referral), 30% (trial)
                 </p>
               </div>
 
