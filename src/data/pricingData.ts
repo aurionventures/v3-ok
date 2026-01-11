@@ -32,6 +32,8 @@ export interface AddOn {
   popular?: boolean;
   novo?: boolean;
   whatsappMessage: string;
+  precoMensal: number;
+  precoAnual: number;
 }
 
 export interface Competitor {
@@ -208,7 +210,7 @@ export const COMPARISON_FEATURES = [
   { categoria: 'Segurança', nome: 'Ambiente Dedicado', essencial: false, profissional: false, business: false, enterprise: true },
 ];
 
-// Add-ons (SEM PREÇOS)
+// Add-ons (COM PREÇOS)
 export const ADDONS: AddOn[] = [
   {
     id: 'projetos',
@@ -216,6 +218,8 @@ export const ADDONS: AddOn[] = [
     descricao: 'Submeter, votar e acompanhar iniciativas estratégicas com transparência e rastreabilidade total.',
     icone: 'ClipboardList',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Projetos Estratégicos',
+    precoMensal: 497,
+    precoAnual: 4970,
   },
   {
     id: 'pessoas',
@@ -224,6 +228,8 @@ export const ADDONS: AddOn[] = [
     icone: 'Users',
     popular: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Gestão de Pessoas',
+    precoMensal: 697,
+    precoAnual: 6970,
   },
   {
     id: 'desempenho',
@@ -231,6 +237,8 @@ export const ADDONS: AddOn[] = [
     descricao: 'Avaliação 360° dos membros, NPS de reuniões e feedback anônimo estruturado.',
     icone: 'Star',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Desempenho Conselho',
+    precoMensal: 597,
+    precoAnual: 5970,
   },
   {
     id: 'riscos',
@@ -239,6 +247,8 @@ export const ADDONS: AddOn[] = [
     icone: 'ShieldAlert',
     popular: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Riscos Avançados',
+    precoMensal: 897,
+    precoAnual: 8970,
   },
   {
     id: 'esg',
@@ -247,6 +257,8 @@ export const ADDONS: AddOn[] = [
     icone: 'Leaf',
     novo: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on ESG Completo',
+    precoMensal: 797,
+    precoAnual: 7970,
   },
   {
     id: 'inteligencia',
@@ -254,6 +266,8 @@ export const ADDONS: AddOn[] = [
     descricao: 'Monitoramento de concorrentes, tendências setoriais e alertas regulatórios em tempo real.',
     icone: 'Globe',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Inteligência Mercado',
+    precoMensal: 997,
+    precoAnual: 9970,
   },
   {
     id: 'benchmarking',
@@ -261,6 +275,8 @@ export const ADDONS: AddOn[] = [
     descricao: 'Comparação com melhores práticas do mercado e ranking setorial de governança.',
     icone: 'BarChart3',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Benchmarking Global',
+    precoMensal: 697,
+    precoAnual: 6970,
   },
   {
     id: 'agentes-ai',
@@ -269,6 +285,8 @@ export const ADDONS: AddOn[] = [
     icone: 'Bot',
     novo: true,
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Agentes AI Premium',
+    precoMensal: 1497,
+    precoAnual: 14970,
   },
   {
     id: 'simulador',
@@ -276,6 +294,8 @@ export const ADDONS: AddOn[] = [
     descricao: 'Modelagem de cenários estratégicos, análise de impacto e tomada de decisão baseada em dados.',
     icone: 'LineChart',
     whatsappMessage: 'Olá, gostaria de saber mais sobre o add-on Simulador Cenários',
+    precoMensal: 1197,
+    precoAnual: 11970,
   },
 ];
 

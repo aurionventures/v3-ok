@@ -61,7 +61,6 @@ import {
   PRICING_FAQ,
   FATURAMENTO_OPTIONS,
   MATURITY_OPTIONS,
-  COMPETITORS,
   calculateComplexityScore,
   getComplexityLevel,
   recommendPlan,
@@ -120,6 +119,42 @@ export default function Pricing() {
     numUsuarios: 10,
     maturidade: '',
   });
+
+  // Estado para add-ons selecionados
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+
+  // Toggle seleção de add-on
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddons((prev) =>
+      prev.includes(addonId)
+        ? prev.filter((id) => id !== addonId)
+        : [...prev, addonId]
+    );
+  };
+
+  // Calcular total com add-ons
+  const calculateTotalWithAddons = useMemo(() => {
+    if (!calculatorResult?.pricing.mensal) return null;
+
+    const addonsMensal = selectedAddons.reduce((sum, addonId) => {
+      const addon = ADDONS.find((a) => a.id === addonId);
+      return sum + (addon?.precoMensal || 0);
+    }, 0);
+
+    const addonsAnual = selectedAddons.reduce((sum, addonId) => {
+      const addon = ADDONS.find((a) => a.id === addonId);
+      return sum + (addon?.precoAnual || 0);
+    }, 0);
+
+    return {
+      mensal: calculatorResult.pricing.mensal + addonsMensal,
+      anual: calculatorResult.pricing.anual! + addonsAnual,
+      mensalFormatted: `R$ ${(calculatorResult.pricing.mensal + addonsMensal).toLocaleString('pt-BR')}`,
+      anualFormatted: `R$ ${(calculatorResult.pricing.anual! + addonsAnual).toLocaleString('pt-BR')}`,
+      addonsMensal,
+      addonsAnual,
+    };
+  }, [calculatorResult, selectedAddons]);
 
   // Validação dos inputs da calculadora
   const canCalculate = useMemo(() => {
@@ -189,11 +224,19 @@ export default function Pricing() {
   const handleStartTrial = () => {
     if (!calculatorResult) return;
 
+    // Calcular preço total com add-ons
+    const totalAnual = calculateTotalWithAddons?.anual || calculatorResult.pricing.anual || 0;
+
     const params = new URLSearchParams({
       plan: calculatorResult.planoId,
-      price: calculatorResult.pricing.anual?.toString() || '0',
+      price: totalAnual.toString(),
       source: 'calculator',
     });
+
+    // Adicionar add-ons selecionados se houver
+    if (selectedAddons.length > 0) {
+      params.set('addons', selectedAddons.join(','));
+    }
 
     // Redirecionar para checkout Stripe
     navigate(`/checkout?${params.toString()}`);
@@ -927,7 +970,7 @@ export default function Pricing() {
 
                     <div className="bg-muted/50 rounded-lg p-4 mb-4">
                       <p className="text-sm text-muted-foreground mb-1">
-                        Complexity Score
+                        Índice de Complexidade
                       </p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold">
@@ -1028,121 +1071,86 @@ export default function Pricing() {
                   </CardContent>
                 </Card>
 
-                {/* Add-ons Sugeridos */}
+                {/* Add-ons Sugeridos com Preços e Seleção */}
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Crown className="h-4 w-4 text-accent" />
                     Add-ons Sugeridos
                   </h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Selecione os add-ons para adicionar ao seu plano:
+                  </p>
                   <div className="space-y-2">
-                    {calculatorResult.addOnsSugeridos.map((addon) => (
-                      <div
-                        key={addon.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                            {renderAddonIcon(addon.icone)}
-                          </div>
-                          <span className="font-medium text-sm">
-                            {addon.nome}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleAddonConsultar(addon)}
+                    {calculatorResult.addOnsSugeridos.map((addon) => {
+                      const isSelected = selectedAddons.includes(addon.id);
+                      return (
+                        <div
+                          key={addon.id}
+                          onClick={() => toggleAddon(addon.id)}
+                          className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-accent bg-accent/5 ring-1 ring-accent'
+                              : 'hover:border-accent/50'
+                          }`}
                         >
-                          <Lock className="h-4 w-4 mr-1" />
-                          Consultar
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? 'bg-accent border-accent'
+                                  : 'border-muted-foreground/30'
+                              }`}
+                            >
+                              {isSelected && (
+                                <Check className="h-3 w-3 text-white" />
+                              )}
+                            </div>
+                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                              {renderAddonIcon(addon.icone)}
+                            </div>
+                            <span className="font-medium text-sm">
+                              {addon.nome}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-sm">
+                              R$ {addon.precoMensal.toLocaleString('pt-BR')}/mês
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              R$ {addon.precoAnual.toLocaleString('pt-BR')}/ano
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+
+                  {/* Total com Add-ons */}
+                  {selectedAddons.length > 0 && calculateTotalWithAddons && (
+                    <div className="mt-4 p-4 bg-accent/10 rounded-lg border border-accent/30">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">
+                          Plano + {selectedAddons.length} add-on
+                          {selectedAddons.length > 1 ? 's' : ''}:
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-accent">
+                          {calculateTotalWithAddons.mensalFormatted}
+                        </span>
+                        <span className="text-muted-foreground">/mês</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-lg font-semibold">
+                          {calculateTotalWithAddons.anualFormatted}
+                        </span>
+                        <span className="text-muted-foreground text-sm">
+                          /ano
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {/* Comparação Competidores */}
-                <Card>
-                  <CardContent className="pt-6">
-                    <h4 className="font-semibold mb-4">
-                      Comparação com Mercado
-                    </h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2"></th>
-                            <th className="text-center py-2 text-primary font-bold">
-                              Legacy OS
-                            </th>
-                            {COMPETITORS.map((c) => (
-                              <th
-                                key={c.nome}
-                                className="text-center py-2 text-muted-foreground"
-                              >
-                                {c.nome}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-b">
-                            <td className="py-2">Preço anual</td>
-                            <td className="text-center py-2 text-primary font-bold">
-                              {calculatorResult.pricing.anualFormatted}
-                            </td>
-                            {COMPETITORS.map((c) => (
-                              <td
-                                key={c.nome}
-                                className="text-center py-2 text-muted-foreground"
-                              >
-                                R$ {c.precoAnual.toLocaleString('pt-BR')}
-                              </td>
-                            ))}
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-2">Usuários</td>
-                            <td className="text-center py-2 text-primary font-bold">
-                              Ilimitados
-                            </td>
-                            {COMPETITORS.map((c) => (
-                              <td
-                                key={c.nome}
-                                className="text-center py-2 text-muted-foreground"
-                              >
-                                {c.usuarios}
-                              </td>
-                            ))}
-                          </tr>
-                          <tr>
-                            <td className="py-2">Módulos</td>
-                            <td className="text-center py-2 text-primary font-bold">
-                              13+
-                            </td>
-                            {COMPETITORS.map((c) => (
-                              <td
-                                key={c.nome}
-                                className="text-center py-2 text-muted-foreground"
-                              >
-                                {c.modulos}
-                              </td>
-                            ))}
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                      <p className="text-sm text-green-800">
-                        <strong>ROI Estimado:</strong> Economia de R${' '}
-                        {calculatorResult.roi.economiaLicencas.toLocaleString(
-                          'pt-BR'
-                        )}{' '}
-                        vs. concorrentes
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -1167,7 +1175,10 @@ export default function Pricing() {
 
                 <Button
                   variant="ghost"
-                  onClick={() => setCalculatorResult(null)}
+                  onClick={() => {
+                    setCalculatorResult(null);
+                    setSelectedAddons([]);
+                  }}
                   className="w-full"
                 >
                   <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
