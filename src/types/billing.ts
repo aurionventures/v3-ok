@@ -382,7 +382,7 @@ export const CONTRACT_TERM_OPTIONS = [
 ] as const;
 
 export const PAYMENT_CYCLE_OPTIONS = [
-  { value: 'monthly', label: 'Mensal', asaasCycle: 'MONTHLY' },
+  { value: 'monthly', label: 'Mensal', asaasCycle: 'MONTHLY', discount: 0 },
   { value: 'quarterly', label: 'Trimestral', asaasCycle: 'QUARTERLY', discount: 5 },
   { value: 'semi_annual', label: 'Semestral', asaasCycle: 'SEMIANNUALLY', discount: 8 },
   { value: 'annual', label: 'Anual', asaasCycle: 'YEARLY', discount: 16.67 },

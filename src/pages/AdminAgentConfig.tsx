@@ -63,8 +63,8 @@ import {
   aiCopilots,
   aiServices,
   getEngineStats,
-  type AIAgent 
 } from "@/data/aiEngineData";
+import type { AIAgent } from "@/types/aiArchitecture";
 import { Link } from "react-router-dom";
 
 // Mapeamento de ícones

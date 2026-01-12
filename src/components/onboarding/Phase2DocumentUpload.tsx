@@ -16,6 +16,10 @@ import { DOCUMENT_ZONES, DocumentCategory, DocumentLibrary } from '@/types/onboa
 interface Phase2DocumentUploadProps {
   onComplete: () => void;
   onBack?: () => void;
+  documents?: DocumentLibrary[];
+  onUpload?: (file: File, category: DocumentCategory, title: string) => Promise<void>;
+  onDelete?: (documentId: string) => Promise<void>;
+  isUploading?: boolean;
 }
 
 function formatFileSize(bytes: number): string {

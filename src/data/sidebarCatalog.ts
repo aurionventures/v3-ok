@@ -243,6 +243,11 @@ export const DYNAMIC_ADDONS: Record<string, { targetSection: string; item: Sideb
 };
 
 // ==========================================
+// ADDON_ITEMS (lista plana de todos os items de add-on)
+// ==========================================
+export const ADDON_ITEMS: SidebarItem[] = ADDON_SECTIONS.flatMap(section => section.items);
+
+// ==========================================
 // SIDEBAR_SECTIONS (mantido para compatibilidade)
 // ==========================================
 export const SIDEBAR_SECTIONS: SidebarSection[] = [

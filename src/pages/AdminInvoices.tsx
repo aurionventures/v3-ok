@@ -58,6 +58,7 @@ import {
   Invoice, 
   INVOICE_STATUS_LABELS,
   InvoiceStatus,
+  PaymentMethod,
 } from "@/types/billing";
 import { invoiceService, paymentService } from "@/services/asaasService";
 
@@ -254,7 +255,7 @@ const AdminInvoices = () => {
             ...inv, 
             status: 'paid' as InvoiceStatus,
             paid_at: new Date().toISOString(),
-            payment_method: 'pix',
+            payment_method: 'pix' as PaymentMethod,
           }
         : inv
     );

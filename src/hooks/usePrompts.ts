@@ -151,7 +151,16 @@ export function usePrompts() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         activated_at: null,
-        deprecated_at: null
+        deprecated_at: null,
+        // Strategic governance fields
+        strategic_type: input.strategic_type || 'operational',
+        impact_level: input.impact_level || 'medium',
+        scope: input.scope || 'system',
+        agent_type: input.agent_type || 'service',
+        owner: input.owner || null,
+        executive_description: input.executive_description || null,
+        connected_copilots: input.connected_copilots || null,
+        connected_services: input.connected_services || null,
       };
 
       setPrompts(prev => [...prev, newPrompt]);

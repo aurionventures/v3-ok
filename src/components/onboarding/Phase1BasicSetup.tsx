@@ -41,8 +41,10 @@ const BRAZILIAN_STATES = [
 ];
 
 interface Phase1BasicSetupProps {
-  onComplete: () => void;
+  onComplete: (data?: Phase1FormData) => void;
   onBack?: () => void;
+  initialData?: Partial<Phase1FormData>;
+  isSaving?: boolean;
 }
 
 const SECTIONS = [
