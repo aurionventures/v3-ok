@@ -347,34 +347,120 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         "Revisão do orçamento do segundo semestre"
       ];
       
-      meeting.meeting_documents = [
+      // Documentos prévios (usado pelo MeetingFlowManager)
+      meeting.preMeetingDocs = [
         {
           id: `doc-conselho-4-1`,
           name: "Relatorio_ESG_Q1_2026.pdf",
           type: "application/pdf",
-          uploadDate: new Date(year, 3, 5).toISOString(),
-          url: "#"
+          size: 2456000,
+          uploadedAt: new Date(year, 3, 5).toISOString(),
+          uploadedBy: "Ana Costa - Dir. Sustentabilidade",
+          url: "#",
+          tags: [{ id: "tag-1", name: "ESG", color: "green" }],
+          category: "Relatório"
         },
         {
           id: `doc-conselho-4-2`,
           name: "Plano_Transformacao_Digital_2026-2028.pptx",
           type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-          uploadDate: new Date(year, 3, 6).toISOString(),
-          url: "#"
+          size: 8920000,
+          uploadedAt: new Date(year, 3, 6).toISOString(),
+          uploadedBy: "Ricardo Mendes - CTO",
+          url: "#",
+          tags: [{ id: "tag-2", name: "Estratégia", color: "blue" }],
+          category: "Apresentação"
         },
         {
           id: `doc-conselho-4-3`,
           name: "Matriz_Riscos_Abril_2026.xlsx",
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          uploadDate: new Date(year, 3, 7).toISOString(),
-          url: "#"
+          size: 456000,
+          uploadedAt: new Date(year, 3, 7).toISOString(),
+          uploadedBy: "Paulo Ferreira - CRO",
+          url: "#",
+          tags: [{ id: "tag-3", name: "Riscos", color: "red" }],
+          category: "Análise"
         },
         {
           id: `doc-conselho-4-4`,
           name: "Perfil_Candidatos_Conselheiros.pdf",
           type: "application/pdf",
-          uploadDate: new Date(year, 3, 8).toISOString(),
-          url: "#"
+          size: 1280000,
+          uploadedAt: new Date(year, 3, 8).toISOString(),
+          uploadedBy: "Carlos Alberto - Presidente",
+          url: "#",
+          tags: [{ id: "tag-4", name: "Governança", color: "purple" }],
+          category: "Proposta"
+        }
+      ] as any;
+      
+      // Briefings personalizados para cada membro (gerados pela IA)
+      meeting.ai_briefings = [
+        {
+          memberId: "mock-member-conselho-de-administração-1",
+          memberName: "Carlos Alberto Silva",
+          role: "Presidente",
+          briefingContent: `**Briefing Executivo - Reunião de Abril 2026**
+
+Como Presidente do Conselho, você conduzirá a votação para aprovação de dois novos conselheiros independentes. 
+
+**Pontos-chave para sua atenção:**
+- A aprovação do Plano de Transformação Digital requer investimento de R$ 12M no primeiro ano
+- O relatório ESG mostra progresso de 78% nas metas ODS para 2026
+- A matriz de riscos identificou 3 novos riscos críticos em cibersegurança
+- Os candidatos a conselheiros têm experiência complementar em tecnologia e ESG
+
+**Recomendação:** Dedicar tempo adicional à discussão sobre cibersegurança, dado o aumento de incidentes no setor.`,
+          generatedAt: new Date(year, 3, 10).toISOString()
+        },
+        {
+          memberId: "mock-member-conselho-de-administração-2",
+          memberName: "Maria Santos Costa",
+          role: "Vice-Presidente",
+          briefingContent: `**Briefing Executivo - Reunião de Abril 2026**
+
+Como Vice-Presidente, você apoiará as deliberações estratégicas desta reunião.
+
+**Pontos de atenção para sua área:**
+- Os indicadores financeiros do Q1 mostram crescimento de 12% na receita
+- O investimento em transformação digital impactará o EBITDA em 3% no curto prazo
+- ROI projetado do plano digital: 180% em 3 anos
+
+**Documentos prioritários:** Plano de Transformação Digital (páginas 12-25 com análise financeira).`,
+          generatedAt: new Date(year, 3, 10).toISOString()
+        },
+        {
+          memberId: "mock-member-conselho-de-administração-3",
+          memberName: "Roberto Oliveira",
+          role: "Conselheiro Independente",
+          briefingContent: `**Briefing Executivo - Reunião de Abril 2026**
+
+Como Conselheiro Independente, sua perspectiva externa é essencial para as deliberações.
+
+**Análise independente sugerida:**
+- Avaliar se o plano de transformação digital está alinhado com as melhores práticas do mercado
+- Verificar a independência real dos candidatos a conselheiros
+- Questionar os critérios de priorização na matriz de riscos
+
+**Benchmark setorial:** Concorrentes investiram em média 8% do faturamento em transformação digital nos últimos 2 anos.`,
+          generatedAt: new Date(year, 3, 10).toISOString()
+        },
+        {
+          memberId: "mock-member-conselho-de-administração-4",
+          memberName: "Ana Paula Ferreira",
+          role: "Conselheira",
+          briefingContent: `**Briefing Executivo - Reunião de Abril 2026**
+
+Sua expertise em governança será fundamental para a avaliação dos novos conselheiros.
+
+**Pontos para sua análise:**
+- Due diligence dos candidatos a conselheiros (anexo com currículo e referências)
+- Impacto na composição e diversidade do board
+- Alinhamento com as melhores práticas de governança corporativa
+
+**Documentos prioritários:** Perfil dos Candidatos e Parecer do Comitê de Nomeação.`,
+          generatedAt: new Date(year, 3, 10).toISOString()
         }
       ];
       

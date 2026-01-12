@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Clock, MapPin, Users, FileText, Upload, Mic, CheckCircle2, AlertCircle, Plus, X, Save, Bot, Sparkles, Download } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, FileText, Upload, Mic, CheckCircle2, AlertCircle, Plus, X, Save, Bot, Sparkles, Download, Brain, ChevronDown, ChevronUp } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
   const [newTask, setNewTask] = useState<Partial<Task>>({});
   const [isGeneratingMinutes, setIsGeneratingMinutes] = useState(false);
   const [nextMeetingTopics, setNextMeetingTopics] = useState(meeting.nextMeetingTopics?.join('\n') || '');
+  const [expandedBriefing, setExpandedBriefing] = useState<string | null>(null);
   const { getConfigForOrgan } = useATAConfig();
 
   // Função para verificar se reunião está completa para gerar ATA
@@ -352,6 +353,12 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
                 {getStepStatus(meeting, "agenda") === "completed" && (
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                 )}
+                {meeting.ai_generated_agenda && (
+                  <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    Sugerida por IA
+                  </Badge>
+                )}
               </CardTitle>
               {daysUntilMeeting > 30 && (
                 <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -360,6 +367,21 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Indicador de IA quando pauta foi gerada por IA */}
+              {meeting.ai_generated_agenda && meeting.agenda && meeting.agenda.length > 0 && (
+                <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+                  <Brain className="h-5 w-5 text-purple-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-purple-900 text-sm">
+                      Pauta sugerida pela Inteligência Artificial
+                    </p>
+                    <p className="text-xs text-purple-700 mt-1">
+                      Esta pauta foi gerada automaticamente pela IA com base em dados internos, riscos, oportunidades e contexto de mercado.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               {meeting.agenda?.map((item) => (
                 <div key={item.id} className="flex items-start justify-between p-3 bg-gray-50 rounded">
                   <div className="flex-1">
@@ -461,6 +483,90 @@ export const MeetingFlowManager: React.FC<MeetingFlowManagerProps> = ({ meeting,
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Briefings - Only show if meeting has AI briefings */}
+        {meeting.ai_briefings && meeting.ai_briefings.length > 0 && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-purple-500" />
+                Briefings Personalizados
+                <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Gerado por IA
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg mb-4">
+                  <Brain className="h-5 w-5 text-purple-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-purple-900 text-sm">
+                      Briefings personalizados para cada membro do conselho
+                    </p>
+                    <p className="text-xs text-purple-700 mt-1">
+                      A IA analisou a pauta, documentos e o perfil de cada membro para gerar briefings customizados.
+                    </p>
+                  </div>
+                </div>
+                
+                {meeting.ai_briefings.map((briefing) => (
+                  <div 
+                    key={briefing.memberId}
+                    className="border rounded-lg overflow-hidden"
+                  >
+                    <button
+                      onClick={() => setExpandedBriefing(
+                        expandedBriefing === briefing.memberId ? null : briefing.memberId
+                      )}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-purple-500 text-white flex items-center justify-center font-semibold">
+                          {briefing.memberName.charAt(0)}
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-sm">{briefing.memberName}</p>
+                          <p className="text-xs text-muted-foreground">{briefing.role}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          Briefing Disponível
+                        </Badge>
+                        {expandedBriefing === briefing.memberId ? (
+                          <ChevronUp className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        )}
+                      </div>
+                    </button>
+                    
+                    {expandedBriefing === briefing.memberId && (
+                      <div className="p-4 bg-white border-t">
+                        <div className="prose prose-sm max-w-none">
+                          <div className="whitespace-pre-line text-sm text-gray-700">
+                            {briefing.briefingContent}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                          <span className="text-xs text-muted-foreground">
+                            Gerado em: {new Date(briefing.generatedAt).toLocaleDateString('pt-BR')}
+                          </span>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-3 w-3 mr-1" />
+                            Exportar PDF
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recording Upload */}
         <Card>

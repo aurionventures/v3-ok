@@ -183,6 +183,7 @@ export interface UpcomingMeeting {
   modalidade: 'presencial' | 'virtual' | 'hibrido';
   hasGeneratedAgenda: boolean;
   agendaId?: string;
+  aiGenerated?: boolean; // Pauta sugerida pela IA
 }
 
 // --------------------------------------------------------------------------

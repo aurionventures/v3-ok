@@ -16,6 +16,20 @@ import type {
 
 export const mockUpcomingMeetings: UpcomingMeeting[] = [
   {
+    id: "conselho-4",
+    title: "Reunião Ordinária - Abril 2026",
+    date: "2026-04-14",
+    time: "14:00",
+    councilName: "Conselho de Administração",
+    councilId: "mock-council-admin-001",
+    type: "ordinary",
+    location: "Sala Executiva - Matriz",
+    modalidade: "presencial",
+    hasGeneratedAgenda: true,
+    agendaId: "agenda-conselho-4",
+    aiGenerated: true,
+  },
+  {
     id: "meeting-1",
     title: "Reunião Ordinária do Conselho de Administração",
     date: "2026-01-20",
@@ -456,80 +470,99 @@ export const mockDynamicSWOT: DynamicSWOT = {
 // --------------------------------------------------------------------------
 
 export const mockMemberBriefing: MemberBriefing = {
-  id: "briefing-1",
+  id: "briefing-conselho-4",
   memberId: "member-1",
-  meetingId: "meeting-1",
-  agendaId: "agenda-1",
+  meetingId: "conselho-4",
+  agendaId: "agenda-conselho-4",
   content: {
-    executiveSummary: `A reunião de 20/01 terá foco estratégico com decisões críticas sobre o futuro da empresa. Os três temas prioritários são: revisão do plano estratégico trienal, sucessão do CEO e gestão de riscos cibernéticos.
+    executiveSummary: `A reunião de Abril/2026 do Conselho de Administração terá foco em 5 temas estratégicos fundamentais para o próximo ciclo da empresa.
 
-O contexto de mercado é desafiador, com entrada iminente de player global e pressão regulatória ESG. Há, porém, oportunidade única de aquisição que pode fortalecer nossa posição competitiva.
+**Pauta gerada pela Inteligência Artificial** com base em análise de dados internos, matriz de riscos, oportunidades de mercado e contexto regulatório ESG.
 
-Sua expertise em finanças corporativas será especialmente relevante nas discussões sobre M&A e estrutura de capital. Recomendo atenção especial ao tópico de aquisição da Empresa XYZ, onde sua análise de valuation será determinante.`,
+Os temas prioritários incluem: (1) Análise de Performance ESG do Q1, (2) Estratégia de Transformação Digital 2026-2028, (3) Revisão de Riscos Corporativos, (4) Aprovação de Novos Conselheiros Independentes, e (5) Aprovação da Ata Anterior.
+
+O investimento total proposto no plano de transformação digital é de R$ 12M para o primeiro ano, com ROI projetado de 180% em 3 anos. A matriz de riscos identificou 3 novos riscos críticos em cibersegurança que requerem atenção especial do conselho.`,
     topicBreakdown: [
       {
-        topicId: "topic-1",
-        title: "Revisão do Plano Estratégico 2026-2028",
-        relevanceToMember: "Como especialista em finanças, sua validação das projeções financeiras é essencial para aprovação do plano",
+        topicId: "topic-esg",
+        title: "Análise de Performance ESG do 1º Trimestre",
+        relevanceToMember: "Sua expertise em sustentabilidade será fundamental para validar as métricas e propor ajustes nos indicadores",
         keyPoints: [
-          "Meta de crescimento de 25% vs média histórica de 15%",
-          "Investimentos de R$ 100M em 3 anos",
-          "ROI projetado de 18% no cenário base",
-          "Cenários pessimista e otimista com variação de +/- 30%",
+          "Progresso de 78% nas metas ODS para 2026",
+          "Redução de 15% nas emissões de CO2 vs Q1 2025",
+          "Rating ESG melhorou de B+ para A-",
+          "3 novas iniciativas de impacto social aprovadas",
         ],
-        yourPerspectiveMatters: "Sua análise sobre a viabilidade financeira e estrutura de capital adequada será decisiva",
+        yourPerspectiveMatters: "O conselho espera sua análise sobre a adequação das métricas aos padrões internacionais",
         potentialConcerns: [
-          "Agressividade das metas pode pressionar execução",
-          "Necessidade de captação adicional não está clara",
-          "Sensibilidade ao câmbio não foi testada",
+          "Meta de neutralidade de carbono para 2030 pode ser agressiva",
+          "Custo de compliance ESG aumentou 20%",
+          "Falta integração entre indicadores ambientais e financeiros",
         ],
-        suggestedStance: "Apoiar com ressalvas - solicitar análise de sensibilidade mais robusta antes da aprovação final",
+        suggestedStance: "Apoiar as iniciativas atuais e propor indicadores integrados ESG-financeiros",
       },
       {
-        topicId: "topic-4",
-        title: "Oportunidade de Aquisição - Empresa XYZ",
-        relevanceToMember: "Tema central para sua expertise - avaliação de valuation e estrutura de financiamento",
+        topicId: "topic-digital",
+        title: "Estratégia de Transformação Digital 2026-2028",
+        relevanceToMember: "Avaliação do impacto financeiro e ROI do investimento em tecnologia",
         keyPoints: [
-          "Valuation pedido: R$ 250M (5x EBITDA)",
-          "Sinergias estimadas: R$ 50M/ano em 3 anos",
-          "Tecnologia proprietária com 12 patentes",
-          "Exclusividade de negociação expira em 45 dias",
+          "Investimento total: R$ 35M em 3 anos",
+          "Foco em IA, automação e modernização de sistemas",
+          "ROI projetado: 180% em 36 meses",
+          "Impacto de 3% no EBITDA no curto prazo",
         ],
-        yourPerspectiveMatters: "O conselho espera sua recomendação sobre preço justo e estrutura ótima de financiamento",
+        yourPerspectiveMatters: "Sua análise sobre a estrutura de financiamento e viabilidade econômica é essencial",
         potentialConcerns: [
-          "Due diligence ainda não concluída",
-          "Integração cultural pode ser desafiadora",
-          "Alavancagem pós-deal atingiria 2.5x EBITDA",
+          "Risco de execução em projetos de TI complexos",
+          "Necessidade de requalificação de 40% da equipe",
+          "Dependência de fornecedores críticos",
         ],
-        suggestedStance: "Apoiar autorização de due diligence, mas reservar aprovação final para próxima reunião",
+        suggestedStance: "Apoiar com gate reviews trimestrais para acompanhamento de execução",
+      },
+      {
+        topicId: "topic-riscos",
+        title: "Revisão de Riscos Corporativos e Matriz de Materialidade",
+        relevanceToMember: "Validação da priorização de riscos e adequação dos planos de mitigação",
+        keyPoints: [
+          "3 novos riscos críticos identificados em cibersegurança",
+          "Risco climático reclassificado para alta materialidade",
+          "Plano de mitigação requer investimento de R$ 8M",
+          "Auditoria externa recomendou revisão de controles",
+        ],
+        yourPerspectiveMatters: "Sua experiência em governança é crucial para validar a adequação dos controles",
+        potentialConcerns: [
+          "Orçamento de mitigação pode ser insuficiente",
+          "Tempo de resposta a incidentes acima do benchmark",
+          "Seguro cibernético com cobertura limitada",
+        ],
+        suggestedStance: "Aprovar investimento em cibersegurança e solicitar revisão da apólice de seguro",
       },
     ],
     criticalQuestions: [
-      "Qual o impacto no covenant de dívida se concretizarmos a aquisição?",
-      "O plano estratégico considera cenário de entrada do player global?",
-      "Há cláusula de earn-out na estrutura de aquisição proposta?",
-      "Qual o custo estimado de compliance com nova regulação BACEN?",
-      "O plano de sucessão considera desenvolvimento interno ou busca externa?",
-      "Temos capacidade de funding para M&A sem diluir acionistas?",
+      "Qual o impacto do plano digital no headcount e custos de pessoal?",
+      "Os riscos cibernéticos identificados afetam nossa certificação ISO 27001?",
+      "O orçamento ESG está alinhado com as expectativas dos investidores institucionais?",
+      "Como será medido o sucesso da transformação digital no primeiro ano?",
+      "Os candidatos a conselheiros têm experiência em empresas de tecnologia?",
+      "Existe plano de contingência caso o ROI do plano digital não se materialize?",
     ],
     preparationChecklist: [
-      "Revisar projeções financeiras 2026-2028 (anexo 1)",
-      "Analisar teaser da Empresa XYZ (anexo 2)",
-      "Consultar área de M&A sobre termos preliminares",
-      "Verificar covenants atuais com área jurídica",
-      "Ler relatório de incidentes de segurança Q4",
+      "Revisar Relatório ESG Q1 2026 (Anexo 1)",
+      "Analisar Plano de Transformação Digital (Anexo 2)",
+      "Estudar Matriz de Riscos Atualizada (Anexo 3)",
+      "Ler perfil dos candidatos a conselheiros (Anexo 4)",
+      "Verificar ata da reunião anterior para contexto",
     ],
-    estimatedReadingTime: 25,
+    estimatedReadingTime: 30,
     relatedDocuments: [
-      "Plano Estratégico 2026-2028 - Draft v3",
-      "Teaser Empresa XYZ - Confidencial",
-      "Análise de Sinergias - Preliminar",
-      "Relatório de Segurança Cibernética Q4",
-      "Mapeamento de Candidatos Sucessão CEO",
+      "Relatorio_ESG_Q1_2026.pdf",
+      "Plano_Transformacao_Digital_2026-2028.pptx",
+      "Matriz_Riscos_Abril_2026.xlsx",
+      "Perfil_Candidatos_Conselheiros.pdf",
     ],
   },
-  preparationProgress: 35,
-  generatedAt: "2026-01-09T14:30:00Z",
+  preparationProgress: 45,
+  generatedAt: "2026-04-10T10:30:00Z",
 };
 
 // --------------------------------------------------------------------------

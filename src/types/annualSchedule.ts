@@ -41,6 +41,15 @@ export interface MeetingSchedule {
   confirmed_participants?: number;
   notifications_sent?: boolean;
   ai_generated_agenda?: boolean; // Pauta sugerida pela IA
+  ai_briefings?: AIBriefing[]; // Briefings personalizados para cada membro
+}
+
+export interface AIBriefing {
+  memberId: string;
+  memberName: string;
+  role: string;
+  briefingContent: string;
+  generatedAt: string;
 }
 
 export interface MeetingParticipant {
