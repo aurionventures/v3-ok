@@ -111,11 +111,11 @@ export default function Pricing() {
   const [calculatorResult, setCalculatorResult] = useState<CalculatorResult | null>(null);
   const [calculatorInputs, setCalculatorInputs] = useState<CalculatorInputs>({
     faturamento: '',
-    numEmpresas: 1,
+    numEmpresas: 0,
     numConselhos: 0,
     numComites: 0,
     reunioesAno: 0,
-    numUsuarios: 10,
+    numUsuarios: 0,
     maturidade: '',
   });
 
@@ -665,11 +665,12 @@ export default function Pricing() {
                     type="number"
                     min={1}
                     max={50}
-                    value={calculatorInputs.numEmpresas}
+                    placeholder="Ex: 1"
+                    value={calculatorInputs.numEmpresas || ''}
                     onChange={(e) =>
                       setCalculatorInputs((prev) => ({
                         ...prev,
-                        numEmpresas: parseInt(e.target.value) || 1,
+                        numEmpresas: parseInt(e.target.value) || 0,
                       }))
                     }
                   />
@@ -683,7 +684,8 @@ export default function Pricing() {
                     type="number"
                     min={0}
                     max={20}
-                    value={calculatorInputs.numConselhos}
+                    placeholder="Ex: 1"
+                    value={calculatorInputs.numConselhos || ''}
                     onChange={(e) =>
                       setCalculatorInputs((prev) => ({
                         ...prev,
@@ -701,7 +703,8 @@ export default function Pricing() {
                     type="number"
                     min={0}
                     max={50}
-                    value={calculatorInputs.numComites}
+                    placeholder="Ex: 2"
+                    value={calculatorInputs.numComites || ''}
                     onChange={(e) =>
                       setCalculatorInputs((prev) => ({
                         ...prev,
@@ -721,7 +724,8 @@ export default function Pricing() {
                     type="number"
                     min={0}
                     max={300}
-                    value={calculatorInputs.reunioesAno}
+                    placeholder="Ex: 12"
+                    value={calculatorInputs.reunioesAno || ''}
                     onChange={(e) =>
                       setCalculatorInputs((prev) => ({
                         ...prev,
