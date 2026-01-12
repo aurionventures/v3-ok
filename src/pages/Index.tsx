@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search, Globe, AlertTriangle, LineChart, Bot, MapPin, ExternalLink } from "lucide-react";
+import { MegaFooter } from "@/components/footer";
 import DiagnosticModal from "@/components/DiagnosticModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -695,117 +696,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Full Footer */}
-      <footer className="border-t bg-muted/30 py-16">
-        <div className="container mx-auto px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-              {/* Logo e Descrição */}
-              <div className="lg:col-span-2 space-y-4">
-                <img src={legacyLogo} alt="Legacy" className="h-8 w-auto" />
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sistema Operacional de Governança para empresas de controle concentrado. 
-                  Automatize processos, gerencie riscos e tome decisões com inteligência.
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <span>contato@governancalegacy.com</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <span>+55 (47) 99162-2220</span>
-                </div>
-              </div>
-              
-              {/* Navegação */}
-              <div className="space-y-4">
-                <h4 className="font-semibold">Navegação</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div><a href="#" className="hover:text-foreground transition-colors">Home</a></div>
-                  <div><a href="#solucao" className="hover:text-foreground transition-colors">Solução</a></div>
-                  <div><a href="#planos" className="hover:text-foreground transition-colors">Planos</a></div>
-                  <div><a href="#blog" className="hover:text-foreground transition-colors">Blog</a></div>
-                  <div><a href="#contato" className="hover:text-foreground transition-colors">Contato</a></div>
-                </div>
-              </div>
-
-              {/* Planos */}
-              <div className="space-y-4">
-                <h4 className="font-semibold">Planos</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  {PLANS.map((plan) => (
-                    <div key={plan.id}>
-                      <button 
-                        onClick={() => navigate('/pricing')}
-                        className="hover:text-foreground transition-colors flex items-center gap-1"
-                      >
-                        {plan.nome}
-                        {plan.isPopular && <Star className="h-3 w-3 text-accent fill-accent" />}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Add-ons */}
-              <div className="space-y-4">
-                <h4 className="font-semibold">Add-ons</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  {ADDONS.slice(0, 6).map((addon) => (
-                    <div key={addon.id}>
-                      <button 
-                        onClick={() => navigate('/pricing')}
-                        className="hover:text-foreground transition-colors"
-                      >
-                        {addon.nome}
-                      </button>
-                    </div>
-                  ))}
-                  {ADDONS.length > 6 && (
-                    <div>
-                      <button 
-                        onClick={() => navigate('/pricing')}
-                        className="text-accent hover:text-accent/80 transition-colors flex items-center gap-1"
-                      >
-                        +{ADDONS.length - 6} mais
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Endereço Comercial */}
-              <div className="space-y-4">
-                <h4 className="font-semibold">Endereço Comercial</h4>
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                    <div className="leading-relaxed">
-                      Av. Brig. Faria Lima, 1811<br />
-                      Escritório 1119<br />
-                      Jardim Paulistano<br />
-                      São Paulo - SP<br />
-                      CEP: 01452-001<br />
-                      Brasil
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Bottom Bar */}
-            <div className="border-t mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-              <p>&copy; 2025 Legacy OS. Todos os direitos reservados.</p>
-              <div className="flex items-center gap-6">
-                <a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a>
-                <a href="#" className="hover:text-foreground transition-colors">Política de Privacidade</a>
-                <a href="#" className="hover:text-foreground transition-colors">Cookies</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Mega Footer */}
+      <MegaFooter />
     </div>;
 };
 export default Index;
