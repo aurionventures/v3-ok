@@ -205,7 +205,7 @@ function StatCard({
 }: { 
   title: string; 
   value: string | number; 
-  subtitle?: string;
+  subtitle?: string; 
   icon: React.ElementType; 
   trend?: 'up' | 'down' | 'stable';
   trendValue?: string;
@@ -233,7 +233,7 @@ function StatCard({
             <Icon className="h-5 w-5" />
           </div>
         </div>
-        {trend && trendValue && (
+            {trend && trendValue && (
           <div className="flex items-center gap-1 mt-3">
             {trend === 'up' ? (
               <TrendingUp className="h-3 w-3 text-green-500" />
@@ -250,8 +250,8 @@ function StatCard({
             )}>
               {trendValue}
             </span>
-          </div>
-        )}
+              </div>
+            )}
       </CardContent>
     </Card>
   );
@@ -277,8 +277,8 @@ function UsageChart({ data }: { data: TokenUsage[] }) {
                 <p className="font-medium">{new Date(day.date).toLocaleDateString('pt-BR')}</p>
                 <p>{day.totalTokens.toLocaleString()} tokens</p>
                 <p>R$ {(day.cost * 5).toFixed(2)}</p>
-              </div>
-            </div>
+          </div>
+          </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
@@ -511,7 +511,7 @@ function ArchitectureOverview() {
                         style={{ backgroundColor: `${copilot.color}20` }}
                       >
                         <Icon className="h-5 w-5" style={{ color: copilot.color }} />
-                      </div>
+      </div>
                       <div className="flex-1">
                         <h4 className="font-semibold">{copilot.name}</h4>
                         <p className="text-sm text-muted-foreground">{copilot.description}</p>
@@ -576,7 +576,7 @@ function ArchitectureOverview() {
                           style={{ backgroundColor: `${agent.color}20` }}
                         >
                           <Icon className="h-5 w-5" style={{ color: agent.color }} />
-                        </div>
+              </div>
                         <div>
                           <h4 className="font-semibold" style={{ color: agent.color }}>{agent.name}</h4>
                           <p className="text-sm text-muted-foreground">{agent.shortName}</p>
@@ -603,7 +603,7 @@ function ArchitectureOverview() {
                       <div className="space-y-1">
                         {agent.prompts.map(prompt => (
                           <div key={prompt.id} className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                               <Badge 
                                 className={cn(
                                   "h-4 w-4 p-0 flex items-center justify-center text-[10px]",
@@ -613,7 +613,7 @@ function ArchitectureOverview() {
                                 {prompt.status === 'active' ? '✓' : '○'}
                               </Badge>
                               <span>{prompt.name}</span>
-                            </div>
+              </div>
                             <div className="flex items-center gap-2">
                               <Badge 
                                 variant="outline" 
@@ -629,11 +629,11 @@ function ArchitectureOverview() {
                               <Button variant="ghost" size="icon" className="h-6 w-6">
                                 <Eye className="h-3 w-3" />
                               </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
                     <div className="mt-3 pt-3 border-t">
                       <Button variant="outline" size="sm" className="w-full gap-2">
                         <Eye className="h-4 w-4" />
@@ -714,9 +714,9 @@ export default function AdminLLMManagement() {
   const stats = getEngineStats();
 
   // Estatísticas calculadas
-  const totalTokens = mockDailyUsage.reduce((sum, d) => sum + d.totalTokens, 0);
-  const totalCost = mockDailyUsage.reduce((sum, d) => sum + d.cost, 0);
-  const avgDailyTokens = totalTokens / mockDailyUsage.length;
+    const totalTokens = mockDailyUsage.reduce((sum, d) => sum + d.totalTokens, 0);
+    const totalCost = mockDailyUsage.reduce((sum, d) => sum + d.cost, 0);
+    const avgDailyTokens = totalTokens / mockDailyUsage.length;
 
   return (
     <div className="flex h-screen bg-background">
@@ -727,37 +727,37 @@ export default function AdminLLMManagement() {
         <main className="flex-1 overflow-auto p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <div>
+              <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Cpu className="h-6 w-6 text-primary" />
                 Gestao de LLM e Tokens
               </h1>
-              <p className="text-muted-foreground">
+                <p className="text-muted-foreground">
                 Monitore o uso de tokens, custos e performance dos agentes de IA
-              </p>
-            </div>
+                </p>
+              </div>
             <div className="flex items-center gap-2">
               <Select value={periodFilter} onValueChange={setPeriodFilter}>
-                <SelectTrigger className="w-32">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7d">7 dias</SelectItem>
-                  <SelectItem value="30d">30 dias</SelectItem>
-                  <SelectItem value="90d">90 dias</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectTrigger className="w-32">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7d">7 dias</SelectItem>
+                    <SelectItem value="30d">30 dias</SelectItem>
+                    <SelectItem value="90d">90 dias</SelectItem>
+                  </SelectContent>
+                </Select>
               <Button variant="outline" size="icon">
                 <RefreshCw className="h-4 w-4" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Exportar
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
                     <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
+                </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>Exportar CSV</DropdownMenuItem>
@@ -765,35 +765,35 @@ export default function AdminLLMManagement() {
                   <DropdownMenuItem>Exportar JSON</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </div>
             </div>
-          </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <StatCard 
-              title="Total de Tokens" 
+              <StatCard
+                title="Total de Tokens"
               value={`${(totalTokens / 1000000).toFixed(2)}M`}
               subtitle={`Media: ${(avgDailyTokens / 1000).toFixed(0)}K/dia`}
               icon={Cpu} 
-              trend="up"
+                trend="up"
               trendValue="+12.5% vs periodo anterior"
-            />
-            <StatCard 
-              title="Custo Total" 
+              />
+              <StatCard
+                title="Custo Total"
               value={`R$ ${(totalCost * 5).toFixed(2)}`}
               subtitle="Convertido para BRL"
-              icon={DollarSign}
+                icon={DollarSign}
               color="warning"
-              trend="up"
+                trend="up"
               trendValue="+8.3% vs periodo anterior"
-            />
-            <StatCard 
-              title="Execucoes" 
+              />
+              <StatCard
+                title="Execucoes"
               value={stats.totalExecutions.toLocaleString()}
               subtitle={`${stats.totalAgents} agentes ativos`}
               icon={Zap}
               color="success"
-              trend="up"
+                trend="up"
               trendValue="+15.2% vs periodo anterior"
             />
             <StatCard 
@@ -804,8 +804,8 @@ export default function AdminLLMManagement() {
               color="success"
               trend="stable"
               trendValue="Estavel"
-            />
-          </div>
+              />
+            </div>
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -819,18 +819,18 @@ export default function AdminLLMManagement() {
                 Arquitetura IA
               </TabsTrigger>
               <TabsTrigger value="agents" className="gap-2">
-                <Bot className="h-4 w-4" />
-                Por Agente
-              </TabsTrigger>
+                  <Bot className="h-4 w-4" />
+                  Por Agente
+                </TabsTrigger>
               <TabsTrigger value="clients" className="gap-2">
                 <Users className="h-4 w-4" />
-                Por Cliente
-              </TabsTrigger>
+                  Por Cliente
+                </TabsTrigger>
               <TabsTrigger value="models" className="gap-2">
                 <Cpu className="h-4 w-4" />
-                Por Modelo
-              </TabsTrigger>
-            </TabsList>
+                  Por Modelo
+                </TabsTrigger>
+              </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
               <UsageChart data={mockDailyUsage} />
@@ -840,31 +840,31 @@ export default function AdminLLMManagement() {
               <ArchitectureOverview />
             </TabsContent>
 
-            <TabsContent value="agents" className="space-y-4">
+              <TabsContent value="agents" className="space-y-4">
               <div className="flex items-center gap-4 mb-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Buscar agente..." 
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar agente..."
                     className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger className="w-48">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
                     <SelectItem value="all">Todas Categorias</SelectItem>
-                    <SelectItem value="MOAT Engine">MOAT Engine</SelectItem>
-                    <SelectItem value="Copilot">Copilot</SelectItem>
+                      <SelectItem value="MOAT Engine">MOAT Engine</SelectItem>
+                      <SelectItem value="Copilot">Copilot</SelectItem>
                     <SelectItem value="Service">Service</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Card>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Card>
                 <ScrollArea className="h-[500px]">
                   <AgentUsageTable 
                     data={mockAgentUsage} 
@@ -872,11 +872,11 @@ export default function AdminLLMManagement() {
                     categoryFilter={categoryFilter}
                   />
                 </ScrollArea>
-              </Card>
-            </TabsContent>
+                </Card>
+              </TabsContent>
 
-            <TabsContent value="clients" className="space-y-4">
-              <Card>
+              <TabsContent value="clients" className="space-y-4">
+                <Card>
                 <CardHeader>
                   <CardTitle>Uso por Cliente</CardTitle>
                   <CardDescription>
@@ -885,24 +885,24 @@ export default function AdminLLMManagement() {
                 </CardHeader>
                 <CardContent>
                   <ClientUsageTable data={mockClientUsage} />
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            <TabsContent value="models" className="space-y-4">
+              <TabsContent value="models" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Uso por Modelo</CardTitle>
                   <CardDescription>
                     Distribuicao de tokens entre modelos de IA
                   </CardDescription>
-                </CardHeader>
+                      </CardHeader>
                 <CardContent>
                   <ModelUsageTable data={mockModelUsage} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                      </CardContent>
+                    </Card>
+              </TabsContent>
+            </Tabs>
         </main>
       </div>
     </div>

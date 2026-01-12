@@ -604,7 +604,7 @@ const AdminAgentConfig = () => {
                     <span className="text-sm text-muted-foreground">
                       {editConfig.temperature.toFixed(2)}
                     </span>
-                  </div>
+                </div>
                   <Slider
                     value={[editConfig.temperature]}
                     onValueChange={([value]) => setEditConfig({...editConfig, temperature: value})}
@@ -615,8 +615,8 @@ const AdminAgentConfig = () => {
                   <p className="text-xs text-muted-foreground">
                     Valores mais baixos = respostas mais focadas. Valores mais altos = mais criatividade.
                   </p>
-                </div>
-                
+              </div>
+              
                 {/* Max Tokens */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
