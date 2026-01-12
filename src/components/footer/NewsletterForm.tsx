@@ -48,14 +48,14 @@ export function NewsletterForm({ className }: NewsletterFormProps) {
         placeholder="seu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="bg-white/5 border-slate-700 text-white placeholder:text-slate-500 focus:border-amber-500/50 h-9 text-sm"
+        className="bg-white/5 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#C0A062]/50 h-9 text-sm"
         disabled={isLoading}
       />
       <Button 
         type="submit" 
         size="sm"
         disabled={isLoading}
-        className="bg-amber-500 hover:bg-amber-600 text-slate-900 h-9 px-3"
+        className="bg-[#C0A062] hover:bg-[#A8893F] text-slate-900 h-9 px-3"
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />

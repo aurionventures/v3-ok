@@ -22,9 +22,9 @@ export function SocialIcons({ className }: SocialIconsProps) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={social.label}
-          className="w-9 h-9 rounded-full bg-white/5 hover:bg-amber-500/20 flex items-center justify-center transition-all duration-200 group"
+          className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#C0A062]/20 flex items-center justify-center transition-all duration-200 group"
         >
-          <social.icon className="h-4 w-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
+          <social.icon className="h-4 w-4 text-slate-400 group-hover:text-[#C0A062] transition-colors" />
         </a>
       ))}
     </div>

@@ -17,7 +17,7 @@ export function FooterColumn({ title, children, highlight, className }: FooterCo
       <h3 
         className={`hidden md:block text-base font-semibold mb-5 ${
           highlight 
-            ? "text-amber-500" 
+            ? "text-[#C0A062]" 
             : "text-white"
         }`}
       >
@@ -29,7 +29,7 @@ export function FooterColumn({ title, children, highlight, className }: FooterCo
         onClick={() => setIsOpen(!isOpen)}
         className="md:hidden w-full flex items-center justify-between py-3 border-b border-slate-700/50"
       >
-        <h3 className={`text-base font-semibold ${highlight ? "text-amber-500" : "text-white"}`}>
+        <h3 className={`text-base font-semibold ${highlight ? "text-[#C0A062]" : "text-white"}`}>
           {title}
         </h3>
         <ChevronDown 
@@ -60,7 +60,7 @@ export function FooterLinkGroup({ title, children }: FooterLinkGroupProps) {
   return (
     <div className="mb-5 last:mb-0">
       {title && (
-        <h4 className="text-xs font-semibold text-amber-500/90 uppercase tracking-wider mb-3">
+        <h4 className="text-xs font-semibold text-[#C0A062] uppercase tracking-wider mb-3">
           {title}
         </h4>
       )}
@@ -85,7 +85,7 @@ export function FooterLink({ href, children, external, indent }: FooterLinkProps
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
       className={`
-        block text-[13px] text-slate-400 hover:text-amber-500 
+        block text-[13px] text-slate-400 hover:text-[#C0A062] 
         transition-all duration-200 hover:pl-1
         leading-relaxed
         ${indent ? "pl-3" : ""}

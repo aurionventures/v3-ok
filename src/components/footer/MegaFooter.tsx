@@ -2,7 +2,6 @@ import {
   Mail, 
   Phone, 
   MessageCircle, 
-  Rocket, 
   Calculator, 
   CalendarDays, 
   MessageSquare,
@@ -65,14 +64,14 @@ export function MegaFooter() {
             <div className="space-y-2 text-sm">
               <a 
                 href="mailto:contato@governancalegacy.com.br" 
-                className="flex items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors"
+                className="flex items-center gap-2 text-slate-400 hover:text-[#C0A062] transition-colors"
               >
                 <Mail className="h-4 w-4" />
                 <span>contato@governancalegacy.com.br</span>
               </a>
               <a 
                 href="tel:+551130404050" 
-                className="flex items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors"
+                className="flex items-center gap-2 text-slate-400 hover:text-[#C0A062] transition-colors"
               >
                 <Phone className="h-4 w-4" />
                 <span>+55 11 3040-4050</span>
@@ -81,7 +80,7 @@ export function MegaFooter() {
                 href="https://wa.me/5547991622220" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors"
+                className="flex items-center gap-2 text-slate-400 hover:text-[#C0A062] transition-colors"
               >
                 <MessageCircle className="h-4 w-4" />
                 <span>WhatsApp</span>
@@ -90,13 +89,13 @@ export function MegaFooter() {
 
             {/* Empresa */}
             <div className="pt-4 border-t border-slate-700/50">
-              <h4 className="text-xs font-semibold text-amber-500/90 uppercase tracking-wider mb-3">Empresa</h4>
+              <h4 className="text-xs font-semibold text-[#C0A062] uppercase tracking-wider mb-3">Empresa</h4>
               <div className="space-y-1.5">
-                <a href="/sobre" className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-amber-500 transition-all duration-200 hover:pl-1">
+                <a href="/sobre" className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1">
                   <Info className="h-3.5 w-3.5" />
                   <span>Sobre Nós</span>
                 </a>
-                <a href="/contato" className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-amber-500 transition-all duration-200 hover:pl-1">
+                <a href="/contato" className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1">
                   <Users className="h-3.5 w-3.5" />
                   <span>Contato</span>
                 </a>
@@ -107,7 +106,6 @@ export function MegaFooter() {
           {/* COLUNA 2: Comece Agora */}
           <FooterColumn title="Comece Agora">
             <FooterLinkGroup>
-              <FooterLinkWithIcon href="/trial" icon={Rocket}>Trial Gratuito 30 Dias</FooterLinkWithIcon>
               <FooterLinkWithIcon href="/pricing" icon={Calculator}>Calcular Meu Preço</FooterLinkWithIcon>
               <FooterLinkWithIcon href="/demo" icon={CalendarDays}>Agendar Demonstração</FooterLinkWithIcon>
               <FooterLinkWithIcon href="/contato" icon={MessageSquare}>Falar com Especialista</FooterLinkWithIcon>
@@ -160,17 +158,7 @@ export function MegaFooter() {
             <FooterLinkGroup title="Engajamento Conselho">
               <FooterLink href="/governanca/aprovacoes" indent>├─ Aprovações & Votação</FooterLink>
               <FooterLink href="/governanca/assistente" indent>├─ Assistente Inteligente</FooterLink>
-              <FooterLink href="/governanca/apps" indent>├─ Apps iOS & Android</FooterLink>
-              <FooterLink href="/governanca/notas" indent>├─ Notas & Anotações</FooterLink>
-              <FooterLink href="/governanca/zoom" indent>└─ Integração Zoom/Teams</FooterLink>
-            </FooterLinkGroup>
-
-            <FooterLinkGroup title="Continuidade Board">
-              <FooterLink href="/governanca/avaliacoes" indent>├─ Avaliações Board</FooterLink>
-              <FooterLink href="/governanca/diversidade" indent>├─ Relatórios Diversidade</FooterLink>
-              <FooterLink href="/governanca/papeis" indent>├─ Gestão Papéis & Termos</FooterLink>
-              <FooterLink href="/governanca/surveys" indent>├─ Pesquisas & Surveys</FooterLink>
-              <FooterLink href="/governanca/skills" indent>└─ Skills Tracking</FooterLink>
+              <FooterLink href="/governanca/notas" indent>└─ Notas & Anotações</FooterLink>
             </FooterLinkGroup>
 
             <FooterLinkGroup title="Indústrias">
@@ -214,19 +202,19 @@ export function MegaFooter() {
           <p>© 2026 Legacy OS. Todos os direitos reservados.</p>
           
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <a href="/privacidade" className="hover:text-amber-500 transition-colors">
+            <a href="/privacidade" className="hover:text-[#C0A062] transition-colors">
               Política de Privacidade
             </a>
             <span className="hidden md:inline text-slate-700">|</span>
-            <a href="/termos" className="hover:text-amber-500 transition-colors">
+            <a href="/termos" className="hover:text-[#C0A062] transition-colors">
               Termos de Uso
             </a>
             <span className="hidden md:inline text-slate-700">|</span>
-            <a href="/lgpd" className="hover:text-amber-500 transition-colors">
+            <a href="/lgpd" className="hover:text-[#C0A062] transition-colors">
               LGPD
             </a>
             <span className="hidden md:inline text-slate-700">|</span>
-            <a href="/trust" className="hover:text-amber-500 transition-colors">
+            <a href="/trust" className="hover:text-[#C0A062] transition-colors">
               Trust Center
             </a>
           </div>
@@ -247,7 +235,7 @@ function FooterLinkWithIcon({ href, icon: Icon, children }: FooterLinkWithIconPr
   return (
     <a
       href={href}
-      className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-amber-500 transition-all duration-200 hover:pl-1 leading-relaxed"
+      className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1 leading-relaxed"
     >
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span>{children}</span>
