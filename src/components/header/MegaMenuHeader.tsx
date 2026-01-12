@@ -288,13 +288,6 @@ export function MegaMenuHeader() {
             <a href="/blog" className="text-[13px] text-slate-400 hover:text-[#C0A062] transition-colors">
               Blog
             </a>
-            <a 
-              href="/login" 
-              className="text-[13px] text-slate-400 hover:text-[#C0A062] transition-colors flex items-center gap-1.5"
-            >
-              <Lock className="h-3.5 w-3.5" />
-              Entrar
-            </a>
           </nav>
         </div>
       </div>
@@ -329,13 +322,11 @@ export function MegaMenuHeader() {
                 <button
                   className={cn(
                     "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                    menu.highlight 
-                      ? "text-[#C0A062] hover:bg-[#C0A062]/10" 
-                      : "text-slate-300 hover:text-white hover:bg-white/5",
-                    activeMenu === menu.id && (menu.highlight ? "bg-[#C0A062]/10" : "bg-white/5 text-white")
+                    "text-slate-300 hover:text-white hover:bg-white/5",
+                    activeMenu === menu.id && "bg-white/5 text-white"
                   )}
                 >
-                  {menu.highlight && <Bot className="h-4 w-4 mr-1" />}
+                  {menu.highlight && <Bot className="h-4 w-4 mr-1 text-[#C0A062]" />}
                   {menu.label}
                   <ChevronDown className={cn(
                     "h-4 w-4 transition-transform duration-200",
@@ -353,17 +344,6 @@ export function MegaMenuHeader() {
                       menu.highlight && "border-[#C0A062]/30"
                     )}
                   >
-                    {menu.highlight && (
-                      <div className="bg-gradient-to-r from-[#1976D2] to-[#0A1929] px-6 py-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Bot className="h-5 w-5 text-[#C0A062]" />
-                          <span className="text-white font-semibold">AI Engine</span>
-                        </div>
-                        <span className="text-xs bg-[#C0A062] text-[#0A1929] px-2 py-1 rounded-full font-medium">
-                          IA NATIVA
-                        </span>
-                      </div>
-                    )}
                     <div className={cn(
                       "grid gap-6 p-6",
                       menu.sections.length === 2 && "grid-cols-2",
@@ -431,11 +411,11 @@ export function MegaMenuHeader() {
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-3">
             <Button 
-              variant="ghost" 
               size="sm"
-              className="text-slate-300 hover:text-white hover:bg-white/10"
+              className="border-2 border-[#C0A062] bg-transparent hover:bg-[#C0A062]/10 text-[#C0A062] font-semibold"
               onClick={() => navigate("/login")}
             >
+              <Lock className="h-4 w-4 mr-2" />
               Login
             </Button>
             <Button 

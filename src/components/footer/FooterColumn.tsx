@@ -72,26 +72,23 @@ export function FooterLinkGroup({ title, children }: FooterLinkGroupProps) {
 }
 
 interface FooterLinkProps {
-  href: string;
+  href?: string;
   children: ReactNode;
   external?: boolean;
   indent?: boolean;
 }
 
-export function FooterLink({ href, children, external, indent }: FooterLinkProps) {
+export function FooterLink({ children, indent }: FooterLinkProps) {
   return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
+    <span
       className={`
         block text-[13px] text-slate-400 hover:text-[#C0A062] 
         transition-all duration-200 hover:pl-1
-        leading-relaxed
+        leading-relaxed cursor-default
         ${indent ? "pl-3" : ""}
       `}
     >
       {children}
-    </a>
+    </span>
   );
 }

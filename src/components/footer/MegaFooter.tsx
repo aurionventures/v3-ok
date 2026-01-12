@@ -83,35 +83,24 @@ export function MegaFooter() {
               </a>
             </div>
 
-            {/* Empresa */}
-            <div className="pt-4 border-t border-slate-700/50">
-              <h4 className="text-xs font-semibold text-[#C0A062] uppercase tracking-wider mb-3">Empresa</h4>
-              <div className="space-y-1.5">
-                <a href="/sobre" className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1">
-                  <Info className="h-3.5 w-3.5" />
-                  <span>Sobre Nós</span>
-                </a>
-                <a href="/contato" className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1">
-                  <Users className="h-3.5 w-3.5" />
-                  <span>Contato</span>
-                </a>
-              </div>
-            </div>
           </div>
 
           {/* COLUNA 2: Comece Agora */}
           <FooterColumn title="Comece Agora">
             <FooterLinkGroup>
-              <FooterLinkWithIcon href="/pricing" icon={Calculator}>Calcular Meu Preço</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/demo" icon={CalendarDays}>Agendar Demonstração</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/contato" icon={MessageSquare}>Falar com Especialista</FooterLinkWithIcon>
+              <FooterLinkWithIcon href="#" icon={Calculator}>Calcular Meu Preço</FooterLinkWithIcon>
+              <FooterLinkWithIcon href="#" icon={CalendarDays}>Agendar Demonstração</FooterLinkWithIcon>
+              <FooterLinkWithIcon href="#" icon={MessageSquare}>Falar com Especialista</FooterLinkWithIcon>
             </FooterLinkGroup>
 
-            <FooterLinkGroup title="Pricing">
-              <FooterLinkWithIcon href="/pricing" icon={Gem}>Planos & Preços</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/pricing#calculator" icon={SlidersHorizontal}>Calculadora Interativa</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/pricing/comparacao" icon={BarChart3}>Comparar com OnBoard</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/pricing/promocoes" icon={Gift}>Promoções Ativas</FooterLinkWithIcon>
+            <FooterLinkGroup title="Planos">
+              <FooterLinkWithIcon href="#" icon={Gem}>Planos & Preços</FooterLinkWithIcon>
+              <FooterLinkWithIcon href="#" icon={SlidersHorizontal}>Calculadora Interativa</FooterLinkWithIcon>
+            </FooterLinkGroup>
+
+            <FooterLinkGroup title="Empresa">
+              <FooterLinkWithIcon href="#" icon={Info}>Sobre Nós</FooterLinkWithIcon>
+              <FooterLinkWithIcon href="#" icon={Users}>Contato</FooterLinkWithIcon>
             </FooterLinkGroup>
           </FooterColumn>
 
@@ -214,22 +203,21 @@ export function MegaFooter() {
   );
 }
 
-// Componente auxiliar para links com ícones
+// Componente auxiliar para links com ícones (não clicáveis, apenas visuais)
 interface FooterLinkWithIconProps {
-  href: string;
+  href?: string;
   icon: React.ComponentType<{ className?: string }>;
   children: React.ReactNode;
 }
 
-function FooterLinkWithIcon({ href, icon: Icon, children }: FooterLinkWithIconProps) {
+function FooterLinkWithIcon({ icon: Icon, children }: FooterLinkWithIconProps) {
   return (
-    <a
-      href={href}
-      className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1 leading-relaxed"
+    <span
+      className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1 leading-relaxed cursor-default"
     >
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span>{children}</span>
-    </a>
+    </span>
   );
 }
 
