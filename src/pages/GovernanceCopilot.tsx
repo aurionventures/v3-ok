@@ -440,18 +440,12 @@ export default function GovernanceCopilot() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {lastUpdated && <span className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
-                    Última atualização: {lastUpdated.toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })}
-                  </span>}
-                <Button onClick={handleRefresh} disabled={isLoading} className="gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
-                  <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-                  {isLoading ? "Analisando..." : "Atualizar Análise"}
-                </Button>
-              </div>
+              {lastUpdated && <span className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+                  Última atualização: {lastUpdated.toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </span>}
             </div>
             <p className="text-sm text-muted-foreground max-w-2xl">
               Antecipação • Clareza • Inteligência Aplicada — Apoio direto à decisão da alta liderança
@@ -461,6 +455,10 @@ export default function GovernanceCopilot() {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-[calc(100%-8rem)]">
             <TabsList className="mb-4">
+              <TabsTrigger value="analysis" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Insights
+              </TabsTrigger>
               <TabsTrigger value="agendas" className="gap-2">
                 <FileText className="h-4 w-4" />
                 Pautas Sugeridas
