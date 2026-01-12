@@ -17,19 +17,13 @@ import {
   Building2, 
   Send, 
   TrendingUp,
-  Briefcase,
   Handshake,
-  ScrollText,
   DollarSign,
-  PieChart,
-  Brain,
   Award,
   Target,
   Bot,
   Gift,
   Lock,
-  ActivitySquare,
-  CheckCircle,
   Calculator,
   FileSignature,
   Receipt,
@@ -95,20 +89,43 @@ const ADDON_ITEMS = [
   { key: "scenario_simulator", label: "Simulador de Cenários", path: "/simulador-cenarios", icon: Calculator },
 ];
 
-// Admin menu items
-const ADMIN_MENU_ITEMS = [
-  { icon: LayoutDashboard, href: "/admin", name: "Dashboard" },
-  { icon: Building2, href: "/admin/empresas", name: "Empresas" },
-  { icon: FileText, href: "/admin/planos", name: "Planos & Produtos" },
-  { icon: Layers, href: "/admin/addons", name: "Add-ons" },
-  { icon: FileSignature, href: "/admin/contratos", name: "Contratos" },
-  { icon: Receipt, href: "/admin/faturas", name: "Faturas" },
-  { icon: TrendingUp, href: "/admin/vendas", name: "Vendas & Ativações" },
-  { icon: DollarSign, href: "/admin/finances", name: "Financeiro" },
-  { icon: Bot, href: "/admin/prompts", name: "AI Engine" },
-  { icon: ScrollText, href: "/admin/auditoria", name: "Auditoria" },
-  { icon: Shield, href: "/admin/seguranca", name: "Segurança" },
-  { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
+// Admin menu items organized by sections
+const ADMIN_MENU_SECTIONS = [
+  {
+    label: "Visão Geral",
+    items: [
+      { icon: LayoutDashboard, href: "/admin", name: "Dashboard" },
+    ]
+  },
+  {
+    label: "Comercial",
+    items: [
+      { icon: Building2, href: "/admin/empresas", name: "Empresas" },
+      { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
+      { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
+    ]
+  },
+  {
+    label: "Catálogo",
+    items: [
+      { icon: FileText, href: "/admin/planos", name: "Planos" },
+      { icon: Layers, href: "/admin/addons", name: "Add-ons" },
+    ]
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { icon: FileSignature, href: "/admin/contratos", name: "Contratos" },
+      { icon: Receipt, href: "/admin/faturas", name: "Faturas" },
+      { icon: DollarSign, href: "/admin/finances", name: "Financeiro" },
+    ]
+  },
+  {
+    label: "Tecnologia",
+    items: [
+      { icon: Bot, href: "/admin/prompts", name: "AI Engine" },
+    ]
+  },
 ];
 
 const Sidebar = () => {
@@ -142,31 +159,55 @@ const Sidebar = () => {
     setUpgradeModalOpen(true);
   };
 
-  // Render admin menu
+  // Render admin menu with sections
   const renderAdminMenu = () => (
-    <div className="space-y-1">
-      {ADMIN_MENU_ITEMS.map(item => {
-        const Icon = item.icon;
-        const isActive = pathname === item.href || 
-          (item.href === "/admin/companies" && pathname.startsWith("/admin/companies"));
-        
-        return (
-          <Link 
-            key={item.href} 
-            to={item.href} 
-            className={cn(
-              "flex items-center gap-3 py-2.5 px-3 rounded-lg text-base font-medium transition-colors", 
-              isActive
-                ? "bg-accent text-accent-foreground" 
-                : "text-white/80 hover:bg-white/10 hover:text-white"
-            )}
-            title={!open ? item.name : undefined}
-          >
-            <Icon className="h-5 w-5 shrink-0" />
-            {open && <span>{item.name}</span>}
-          </Link>
-        );
-      })}
+    <div className="space-y-4">
+      {ADMIN_MENU_SECTIONS.map((section, sectionIndex) => (
+        <div key={section.label} className="space-y-1">
+          {/* Section Label */}
+          {open && (
+            <div className="flex items-center gap-2 px-3 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">
+                {section.label}
+              </span>
+              <div className="flex-1 h-px bg-sidebar-border/50" />
+            </div>
+          )}
+          
+          {/* Section Items */}
+          {section.items.map(item => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href || 
+              (item.href !== "/admin" && pathname.startsWith(item.href));
+            
+            return (
+              <TooltipProvider key={item.href} delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link 
+                      to={item.href} 
+                      className={cn(
+                        "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
+                        isActive
+                          ? "bg-[#C0A062] text-white" 
+                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {open && <span>{item.name}</span>}
+                    </Link>
+                  </TooltipTrigger>
+                  {!open && (
+                    <TooltipContent side="right">
+                      <p>{item.name}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 

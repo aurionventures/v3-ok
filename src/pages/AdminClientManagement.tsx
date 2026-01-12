@@ -89,7 +89,7 @@ export default function AdminClientManagement() {
   } = useClientPlanConfig();
 
   // Main tab state
-  const [activeTab, setActiveTab] = useState('cadastrar');
+  const [activeTab, setActiveTab] = useState('empresas');
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1);
@@ -385,21 +385,16 @@ export default function AdminClientManagement() {
 
             {/* Main Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 max-w-2xl">
-                <TabsTrigger value="cadastrar" className="gap-2">
-                  <Building2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Cadastrar Empresa</span>
-                  <span className="sm:hidden">Cadastrar</span>
-                </TabsTrigger>
-                <TabsTrigger value="plano" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  <span className="hidden sm:inline">Plano Contratado</span>
-                  <span className="sm:hidden">Plano</span>
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 max-w-md">
                 <TabsTrigger value="empresas" className="gap-2">
                   <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">Empresas Cadastradas</span>
+                  <span className="hidden sm:inline">Empresas</span>
                   <span className="sm:hidden">Empresas</span>
+                </TabsTrigger>
+                <TabsTrigger value="cadastrar" className="gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Nova Empresa</span>
+                  <span className="sm:hidden">Nova</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -721,164 +716,7 @@ export default function AdminClientManagement() {
                 </Card>
               </TabsContent>
 
-              {/* TAB 2: Configurar Plano */}
-              <TabsContent value="plano" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings2 className="h-5 w-5" />
-                      Configurar Plano
-                    </CardTitle>
-                    <CardDescription>Selecione uma empresa e configure o plano com módulos personalizados</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Seletor de empresa */}
-                    <div className="space-y-2">
-                      <Label>Selecione a Empresa</Label>
-                      <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-                        <SelectTrigger className="w-full max-w-md">
-                          <SelectValue placeholder="Escolha uma empresa..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.map(client => <SelectItem key={client.id} value={client.id}>
-                              {client.company || client.name} {client.plan_config ? `(${client.plan_config.status === 'active' ? 'Ativo' : client.plan_config.status === 'pending' ? 'Pendente' : 'Inativo'})` : '(Sem plano)'}
-                            </SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Configurador de plano */}
-                    {selectedCompany ? <div className="space-y-6">
-                        {/* Info da empresa + Status */}
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <Card>
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-base flex items-center gap-2">
-                                <Building2 className="h-4 w-4" />
-                                Dados da Empresa
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Empresa:</span>
-                                <span className="font-medium">{selectedCompany.company || '-'}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Responsável:</span>
-                                <span className="font-medium">{selectedCompany.name}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Email:</span>
-                                <span className="font-medium">{selectedCompany.email}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Setor:</span>
-                                <span className="font-medium">{selectedCompany.sector || '-'}</span>
-                              </div>
-                              <div className="flex justify-between pt-2 border-t">
-                                <span className="text-muted-foreground">Status:</span>
-                                {getStatusBadge(selectedCompany.plan_config?.status)}
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Seletor de Porte */}
-                          <Card>
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-base flex items-center gap-2">
-                                <Briefcase className="h-4 w-4" />
-                                Porte da Empresa
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <Select value={planCompanySize} onValueChange={(v) => {
-                                setPlanCompanySize(v as CompanySize);
-                                if (planConfigMode === 'automatic') {
-                                  setPlanSelectedModules(BASE_MODULES[v as CompanySize]);
-                                }
-                              }}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {SIZE_OPTIONS.map(size => (
-                                    <SelectItem key={size.value} value={size.value}>
-                                      <div className="flex items-center justify-between gap-4">
-                                        <span>{size.label}</span>
-                                        <span className="text-xs text-muted-foreground">
-                                          R$ {PLAN_PRICES[size.value].toLocaleString('pt-BR')}/mês
-                                        </span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <p className="text-xs text-muted-foreground">
-                                {SIZE_OPTIONS.find(s => s.value === planCompanySize)?.description}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        </div>
-
-                        {/* Module Configurator */}
-                        <Card>
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Configuração de Módulos</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ModuleConfigurator
-                              companySize={planCompanySize}
-                              mode={planConfigMode}
-                              onModeChange={setPlanConfigMode}
-                              selectedModules={planSelectedModules}
-                              onModulesChange={setPlanSelectedModules}
-                            />
-                          </CardContent>
-                        </Card>
-
-                        {/* Botões de ação */}
-                        <div className="flex flex-wrap gap-3 pt-4 border-t">
-                          <Button 
-                            onClick={handleSavePlanConfig} 
-                            disabled={isSubmitting}
-                            variant="outline"
-                            className="gap-2"
-                          >
-                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                            Salvar Configuração
-                          </Button>
-                          
-                          {selectedCompany.plan_config?.status !== 'active' && (
-                            <Button 
-                              onClick={handleEnablePlan} 
-                              disabled={isSubmitting}
-                              className="gap-2 bg-green-600 hover:bg-green-700"
-                            >
-                              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
-                              Habilitar Plano
-                            </Button>
-                          )}
-                          
-                          {selectedCompany.plan_config?.status === 'active' && (
-                            <Button 
-                              variant="outline" 
-                              className="gap-2 text-amber-600 border-amber-600 hover:bg-amber-600/10" 
-                              onClick={() => suspendClient(selectedCompany.id)}
-                            >
-                              <PowerOff className="h-4 w-4" />
-                              Inativar Empresa
-                            </Button>
-                          )}
-                        </div>
-                      </div> : <div className="text-center py-12 text-muted-foreground">
-                        <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Selecione uma empresa para configurar o plano</p>
-                      </div>}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* TAB 3: Empresas Cadastradas */}
+              {/* TAB: Empresas Cadastradas */}
               <TabsContent value="empresas" className="space-y-6">
                 <Card>
                   <CardHeader>
