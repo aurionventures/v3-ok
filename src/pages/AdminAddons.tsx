@@ -225,11 +225,6 @@ const AdminAddons = () => {
     toast.success("Configurações resetadas para o padrão");
   };
 
-  const activeCount = addons.filter(a => a.isActive).length;
-  const publicCount = addons.filter(a => a.isPublic && a.isActive).length;
-  const totalMRR = addons.filter(a => a.isActive).reduce((sum, a) => sum + a.precoMensal, 0);
-  const totalARR = addons.filter(a => a.isActive).reduce((sum, a) => sum + a.precoAnual, 0);
-
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -257,64 +252,6 @@ const AdminAddons = () => {
                 </Button>
               </CardContent>
             </Card>
-
-            {/* Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Add-ons Ativos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-foreground">
-                    {activeCount}
-                    <span className="text-lg text-muted-foreground font-normal ml-1">
-                      / {addons.length}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Públicos na Landing
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-foreground">{publicCount}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    MRR Potencial
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-primary">
-                    R$ {totalMRR.toLocaleString("pt-BR")}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">por cliente/mês</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    ARR Potencial
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
-                    R$ {totalARR.toLocaleString("pt-BR")}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">por cliente/ano</p>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* Table */}
             <Card>

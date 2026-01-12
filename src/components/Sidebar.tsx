@@ -145,6 +145,10 @@ const Sidebar = () => {
   const { hasAccess } = useModuleAccess();
   const { user, logout } = useAuth();
   
+  // Ref para o container de scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
+  
   const isAdminRoute = pathname.startsWith("/admin");
   
   // Verificar quais add-ons o cliente tem ativados
@@ -168,6 +172,22 @@ const Sidebar = () => {
       setAddonsExpanded(true);
     }
   }, [pathname, isAddonRoute]);
+  
+  // Salvar posição do scroll antes de navegar
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      // Restaurar posição do scroll após navegação
+      container.scrollTop = scrollPositionRef.current;
+    }
+  }, [pathname]);
+  
+  // Handler para salvar posição do scroll
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+    }
+  };
   
   useEffect(() => {
     setOpen(!isMobile);
@@ -433,7 +453,11 @@ const Sidebar = () => {
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto flex-1 py-4 px-2 scrollbar-thin">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="overflow-y-auto flex-1 py-4 px-2 scrollbar-thin"
+        >
           {isAdminRoute ? renderAdminMenu() : renderCompanyMenu()}
         </div>
 
