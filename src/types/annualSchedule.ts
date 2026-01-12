@@ -40,6 +40,7 @@ export interface MeetingSchedule {
   participants?: MeetingParticipant[];
   confirmed_participants?: number;
   notifications_sent?: boolean;
+  ai_generated_agenda?: boolean; // Pauta sugerida pela IA
 }
 
 export interface MeetingParticipant {

@@ -6,6 +6,7 @@ interface CalendarFilters {
   organId: string;
   status: string;
   meetingType: string;
+  aiGenerated: string; // 'all', 'yes', 'no'
 }
 
 // Helper to get ATA status from localStorage
@@ -20,6 +21,7 @@ export const useCalendarFilters = (meetings: MeetingSchedule[], initialStatus: s
     organId: 'all',
     status: initialStatus,
     meetingType: 'all',
+    aiGenerated: 'all',
   });
 
   const filteredMeetings = useMemo(() => {
@@ -59,6 +61,17 @@ export const useCalendarFilters = (meetings: MeetingSchedule[], initialStatus: s
       // Filtro por tipo de reunião
       if (filters.meetingType !== 'all' && meeting.type !== filters.meetingType) {
         return false;
+      }
+      
+      // Filtro por pautas geradas por IA
+      if (filters.aiGenerated !== 'all') {
+        const isAiGenerated = meeting.ai_generated_agenda === true;
+        if (filters.aiGenerated === 'yes' && !isAiGenerated) {
+          return false;
+        }
+        if (filters.aiGenerated === 'no' && isAiGenerated) {
+          return false;
+        }
       }
       
       return true;

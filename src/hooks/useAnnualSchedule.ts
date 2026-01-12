@@ -67,13 +67,15 @@ const getLastWeekdayOfMonth = (year: number, month: number, weekday: number): Da
   return new Date(year, month, lastDay.getDate() - offset);
 };
 
-// Generate default annual schedule for 2025
+// Generate default annual schedule for 2026
 const generateDefaultSchedule = (year: number): AgendaAnual => {
   const meetings: MeetingSchedule[] = [];
 
   // Generate 12 COUNCIL meetings (2nd Tuesday of each month at 14:00)
   for (let month = 0; month < 12; month++) {
     const date = getNthWeekdayOfMonth(year, month, 2, 2); // Tuesday=2, 2nd occurrence
+    // Reuniões dos meses 4, 7, 10 têm pauta sugerida pela IA
+    const hasAIPauta = [3, 6, 9].includes(month); // abril, julho, outubro (0-indexed)
     meetings.push({
       id: `conselho-${month + 1}`,
       council: "Conselho de Administração",
@@ -90,6 +92,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       participants: generateMockParticipants("conselho", "Conselho de Administração"),
       confirmed_participants: 0,
       notifications_sent: false,
+      ai_generated_agenda: hasAIPauta,
     });
 
     // Enrich first 3 council meetings with complete data
@@ -172,7 +175,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       meeting.meeting_documents = [
         {
           id: `doc-conselho-${month + 1}-1`,
-          name: `Balanço_Q${Math.floor(month / 3) + 1}_2025.pdf`,
+          name: `Balanço_Q${Math.floor(month / 3) + 1}_2026.pdf`,
           type: "application/pdf",
           uploadDate: new Date(year, month, date.getDate() - 5).toISOString(),
           url: "#"
@@ -189,10 +192,10 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       meeting.ata = {
         id: `ata-conselho-${month + 1}`,
         summary: month === 0 
-          ? "Reunião Ordinária do Conselho realizada em 14/jan/2025. Presentes todos os conselheiros. Aprovados resultados 2024: +18% receita, +12% EBITDA. Expansão LATAM aprovada (R$ 8M). Criado Comitê Especial Internacional."
+          ? "Reunião Ordinária do Conselho realizada em 14/jan/2026. Presentes todos os conselheiros. Aprovados resultados 2024: +18% receita, +12% EBITDA. Expansão LATAM aprovada (R$ 8M). Criado Comitê Especial Internacional."
           : month === 1
-          ? "Reunião de 11/fev/2025. Aprovadas atualizações de governança: novo Código de Ética, Política Compliance, treinamento obrigatório março/2025."
-          : "Reunião de 11/mar/2025. Aprovado Plano Sucessão C-Level: 12 sucessores identificados, programa 18 meses, mentoria conselheiros.",
+          ? "Reunião de 11/fev/2026. Aprovadas atualizações de governança: novo Código de Ética, Política Compliance, treinamento obrigatório março/2026."
+          : "Reunião de 11/mar/2026. Aprovado Plano Sucessão C-Level: 12 sucessores identificados, programa 18 meses, mentoria conselheiros.",
         decisions: month === 0 ? [
           "Aprovação balanço 2024",
           "Investimento R$ 8M expansão LATAM",
@@ -213,7 +216,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       // Adicionar recording e minutes para reuniões realizadas
       meeting.recording = {
         type: "video",
-        url: `#gravacao-conselho-${month + 1}-2025.mp4`,
+        url: `#gravacao-conselho-${month + 1}-2026.mp4`,
         uploadedAt: new Date(year, month, date.getDate() + 1, 16, 30).toISOString()
       };
       
@@ -247,6 +250,8 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
   // Generate 12 COMMITTEE meetings (3rd Thursday of each month at 10:00)
   for (let month = 0; month < 12; month++) {
     const date = getNthWeekdayOfMonth(year, month, 4, 3); // Thursday=4, 3rd occurrence
+    // Reuniões dos meses 2, 5, 8, 11 têm pauta sugerida pela IA
+    const hasAIPauta = [1, 4, 7, 10].includes(month); // fevereiro, maio, agosto, novembro (0-indexed)
     meetings.push({
       id: `comite-${month + 1}`,
       council: "Comitê de Auditoria",
@@ -263,6 +268,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       participants: generateMockParticipants("comite", "Comitê de Auditoria"),
       confirmed_participants: 0,
       notifications_sent: false,
+      ai_generated_agenda: hasAIPauta,
     });
 
     // Enrich first 4 committee meetings
@@ -317,7 +323,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       meeting.meeting_documents = [
         {
           id: `doc-comite-${month + 1}-1`,
-          name: `Relatorio_Riscos_${month + 1}_2025.pdf`,
+          name: `Relatorio_Riscos_${month + 1}_2026.pdf`,
           type: "application/pdf",
           uploadDate: new Date(year, month, date.getDate() - 4).toISOString(),
           url: "#"
@@ -327,7 +333,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       if (month < 3) {
         meeting.ata = {
           id: `ata-comite-${month + 1}`,
-          summary: `Reunião Comitê Auditoria ${month + 1}/2025. Mapa riscos: ${8 + month} alta criticidade. Aprovado R$ ${300 + month * 50}k em controles.`,
+          summary: `Reunião Comitê Auditoria ${month + 1}/2026. Mapa riscos: ${8 + month} alta criticidade. Aprovado R$ ${300 + month * 50}k em controles.`,
           decisions: [
             "Aprovação mapa de riscos",
             `${3 + month} novos controles`,
@@ -340,7 +346,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
         // Adicionar recording e minutes para reuniões realizadas
         meeting.recording = {
           type: "audio",
-          url: `#gravacao-comite-${month + 1}-2025.mp3`,
+          url: `#gravacao-comite-${month + 1}-2026.mp3`,
           uploadedAt: new Date(year, month, date.getDate() + 1, 12, 15).toISOString()
         };
         
@@ -374,6 +380,8 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
   // Generate 12 COMMISSION meetings (last Friday of each month at 15:00)
   for (let month = 0; month < 12; month++) {
     const date = getLastWeekdayOfMonth(year, month, 5); // Friday=5
+    // Reuniões dos meses 3, 6, 9, 12 têm pauta sugerida pela IA
+    const hasAIPauta = [2, 5, 8, 11].includes(month); // março, junho, setembro, dezembro (0-indexed)
     meetings.push({
       id: `comissao-${month + 1}`,
       council: "Comissão de Ética",
@@ -390,6 +398,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       participants: generateMockParticipants("comissao", "Comissão de Ética"),
       confirmed_participants: 0,
       notifications_sent: false,
+      ai_generated_agenda: hasAIPauta,
     });
 
     // Enrich first 3 commission meetings
@@ -432,7 +441,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       meeting.meeting_documents = [
         {
           id: `doc-comissao-${month + 1}-1`,
-          name: `Casos_${month + 1}_2025_CONFIDENCIAL.pdf`,
+          name: `Casos_${month + 1}_2026_CONFIDENCIAL.pdf`,
           type: "application/pdf",
           uploadDate: new Date(year, month, date.getDate() - 5).toISOString(),
           url: "#"
@@ -442,7 +451,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       // Adicionar ata, recording e minutes para reuniões realizadas
       meeting.ata = {
         id: `ata-comissao-${month + 1}`,
-        summary: `Reunião Comissão de Ética ${month + 1}/2025. Analisados ${4 + month} casos de conduta. ${Math.floor(Math.random() * 3)} casos arquivados, ${1 + Math.floor(Math.random() * 2)} em investigação. Recomendações de treinamento aprovadas.`,
+        summary: `Reunião Comissão de Ética ${month + 1}/2026. Analisados ${4 + month} casos de conduta. ${Math.floor(Math.random() * 3)} casos arquivados, ${1 + Math.floor(Math.random() * 2)} em investigação. Recomendações de treinamento aprovadas.`,
         decisions: [
           `${4 + month} casos analisados`,
           "Arquivamento de casos resolvidos",
@@ -454,7 +463,7 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       
       meeting.recording = {
         type: "transcript",
-        url: `#transcricao-comissao-${month + 1}-2025.txt`,
+        url: `#transcricao-comissao-${month + 1}-2026.txt`,
         uploadedAt: new Date(year, month, date.getDate() + 1, 17, 0).toISOString()
       };
       
@@ -551,16 +560,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-conselho-de-administração-1',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-16T10:30:00Z',
+        approved_at: '2026-01-16T10:30:00Z',
         signature_status: 'ASSINADO',
         signature_hash: 'a1b2c3d4e5f6789012345678901234567890abcd',
         signature_ip: '192.168.1.100',
         signature_user_agent: 'Mozilla/5.0',
-        signed_at: '2025-01-16T11:00:00Z',
-        notification_sent_at: '2025-01-15T09:00:00Z',
+        signed_at: '2026-01-16T11:00:00Z',
+        notification_sent_at: '2026-01-15T09:00:00Z',
         magic_link_token: 'demo-ata-token-carlos',
-        created_at: '2025-01-15T09:00:00Z',
-        updated_at: '2025-01-16T11:00:00Z',
+        created_at: '2026-01-15T09:00:00Z',
+        updated_at: '2026-01-16T11:00:00Z',
         participant: {
           id: 'mock-member-conselho-de-administração-1',
           external_name: 'Carlos Alberto Silva',
@@ -574,16 +583,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-conselho-de-administração-2',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-16T14:00:00Z',
+        approved_at: '2026-01-16T14:00:00Z',
         signature_status: 'NAO_ASSINADO',
         signature_hash: null,
         signature_ip: null,
         signature_user_agent: null,
         signed_at: null,
-        notification_sent_at: '2025-01-15T09:00:00Z',
+        notification_sent_at: '2026-01-15T09:00:00Z',
         magic_link_token: 'demo-ata-token-maria',
-        created_at: '2025-01-15T09:00:00Z',
-        updated_at: '2025-01-16T14:00:00Z',
+        created_at: '2026-01-15T09:00:00Z',
+        updated_at: '2026-01-16T14:00:00Z',
         participant: {
           id: 'mock-member-conselho-de-administração-2',
           external_name: 'Maria Santos Costa',
@@ -603,10 +612,10 @@ export const useAnnualSchedule = () => {
         signature_ip: null,
         signature_user_agent: null,
         signed_at: null,
-        notification_sent_at: '2025-01-15T09:00:00Z',
+        notification_sent_at: '2026-01-15T09:00:00Z',
         magic_link_token: 'demo-ata-token-roberto',
-        created_at: '2025-01-15T09:00:00Z',
-        updated_at: '2025-01-15T09:00:00Z',
+        created_at: '2026-01-15T09:00:00Z',
+        updated_at: '2026-01-15T09:00:00Z',
         participant: {
           id: 'mock-member-conselho-de-administração-3',
           external_name: 'Roberto Oliveira',
@@ -626,10 +635,10 @@ export const useAnnualSchedule = () => {
         signature_ip: null,
         signature_user_agent: null,
         signed_at: null,
-        notification_sent_at: '2025-01-15T09:00:00Z',
+        notification_sent_at: '2026-01-15T09:00:00Z',
         magic_link_token: 'demo-ata-token-ana',
-        created_at: '2025-01-15T09:00:00Z',
-        updated_at: '2025-01-15T09:00:00Z',
+        created_at: '2026-01-15T09:00:00Z',
+        updated_at: '2026-01-15T09:00:00Z',
         participant: {
           id: 'mock-member-conselho-de-administração-4',
           external_name: 'Ana Paula Ferreira',
@@ -645,16 +654,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-comitê-de-auditoria-1',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-18T10:00:00Z',
+        approved_at: '2026-01-18T10:00:00Z',
         signature_status: 'ASSINADO',
         signature_hash: 'b2c3d4e5f6a789012345678901234567890bcde',
         signature_ip: '192.168.1.101',
         signature_user_agent: 'Mozilla/5.0',
-        signed_at: '2025-01-18T10:30:00Z',
-        notification_sent_at: '2025-01-17T09:00:00Z',
+        signed_at: '2026-01-18T10:30:00Z',
+        notification_sent_at: '2026-01-17T09:00:00Z',
         magic_link_token: 'demo-ata-token-ricardo',
-        created_at: '2025-01-17T09:00:00Z',
-        updated_at: '2025-01-18T10:30:00Z',
+        created_at: '2026-01-17T09:00:00Z',
+        updated_at: '2026-01-18T10:30:00Z',
         participant: {
           id: 'mock-member-comitê-de-auditoria-1',
           external_name: 'Dr. Ricardo Mendes',
@@ -668,16 +677,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-comitê-de-auditoria-2',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-18T11:00:00Z',
+        approved_at: '2026-01-18T11:00:00Z',
         signature_status: 'NAO_ASSINADO',
         signature_hash: null,
         signature_ip: null,
         signature_user_agent: null,
         signed_at: null,
-        notification_sent_at: '2025-01-17T09:00:00Z',
+        notification_sent_at: '2026-01-17T09:00:00Z',
         magic_link_token: 'demo-ata-token-patricia',
-        created_at: '2025-01-17T09:00:00Z',
-        updated_at: '2025-01-18T11:00:00Z',
+        created_at: '2026-01-17T09:00:00Z',
+        updated_at: '2026-01-18T11:00:00Z',
         participant: {
           id: 'mock-member-comitê-de-auditoria-2',
           external_name: 'Dra. Patrícia Lima',
@@ -691,16 +700,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-comitê-de-auditoria-3',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-18T14:00:00Z',
+        approved_at: '2026-01-18T14:00:00Z',
         signature_status: 'NAO_ASSINADO',
         signature_hash: null,
         signature_ip: null,
         signature_user_agent: null,
         signed_at: null,
-        notification_sent_at: '2025-01-17T09:00:00Z',
+        notification_sent_at: '2026-01-17T09:00:00Z',
         magic_link_token: 'demo-ata-token-joao',
-        created_at: '2025-01-17T09:00:00Z',
-        updated_at: '2025-01-18T14:00:00Z',
+        created_at: '2026-01-17T09:00:00Z',
+        updated_at: '2026-01-18T14:00:00Z',
         participant: {
           id: 'mock-member-comitê-de-auditoria-3',
           external_name: 'João Carlos Neves',
@@ -716,16 +725,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-comissão-de-ética-1',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-25T16:00:00Z',
+        approved_at: '2026-01-25T16:00:00Z',
         signature_status: 'ASSINADO',
         signature_hash: 'c3d4e5f6a7b89012345678901234567890cdef',
         signature_ip: '192.168.1.102',
         signature_user_agent: 'Mozilla/5.0',
-        signed_at: '2025-01-25T16:30:00Z',
-        notification_sent_at: '2025-01-24T09:00:00Z',
+        signed_at: '2026-01-25T16:30:00Z',
+        notification_sent_at: '2026-01-24T09:00:00Z',
         magic_link_token: 'demo-ata-token-roberto-alves',
-        created_at: '2025-01-24T09:00:00Z',
-        updated_at: '2025-01-25T16:30:00Z',
+        created_at: '2026-01-24T09:00:00Z',
+        updated_at: '2026-01-25T16:30:00Z',
         participant: {
           id: 'mock-member-comissão-de-ética-1',
           external_name: 'Roberto Alves',
@@ -739,16 +748,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-comissão-de-ética-2',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-25T17:00:00Z',
+        approved_at: '2026-01-25T17:00:00Z',
         signature_status: 'ASSINADO',
         signature_hash: 'd4e5f6a7b8c9012345678901234567890defg',
         signature_ip: '192.168.1.103',
         signature_user_agent: 'Mozilla/5.0',
-        signed_at: '2025-01-25T17:30:00Z',
-        notification_sent_at: '2025-01-24T09:00:00Z',
+        signed_at: '2026-01-25T17:30:00Z',
+        notification_sent_at: '2026-01-24T09:00:00Z',
         magic_link_token: 'demo-ata-token-beatriz',
-        created_at: '2025-01-24T09:00:00Z',
-        updated_at: '2025-01-25T17:30:00Z',
+        created_at: '2026-01-24T09:00:00Z',
+        updated_at: '2026-01-25T17:30:00Z',
         participant: {
           id: 'mock-member-comissão-de-ética-2',
           external_name: 'Beatriz Lima',
@@ -762,16 +771,16 @@ export const useAnnualSchedule = () => {
         participant_id: 'mock-member-comissão-de-ética-3',
         approval_status: 'APROVADO',
         approval_comment: null,
-        approved_at: '2025-01-25T18:00:00Z',
+        approved_at: '2026-01-25T18:00:00Z',
         signature_status: 'ASSINADO',
         signature_hash: 'e5f6a7b8c9d0123456789012345678901efgh',
         signature_ip: '192.168.1.104',
         signature_user_agent: 'Mozilla/5.0',
-        signed_at: '2025-01-25T18:30:00Z',
-        notification_sent_at: '2025-01-24T09:00:00Z',
+        signed_at: '2026-01-25T18:30:00Z',
+        notification_sent_at: '2026-01-24T09:00:00Z',
         magic_link_token: 'demo-ata-token-daniela',
-        created_at: '2025-01-24T09:00:00Z',
-        updated_at: '2025-01-25T18:30:00Z',
+        created_at: '2026-01-24T09:00:00Z',
+        updated_at: '2026-01-25T18:30:00Z',
         participant: {
           id: 'mock-member-comissão-de-ética-3',
           external_name: 'Daniela Ferreira',
@@ -815,12 +824,12 @@ export const useAnnualSchedule = () => {
         );
         
         if (parsedSchedule.meetings?.length !== 36 || 
-            parsedSchedule.year !== 2025 ||
+            parsedSchedule.year !== 2026 ||
             !parsedSchedule.meetings[0]?.agenda?.length ||
             hasInvalidMeetings) {
           console.log("⚠️ Outdated schedule detected (missing participants or incomplete data), regenerating...");
           localStorage.removeItem(STORAGE_KEY);
-          const defaultSchedule = generateDefaultSchedule(2025);
+          const defaultSchedule = generateDefaultSchedule(2026);
           setSchedule(defaultSchedule);
           saveSchedule(defaultSchedule);
           return;
@@ -829,15 +838,15 @@ export const useAnnualSchedule = () => {
         console.log("✅ Loaded schedule:", parsedSchedule);
         setSchedule(parsedSchedule);
       } else {
-        // Create default schedule for 2025
-        const defaultSchedule = generateDefaultSchedule(2025);
+        // Create default schedule for 2026
+        const defaultSchedule = generateDefaultSchedule(2026);
         console.log("🆕 Created default schedule with", defaultSchedule.meetings.length, "meetings");
         setSchedule(defaultSchedule);
         saveSchedule(defaultSchedule);
       }
     } catch (error) {
       console.error("❌ Error loading annual schedule:", error);
-      const defaultSchedule = generateDefaultSchedule(2025);
+      const defaultSchedule = generateDefaultSchedule(2026);
       setSchedule(defaultSchedule);
     } finally {
       setLoading(false);
