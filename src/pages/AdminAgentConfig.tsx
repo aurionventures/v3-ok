@@ -1,7 +1,29 @@
-
-import { useState, useEffect } from "react";
-import { Settings, Bot, Check, AlertCircle, ChevronDown, ChevronUp, Shield, Users, BookOpen, Leaf, Trash2, Edit, Save, Plus } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { 
+  Settings, 
+  Bot, 
+  Check, 
+  AlertCircle, 
+  Shield, 
+  Users, 
+  BookOpen, 
+  Leaf, 
+  Edit, 
+  Save,
+  Sparkles,
+  Target,
+  Zap,
+  FileText,
+  Brain,
+  TrendingUp,
+  Eye,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +42,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
 import { 
   Dialog, 
@@ -29,619 +52,543 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { cn } from "@/lib/utils";
+import { 
+  aiAgents, 
+  aiCopilots,
+  aiServices,
+  getEngineStats,
+  type AIAgent 
+} from "@/data/aiEngineData";
+import { Link } from "react-router-dom";
 
-// Agent configuration interface
-interface Agent {
-  id: number;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  integrations: string[];
-  status: "active" | "inactive";
-  type: string;
-  capabilities: string[];
-  maxTokens: number;
-  model: string;
-  temperature: number;
-  isSystemDefault: boolean;
-}
+// Mapeamento de ícones
+const iconMap: Record<string, React.ElementType> = {
+  Sparkles,
+  Target,
+  Zap,
+  FileText,
+  Brain,
+  TrendingUp,
+  Bot,
+  Shield,
+  Users,
+  BookOpen,
+  Leaf,
+};
 
-// Sample agent data
-const initialAgents: Agent[] = [
-  {
-    id: 1,
-    name: "Consilium",
-    description: "Assistente especialista em organização e condução de Conselhos e Comitês.",
-    icon: "Shield",
-    color: "#8b5cf6",
-    integrations: ["Conselhos", "Comitês", "Rituais"],
-    status: "active",
-    type: "governance",
-    capabilities: [
-      "Gerar automaticamente pautas e atas de reuniões formais",
-      "Sugerir boas práticas de governança conforme porte e complexidade",
-      "Alertar sobre prazos legais e obrigações do conselho"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.7,
-    isSystemDefault: true
-  },
-  {
-    id: 2,
-    name: "Succession Mentor",
-    description: "Orientador e coach digital para a gestão da sucessão e desenvolvimento dos herdeiros.",
-    icon: "Users",
-    color: "#3b82f6",
-    integrations: ["Sucessão", "Indivíduos-Chave", "Desenvolvimento Familiar"],
-    status: "active",
-    type: "succession",
-    capabilities: [
-      "Sugerir trilhas de capacitação para herdeiros conforme perfil",
-      "Aplicar avaliações periódicas de prontidão sucessória",
-      "Gerar relatórios sobre o andamento dos planos sucessórios"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.5,
-    isSystemDefault: true
-  },
-  {
-    id: 3,
-    name: "Legacy Curator",
-    description: "Curador do legado familiar, preserva, organiza e sugere ações ligadas ao propósito e cultura familiar.",
-    icon: "BookOpen",
-    color: "#f59e0b",
-    integrations: ["Existencial", "Legado", "Rituais"],
-    status: "active",
-    type: "succession",
-    capabilities: [
-      "Facilitar a escrita e atualização do Manifesto de Legado",
-      "Sugerir rituais e celebrações alinhados à identidade familiar",
-      "Organizar Timeline do Legado com marcos históricos importantes"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.6,
-    isSystemDefault: true
-  },
-  {
-    id: 4,
-    name: "ESG Advisor",
-    description: "Consultor para estruturação, monitoramento e evolução das práticas ESG.",
-    icon: "Leaf",
-    color: "#10b981",
-    integrations: ["ESG", "Diagnóstico Sistêmico"],
-    status: "active",
-    type: "esg",
-    capabilities: [
-      "Sugerir políticas e práticas ESG adequadas ao perfil da empresa",
-      "Gerar relatórios ESG a partir dos dados da plataforma",
-      "Propor metas e indicadores com base em benchmarks"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.4,
-    isSystemDefault: true
-  }
-];
-
+// Opções de modelo
 const modelOptions = [
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
+  { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash Preview" },
+  { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
   { value: "gpt-4", label: "GPT-4" },
   { value: "claude-3-opus", label: "Claude 3 Opus" },
   { value: "claude-3-sonnet", label: "Claude 3 Sonnet" },
-  { value: "llama-3", label: "Llama 3" }
 ];
 
-const availableModules = [
-  { value: "conselhos", label: "Conselhos" },
-  { value: "comites", label: "Comitês" },
-  { value: "rituais", label: "Rituais" },
-  { value: "sucessao", label: "Sucessão" },
-  { value: "individuos-chave", label: "Indivíduos-Chave" },
-  { value: "desenvolvimento-familiar", label: "Desenvolvimento Familiar" },
-  { value: "existencial", label: "Existencial" },
-  { value: "legado", label: "Legado" },
-  { value: "esg", label: "ESG" },
-  { value: "diagnostico-sistemico", label: "Diagnóstico Sistêmico" },
-  { value: "diagnostico-subsistemas", label: "Diagnóstico de Subsistemas" },
-  { value: "monitoramento-sistemico", label: "Monitoramento Sistêmico" }
-];
+// ============================================================================
+// COMPONENTES
+// ============================================================================
 
-const AdminAgentConfig = () => {
-  const [agents, setAgents] = useState<Agent[]>(initialAgents);
-  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [newCapability, setNewCapability] = useState<string>("");
+interface AgentConfigCardProps {
+  agent: AIAgent;
+  onEdit: () => void;
+  onViewPrompts: () => void;
+}
+
+function AgentConfigCard({ agent, onEdit, onViewPrompts }: AgentConfigCardProps) {
+  const Icon = iconMap[agent.icon] || Sparkles;
+  const [isEnabled, setIsEnabled] = useState(agent.status === 'active');
   
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-
-  // Create new agent dialog state
-  const [showCreateAgentDialog, setShowCreateAgentDialog] = useState(false);
-  const [newAgent, setNewAgent] = useState<Omit<Agent, 'id'>>({
-    name: "",
-    description: "",
-    icon: "Bot",
-    color: "#8b5cf6",
-    integrations: [],
-    status: "inactive",
-    type: "governance",
-    capabilities: [""],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.7,
-    isSystemDefault: false
-  });
-
-  // Get available icon components
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case "Shield":
-        return <Shield />;
-      case "Users":
-        return <Users />;
-      case "BookOpen":
-        return <BookOpen />;
-      case "Leaf":
-        return <Leaf />;
-      default:
-        return <Bot />;
-    }
-  };
-
-  // Filter agents based on search term, status filter and type filter
-  const filteredAgents = agents.filter((agent) => {
-    const matchesSearch = 
-      agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      agent.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = 
-      statusFilter === "all" || agent.status === statusFilter;
-    
-    const matchesType =
-      typeFilter === "all" || agent.type === typeFilter;
-      
-    return matchesSearch && matchesStatus && matchesType;
-  });
-
-  // Handle toggle agent status
-  const handleToggleStatus = (agentId: number) => {
-    setAgents(
-      agents.map((agent) => {
-        if (agent.id === agentId) {
-          const newStatus = agent.status === "active" ? "inactive" : "active";
-          return { ...agent, status: newStatus };
-        }
-        return agent;
-      })
-    );
-    
+  const handleToggle = () => {
+    setIsEnabled(!isEnabled);
     toast({
-      title: "Status atualizado",
-      description: "O status do agente foi alterado com sucesso.",
-    });
-  };
-
-  // Handle edit agent
-  const handleEditAgent = (agent: Agent) => {
-    setEditingAgent({ ...agent });
-    setShowEditDialog(true);
-  };
-
-  // Handle save edited agent
-  const handleSaveAgent = () => {
-    if (!editingAgent) return;
-    
-    setAgents(
-      agents.map((agent) => {
-        if (agent.id === editingAgent.id) {
-          return editingAgent;
-        }
-        return agent;
-      })
-    );
-    
-    setShowEditDialog(false);
-    setEditingAgent(null);
-    
-    toast({
-      title: "Agente atualizado",
-      description: "As configurações do agente foram atualizadas com sucesso.",
-    });
-  };
-
-  // Handle delete agent
-  const handleDeleteAgent = (agent: Agent) => {
-    setEditingAgent(agent);
-    setShowDeleteDialog(true);
-  };
-
-  // Handle confirm delete
-  const handleConfirmDelete = () => {
-    if (!editingAgent) return;
-    
-    setAgents(agents.filter((agent) => agent.id !== editingAgent.id));
-    setShowDeleteDialog(false);
-    setEditingAgent(null);
-    
-    toast({
-      title: "Agente removido",
-      description: "O agente foi removido com sucesso.",
-    });
-  };
-
-  // Handle add capability to edit form
-  const handleAddCapability = () => {
-    if (!editingAgent) return;
-    
-    setEditingAgent({
-      ...editingAgent,
-      capabilities: [...editingAgent.capabilities, newCapability]
-    });
-    
-    setNewCapability("");
-  };
-
-  // Handle remove capability from edit form
-  const handleRemoveCapability = (index: number) => {
-    if (!editingAgent) return;
-    
-    const newCapabilities = [...editingAgent.capabilities];
-    newCapabilities.splice(index, 1);
-    
-    setEditingAgent({
-      ...editingAgent,
-      capabilities: newCapabilities
-    });
-  };
-
-  // Handle add integration
-  const handleToggleIntegration = (moduleName: string) => {
-    if (!editingAgent) return;
-    
-    const isSelected = editingAgent.integrations.includes(moduleName);
-    
-    if (isSelected) {
-      setEditingAgent({
-        ...editingAgent,
-        integrations: editingAgent.integrations.filter((i) => i !== moduleName)
-      });
-    } else {
-      setEditingAgent({
-        ...editingAgent,
-        integrations: [...editingAgent.integrations, moduleName]
-      });
-    }
-  };
-
-  // Handle create new agent
-  const handleCreateAgent = () => {
-    // Validation
-    if (!newAgent.name || !newAgent.description) {
-      toast({
-        title: "Dados incompletos",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const newId = Math.max(...agents.map(a => a.id)) + 1;
-    
-    setAgents([...agents, { ...newAgent, id: newId }]);
-    setShowCreateAgentDialog(false);
-    
-    // Reset form
-    setNewAgent({
-      name: "",
-      description: "",
-      icon: "Bot",
-      color: "#8b5cf6",
-      integrations: [],
-      status: "inactive",
-      type: "governance",
-      capabilities: [""],
-      maxTokens: 4096,
-      model: "gpt-4",
-      temperature: 0.7,
-      isSystemDefault: false
-    });
-    
-    toast({
-      title: "Agente criado",
-      description: "O novo agente foi criado com sucesso.",
+      title: isEnabled ? "Agente desativado" : "Agente ativado",
+      description: `${agent.name} foi ${isEnabled ? 'desativado' : 'ativado'} com sucesso.`,
     });
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <Card className="border-l-4" style={{ borderLeftColor: agent.color }}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: `${agent.color}15` }}
+            >
+              <Icon className="h-6 w-6" style={{ color: agent.color }} />
+            </div>
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span style={{ color: agent.color }}>{agent.name}</span>
+                <Badge variant="outline" className="text-xs">
+                  {agent.code}
+                </Badge>
+              </CardTitle>
+              <CardDescription>{agent.shortName}</CardDescription>
+            </div>
+          </div>
+          <Switch 
+            checked={isEnabled} 
+            onCheckedChange={handleToggle}
+          />
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">{agent.description}</p>
+        
+        {/* Badges */}
+        <div className="flex flex-wrap gap-2">
+          <Badge 
+            variant="outline"
+            className={cn(
+              agent.impactLevel === 'critical' && 'bg-red-50 text-red-700 border-red-200',
+              agent.impactLevel === 'high' && 'bg-amber-50 text-amber-700 border-amber-200',
+              agent.impactLevel === 'medium' && 'bg-blue-50 text-blue-700 border-blue-200'
+            )}
+          >
+            {agent.impactLevel === 'critical' ? 'Impacto Critico' : 
+             agent.impactLevel === 'high' ? 'Impacto Alto' : 'Impacto Medio'}
+          </Badge>
+          <Badge variant="secondary">
+            {agent.scope === 'council' ? 'Conselho' : 
+             agent.scope === 'system' ? 'Sistema' : 'Organizacao'}
+          </Badge>
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            {agent.prompts.length} prompts
+          </Badge>
+        </div>
+        
+        {/* Prompts Preview */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase">Prompts</p>
+          {agent.prompts.map(prompt => (
+            <div 
+              key={prompt.id}
+              className="flex items-center justify-between p-2 rounded bg-muted/50"
+            >
+              <div className="flex items-center gap-2">
+                <Badge 
+                  className={cn(
+                    "h-5 w-5 p-0 flex items-center justify-center text-[10px]",
+                    prompt.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                  )}
+                >
+                  ✓
+                </Badge>
+                <span className="text-sm">{prompt.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "text-xs",
+                    prompt.impactLevel === 'critical' && 'bg-red-50 text-red-700',
+                    prompt.impactLevel === 'high' && 'bg-amber-50 text-amber-700'
+                  )}
+                >
+                  {prompt.impactLevel === 'critical' ? 'Critico' : 'Alto'}
+                </Badge>
+                <span className="text-xs text-muted-foreground">v{prompt.version}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Métricas */}
+        <div className="grid grid-cols-4 gap-2 pt-3 border-t">
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {agent.metrics.totalExecutions}
+            </p>
+            <p className="text-xs text-muted-foreground">Execucoes</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {agent.metrics.successRate.toFixed(1)}%
+            </p>
+            <p className="text-xs text-muted-foreground">Sucesso</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {(agent.metrics.avgLatencyMs / 1000).toFixed(1)}s
+            </p>
+            <p className="text-xs text-muted-foreground">Latencia</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {agent.metrics.avgQualityScore.toFixed(1)}
+            </p>
+            <p className="text-xs text-muted-foreground">Qualidade</p>
+          </div>
+        </div>
+        
+        {/* Ações */}
+        <div className="flex gap-2 pt-3 border-t">
+          <Button variant="outline" size="sm" className="flex-1" onClick={onEdit}>
+            <Settings className="h-4 w-4 mr-2" />
+            Configurar
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1" onClick={onViewPrompts}>
+            <Eye className="h-4 w-4 mr-2" />
+            Ver Prompts
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CopilotConfigCard({ copilot }: { copilot: typeof aiCopilots[0] }) {
+  const Icon = iconMap[copilot.icon] || Brain;
+  const [isEnabled, setIsEnabled] = useState(copilot.status === 'active');
+  
+  const connectedAgentNames = copilot.agents.map(agentId => {
+    const agent = aiAgents.find(a => a.id === agentId);
+    return agent?.name || agentId;
+  });
+  
+  const handleToggle = () => {
+    setIsEnabled(!isEnabled);
+    toast({
+      title: isEnabled ? "Copiloto desativado" : "Copiloto ativado",
+      description: `${copilot.name} foi ${isEnabled ? 'desativado' : 'ativado'} com sucesso.`,
+    });
+  };
+
+  return (
+    <Card className="border-l-4" style={{ borderLeftColor: copilot.color }}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div 
+              className={cn(
+                "p-3 rounded-xl",
+                copilot.gradient && `bg-gradient-to-br ${copilot.gradient}`
+              )}
+              style={!copilot.gradient ? { backgroundColor: `${copilot.color}20` } : undefined}
+            >
+              <Icon className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">{copilot.name}</CardTitle>
+              <CardDescription>{copilot.description}</CardDescription>
+            </div>
+          </div>
+          <Switch 
+            checked={isEnabled} 
+            onCheckedChange={handleToggle}
+          />
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">{copilot.executiveDescription}</p>
+        
+        <div className="flex gap-2">
+          <Badge variant="secondary">
+            {copilot.scope === 'council' ? 'Conselho' : 'Sistema'}
+          </Badge>
+          <Badge variant="outline">v{copilot.version}</Badge>
+        </div>
+        
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase mb-2">
+            Agentes Conectados
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {connectedAgentNames.map((name, i) => (
+              <Badge key={i} className="bg-primary/10 text-primary">
+                {name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-2 pt-3 border-t">
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: copilot.color }}>
+              {copilot.metrics.totalUsage}
+            </p>
+            <p className="text-xs text-muted-foreground">Uso Total</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: copilot.color }}>
+              {(copilot.metrics.avgResponseTime / 1000).toFixed(1)}s
+            </p>
+            <p className="text-xs text-muted-foreground">Resp. Media</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: copilot.color }}>
+              {copilot.metrics.userSatisfaction.toFixed(1)}
+            </p>
+            <p className="text-xs text-muted-foreground">Satisfacao</p>
+          </div>
+        </div>
+        
+        <Link to="/governance-copilot">
+          <Button variant="outline" size="sm" className="w-full">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Abrir Copiloto
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ServiceConfigCard({ service }: { service: typeof aiServices[0] }) {
+  const [isEnabled, setIsEnabled] = useState(service.status === 'active');
+  
+  const handleToggle = () => {
+    setIsEnabled(!isEnabled);
+    toast({
+      title: isEnabled ? "Servico desativado" : "Servico ativado",
+      description: `${service.name} foi ${isEnabled ? 'desativado' : 'ativado'} com sucesso.`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h4 className="font-semibold">{service.name}</h4>
+            <p className="text-sm text-muted-foreground">{service.description}</p>
+          </div>
+          <Switch 
+            checked={isEnabled} 
+            onCheckedChange={handleToggle}
+          />
+        </div>
+        
+        <div className="flex gap-2 mb-4">
+          <Badge variant="outline">{service.category}</Badge>
+          <Badge variant="secondary">{service.model}</Badge>
+        </div>
+        
+        <div className="grid grid-cols-4 gap-2 pt-3 border-t">
+          <div className="text-center">
+            <p className="text-sm font-bold">{service.metrics.totalExecutions}</p>
+            <p className="text-xs text-muted-foreground">Execucoes</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-bold">{service.metrics.successRate}%</p>
+            <p className="text-xs text-muted-foreground">Sucesso</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-bold">{service.metrics.avgLatencyMs}ms</p>
+            <p className="text-xs text-muted-foreground">Latencia</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-bold">{service.metrics.avgQualityScore}</p>
+            <p className="text-xs text-muted-foreground">Qualidade</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
+
+const AdminAgentConfig = () => {
+  const stats = getEngineStats();
+  const [activeTab, setActiveTab] = useState("agents");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [impactFilter, setImpactFilter] = useState("all");
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showPromptsDialog, setShowPromptsDialog] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
+  
+  // Configurações editáveis
+  const [editConfig, setEditConfig] = useState({
+    temperature: 0.7,
+    maxTokens: 4096,
+    model: "google/gemini-3-flash-preview",
+  });
+  
+  // Filtrar agentes
+  const filteredAgents = aiAgents.filter(agent => {
+    const matchesSearch = 
+      agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      agent.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesImpact = 
+      impactFilter === "all" || agent.impactLevel === impactFilter;
+      
+    return matchesSearch && matchesImpact;
+  });
+  
+  const handleEditAgent = (agent: AIAgent) => {
+    setSelectedAgent(agent);
+    setEditConfig({
+      temperature: 0.7,
+      maxTokens: 4096,
+      model: "google/gemini-3-flash-preview",
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleViewPrompts = (agent: AIAgent) => {
+    setSelectedAgent(agent);
+    setShowPromptsDialog(true);
+  };
+  
+  const handleSaveConfig = () => {
+    toast({
+      title: "Configuracao salva",
+      description: `As configuracoes do ${selectedAgent?.name} foram atualizadas.`,
+    });
+    setShowEditDialog(false);
+  };
+
+  return (
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Configuração de Agentes" />
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6 flex justify-between items-start">
+        <Header title="Configuracao de Agentes" />
+        
+        <main className="flex-1 overflow-auto p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Configuração de Agentes</h1>
-              <p className="text-gray-600 mt-1">
-                Gerencie os agentes de IA disponíveis na plataforma
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Settings className="h-6 w-6 text-primary" />
+                Configuracao do Motor de IA
+              </h1>
+              <p className="text-muted-foreground">
+                Gerencie copilotos, agentes e servicos do MOAT Engine
               </p>
             </div>
-            <Button onClick={() => setShowCreateAgentDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Novo Agente
-            </Button>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-2xl font-bold">{stats.totalAgents}</p>
+                <p className="text-xs text-muted-foreground">Agentes Ativos</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold">{stats.totalPrompts}</p>
+                <p className="text-xs text-muted-foreground">Prompts</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-green-600">{stats.avgSuccessRate.toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">Taxa de Sucesso</p>
+              </div>
+            </div>
           </div>
 
-          <Card className="mb-6">
-            <CardHeader className="pb-2">
-              <CardTitle>Filtros</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Busca</label>
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="copilots" className="gap-2">
+                <Brain className="h-4 w-4" />
+                Copilotos ({aiCopilots.length})
+              </TabsTrigger>
+              <TabsTrigger value="agents" className="gap-2">
+                <Bot className="h-4 w-4" />
+                Agentes de IA ({aiAgents.length})
+              </TabsTrigger>
+              <TabsTrigger value="services" className="gap-2">
+                <Zap className="h-4 w-4" />
+                Servicos ({aiServices.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Tab Copilotos */}
+            <TabsContent value="copilots">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {aiCopilots.map(copilot => (
+                  <CopilotConfigCard key={copilot.id} copilot={copilot} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            {/* Tab Agentes */}
+            <TabsContent value="agents" className="space-y-4">
+              {/* Filtros */}
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar agentes..."
+                    placeholder="Buscar agente..." 
+                    className="pl-9"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Status</label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value) => setStatusFilter(value as "all" | "active" | "inactive")}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="active">Ativos</SelectItem>
-                      <SelectItem value="inactive">Inativos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Tipo</label>
-                  <Select
-                    value={typeFilter}
-                    onValueChange={(value) => setTypeFilter(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="governance">Governança</SelectItem>
-                      <SelectItem value="succession">Sucessão</SelectItem>
-                      <SelectItem value="esg">ESG e Riscos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="space-y-6">
-            {filteredAgents.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
-                <Bot className="mx-auto h-12 w-12 text-gray-300" />
-                <h3 className="mt-4 text-lg font-medium">Nenhum agente encontrado</h3>
-                <p className="mt-1 text-gray-500">
-                  Nenhum agente corresponde aos critérios de filtro selecionados.
-                </p>
-              </div>
-            ) : (
-              filteredAgents.map((agent) => (
-                <Accordion type="single" collapsible key={agent.id}>
-                  <AccordionItem value={`item-${agent.id}`}>
-                    <AccordionTrigger>
-                      <div className="flex items-center gap-4 w-full">
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: `${agent.color}20` }}
-                        >
-                          {getIconComponent(agent.icon)}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <h3 className="font-medium text-lg">{agent.name}</h3>
-                          <p className="text-gray-500 text-sm">{agent.description}</p>
-                        </div>
-                        <Badge variant={agent.status === "active" ? "default" : "outline"}>
-                          {agent.status === "active" ? "Ativo" : "Inativo"}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-medium mb-2">Detalhes Técnicos</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <span className="text-sm text-gray-500">Modelo: </span>
-                              <span className="font-medium">{agent.model}</span>
-                            </div>
-                            <div>
-                              <span className="text-sm text-gray-500">Max Tokens: </span>
-                              <span className="font-medium">{agent.maxTokens}</span>
-                            </div>
-                            <div>
-                              <span className="text-sm text-gray-500">Temperatura: </span>
-                              <span className="font-medium">{agent.temperature}</span>
-                            </div>
-                            <div>
-                              <span className="text-sm text-gray-500">Tipo: </span>
-                              <span className="font-medium capitalize">{agent.type}</span>
-                            </div>
-                            <div>
-                              <span className="text-sm text-gray-500">Padrão do Sistema: </span>
-                              <span className="font-medium">{agent.isSystemDefault ? "Sim" : "Não"}</span>
-                            </div>
-                          </div>
-                          
-                          <h4 className="font-medium mt-6 mb-2">Integrações com Módulos</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {agent.integrations.map((integration, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {integration}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium mb-2">Capacidades</h4>
-                          <ul className="space-y-2 pl-5 list-disc">
-                            {agent.capabilities.map((capability, i) => (
-                              <li key={i}>{capability}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 border-t mt-4 flex justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">Status:</span>
-                          <Switch
-                            checked={agent.status === "active"}
-                            onCheckedChange={() => handleToggleStatus(agent.id)}
-                          />
-                          <span className="text-sm text-gray-500">
-                            {agent.status === "active" ? "Ativo" : "Inativo"}
-                          </span>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEditAgent(agent)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Editar
-                          </Button>
-                          {!agent.isSystemDefault && (
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => handleDeleteAgent(agent)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Remover
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {/* Edit Agent Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Agente</DialogTitle>
-            <DialogDescription>
-              Altere as configurações do agente selecionado.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {editingAgent && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Nome</label>
-                  <Input
-                    value={editingAgent.name}
-                    onChange={(e) => 
-                      setEditingAgent({
-                        ...editingAgent,
-                        name: e.target.value
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Cor</label>
-                  <Input
-                    type="color"
-                    value={editingAgent.color}
-                    onChange={(e) => 
-                      setEditingAgent({
-                        ...editingAgent,
-                        color: e.target.value
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium mb-1 block">Descrição</label>
-                <Textarea
-                  value={editingAgent.description}
-                  onChange={(e) => 
-                    setEditingAgent({
-                      ...editingAgent,
-                      description: e.target.value
-                    })
-                  }
-                  rows={3}
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium mb-1 block">Tipo</label>
-                <Select
-                  value={editingAgent.type}
-                  onValueChange={(value) => 
-                    setEditingAgent({
-                      ...editingAgent,
-                      type: value
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
+                <Select value={impactFilter} onValueChange={setImpactFilter}>
+                  <SelectTrigger className="w-48">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Nivel de Impacto" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="governance">Governança</SelectItem>
-                    <SelectItem value="succession">Sucessão</SelectItem>
-                    <SelectItem value="esg">ESG e Riscos</SelectItem>
+                    <SelectItem value="all">Todos os Niveis</SelectItem>
+                    <SelectItem value="critical">Critico</SelectItem>
+                    <SelectItem value="high">Alto</SelectItem>
+                    <SelectItem value="medium">Medio</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
-              <div>
-                <label className="text-sm font-medium mb-1 block">Modelo de IA</label>
+              {/* Grid de Agentes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredAgents.map(agent => (
+                  <AgentConfigCard 
+                    key={agent.id}
+                    agent={agent}
+                    onEdit={() => handleEditAgent(agent)}
+                    onViewPrompts={() => handleViewPrompts(agent)}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+            
+            {/* Tab Serviços */}
+            <TabsContent value="services">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {aiServices.map(service => (
+                  <ServiceConfigCard key={service.id} service={service} />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          {/* Dialog de Edição */}
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Configurar {selectedAgent?.name}
+                </DialogTitle>
+                <DialogDescription>
+                  Ajuste os parametros do modelo para este agente
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Modelo */}
+                <div className="space-y-2">
+                  <Label>Modelo de IA</Label>
                 <Select
-                  value={editingAgent.model}
-                  onValueChange={(value) => 
-                    setEditingAgent({
-                      ...editingAgent,
-                      model: value
-                    })
-                  }
+                    value={editConfig.model} 
+                    onValueChange={(value) => setEditConfig({...editConfig, model: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {modelOptions.map((option) => (
+                      {modelOptions.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -650,222 +597,145 @@ const AdminAgentConfig = () => {
                 </Select>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Max Tokens</label>
-                  <Input
-                    type="number"
-                    value={editingAgent.maxTokens}
-                    onChange={(e) => 
-                      setEditingAgent({
-                        ...editingAgent,
-                        maxTokens: parseInt(e.target.value)
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Temperatura</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={editingAgent.temperature}
-                    onChange={(e) => 
-                      setEditingAgent({
-                        ...editingAgent,
-                        temperature: parseFloat(e.target.value)
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium mb-1 block">Integrações com Módulos</label>
-                <div className="flex flex-wrap gap-2 p-3 border rounded-md">
-                  {availableModules.map((module) => (
-                    <Badge
-                      key={module.value}
-                      variant={editingAgent.integrations.includes(module.label) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => handleToggleIntegration(module.label)}
-                    >
-                      {module.label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium">Capacidades</label>
-                </div>
-                <div className="space-y-3">
-                  {editingAgent.capabilities.map((capability, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Input
-                        value={capability}
-                        onChange={(e) => {
-                          const newCapabilities = [...editingAgent.capabilities];
-                          newCapabilities[index] = e.target.value;
-                          setEditingAgent({
-                            ...editingAgent,
-                            capabilities: newCapabilities
-                          });
-                        }}
-                        className="flex-1"
-                      />
-                      {editingAgent.capabilities.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveCapability(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Nova capacidade..."
-                      value={newCapability}
-                      onChange={(e) => setNewCapability(e.target.value)}
-                    />
-                    <Button onClick={handleAddCapability} disabled={!newCapability.trim()}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                {/* Temperature */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Temperatura</Label>
+                    <span className="text-sm text-muted-foreground">
+                      {editConfig.temperature.toFixed(2)}
+                    </span>
                   </div>
+                  <Slider
+                    value={[editConfig.temperature]}
+                    onValueChange={([value]) => setEditConfig({...editConfig, temperature: value})}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Valores mais baixos = respostas mais focadas. Valores mais altos = mais criatividade.
+                  </p>
+                </div>
+                
+                {/* Max Tokens */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Max Tokens</Label>
+                    <span className="text-sm text-muted-foreground">
+                      {editConfig.maxTokens}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[editConfig.maxTokens]}
+                    onValueChange={([value]) => setEditConfig({...editConfig, maxTokens: value})}
+                    min={1000}
+                    max={8000}
+                    step={500}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Limite maximo de tokens na resposta do modelo.
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveAgent}>
+                <Button onClick={handleSaveConfig}>
               <Save className="h-4 w-4 mr-2" />
-              Salvar Alterações
+                  Salvar Configuracao
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
+          {/* Dialog de Prompts */}
+          <Dialog open={showPromptsDialog} onOpenChange={setShowPromptsDialog}>
+            <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Confirmar Exclusão</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Prompts do {selectedAgent?.name}
+                </DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja remover este agente? Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              Sim, remover agente
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Create Agent Dialog */}
-      <Dialog open={showCreateAgentDialog} onOpenChange={setShowCreateAgentDialog}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Criar Novo Agente</DialogTitle>
-            <DialogDescription>
-              Configure um novo agente de IA para a plataforma.
+                  Visualize e gerencie os prompts deste agente
             </DialogDescription>
           </DialogHeader>
           
+              <ScrollArea className="max-h-[500px] pr-4">
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+                  {selectedAgent?.prompts.map(prompt => (
+                    <Card key={prompt.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between mb-3">
               <div>
-                <label className="text-sm font-medium mb-1 block">Nome</label>
-                <Input
-                  value={newAgent.name}
-                  onChange={(e) => 
-                    setNewAgent({
-                      ...newAgent,
-                      name: e.target.value
-                    })
-                  }
-                  placeholder="Ex: Finance Advisor"
-                />
+                            <h4 className="font-semibold">{prompt.name}</h4>
+                            <p className="text-xs text-muted-foreground">ID: {prompt.id}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Cor</label>
-                <Input
-                  type="color"
-                  value={newAgent.color}
-                  onChange={(e) => 
-                    setNewAgent({
-                      ...newAgent,
-                      color: e.target.value
-                    })
-                  }
-                />
+                          <div className="flex gap-2">
+                            <Badge 
+                              className={cn(
+                                prompt.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                              )}
+                            >
+                              {prompt.status === 'active' ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                            <Badge 
+                              variant="outline"
+                              className={cn(
+                                prompt.impactLevel === 'critical' && 'bg-red-50 text-red-700',
+                                prompt.impactLevel === 'high' && 'bg-amber-50 text-amber-700'
+                              )}
+                            >
+                              {prompt.impactLevel === 'critical' ? 'Critico' : 'Alto'}
+                            </Badge>
               </div>
             </div>
             
-            <div>
-              <label className="text-sm font-medium mb-1 block">Descrição</label>
-              <Textarea
-                value={newAgent.description}
-                onChange={(e) => 
-                  setNewAgent({
-                    ...newAgent,
-                    description: e.target.value
-                  })
-                }
-                placeholder="Descreva a função e especialidade deste agente..."
-                rows={3}
-              />
+                        <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                          <div className="text-center">
+                            <p className="text-lg font-bold">{prompt.metrics.executions}</p>
+                            <p className="text-xs text-muted-foreground">Execucoes</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-lg font-bold">{prompt.metrics.successRate.toFixed(1)}%</p>
+                            <p className="text-xs text-muted-foreground">Sucesso</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-lg font-bold">{prompt.metrics.avgQualityScore.toFixed(1)}</p>
+                            <p className="text-xs text-muted-foreground">Qualidade</p>
+                          </div>
             </div>
             
-            <div>
-              <label className="text-sm font-medium mb-1 block">Tipo</label>
-              <Select
-                value={newAgent.type}
-                onValueChange={(value) => 
-                  setNewAgent({
-                    ...newAgent,
-                    type: value
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="governance">Governança</SelectItem>
-                  <SelectItem value="succession">Sucessão</SelectItem>
-                  <SelectItem value="esg">ESG e Riscos</SelectItem>
-                </SelectContent>
-              </Select>
+                        <div className="flex gap-2 mt-4">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Prompt
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Button>
             </div>
-            
-            {/* More configuration fields would be added here similar to the edit form */}
+                      </CardContent>
+                    </Card>
+                  ))}
           </div>
+              </ScrollArea>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateAgentDialog(false)}>
-              Cancelar
+                <Link to="/admin/prompts">
+                  <Button variant="outline">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Abrir Biblioteca de Prompts
             </Button>
-            <Button onClick={handleCreateAgent}>
-              Criar Agente
-            </Button>
+                </Link>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </main>
+      </div>
     </div>
   );
 };

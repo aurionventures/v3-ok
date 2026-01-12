@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { 
-  FileSearch,
-  Building2,
-  Brain,
   Settings, 
   Play, 
   Sparkles,
@@ -11,13 +8,18 @@ import {
   MessageCircle,
   Zap,
   BarChart3,
-  CheckCircle2
+  CheckCircle2,
+  Target,
+  FileText,
+  Brain,
+  TrendingUp,
+  Eye,
+  RefreshCw
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { 
   Dialog, 
   DialogContent, 
@@ -32,85 +34,38 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { 
+  aiAgents, 
+  aiCopilots, 
+  getEngineStats,
+  type AIAgent 
+} from "@/data/aiEngineData";
 
-// AI Engine Agents - Sistema de IA especializado
-const moatAgents = [
-  {
-    id: "analista-documentos",
-    name: "Analista de Documentos",
-    shortName: "Analista de Documentos",
-    icon: FileSearch,
-    color: "#3b82f6",
-    status: "active",
-    description: "Especialista em análise inteligente de documentos corporativos. Utiliza OCR avançado, classificação automática e validação para acelerar o processo de due diligence.",
-    capabilities: [
-      "OCR e extração de dados de documentos complexos",
-      "Classificação automática por tipo e categoria",
-      "Validação de conformidade documental",
-      "Detecção de inconsistências e gaps",
-      "Geração de resumos executivos automáticos"
-    ],
-    integrations: ["Checklist de Documentos", "Upload", "Análise Documental"],
-    metrics: { documentos: 342, processados: 298, insights: 67 }
-  },
-  {
-    id: "assistente-governanca",
-    name: "Assistente de Governança",
-    shortName: "Assistente de Governança",
-    icon: Building2,
-    color: "#6366f1",
-    status: "active",
-    description: "Assistente prático para estruturação de conselhos e governança corporativa. Especializado em apoiar a organização de reuniões, agenda anual e processos decisórios eficazes.",
-    capabilities: [
-      "Apoio na estruturação de conselhos e comitês",
-      "Organização de processos decisórios e reuniões",
-      "Geração automática de pautas otimizadas",
-      "Preparação de materiais de apoio",
-      "Acompanhamento de deliberações e pendências"
-    ],
-    integrations: ["Conselhos", "Projetos", "Agenda Anual", "Rituais"],
-    metrics: { reunioes: 45, pautas: 89, deliberacoes: 156 }
-  },
-  {
-    id: "inteligencia-estrategica",
-    name: "Inteligência Estratégica",
-    shortName: "Inteligência Estratégica",
-    icon: Brain,
-    color: "#ec4899",
-    status: "active",
-    description: "Inteligência estratégica unificada para monitoramento e otimização contínua. Consolida análise de riscos IBGC, métricas ESG, maturidade e inteligência competitiva.",
-    capabilities: [
-      "Análise preditiva de riscos usando machine learning",
-      "Monitoramento ESG em tempo real com benchmarking automático",
-      "Avaliação contínua de maturidade de governança",
-      "Inteligência competitiva e de mercado",
-      "Geração de alertas e recomendações proativas"
-    ],
-    integrations: ["Riscos IBGC", "ESG", "Maturidade", "Atividades", "Alertas"],
-    metrics: { riscos: 23, alertas: 15, recomendacoes: 42 }
-  }
-];
+// Mapeamento de ícones
+const iconMap: Record<string, React.ElementType> = {
+  Sparkles,
+  Target,
+  Zap,
+  FileText,
+  Brain,
+  TrendingUp,
+  Bot,
+};
+
+// ============================================================================
+// COMPONENTES
+// ============================================================================
 
 interface AgentCardProps {
-  agent: typeof moatAgents[0];
+  agent: AIAgent;
   onConfigure: () => void;
   onExecute: () => void;
 }
 
 const AgentCard = ({ agent, onConfigure, onExecute }: AgentCardProps) => {
-  const Icon = agent.icon;
-  const metricsLabels: Record<string, string> = {
-    documentos: "Documentos",
-    processados: "Processados",
-    insights: "Insights",
-    reunioes: "Reuniões",
-    pautas: "Pautas",
-    deliberacoes: "Deliberações",
-    riscos: "Riscos",
-    alertas: "Alertas",
-    recomendacoes: "Recomendações"
-  };
-
+  const Icon = iconMap[agent.icon] || Sparkles;
+  
   return (
     <Card className="border-t-4 h-full flex flex-col" style={{ borderTopColor: agent.color }}>
       <CardHeader className="pb-3">
@@ -123,13 +78,28 @@ const AgentCard = ({ agent, onConfigure, onExecute }: AgentCardProps) => {
               <Icon className="h-6 w-6" style={{ color: agent.color }} />
             </div>
             <div>
-              <CardTitle className="text-lg">{agent.name}</CardTitle>
-              <Badge 
-                variant={agent.status === "active" ? "default" : "outline"}
-                className="mt-1"
-              >
-                {agent.status === "active" ? "Ativo" : "Inativo"}
-              </Badge>
+              <CardTitle className="text-lg" style={{ color: agent.color }}>
+                {agent.name}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">{agent.shortName}</p>
+              <div className="flex gap-1 mt-1">
+                <Badge 
+                  variant={agent.status === "active" ? "default" : "outline"}
+                  className="text-xs"
+                >
+                  {agent.status === "active" ? "Ativo" : "Inativo"}
+                </Badge>
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "text-xs",
+                    agent.impactLevel === 'critical' && 'bg-red-50 text-red-700 border-red-200',
+                    agent.impactLevel === 'high' && 'bg-amber-50 text-amber-700 border-amber-200'
+                  )}
+                >
+                  {agent.impactLevel === 'critical' ? 'Critico' : 'Alto'}
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
@@ -158,11 +128,40 @@ const AgentCard = ({ agent, onConfigure, onExecute }: AgentCardProps) => {
           </ul>
         </div>
         
+        {/* Prompts */}
+        <div>
+          <h4 className="text-sm font-semibold mb-2 flex items-center gap-1">
+            <FileText className="h-4 w-4 text-purple-500" />
+            Prompts ({agent.prompts.length})
+          </h4>
+          <div className="space-y-1">
+            {agent.prompts.map((prompt) => (
+              <div 
+                key={prompt.id} 
+                className="flex items-center justify-between text-sm p-2 rounded bg-muted/50"
+              >
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    className={cn(
+                      "h-5 w-5 p-0 flex items-center justify-center text-[10px]",
+                      prompt.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                    )}
+                  >
+                    ✓
+                  </Badge>
+                  <span>{prompt.name}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">v{prompt.version}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
         {/* Integrações */}
         <div>
           <h4 className="text-sm font-semibold mb-2 flex items-center gap-1">
             <Zap className="h-4 w-4 text-amber-500" />
-            Integrações
+            Integracoes
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {agent.integrations.map((integration, i) => (
@@ -175,12 +174,24 @@ const AgentCard = ({ agent, onConfigure, onExecute }: AgentCardProps) => {
         
         {/* Métricas */}
         <div className="grid grid-cols-3 gap-2 pt-3 border-t">
-          {Object.entries(agent.metrics).map(([key, value]) => (
-            <div key={key} className="text-center">
-              <p className="text-lg font-bold" style={{ color: agent.color }}>{value}</p>
-              <p className="text-xs text-muted-foreground">{metricsLabels[key] || key}</p>
-            </div>
-          ))}
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {agent.metrics.totalExecutions}
+            </p>
+            <p className="text-xs text-muted-foreground">Execucoes</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {agent.metrics.successRate.toFixed(1)}%
+            </p>
+            <p className="text-xs text-muted-foreground">Sucesso</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold" style={{ color: agent.color }}>
+              {(agent.metrics.avgLatencyMs / 1000).toFixed(1)}s
+            </p>
+            <p className="text-xs text-muted-foreground">Latencia</p>
+          </div>
         </div>
       </CardContent>
       
@@ -196,33 +207,114 @@ const AgentCard = ({ agent, onConfigure, onExecute }: AgentCardProps) => {
   );
 };
 
-const AIAgents = () => {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-  
-  const [weights, setWeights] = useState<Record<string, number>>({
-    "analista-documentos": 80,
-    "assistente-governanca": 70,
-    "inteligencia-estrategica": 90
+interface CopilotCardProps {
+  copilot: typeof aiCopilots[0];
+  onOpen: () => void;
+}
+
+const CopilotCard = ({ copilot, onOpen }: CopilotCardProps) => {
+  const Icon = iconMap[copilot.icon] || Brain;
+  const connectedAgentNames = copilot.agents.map(agentId => {
+    const agent = aiAgents.find(a => a.id === agentId);
+    return agent?.name || agentId;
   });
   
-  const [selectedAgent, setSelectedAgent] = useState<typeof moatAgents[0] | null>(null);
+  return (
+    <Card className="border-l-4" style={{ borderLeftColor: copilot.color }}>
+      <CardContent className="pt-6">
+        <div className="flex items-start gap-4">
+          <div 
+            className={cn(
+              "p-3 rounded-xl",
+              copilot.gradient && `bg-gradient-to-br ${copilot.gradient}`
+            )}
+            style={!copilot.gradient ? { backgroundColor: `${copilot.color}20` } : undefined}
+          >
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">{copilot.name}</h3>
+            <p className="text-sm text-muted-foreground">{copilot.description}</p>
+            
+            <div className="flex items-center gap-2 mt-3">
+              <Badge variant="outline" className="text-xs">
+                <Target className="h-3 w-3 mr-1" />
+                {copilot.scope === 'council' ? 'Conselho' : 'Sistema'}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                v{copilot.version}
+              </Badge>
+            </div>
+            
+            <div className="mt-4">
+              <p className="text-xs text-muted-foreground mb-2">Agentes Conectados:</p>
+              <div className="flex flex-wrap gap-1">
+                {connectedAgentNames.map((name, i) => (
+                  <Badge key={i} className="bg-primary/10 text-primary text-xs">
+                    {name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
+              <div className="text-center">
+                <p className="text-lg font-bold" style={{ color: copilot.color }}>
+                  {copilot.metrics.totalUsage}
+                </p>
+                <p className="text-xs text-muted-foreground">Uso Total</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-bold" style={{ color: copilot.color }}>
+                  {(copilot.metrics.avgResponseTime / 1000).toFixed(1)}s
+                </p>
+                <p className="text-xs text-muted-foreground">Resp. Media</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-bold" style={{ color: copilot.color }}>
+                  {copilot.metrics.userSatisfaction.toFixed(1)}
+                </p>
+                <p className="text-xs text-muted-foreground">Satisfacao</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <Button onClick={onOpen} className="w-full mt-4" variant="outline">
+          <Eye className="h-4 w-4 mr-2" />
+          Abrir Copiloto
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============================================================================
+// PÁGINA PRINCIPAL
+// ============================================================================
+
+const AIAgents = () => {
+  const { user } = useAuth();
+  const stats = getEngineStats();
+  
+  const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [showExecuteDialog, setShowExecuteDialog] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: string; content: string}[]>([]);
   const [messageInput, setMessageInput] = useState("");
+  const [activeTab, setActiveTab] = useState("agents");
 
-  const handleConfigure = (agent: typeof moatAgents[0]) => {
+  const handleConfigure = (agent: AIAgent) => {
     setSelectedAgent(agent);
     setShowConfigDialog(true);
   };
 
-  const handleExecute = (agent: typeof moatAgents[0]) => {
+  const handleExecute = (agent: AIAgent) => {
     setSelectedAgent(agent);
     setChatMessages([
       {
         role: "assistant",
-        content: `Olá! Eu sou o ${agent.name}. ${agent.description}\n\nComo posso ajudar você hoje?`
+        content: `Ola! Eu sou o ${agent.name} (${agent.shortName}). ${agent.description}\n\nComo posso ajudar voce hoje?`
       }
     ]);
     setShowExecuteDialog(true);
@@ -242,26 +334,30 @@ const AIAgents = () => {
     setTimeout(() => {
       const responseMessage = {
         role: "assistant",
-        content: `Estou analisando sua solicitação: "${messageInput}".\n\nCom base nas minhas integrações (${selectedAgent.integrations.join(", ")}), posso fornecer insights relevantes. Em uma implementação completa, eu conectaria aos dados reais do sistema para uma resposta personalizada.`
+        content: `Estou analisando sua solicitacao: "${messageInput}".\n\nCom base nas minhas integracoes (${selectedAgent.integrations.join(", ")}), posso fornecer insights relevantes. Em uma implementacao completa, eu conectaria aos dados reais do sistema para uma resposta personalizada.`
       };
       
       setChatMessages(prev => [...prev, responseMessage]);
     }, 1500);
   };
 
-  const handleSaveWeights = () => {
-    toast({
-      title: "Configuração salva",
-      description: "Os pesos dos agentes foram atualizados com sucesso.",
-    });
-  };
-
   const handleSaveAgentConfig = () => {
     toast({
       title: "Agente configurado",
-      description: `As configurações do ${selectedAgent?.name} foram salvas.`,
+      description: `As configuracoes do ${selectedAgent?.name} foram salvas.`,
     });
     setShowConfigDialog(false);
+  };
+
+  const handleOpenCopilot = (copilotId: string) => {
+    if (copilotId === 'copilot-governance') {
+      window.location.href = '/governance-copilot';
+    } else {
+      toast({
+        title: "Copiloto",
+        description: "Abrindo interface do copiloto...",
+      });
+    }
   };
 
   return (
@@ -271,19 +367,124 @@ const AIAgents = () => {
         <Header title="Agentes de IA" />
         
         <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-
-          {/* Grid de Agentes */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {moatAgents.map(agent => (
-              <AgentCard 
-                key={agent.id}
-                agent={agent}
-                onConfigure={() => handleConfigure(agent)}
-                onExecute={() => handleExecute(agent)}
-              />
-            ))}
+          {/* Header com Estatísticas */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                  <Bot className="h-6 w-6 text-primary" />
+                  Motor de IA - MOAT Engine
+                </h1>
+                <p className="text-muted-foreground">
+                  Arquitetura de 3 camadas: Copilotos, Agentes e Servicos
+                </p>
+              </div>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Atualizar
+              </Button>
+            </div>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-5 gap-4">
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-indigo-500" />
+                    <div>
+                      <p className="text-2xl font-bold">{stats.totalCopilots}</p>
+                      <p className="text-xs text-muted-foreground">Copilotos</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-green-500" />
+                    <div>
+                      <p className="text-2xl font-bold">{stats.totalAgents}</p>
+                      <p className="text-xs text-muted-foreground">Agentes</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <p className="text-2xl font-bold">{stats.totalPrompts}</p>
+                      <p className="text-xs text-muted-foreground">Prompts</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-500" />
+                    <div>
+                      <p className="text-2xl font-bold">{stats.totalExecutions.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">Execucoes</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-emerald-500" />
+                    <div>
+                      <p className="text-2xl font-bold">{stats.avgSuccessRate.toFixed(1)}%</p>
+                      <p className="text-xs text-muted-foreground">Sucesso</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="copilots" className="gap-2">
+                <Brain className="h-4 w-4" />
+                Copilotos
+              </TabsTrigger>
+              <TabsTrigger value="agents" className="gap-2">
+                <Bot className="h-4 w-4" />
+                Agentes de IA
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Tab Copilotos */}
+            <TabsContent value="copilots">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {aiCopilots.map(copilot => (
+                  <CopilotCard 
+                    key={copilot.id}
+                    copilot={copilot}
+                    onOpen={() => handleOpenCopilot(copilot.id)}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* Tab Agentes */}
+            <TabsContent value="agents">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {aiAgents.map(agent => (
+                  <AgentCard 
+                    key={agent.id}
+                    agent={agent}
+                    onConfigure={() => handleConfigure(agent)}
+                    onExecute={() => handleExecute(agent)}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
 
           {/* Dialog de Configuração */}
           <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
@@ -292,10 +493,10 @@ const AIAgents = () => {
                 <DialogTitle className="flex items-center gap-2">
                   {selectedAgent && (
                     <>
-                      <selectedAgent.icon 
-                        className="h-5 w-5" 
-                        style={{ color: selectedAgent.color }} 
-                      />
+                      {(() => {
+                        const Icon = iconMap[selectedAgent.icon] || Sparkles;
+                        return <Icon className="h-5 w-5" style={{ color: selectedAgent.color }} />;
+                      })()}
                       Configurar {selectedAgent.name}
                     </>
                   )}
@@ -308,8 +509,8 @@ const AIAgents = () => {
               <Tabs defaultValue="capabilities" className="mt-4">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="capabilities">Capacidades</TabsTrigger>
-                  <TabsTrigger value="integrations">Integrações</TabsTrigger>
-                  <TabsTrigger value="metrics">Métricas</TabsTrigger>
+                  <TabsTrigger value="prompts">Prompts</TabsTrigger>
+                  <TabsTrigger value="metrics">Metricas</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="capabilities" className="space-y-4 mt-4">
@@ -323,30 +524,97 @@ const AIAgents = () => {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="integrations" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {selectedAgent?.integrations.map((integration, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <Zap className="h-5 w-5 text-amber-500" />
-                        <span className="text-sm font-medium">{integration}</span>
-                      </div>
+                <TabsContent value="prompts" className="space-y-4 mt-4">
+                  <div className="space-y-3">
+                    {selectedAgent?.prompts.map((prompt) => (
+                      <Card key={prompt.id}>
+                        <CardContent className="pt-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-medium">{prompt.name}</h4>
+                              <p className="text-xs text-muted-foreground">ID: {prompt.id}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Badge 
+                                className={cn(
+                                  prompt.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                )}
+                              >
+                                {prompt.status === 'active' ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                              <Badge 
+                                variant="outline"
+                                className={cn(
+                                  prompt.impactLevel === 'critical' && 'bg-red-50 text-red-700',
+                                  prompt.impactLevel === 'high' && 'bg-amber-50 text-amber-700'
+                                )}
+                              >
+                                {prompt.impactLevel === 'critical' ? 'Critico' : 'Alto'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
+                            <div className="text-center">
+                              <p className="text-lg font-bold">{prompt.metrics.executions}</p>
+                              <p className="text-xs text-muted-foreground">Execucoes</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-lg font-bold">{prompt.metrics.successRate.toFixed(1)}%</p>
+                              <p className="text-xs text-muted-foreground">Sucesso</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-lg font-bold">{prompt.metrics.avgQualityScore.toFixed(1)}</p>
+                              <p className="text-xs text-muted-foreground">Qualidade</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="metrics" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    {selectedAgent && Object.entries(selectedAgent.metrics).map(([key, value]) => (
-                      <Card key={key}>
-                        <CardContent className="pt-6 text-center">
-                          <BarChart3 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-2xl font-bold" style={{ color: selectedAgent.color }}>
-                            {value}
-                          </p>
-                          <p className="text-xs text-muted-foreground capitalize">{key}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedAgent && (
+                      <>
+                        <Card>
+                          <CardContent className="pt-6 text-center">
+                            <BarChart3 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-2xl font-bold" style={{ color: selectedAgent.color }}>
+                              {selectedAgent.metrics.totalExecutions}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Total de Execucoes</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6 text-center">
+                            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-2xl font-bold" style={{ color: selectedAgent.color }}>
+                              {selectedAgent.metrics.successRate.toFixed(1)}%
+                            </p>
+                            <p className="text-xs text-muted-foreground">Taxa de Sucesso</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6 text-center">
+                            <Zap className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-2xl font-bold" style={{ color: selectedAgent.color }}>
+                              {selectedAgent.metrics.avgLatencyMs}ms
+                            </p>
+                            <p className="text-xs text-muted-foreground">Latencia Media</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6 text-center">
+                            <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-2xl font-bold" style={{ color: selectedAgent.color }}>
+                              {selectedAgent.metrics.avgQualityScore.toFixed(1)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Score de Qualidade</p>
+                          </CardContent>
+                        </Card>
+                      </>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
@@ -356,7 +624,7 @@ const AIAgents = () => {
                   Cancelar
                 </Button>
                 <Button onClick={handleSaveAgentConfig}>
-                  <Save className="h-4 w-4 mr-2" /> Salvar Configurações
+                  <Save className="h-4 w-4 mr-2" /> Salvar Configuracoes
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -369,16 +637,16 @@ const AIAgents = () => {
                 <DialogTitle className="flex items-center gap-2">
                   {selectedAgent && (
                     <>
-                      <selectedAgent.icon 
-                        className="h-5 w-5" 
-                        style={{ color: selectedAgent.color }} 
-                      />
+                      {(() => {
+                        const Icon = iconMap[selectedAgent.icon] || Sparkles;
+                        return <Icon className="h-5 w-5" style={{ color: selectedAgent.color }} />;
+                      })()}
                       {selectedAgent.name}
                     </>
                   )}
                 </DialogTitle>
                 <DialogDescription>
-                  Interaja com o agente para obter insights e análises
+                  Interaja com o agente para obter insights e analises
                 </DialogDescription>
               </DialogHeader>
               
