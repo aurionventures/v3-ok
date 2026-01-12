@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, FileSignature } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 
@@ -15,8 +13,6 @@ const clientsByPlan = {
 };
 
 const AdminFinances = () => {
-  const [activeTab, setActiveTab] = useState("overview");
-  
   const totalMonthlyRevenue = 
     (clientsByPlan.basic.count * clientsByPlan.basic.value) +
     (clientsByPlan.professional.count * clientsByPlan.professional.value) +
@@ -33,15 +29,8 @@ const AdminFinances = () => {
             <p className="text-gray-500">Gerencie assinaturas, faturas e relatórios financeiros</p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            {/* Removidas abas "Planos" e "Faturas" pois já existem páginas dedicadas no menu */}
-            <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            </TabsList>
-
-            {/* Visão Geral */}
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">MRR (Receita Recorrente)</CardTitle>
@@ -159,10 +148,7 @@ const AdminFinances = () => {
                   </CardContent>
                 </Card>
               </div>
-
-            </TabsContent>
-            {/* Abas "Planos" e "Faturas" removidas - acessar via menu lateral: Planos, Contratos e Faturas */}
-          </Tabs>
+          </div>
         </div>
       </div>
     </div>

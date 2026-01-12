@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Clock,
   CheckCircle,
-  Play,
   PauseCircle,
   Plus
 } from "lucide-react";
@@ -120,8 +119,8 @@ const Admin = () => {
             </div>
           </div>
 
-          {/* Métricas principais - 4 cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Métricas principais - 3 cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -150,22 +149,6 @@ const Admin = () => {
                 <div className="flex items-center gap-1 text-sm text-green-500 mt-1">
                   <TrendingUp className="h-3 w-3" />
                   +{metrics.newCompaniesThisMonth} este mês
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Play className="h-4 w-4" />
-                  Em Trial
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{metrics.trialCompanies}</div>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                  <Clock className="h-3 w-3" />
-                  {metrics.pendingActivations} pendentes de ativação
                 </div>
               </CardContent>
             </Card>
@@ -312,13 +295,6 @@ const Admin = () => {
                       <span>Ativas</span>
                     </div>
                     <Badge className="bg-green-500/20 text-green-400">{metrics.activeCompanies}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Play className="h-4 w-4 text-blue-500" />
-                      <span>Em Trial</span>
-                    </div>
-                    <Badge className="bg-blue-500/20 text-blue-400">{metrics.trialCompanies}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
