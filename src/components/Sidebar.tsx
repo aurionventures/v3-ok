@@ -30,7 +30,9 @@ import {
   Lock,
   ActivitySquare,
   CheckCircle,
-  Calculator
+  Calculator,
+  FileSignature,
+  Receipt,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -97,6 +99,8 @@ const ADMIN_MENU_ITEMS = [
   { icon: Building2, href: "/admin/empresas", name: "Empresas" },
   { icon: FileText, href: "/admin/planos", name: "Planos & Produtos" },
   { icon: Layers, href: "/admin/addons", name: "Add-ons" },
+  { icon: FileSignature, href: "/admin/contratos", name: "Contratos" },
+  { icon: Receipt, href: "/admin/faturas", name: "Faturas" },
   { icon: TrendingUp, href: "/admin/vendas", name: "Vendas & Ativações" },
   { icon: DollarSign, href: "/admin/finances", name: "Financeiro" },
   { icon: Bot, href: "/admin/prompts", name: "AI Engine" },

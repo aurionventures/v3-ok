@@ -52,6 +52,8 @@ import {
   Target,
   Crown,
   ChevronDown,
+  FileText,
+  CreditCard,
 } from 'lucide-react';
 import legacyLogo from '@/assets/legacy-logo-new.png';
 
@@ -241,6 +243,25 @@ export default function Pricing() {
 
     // Redirecionar para checkout Stripe
     navigate(`/checkout?${params.toString()}`);
+  };
+
+  // Função para ir para checkout com contrato (Asaas)
+  const handleContractCheckout = () => {
+    if (!calculatorResult) return;
+
+    const params = new URLSearchParams({
+      plan: calculatorResult.planoId,
+      porte: calculatorInputs.faturamento,
+      source: 'calculator',
+    });
+
+    // Adicionar add-ons selecionados se houver
+    if (selectedAddons.length > 0) {
+      params.set('addons', selectedAddons.join(','));
+    }
+
+    // Redirecionar para checkout com contrato
+    navigate(`/checkout-contrato?${params.toString()}`);
   };
 
   // Função para falar com especialista
@@ -936,24 +957,35 @@ export default function Pricing() {
                 </div>
 
                 {/* CTAs */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-3">
                   <Button
-                    onClick={handleStartTrial}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleContractCheckout}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
                     size="lg"
                   >
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Começar Agora
+                    <FileText className="h-5 w-5 mr-2" />
+                    Contratar com Boleto/PIX
                   </Button>
-                  <Button
-                    onClick={handleContactSpecialist}
-                    variant="outline"
-                    className="flex-1"
-                    size="lg"
-                  >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Falar com Especialista
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={handleStartTrial}
+                      variant="outline"
+                      className="flex-1"
+                      size="lg"
+                    >
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Pagar com Cartão
+                    </Button>
+                    <Button
+                      onClick={handleContactSpecialist}
+                      variant="outline"
+                      className="flex-1"
+                      size="lg"
+                    >
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Falar com Especialista
+                    </Button>
+                  </div>
                 </div>
 
                 <Button

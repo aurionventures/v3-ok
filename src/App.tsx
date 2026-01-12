@@ -43,6 +43,8 @@ import AdminPlanConfigurator from "./pages/AdminPlanConfigurator";
 import AdminClientManagement from "./pages/AdminClientManagement";
 import AdminPartners from "./pages/AdminPartners";
 import AdminAddons from "./pages/AdminAddons";
+import AdminContracts from "./pages/AdminContracts";
+import AdminInvoices from "./pages/AdminInvoices";
 import AdminSales from "./pages/AdminSales";
 import AIConfig from "./pages/AIConfig";
 import GovernanceCopilot from "./pages/GovernanceCopilot";
@@ -83,6 +85,7 @@ import MemberDesempenho from "./pages/member/MemberDesempenho";
 import MemberPerfil from "./pages/member/MemberPerfil";
 import PlanResult from "./pages/PlanResult";
 import Checkout from "./pages/Checkout";
+import ContractCheckout from "./pages/ContractCheckout";
 import Payment from "./pages/Payment";
 import PaymentConfirmed from "./pages/PaymentConfirmed";
 import EmailConfirmation from "./pages/EmailConfirmation";
@@ -179,6 +182,7 @@ const App = () => (
           <Route path="/plan-result" element={<PlanResult />} />
           <Route path="/checkout" element={<StripeCheckout />} />
           <Route path="/checkout-legacy" element={<Checkout />} />
+          <Route path="/checkout-contrato" element={<ContractCheckout />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/payment-confirmed" element={<PaymentConfirmed />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
@@ -753,6 +757,22 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <AdminAddons />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/contratos" 
+            element={
+              <ProtectedRoute >
+                <AdminContracts />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/faturas" 
+            element={
+              <ProtectedRoute >
+                <AdminInvoices />
               </ProtectedRoute>
             } 
           />
