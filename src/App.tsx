@@ -122,6 +122,8 @@ import TermosUso from "./pages/TermosUso";
 import LGPD from "./pages/LGPD";
 import SobreNos from "./pages/SobreNos";
 import Contato from "./pages/Contato";
+import Blog from "./pages/Blog";
+import BlogArticle from "./pages/BlogArticle";
 
 
 const queryClient = new QueryClient();
@@ -154,6 +156,8 @@ const App = () => (
           <Route path="/lgpd" element={<LGPD />} />
           <Route path="/sobre" element={<SobreNos />} />
           <Route path="/contato" element={<Contato />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
           <Route path="/invite/accept" element={<AcceptInvite />} />
