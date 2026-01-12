@@ -91,7 +91,16 @@ Período: últimos 30 dias`,
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Este prompt é fundamental para a inteligência competitiva do conselho, coletando sinais externos que antecipam riscos e oportunidades de mercado.',
+    connected_copilots: ['copilot-insights-001'],
+    connected_services: ['collection', 'analysis']
   },
   {
     id: 'a2-classifier-001',
@@ -179,7 +188,16 @@ Retorne JSON com sinais classificados.`,
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'operational',
+    impact_level: 'high',
+    scope: 'system',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Organiza e pontua sinais coletados para facilitar a priorização pelo conselho.',
+    connected_copilots: ['copilot-insights-001'],
+    connected_services: ['classification', 'scoring']
   },
 
   // ========== AGENT B: Governance Memory Analyzer ==========
@@ -287,7 +305,16 @@ Identifique:
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'governance',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Memória institucional da governança. Identifica padrões crônicos e custos de não-decisão para accountability do conselho.',
+    connected_copilots: ['copilot-insights-001'],
+    connected_services: ['analysis', 'pattern_detection']
   },
   {
     id: 'b2-pattern-001',
@@ -377,7 +404,16 @@ Retorne JSON com:
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'governance',
+    impact_level: 'high',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Alerta sobre decisões pendentes e riscos crônicos que requerem atenção imediata do conselho.',
+    connected_copilots: ['copilot-insights-001'],
+    connected_services: ['pattern_detection', 'alerting']
   },
 
   // ========== AGENT C: Priority Score Calculator ==========
@@ -505,7 +541,16 @@ Pesos:
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Algoritmo central de priorização. Define quais temas chegam ao conselho e em que ordem.',
+    connected_copilots: null,
+    connected_services: ['scoring', 'prioritization']
   },
   {
     id: 'c2-prioritizer-001',
@@ -590,7 +635,16 @@ Retorne JSON com:
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'operational',
+    impact_level: 'high',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Garante balanceamento e eficiência na construção da pauta final do conselho.',
+    connected_copilots: null,
+    connected_services: ['prioritization', 'agenda']
   },
 
   // ========== AGENT D: Agenda & Briefing Generator ==========
@@ -685,7 +739,16 @@ Membros:
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Geração automática de pautas profissionais. Impacta diretamente a qualidade das reuniões de conselho.',
+    connected_copilots: null,
+    connected_services: ['agenda', 'synthesis']
   },
   {
     id: 'd2-briefing-001',
@@ -802,7 +865,16 @@ Agenda da Reunião:
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'strategic',
+    impact_level: 'high',
+    scope: 'council',
+    agent_type: 'moat_engine',
+    owner: 'Legacy AI Team',
+    executive_description: 'Personalização de preparação para cada conselheiro. Maximiza contribuição individual nas reuniões.',
+    connected_copilots: null,
+    connected_services: ['briefing', 'personalization']
   },
 
   // ========== COPILOT INSIGHTS (usa Agent A + Agent B) ==========
@@ -925,7 +997,16 @@ Gere insights preditivos identificando riscos estratégicos, ameaças operaciona
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'copilot',
+    owner: 'Legacy AI Team',
+    executive_description: 'Copiloto principal de governança. Interface estratégica que sintetiza inteligência do MOAT Engine para o conselho.',
+    connected_copilots: null,
+    connected_services: ['insights', 'predictive_analysis']
   },
 
   // ========== PDI GENERATOR ==========
@@ -1015,7 +1096,16 @@ Gere um PDI completo e estruturado.`,
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'governance',
+    impact_level: 'medium',
+    scope: 'council',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Desenvolvimento de conselheiros. Gera planos personalizados baseados em avaliações de performance.',
+    connected_copilots: null,
+    connected_services: ['development', 'evaluation']
   },
 
   // ========== SECRETARIAT SEARCH - INTENT EXTRACTOR ==========
@@ -1061,7 +1151,16 @@ Retorne APENAS as informações estruturadas em formato JSON para facilitar a bu
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'operational',
+    impact_level: 'medium',
+    scope: 'operation',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Motor de busca inteligente. Interpreta perguntas em linguagem natural para localizar documentos.',
+    connected_copilots: null,
+    connected_services: ['search', 'nlp']
   },
 
   // ========== SECRETARIAT SEARCH - RESPONSE GENERATOR ==========
@@ -1119,7 +1218,16 @@ Gere uma resposta conversacional e profissional que responda à pergunta do usu�
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'operational',
+    impact_level: 'medium',
+    scope: 'operation',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Geração de respostas em linguagem natural. Traduz resultados de busca em informações acionáveis.',
+    connected_copilots: null,
+    connected_services: ['search', 'response_generation']
   },
 
   // ========== PREDICTIVE INSIGHTS (Edge Function Version) ==========
@@ -1208,7 +1316,16 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`,
     created_at: '2025-12-01T10:00:00Z',
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
-    deprecated_at: null
+    deprecated_at: null,
+    // Campos estratégicos
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'copilot',
+    owner: 'Legacy AI Team',
+    executive_description: 'Versão serverless do Copiloto. Gera insights preditivos em tempo real para decisões urgentes.',
+    connected_copilots: ['copilot-insights-001'],
+    connected_services: ['predictive_analysis', 'edge_computing']
   }
 ];
 

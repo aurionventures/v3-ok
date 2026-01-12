@@ -64,6 +64,32 @@ const STATUSES = [
   { value: 'deprecated', label: 'Depreciado' },
 ];
 
+const STRATEGIC_TYPES = [
+  { value: 'strategic', label: 'Estrategico', description: 'Impacta diretamente decisoes de alto nivel' },
+  { value: 'governance', label: 'Governanca', description: 'Relacionado a processos de governanca corporativa' },
+  { value: 'operational', label: 'Operacional', description: 'Suporte a operacoes do dia-a-dia' },
+];
+
+const IMPACT_LEVELS = [
+  { value: 'critical', label: 'Critico', description: 'Impacto critico no negocio', color: 'text-red-600' },
+  { value: 'high', label: 'Alto', description: 'Impacto significativo', color: 'text-orange-600' },
+  { value: 'medium', label: 'Medio', description: 'Impacto moderado', color: 'text-yellow-600' },
+  { value: 'low', label: 'Baixo', description: 'Baixo impacto', color: 'text-green-600' },
+];
+
+const SCOPES = [
+  { value: 'council', label: 'Conselho', description: 'Conselho de Administracao' },
+  { value: 'committee', label: 'Comite', description: 'Comites e Comissoes' },
+  { value: 'operation', label: 'Operacao', description: 'Nivel operacional' },
+  { value: 'system', label: 'Sistema', description: 'Uso interno do sistema' },
+];
+
+const AGENT_TYPES = [
+  { value: 'moat_engine', label: 'MOAT Engine', description: 'Agentes do MOAT Engine' },
+  { value: 'copilot', label: 'Copiloto', description: 'Copilotos de governanca' },
+  { value: 'service', label: 'Servico', description: 'Servicos auxiliares do sistema' },
+];
+
 const defaultFormData: CreatePromptInput = {
   name: '',
   category: 'agent_a_collector',
@@ -82,7 +108,16 @@ const defaultFormData: CreatePromptInput = {
   examples: null,
   status: 'draft',
   changelog: '',
-  tags: []
+  tags: [],
+  // Strategic fields
+  strategic_type: 'operational',
+  impact_level: 'medium',
+  scope: 'system',
+  agent_type: 'moat_engine',
+  owner: null,
+  executive_description: null,
+  connected_copilots: null,
+  connected_services: null,
 };
 
 export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
@@ -117,7 +152,16 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
         examples: existingPrompt.examples,
         status: existingPrompt.status,
         changelog: existingPrompt.changelog || '',
-        tags: existingPrompt.tags || []
+        tags: existingPrompt.tags || [],
+        // Strategic fields
+        strategic_type: existingPrompt.strategic_type || 'operational',
+        impact_level: existingPrompt.impact_level || 'medium',
+        scope: existingPrompt.scope || 'system',
+        agent_type: existingPrompt.agent_type || 'moat_engine',
+        owner: existingPrompt.owner || null,
+        executive_description: existingPrompt.executive_description || null,
+        connected_copilots: existingPrompt.connected_copilots || null,
+        connected_services: existingPrompt.connected_services || null,
       });
       setFunctionsText(existingPrompt.functions ? JSON.stringify(existingPrompt.functions, null, 2) : '');
       setExamplesText(existingPrompt.examples ? JSON.stringify(existingPrompt.examples, null, 2) : '');
@@ -181,11 +225,12 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
 
         <ScrollArea className="flex-1 pr-4">
           <Tabs defaultValue="basic" className="space-y-4">
-            <TabsList className="grid grid-cols-4 w-full">
-              <TabsTrigger value="basic">Básico</TabsTrigger>
+            <TabsList className="grid grid-cols-5 w-full">
+              <TabsTrigger value="basic">Basico</TabsTrigger>
+              <TabsTrigger value="governance">Governanca</TabsTrigger>
               <TabsTrigger value="prompt">Prompt</TabsTrigger>
-              <TabsTrigger value="config">Configuração</TabsTrigger>
-              <TabsTrigger value="advanced">Avançado</TabsTrigger>
+              <TabsTrigger value="config">Configuracao</TabsTrigger>
+              <TabsTrigger value="advanced">Avancado</TabsTrigger>
             </TabsList>
 
             {/* Tab: Basic */}
@@ -271,6 +316,133 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
                   placeholder="Liste as alterações desta versão..."
                   rows={2}
                 />
+              </div>
+            </TabsContent>
+
+            {/* Tab: Governance */}
+            <TabsContent value="governance" className="space-y-4">
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <h4 className="font-medium mb-2">Classificacao Estrategica</h4>
+                <p className="text-sm text-muted-foreground">
+                  Defina o tipo, impacto e escopo deste prompt para governanca adequada.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tipo Estrategico *</Label>
+                  <Select
+                    value={formData.strategic_type || 'operational'}
+                    onValueChange={(value) => setFormData({ ...formData, strategic_type: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STRATEGIC_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div>
+                            <div className="font-medium">{type.label}</div>
+                            <div className="text-xs text-muted-foreground">{type.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Nivel de Impacto *</Label>
+                  <Select
+                    value={formData.impact_level || 'medium'}
+                    onValueChange={(value) => setFormData({ ...formData, impact_level: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o impacto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {IMPACT_LEVELS.map(level => (
+                        <SelectItem key={level.value} value={level.value}>
+                          <div>
+                            <div className={`font-medium ${level.color}`}>{level.label}</div>
+                            <div className="text-xs text-muted-foreground">{level.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Escopo *</Label>
+                  <Select
+                    value={formData.scope || 'system'}
+                    onValueChange={(value) => setFormData({ ...formData, scope: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o escopo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SCOPES.map(scope => (
+                        <SelectItem key={scope.value} value={scope.value}>
+                          <div>
+                            <div className="font-medium">{scope.label}</div>
+                            <div className="text-xs text-muted-foreground">{scope.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tipo de Agente</Label>
+                  <Select
+                    value={formData.agent_type || 'moat_engine'}
+                    onValueChange={(value) => setFormData({ ...formData, agent_type: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AGENT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div>
+                            <div className="font-medium">{type.label}</div>
+                            <div className="text-xs text-muted-foreground">{type.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Responsavel</Label>
+                <Input
+                  value={formData.owner || ''}
+                  onChange={(e) => setFormData({ ...formData, owner: e.target.value || null })}
+                  placeholder="Nome do responsavel ou equipe"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Quem e responsavel por este prompt (pessoa ou equipe)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Descricao Executiva</Label>
+                <Textarea
+                  value={formData.executive_description || ''}
+                  onChange={(e) => setFormData({ ...formData, executive_description: e.target.value || null })}
+                  placeholder="Este prompt existe para..."
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Explique em linguagem executiva o proposito deste prompt
+                </p>
               </div>
             </TabsContent>
 

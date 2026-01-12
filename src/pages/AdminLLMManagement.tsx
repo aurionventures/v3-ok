@@ -436,34 +436,152 @@ const StatCard = ({
 };
 
 const UsageChart = ({ data }: { data: TokenUsage[] }) => {
-  const maxTokens = Math.max(...data.map(d => d.totalTokens));
+  const chartData = data.slice(-14);
+  const maxPrompt = Math.max(...chartData.map(d => d.promptTokens));
+  const maxCompletion = Math.max(...chartData.map(d => d.completionTokens));
+  const maxValue = Math.max(maxPrompt, maxCompletion);
+  
+  const chartWidth = 100;
+  const chartHeight = 200;
+  const padding = { top: 20, right: 20, bottom: 40, left: 10 };
+  const innerWidth = chartWidth - padding.left - padding.right;
+  const innerHeight = chartHeight - padding.top - padding.bottom;
+  
+  const xScale = (index: number) => padding.left + (index / (chartData.length - 1)) * innerWidth;
+  const yScale = (value: number) => chartHeight - padding.bottom - (value / maxValue) * innerHeight;
+  
+  // Criar path para linha de Prompt
+  const promptPath = chartData.map((d, i) => {
+    const x = xScale(i);
+    const y = yScale(d.promptTokens);
+    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+  
+  // Criar path para linha de Completion
+  const completionPath = chartData.map((d, i) => {
+    const x = xScale(i);
+    const y = yScale(d.completionTokens);
+    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+  
+  // Criar area fill para Prompt
+  const promptAreaPath = `${promptPath} L ${xScale(chartData.length - 1)} ${chartHeight - padding.bottom} L ${xScale(0)} ${chartHeight - padding.bottom} Z`;
+  
+  // Criar area fill para Completion
+  const completionAreaPath = `${completionPath} L ${xScale(chartData.length - 1)} ${chartHeight - padding.bottom} L ${xScale(0)} ${chartHeight - padding.bottom} Z`;
   
   return (
-    <div className="h-48 flex items-end gap-1">
-      {data.slice(-14).map((day, i) => {
-        const height = (day.totalTokens / maxTokens) * 100;
-        return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1">
-            <div 
-              className="w-full bg-primary/20 rounded-t hover:bg-primary/30 transition-colors cursor-pointer group relative"
-              style={{ height: `${height}%` }}
-            >
-              <div 
-                className="absolute bottom-0 w-full bg-primary rounded-t transition-all"
-                style={{ height: `${(day.completionTokens / day.totalTokens) * 100}%` }}
-              />
-              <div className="hidden group-hover:block absolute -top-12 left-1/2 -translate-x-1/2 bg-popover border rounded-lg p-2 text-xs whitespace-nowrap z-10">
-                <p className="font-medium">{day.date}</p>
-                <p className="text-muted-foreground">{(day.totalTokens / 1000).toFixed(0)}K tokens</p>
-                <p className="text-muted-foreground">US$ {day.cost.toFixed(2)}</p>
+    <div className="relative w-full">
+      <svg 
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`} 
+        className="w-full h-64"
+        preserveAspectRatio="none"
+      >
+        {/* Grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+          <line
+            key={i}
+            x1={padding.left}
+            y1={padding.top + innerHeight * (1 - ratio)}
+            x2={chartWidth - padding.right}
+            y2={padding.top + innerHeight * (1 - ratio)}
+            stroke="currentColor"
+            strokeOpacity={0.1}
+            strokeWidth={0.2}
+          />
+        ))}
+        
+        {/* Area fill para Prompt (mais claro) */}
+        <path
+          d={promptAreaPath}
+          fill="rgb(148, 163, 184)"
+          fillOpacity={0.15}
+        />
+        
+        {/* Area fill para Completion (mais escuro) */}
+        <path
+          d={completionAreaPath}
+          fill="rgb(30, 41, 59)"
+          fillOpacity={0.2}
+        />
+        
+        {/* Linha de Prompt */}
+        <path
+          d={promptPath}
+          fill="none"
+          stroke="rgb(148, 163, 184)"
+          strokeWidth={0.4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        
+        {/* Linha de Completion */}
+        <path
+          d={completionPath}
+          fill="none"
+          stroke="rgb(30, 41, 59)"
+          strokeWidth={0.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        
+        {/* Pontos de dados para Prompt */}
+        {chartData.map((d, i) => (
+          <circle
+            key={`prompt-${i}`}
+            cx={xScale(i)}
+            cy={yScale(d.promptTokens)}
+            r={0.6}
+            fill="rgb(148, 163, 184)"
+            className="hover:r-[1] transition-all cursor-pointer"
+          />
+        ))}
+        
+        {/* Pontos de dados para Completion */}
+        {chartData.map((d, i) => (
+          <circle
+            key={`completion-${i}`}
+            cx={xScale(i)}
+            cy={yScale(d.completionTokens)}
+            r={0.6}
+            fill="rgb(30, 41, 59)"
+            className="hover:r-[1] transition-all cursor-pointer"
+          />
+        ))}
+      </svg>
+      
+      {/* Labels de data no eixo X */}
+      <div className="flex justify-between px-2 -mt-2">
+        {chartData.map((d, i) => (
+          <span key={i} className="text-[10px] text-muted-foreground">
+            {new Date(d.date).getDate()}
+          </span>
+        ))}
+      </div>
+      
+      {/* Tooltip interativo - usando elementos HTML sobrepostos */}
+      <div className="absolute inset-0 flex" style={{ top: padding.top, bottom: padding.bottom }}>
+        {chartData.map((d, i) => (
+          <div 
+            key={i} 
+            className="flex-1 group cursor-pointer relative"
+          >
+            <div className="hidden group-hover:block absolute top-0 left-1/2 -translate-x-1/2 bg-popover border rounded-lg p-2 text-xs whitespace-nowrap z-10 shadow-lg">
+              <p className="font-medium">{new Date(d.date).toLocaleDateString('pt-BR')}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-2 h-2 rounded bg-slate-400" />
+                <span className="text-muted-foreground">Prompt: {(d.promptTokens / 1000).toFixed(0)}K</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded bg-slate-800" />
+                <span className="text-muted-foreground">Completion: {(d.completionTokens / 1000).toFixed(0)}K</span>
+              </div>
+              <p className="text-muted-foreground mt-1 pt-1 border-t">Total: {(d.totalTokens / 1000).toFixed(0)}K tokens</p>
+              <p className="text-green-600">US$ {d.cost.toFixed(3)}</p>
             </div>
-            <span className="text-[10px] text-muted-foreground">
-              {new Date(day.date).getDate()}
-            </span>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };
