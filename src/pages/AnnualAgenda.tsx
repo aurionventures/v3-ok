@@ -35,7 +35,6 @@ import ParticipantsManager from "@/components/councils/ParticipantsManager";
 import { MeetingParticipant } from "@/types/annualSchedule";
 import { useMeetingNotifications } from "@/hooks/useMeetingNotifications";
 import { useAuth } from "@/contexts/AuthContext";
-import { AgendaSuggestionsTab } from "@/components/copilot/AgendaSuggestionsTab";
 
 const AnnualAgenda = () => {
   const [searchParams] = useSearchParams();
@@ -271,19 +270,6 @@ const AnnualAgenda = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Agenda Anual 2026" />
         <div className="flex-1 overflow-y-auto p-4">
-          <Tabs defaultValue="calendario" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="calendario" className="gap-2">
-                <Calendar className="h-4 w-4" />
-                Calendário
-              </TabsTrigger>
-              <TabsTrigger value="pautas-ia" className="gap-2">
-                <Sparkles className="h-4 w-4" />
-                Pautas Sugeridas pela IA
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="calendario">
 
           {/* Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -391,7 +377,7 @@ const AnnualAgenda = () => {
                 <Filter className="h-4 w-4" />
                 <h3 className="font-semibold">Filtrar Reuniões</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 {/* Filtro: Tipo de Órgão */}
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Tipo de Órgão</Label>
@@ -530,6 +516,32 @@ const AnnualAgenda = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Filtro: Pautas IA */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Pautas IA</Label>
+                  <Select 
+                    value={filters.aiGenerated}
+                    onValueChange={(value) => setFilters({...filters, aiGenerated: value})}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Pautas</SelectItem>
+                      <SelectItem value="yes">
+                        <span className="flex items-center gap-2">
+                          <Sparkles className="h-3 w-3 text-amber-500" /> Sugeridas por IA
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="no">
+                        <span className="flex items-center gap-2">
+                          <FileText className="h-3 w-3" /> Pautas Manuais
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Badge de Resultados */}
@@ -541,13 +553,14 @@ const AnnualAgenda = () => {
                   organType: 'all',
                   organId: 'all',
                   status: 'all',
-                  meetingType: 'all'
+                  meetingType: 'all',
+                  aiGenerated: 'all'
                 })}
                 title="Clique para limpar filtros"
               >
                 {filteredMeetings.length} de {schedule?.meetings.length || 0} reuniões
               </Badge>
-                {(filters.organType !== 'all' || filters.status !== 'all' || filters.meetingType !== 'all') && (
+                {(filters.organType !== 'all' || filters.status !== 'all' || filters.meetingType !== 'all' || filters.aiGenerated !== 'all') && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -555,7 +568,8 @@ const AnnualAgenda = () => {
                       organType: 'all',
                       organId: 'all',
                       status: 'all',
-                      meetingType: 'all'
+                      meetingType: 'all',
+                      aiGenerated: 'all'
                     })}
                     className="h-6 text-[10px]"
                   >
@@ -581,7 +595,8 @@ const AnnualAgenda = () => {
                           organType: 'all',
                           organId: 'all',
                           status: 'all',
-                          meetingType: 'all'
+                          meetingType: 'all',
+                          aiGenerated: 'all'
                         })}
                         className="ml-1 underline hover:text-blue-900 font-medium"
                       >
@@ -883,12 +898,6 @@ const AnnualAgenda = () => {
               </div>
             </DialogContent>
           </Dialog>
-            </TabsContent>
-
-            <TabsContent value="pautas-ia">
-              <AgendaSuggestionsTab />
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
     </div>

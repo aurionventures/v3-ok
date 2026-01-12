@@ -74,8 +74,8 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
   // Generate 12 COUNCIL meetings (2nd Tuesday of each month at 14:00)
   for (let month = 0; month < 12; month++) {
     const date = getNthWeekdayOfMonth(year, month, 2, 2); // Tuesday=2, 2nd occurrence
-    // Reuniões dos meses 4, 7, 10 têm pauta sugerida pela IA
-    const hasAIPauta = [3, 6, 9].includes(month); // abril, julho, outubro (0-indexed)
+    // Reuniões dos meses 1, 4, 7, 10 têm pauta sugerida pela IA
+    const hasAIPauta = [0, 3, 6, 9].includes(month); // janeiro, abril, julho, outubro (0-indexed)
     meetings.push({
       id: `conselho-${month + 1}`,
       council: "Conselho de Administração",
