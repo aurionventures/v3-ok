@@ -632,7 +632,7 @@ export default function GovernanceCopilot() {
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="h-[calc(100%-3rem)] m-0">
-              <Card className="h-full">
+              <Card className="h-full overflow-auto">
                 <CardHeader className="border-b">
                   <CardTitle className="text-lg">Configurações do Copiloto</CardTitle>
                   <CardDescription>
@@ -641,6 +641,49 @@ export default function GovernanceCopilot() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-6 max-w-2xl">
+                    {/* Prompt Ativo */}
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-[#C0A062]/10 to-[#C0A062]/5 border border-[#C0A062]/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Brain className="h-4 w-4 text-[#C0A062]" />
+                          Prompt Ativo
+                        </h4>
+                        {activePrompt && (
+                          <Badge className="bg-green-100 text-green-700">
+                            v{activePrompt.version}
+                          </Badge>
+                        )}
+                      </div>
+                      {activePrompt ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-foreground">
+                            {activePrompt.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {activePrompt.description}
+                          </p>
+                          <div className="flex gap-2 flex-wrap mt-3">
+                            <Badge variant="outline" className="text-xs">
+                              Categoria: {activePrompt.category}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {activePrompt.total_executions} execuções
+                            </Badge>
+                            {activePrompt.success_rate && (
+                              <Badge variant="outline" className="text-xs text-green-600">
+                                {activePrompt.success_rate}% sucesso
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Nenhum prompt ativo configurado para esta funcionalidade.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Modelo de IA */}
                     <div className="p-4 rounded-lg bg-muted/50 border">
                       <h4 className="font-medium mb-2">Modelo de IA</h4>
                       <p className="text-sm text-muted-foreground mb-3">
@@ -648,9 +691,29 @@ export default function GovernanceCopilot() {
                       </p>
                       <Badge variant="outline" className="gap-1">
                         <Sparkles className="h-3 w-3" />
-                        google/gemini-2.5-flash
+                        {activePrompt?.model || 'google/gemini-3-flash-preview'}
                       </Badge>
                     </div>
+
+                    {/* Arquitetura de Agentes */}
+                    <div className="p-4 rounded-lg bg-muted/50 border">
+                      <h4 className="font-medium mb-2">Arquitetura MOAT Engine</h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        O Copiloto integra dados dos seguintes agentes:
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Agent A - Coleta</p>
+                          <p className="text-xs text-muted-foreground">Sinais externos</p>
+                        </div>
+                        <div className="p-2 rounded bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                          <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Agent B - Análise</p>
+                          <p className="text-xs text-muted-foreground">Contexto e padrões</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Frequência */}
                     <div className="p-4 rounded-lg bg-muted/50 border">
                       <h4 className="font-medium mb-2">Frequência de Análise</h4>
                       <p className="text-sm text-muted-foreground">
@@ -658,17 +721,19 @@ export default function GovernanceCopilot() {
                         O histórico é salvo automaticamente para comparação de tendências.
                       </p>
                     </div>
+
+                    {/* Dados de Entrada */}
                     <div className="p-4 rounded-lg bg-muted/50 border">
                       <h4 className="font-medium mb-2">Dados de Entrada</h4>
                       <p className="text-sm text-muted-foreground mb-3">
                         A IA considera os seguintes dados do sistema:
                       </p>
                       <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Riscos cadastrados e seus controles</li>
-                        <li>• Score de maturidade de governança</li>
-                        <li>• Score ESG</li>
-                        <li>• Tarefas pendentes e atrasadas</li>
-                        <li>• Riscos críticos identificados</li>
+                        <li>- Riscos cadastrados e seus controles</li>
+                        <li>- Score de maturidade de governança</li>
+                        <li>- Score ESG</li>
+                        <li>- Tarefas pendentes e atrasadas</li>
+                        <li>- Riscos críticos identificados</li>
                       </ul>
                     </div>
                   </div>
