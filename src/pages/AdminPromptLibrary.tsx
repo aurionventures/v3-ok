@@ -91,6 +91,18 @@ const AGENT_CATEGORIES = [
     borderColor: 'border-amber-500/30',
     icon: FileText
   },
+  { 
+    id: 'copilot',
+    agent: 'Copiloto', 
+    label: 'Insights Preditivos',
+    description: 'Integra Agent A + B para gerar insights de governança para clientes',
+    categories: ['agent_copilot_insights'],
+    color: 'bg-indigo-500',
+    textColor: 'text-indigo-500',
+    bgColor: 'bg-indigo-500/10',
+    borderColor: 'border-indigo-500/30',
+    icon: Brain
+  },
 ];
 
 const getCategoryLabel = (category: string) => {
@@ -103,6 +115,7 @@ const getCategoryLabel = (category: string) => {
     'agent_c_prioritizer': 'Prioritizer',
     'agent_d_agenda_generator': 'Agenda Generator',
     'agent_d_briefing_generator': 'Briefing Generator',
+    'agent_copilot_insights': 'Copilot Insights',
   };
   return labels[category] || category;
 };
@@ -117,6 +130,7 @@ const getCategoryDescription = (category: string) => {
     'agent_c_prioritizer': 'Ordena e prioriza itens para decisão',
     'agent_d_agenda_generator': 'Gera pautas automáticas para reuniões',
     'agent_d_briefing_generator': 'Cria briefings executivos e relatórios',
+    'agent_copilot_insights': 'Gera insights preditivos de governança usando Agent A + B',
   };
   return descriptions[category] || '';
 };

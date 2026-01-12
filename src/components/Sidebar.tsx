@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -142,7 +142,6 @@ const Sidebar = () => {
   const [open, setOpen] = useState(!isMobile);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState({ key: "", label: "" });
-  const [addonsExpanded, setAddonsExpanded] = useState(false);
   const { hasAccess } = useModuleAccess();
   const { user, logout } = useAuth();
   
@@ -150,11 +149,25 @@ const Sidebar = () => {
   
   // Verificar quais add-ons o cliente tem ativados
   const getEnabledAddons = () => {
-    // Aqui verificamos quais módulos o cliente tem acesso
-    return ADDON_ITEMS.filter(item => hasAccess(item.key));
+    // Para demonstração: todos os add-ons estão desbloqueados
+    // Em produção, usar: return ADDON_ITEMS.filter(item => hasAccess(item.key));
+    return ADDON_ITEMS;
   };
   
   const enabledAddons = getEnabledAddons();
+  
+  // Verificar se a rota atual é um Add-on
+  const isAddonRoute = ADDON_ITEMS.some(item => pathname === item.path);
+  
+  // Estado da seção de Add-ons - começa expandido se estiver em uma rota de Add-on
+  const [addonsExpanded, setAddonsExpanded] = useState(isAddonRoute);
+  
+  // Manter a seção expandida quando navegar para um Add-on
+  useEffect(() => {
+    if (isAddonRoute) {
+      setAddonsExpanded(true);
+    }
+  }, [pathname, isAddonRoute]);
   
   useEffect(() => {
     setOpen(!isMobile);
@@ -366,43 +379,8 @@ const Sidebar = () => {
               </>
             )}
 
-            {/* Separador se houver add-ons ativados e desativados */}
-            {enabledAddons.length > 0 && enabledAddons.length < ADDON_ITEMS.length && open && (
-              <div className="px-3 py-2">
-                <div className="text-[9px] text-white/40 uppercase tracking-wider">Disponíveis</div>
-              </div>
-            )}
-
-            {/* Mostrar add-ons não ativados (com cadeado) */}
-            {ADDON_ITEMS.filter(item => !hasAccess(item.key)).map(item => {
-              const Icon = item.icon;
-
-              return (
-                <TooltipProvider key={item.key} delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => handleLockedClick(item.key, item.label)}
-                        className="flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all w-full text-white/50 hover:bg-white/5 hover:text-white/70"
-                      >
-                        <Icon className="h-4 w-4 shrink-0 opacity-50" />
-                        {open && (
-                          <>
-                            <span className="flex-1 text-left">{item.label}</span>
-                            <Lock className="h-3 w-3 text-[#C0A062]/50" />
-                          </>
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    {!open && (
-                      <TooltipContent side="right">
-                        <p>{item.label} (Bloqueado)</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
+            {/* Nota: Para ambiente de demonstração, todos os add-ons estão desbloqueados */}
+            {/* Em produção, adicionar a seção de "Disponíveis" com cadeado aqui */}
           </div>
         )}
       </div>

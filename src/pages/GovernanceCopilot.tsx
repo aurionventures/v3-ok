@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight, TrendingUp, TrendingDown, History, Settings as SettingsIcon, ExternalLink, Calendar, Target, BarChart3, FileText, LayoutGrid } from "lucide-react";
+import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight, TrendingUp, TrendingDown, ExternalLink, FileText, LayoutGrid } from "lucide-react";
 import { AgendaSuggestionsTab } from "@/components/copilot/AgendaSuggestionsTab";
 import { SWOTDynamicTab } from "@/components/copilot/SWOTDynamicTab";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -275,77 +275,6 @@ function InsightColumn({
     </div>;
 }
 
-// History Timeline Item
-function HistoryTimelineItem({
-  entry,
-  isFirst
-}: {
-  entry: any;
-  isFirst: boolean;
-}) {
-  const date = new Date(entry.created_at);
-  const risksCount = entry.strategic_risks?.length || 0;
-  const threatsCount = entry.operational_threats?.length || 0;
-  const oppsCount = entry.strategic_opportunities?.length || 0;
-  return <div className="relative pl-8 pb-6">
-      {!isFirst && <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border" />}
-      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
-        <Brain className="h-3 w-3 text-white" />
-      </div>
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="py-3 px-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-sm font-semibold">
-                {date.toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric"
-              })}
-              </CardTitle>
-              <CardDescription className="text-xs">
-                {date.toLocaleTimeString("pt-BR", {
-                hour: "2-digit",
-                minute: "2-digit"
-              })}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs gap-1">
-                <Shield className="h-3 w-3 text-red-500" />
-                {risksCount}
-              </Badge>
-              <Badge variant="outline" className="text-xs gap-1">
-                <AlertTriangle className="h-3 w-3 text-amber-500" />
-                {threatsCount}
-              </Badge>
-              <Badge variant="outline" className="text-xs gap-1">
-                <Lightbulb className="h-3 w-3 text-blue-500" />
-                {oppsCount}
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="py-2 px-4 border-t">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <BarChart3 className="h-3 w-3" />
-              Maturidade: <span className="font-medium text-foreground">{entry.maturity_score?.toFixed(1) || "N/A"}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Target className="h-3 w-3" />
-              ESG: <span className="font-medium text-foreground">{entry.esg_score ? `${entry.esg_score}%` : "N/A"}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Pendências: <span className="font-medium text-foreground">{entry.pending_tasks || 0}</span>
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-    </div>;
-}
-
 // Loading Skeleton
 function LoadingSkeleton() {
   return <div className="grid grid-cols-3 gap-4 h-full">
@@ -456,7 +385,6 @@ export default function GovernanceCopilot() {
     isLoading,
     error,
     lastUpdated,
-    activePrompt,
     fetchInsights
   } = usePredictiveInsights();
   const {
@@ -534,7 +462,6 @@ export default function GovernanceCopilot() {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-[calc(100%-8rem)]">
             <TabsList className="mb-4">
-              
               <TabsTrigger value="agendas" className="gap-2">
                 <FileText className="h-4 w-4" />
                 Pautas Sugeridas
@@ -542,14 +469,6 @@ export default function GovernanceCopilot() {
               <TabsTrigger value="swot" className="gap-2">
                 <LayoutGrid className="h-4 w-4" />
                 SWOT Dinâmica
-              </TabsTrigger>
-              <TabsTrigger value="history" className="gap-2">
-                <History className="h-4 w-4" />
-                Histórico
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2">
-                <SettingsIcon className="h-4 w-4" />
-                Configurações
               </TabsTrigger>
             </TabsList>
 
@@ -590,156 +509,7 @@ export default function GovernanceCopilot() {
             <TabsContent value="swot" className="h-[calc(100%-3rem)] m-0 overflow-auto">
               <SWOTDynamicTab />
             </TabsContent>
-
-            {/* History Tab */}
-            <TabsContent value="history" className="h-[calc(100%-3rem)] m-0">
-              <Card className="h-full">
-                <CardHeader className="border-b">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Histórico de Análises</CardTitle>
-                      <CardDescription>
-                        Acompanhe a evolução das recomendações ao longo do tempo
-                      </CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => fetchHistory()}>
-                      <RefreshCw className={cn("h-4 w-4 mr-2", historyLoading && "animate-spin")} />
-                      Atualizar
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <ScrollArea className="h-[calc(100vh-24rem)]">
-                    {historyLoading ? <div className="space-y-4">
-                        {[1, 2, 3].map(i => <div key={i} className="pl-8 pb-6">
-                            <Skeleton className="h-24 w-full rounded-lg" />
-                          </div>)}
-                      </div> : history.length > 0 ? <div className="space-y-0">
-                        {history.map((entry, index) => <HistoryTimelineItem key={entry.id} entry={entry} isFirst={index === history.length - 1} />)}
-                      </div> : <div className="text-center py-12">
-                        <History className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">
-                          Nenhum histórico de análises disponível.
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Gere sua primeira análise na aba "Análise Atual".
-                        </p>
-                      </div>}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="h-[calc(100%-3rem)] m-0">
-              <Card className="h-full overflow-auto">
-                <CardHeader className="border-b">
-                  <CardTitle className="text-lg">Configurações do Copiloto</CardTitle>
-                  <CardDescription>
-                    Personalize o comportamento e as preferências da IA
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-6 max-w-2xl">
-                    {/* Prompt Ativo */}
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-[#C0A062]/10 to-[#C0A062]/5 border border-[#C0A062]/30">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium flex items-center gap-2">
-                          <Brain className="h-4 w-4 text-[#C0A062]" />
-                          Prompt Ativo
-                        </h4>
-                        {activePrompt && (
-                          <Badge className="bg-green-100 text-green-700">
-                            v{activePrompt.version}
-                          </Badge>
-                        )}
-                      </div>
-                      {activePrompt ? (
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-foreground">
-                            {activePrompt.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {activePrompt.description}
-                          </p>
-                          <div className="flex gap-2 flex-wrap mt-3">
-                            <Badge variant="outline" className="text-xs">
-                              Categoria: {activePrompt.category}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {activePrompt.total_executions} execuções
-                            </Badge>
-                            {activePrompt.success_rate && (
-                              <Badge variant="outline" className="text-xs text-green-600">
-                                {activePrompt.success_rate}% sucesso
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          Nenhum prompt ativo configurado para esta funcionalidade.
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Modelo de IA */}
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Modelo de IA</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Modelo utilizado para gerar análises estratégicas
-                      </p>
-                      <Badge variant="outline" className="gap-1">
-                        <Sparkles className="h-3 w-3" />
-                        {activePrompt?.model || 'google/gemini-3-flash-preview'}
-                      </Badge>
-                    </div>
-
-                    {/* Arquitetura de Agentes */}
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Arquitetura MOAT Engine</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        O Copiloto integra dados dos seguintes agentes:
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Agent A - Coleta</p>
-                          <p className="text-xs text-muted-foreground">Sinais externos</p>
-                        </div>
-                        <div className="p-2 rounded bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-                          <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Agent B - Análise</p>
-                          <p className="text-xs text-muted-foreground">Contexto e padrões</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Frequência */}
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Frequência de Análise</h4>
-                      <p className="text-sm text-muted-foreground">
-                        As análises são geradas sob demanda quando você clica em "Atualizar Análise".
-                        O histórico é salvo automaticamente para comparação de tendências.
-                      </p>
-                    </div>
-
-                    {/* Dados de Entrada */}
-                    <div className="p-4 rounded-lg bg-muted/50 border">
-                      <h4 className="font-medium mb-2">Dados de Entrada</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        A IA considera os seguintes dados do sistema:
-                      </p>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>- Riscos cadastrados e seus controles</li>
-                        <li>- Score de maturidade de governança</li>
-                        <li>- Score ESG</li>
-                        <li>- Tarefas pendentes e atrasadas</li>
-                        <li>- Riscos críticos identificados</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+            {/* Abas Histórico e Configurações removidas - configurações disponíveis em Super ADM > AI Engine */}
           </Tabs>
         </main>
       </div>
