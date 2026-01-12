@@ -124,6 +124,8 @@ import SobreNos from "./pages/SobreNos";
 import Contato from "./pages/Contato";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
+import ComoFunciona from "./pages/ComoFunciona";
+import Plataforma from "./pages/Plataforma";
 
 
 const queryClient = new QueryClient();
@@ -155,6 +157,8 @@ const App = () => (
           <Route path="/termos" element={<TermosUso />} />
           <Route path="/lgpd" element={<LGPD />} />
           <Route path="/sobre" element={<SobreNos />} />
+          <Route path="/como-funciona" element={<ComoFunciona />} />
+          <Route path="/plataforma" element={<Plataforma />} />
           <Route path="/contato" element={<Contato />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />

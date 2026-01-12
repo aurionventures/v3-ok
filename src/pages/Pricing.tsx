@@ -292,17 +292,12 @@ export default function Pricing() {
       <MegaMenuHeader />
 
       {/* Hero Section - com padding-top para compensar o header fixo */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 pt-28">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] pt-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_25%,rgba(255,255,255,0.02)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.02)_75%)] bg-[length:60px_60px]" />
 
         <div className="relative container mx-auto px-6 py-20 lg:py-28">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <Badge className="mb-6 bg-white/10 text-white border-white/20">
-              <Sparkles className="h-3 w-3 mr-1" />
-              Planos Personalizados
-            </Badge>
-
             <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight font-heading">
               Planos Personalizados.{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">
@@ -484,7 +479,7 @@ export default function Pricing() {
       </section>
 
       {/* CTA Final Section */}
-      <section className="py-20 bg-gradient-to-br from-primary via-primary/95 to-primary/90">
+      <section className="py-20 bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B]">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center text-white">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
@@ -653,11 +648,12 @@ export default function Pricing() {
                     type="number"
                     min={1}
                     max={500}
-                    value={calculatorInputs.numUsuarios}
+                    placeholder="Ex: 40"
+                    value={calculatorInputs.numUsuarios || ''}
                     onChange={(e) =>
                       setCalculatorInputs((prev) => ({
                         ...prev,
-                        numUsuarios: parseInt(e.target.value) || 10,
+                        numUsuarios: parseInt(e.target.value) || 0,
                       }))
                     }
                   />

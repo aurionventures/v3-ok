@@ -3,7 +3,7 @@ import { MegaFooter } from "@/components/footer";
 
 export default function LGPD() {
   return (
-    <div className="min-h-screen bg-[#0A1929]">
+    <div className="min-h-screen bg-[#0A1628]">
       <MegaMenuHeader />
       
       <main className="pt-32 pb-20">

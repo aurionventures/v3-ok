@@ -140,7 +140,7 @@ export default function BlogArticle() {
       <MegaMenuHeader />
       
       {/* Hero Section com Imagem */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 pt-32 pb-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] pt-32 pb-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent_50%)]" />
         <div className="container mx-auto px-6 relative">
           <div className="max-w-4xl mx-auto">
