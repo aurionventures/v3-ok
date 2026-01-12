@@ -422,40 +422,6 @@ const AdminAddons = () => {
               </CardContent>
             </Card>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {addons.filter(a => a.isActive).map(addon => (
-                <Card key={addon.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          {getAddonIcon(addon.icone)}
-                        </div>
-                        <div>
-                          <CardTitle className="text-base">{addon.nome}</CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            R$ {addon.precoMensal.toLocaleString("pt-BR")}/mês
-                          </p>
-                        </div>
-                      </div>
-                      {getTypeBadge(addon.type)}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3">{addon.descricao}</p>
-                    <div className="space-y-1">
-                      {addon.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
-                          <span>{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </div>
         </div>
       </div>

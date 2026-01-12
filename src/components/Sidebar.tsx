@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
   BarChart3, 
@@ -33,12 +33,14 @@ import {
   Calculator,
   FileSignature,
   Receipt,
+  LogOut,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useAuth } from "@/contexts/AuthContext";
 import logoImage from "@/assets/legacy-logo-new.png";
 
 // Base sections structure
@@ -111,11 +113,13 @@ const ADMIN_MENU_ITEMS = [
 
 const Sidebar = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(!isMobile);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState({ key: "", label: "" });
   const { hasAccess } = useModuleAccess();
+  const { user, logout } = useAuth();
   
   const isAdminRoute = pathname.startsWith("/admin");
   
@@ -358,6 +362,90 @@ const Sidebar = () => {
         {/* Content */}
         <div className="overflow-y-auto flex-1 py-4 px-2 scrollbar-thin">
           {isAdminRoute ? renderAdminMenu() : renderCompanyMenu()}
+        </div>
+
+        {/* Footer - User Profile */}
+        <div className="border-t border-sidebar-border p-3">
+          {open ? (
+            <div className="space-y-3">
+              {/* User Info */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5 min-w-0">
+                  <p className="text-sm font-semibold text-sidebar-foreground truncate">
+                    {user?.name || 'Usuário'}
+                  </p>
+                  <p className="text-xs text-sidebar-foreground/70">
+                    {isAdminRoute ? 'Admin Master' : 'Cliente'}
+                  </p>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
+                        onClick={() => navigate(isAdminRoute ? '/admin/settings' : '/settings')}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Configurações</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              
+              {/* Logout */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={logout}
+                className="w-full h-9 bg-[#C0A062] hover:bg-[#B8944D] text-white border-[#C0A062] hover:border-[#B8944D]"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      onClick={() => navigate(isAdminRoute ? '/admin/settings' : '/settings')}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Configurações</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={logout}
+                      className="h-9 w-9 bg-[#C0A062] hover:bg-[#B8944D] text-white"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Sair</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
         </div>
       </aside>
 

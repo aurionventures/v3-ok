@@ -245,8 +245,8 @@ export default function Login() {
           </div>
         </div>
         
-        <div className="hidden lg:block lg:w-1/2 relative bg-primary">
-          <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-primary-foreground">
+        <div className="hidden lg:block lg:w-1/2 relative legacy-gradient">
+          <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-white">
             <h2 className="text-3xl font-bold mb-6">Evolua a governança da sua empresa</h2>
             <p className="text-lg max-w-md text-center mb-8">
               Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.
@@ -400,8 +400,8 @@ export default function Login() {
         </div>
       </div>
       
-      <div className="hidden lg:block lg:w-1/2 relative bg-primary">
-        <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-primary-foreground">
+      <div className="hidden lg:block lg:w-1/2 relative legacy-gradient">
+        <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-white">
           <h2 className="text-3xl font-bold mb-6">Sistema de Acesso por Roles</h2>
           <p className="text-lg max-w-md text-center mb-8">
             Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.

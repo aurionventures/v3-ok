@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -17,6 +17,7 @@ import {
   TrendingUp,
   LogOut,
 } from 'lucide-react'
+import logoImage from "@/assets/legacy-logo-new.png"
 
 const menuItems = [
   {
@@ -55,34 +56,24 @@ const bottomMenuItems = [
 
 export function BancaSidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
 
   return (
-    <div className="flex h-full w-64 flex-col bg-background border-r">
+    <div className="flex h-full w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Header */}
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Building2 className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h2 className="font-semibold text-sm">Legacy Governance</h2>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="text-xs text-muted-foreground">Parceiro</div>
-          <div className="font-medium text-sm">{user?.name}</div>
-          <Badge variant="secondary" className="text-xs">
-            Painel do Parceiro
-          </Badge>
-        </div>
+      <div className="p-4 border-b border-sidebar-border">
+        <Link to="/parceiro" className="flex items-center">
+          <img 
+            src={logoImage} 
+            alt="Legacy" 
+            className="h-10 w-auto"
+          />
+        </Link>
       </div>
 
-      <Separator />
-
       {/* Main Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon
@@ -93,14 +84,17 @@ export function BancaSidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    'w-full justify-start h-auto p-3',
-                    isActive && 'bg-accent text-accent-foreground'
+                    'w-full justify-start h-auto p-3 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent',
+                    isActive && 'bg-[#C0A062] text-white hover:bg-[#C0A062] hover:text-white'
                   )}
                 >
                   <Icon className="mr-3 h-4 w-4" />
                   <div className="text-left">
                     <div className="font-medium text-sm">{item.title}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className={cn(
+                      "text-xs",
+                      isActive ? "text-white/80" : "text-sidebar-foreground/60"
+                    )}>
                       {item.description}
                     </div>
                   </div>
@@ -109,12 +103,9 @@ export function BancaSidebar() {
             )
           })}
         </div>
-      </nav>
-
-      <Separator />
-
-      {/* Bottom Navigation */}
-      <div className="p-4">
+        
+        <Separator className="my-4 bg-sidebar-border" />
+        
         <div className="space-y-1">
           {bottomMenuItems.map((item) => {
             const Icon = item.icon
@@ -125,8 +116,8 @@ export function BancaSidebar() {
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start",
-                    isActive && "bg-accent text-accent-foreground"
+                    "w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                    isActive && "bg-[#C0A062] text-white hover:bg-[#C0A062] hover:text-white"
                   )}
                 >
                   <Icon className="mr-2 h-4 w-4" />
@@ -135,13 +126,40 @@ export function BancaSidebar() {
               </Link>
             )
           })}
+        </div>
+      </nav>
+
+      {/* Footer - User Profile */}
+      <div className="border-t border-sidebar-border p-3">
+        <div className="space-y-3">
+          {/* User Info */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5 min-w-0">
+              <p className="text-sm font-semibold text-sidebar-foreground truncate">
+                {user?.name || 'Parceiro'}
+              </p>
+              <p className="text-xs text-sidebar-foreground/70">
+                Parceiro
+              </p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
+              onClick={() => navigate('/parceiro/settings')}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
           
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+          {/* Logout */}
+          <Button 
+            variant="outline" 
+            size="sm"
             onClick={logout}
+            className="w-full h-9 bg-[#C0A062] hover:bg-[#B8944D] text-white border-[#C0A062] hover:border-[#B8944D]"
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
         </div>
