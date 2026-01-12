@@ -45,6 +45,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { cn } from '@/lib/utils';
@@ -104,6 +114,18 @@ const mockDailyUsage: TokenUsage[] = Array.from({ length: 30 }, (_, i) => {
     completionTokens: Math.floor(baseTokens * 0.4),
     totalTokens: Math.floor(baseTokens),
     cost: baseTokens * 0.000002,
+  };
+});
+
+// Dados de uso por modelo ao longo dos últimos 30 dias
+const mockModelDailyUsage = Array.from({ length: 30 }, (_, i) => {
+  const date = new Date();
+  date.setDate(date.getDate() - (29 - i));
+  return {
+    date: date.toISOString().split('T')[0],
+    'Gemini 3 Flash': Math.floor(300000 + Math.random() * 200000),
+    'Gemini 2.5 Flash': Math.floor(150000 + Math.random() * 100000),
+    'GPT-5': Math.floor(50000 + Math.random() * 80000),
   };
 });
 
@@ -285,6 +307,41 @@ function UsageChart({ data }: { data: TokenUsage[] }) {
           <span>{new Date(data[0].date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
           <span>{new Date(data[data.length - 1].date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ModelUsageLineChart({ data }: { data: typeof mockModelDailyUsage }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Uso por Modelos - Últimos 30 dias</CardTitle>
+        <CardDescription>Consumo de tokens por modelo de IA</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) => new Date(value).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis
+              tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip
+              formatter={(value: number) => value.toLocaleString() + ' tokens'}
+              labelFormatter={(label) => new Date(label).toLocaleDateString('pt-BR')}
+            />
+            <Legend />
+            <Line type="monotone" dataKey="Gemini 3 Flash" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="Gemini 2.5 Flash" stroke="#10b981" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="GPT-5" stroke="#f59e0b" strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );
@@ -834,6 +891,7 @@ export default function AdminLLMManagement() {
 
             <TabsContent value="overview" className="space-y-4">
               <UsageChart data={mockDailyUsage} />
+              <ModelUsageLineChart data={mockModelDailyUsage} />
             </TabsContent>
 
             <TabsContent value="architecture">
