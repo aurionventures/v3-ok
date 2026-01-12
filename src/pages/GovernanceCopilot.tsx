@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight, TrendingUp, TrendingDown, ExternalLink, FileText, LayoutGrid } from "lucide-react";
+import { Brain, RefreshCw, Shield, AlertTriangle, Lightbulb, Sparkles, Clock, ArrowRight, TrendingUp, TrendingDown, ExternalLink, FileText } from "lucide-react";
 import { AgendaSuggestionsTab } from "@/components/copilot/AgendaSuggestionsTab";
-import { SWOTDynamicTab } from "@/components/copilot/SWOTDynamicTab";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -466,10 +465,6 @@ export default function GovernanceCopilot() {
                 <FileText className="h-4 w-4" />
                 Pautas Sugeridas
               </TabsTrigger>
-              <TabsTrigger value="swot" className="gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                SWOT Dinâmica
-              </TabsTrigger>
             </TabsList>
 
             {/* Analysis Tab */}
@@ -504,12 +499,6 @@ export default function GovernanceCopilot() {
             <TabsContent value="agendas" className="h-[calc(100%-3rem)] m-0 overflow-auto">
               <AgendaSuggestionsTab />
             </TabsContent>
-
-            {/* SWOT Tab */}
-            <TabsContent value="swot" className="h-[calc(100%-3rem)] m-0 overflow-auto">
-              <SWOTDynamicTab />
-            </TabsContent>
-            {/* Abas Histórico e Configurações removidas - configurações disponíveis em Super ADM > AI Engine */}
           </Tabs>
         </main>
       </div>
