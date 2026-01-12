@@ -7,7 +7,38 @@ export interface ATAConfig {
   customInstructions: string;
   templateName?: string;
   autoApprovalDays: number | null; // null = disabled, number = days after generation to auto-approve
+  // Modo avançado: prompt completo editável
+  advancedMode: boolean;
+  fullPrompt: string;
 }
+
+// Prompt padrão para geração de ATA
+export const DEFAULT_ATA_PROMPT = `Você é um secretário executivo experiente em governança corporativa brasileira.
+Gere uma ATA formal e profissional em português brasileiro baseada nos dados fornecidos.
+
+INSTRUÇÕES DE ESTILO:
+- Use linguagem formal e profissional
+- Use terceira pessoa do singular
+- Gere um resumo executivo narrativo de 200 palavras
+
+ESTRUTURA DA ATA:
+1. Gere um resumo executivo que:
+   - Contextualize a reunião e seu objetivo
+   - Destaque os principais pontos discutidos na pauta
+   - Mencione as tarefas atribuídas
+   - Tenha tom formal e profissional
+
+2. Liste de 4 a 6 decisões principais tomadas durante a reunião
+
+3. Use linguagem formal típica de ATAs corporativas brasileiras
+
+4. Seja objetivo e preciso
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "summary": "texto do resumo executivo aqui",
+  "decisions": ["decisão 1", "decisão 2", "decisão 3", ...]
+}`;
 
 export const DEFAULT_CONFIG: ATAConfig = {
   tone: 'executivo',
@@ -15,7 +46,9 @@ export const DEFAULT_CONFIG: ATAConfig = {
   summaryLength: 200,
   customInstructions: '',
   templateName: undefined,
-  autoApprovalDays: null
+  autoApprovalDays: null,
+  advancedMode: false,
+  fullPrompt: DEFAULT_ATA_PROMPT
 };
 
 const STORAGE_KEY = 'ata_generation_config';
@@ -125,6 +158,12 @@ export const useATAConfig = (organId?: string) => {
 
 // Build prompt from config for edge function
 export const buildPromptFromConfig = (config: ATAConfig): string => {
+  // Se modo avançado, usar o prompt completo editado pelo cliente
+  if (config.advancedMode && config.fullPrompt) {
+    return config.fullPrompt;
+  }
+
+  // Modo simplificado: construir prompt a partir das configurações
   const toneInstructions: Record<string, string> = {
     'formal': 'Use linguagem jurídica formal e cerimonial. Utilize vocabulário jurídico-corporativo com referências a deliberações formais.',
     'semi-formal': 'Use linguagem profissional mas acessível. Mantenha o tom corporativo sem excesso de formalidades.',

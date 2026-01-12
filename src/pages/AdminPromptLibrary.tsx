@@ -103,6 +103,18 @@ const AGENT_CATEGORIES = [
     borderColor: 'border-indigo-500/30',
     icon: Brain
   },
+  { 
+    id: 'system_services',
+    agent: 'Servicos', 
+    label: 'Servicos do Sistema',
+    description: 'Prompts de servicos auxiliares do sistema (PDI, Busca, Insights)',
+    categories: ['pdi_generator', 'secretariat_search_intent', 'secretariat_search_response', 'predictive_insights_edge'],
+    color: 'bg-slate-500',
+    textColor: 'text-slate-500',
+    bgColor: 'bg-slate-500/10',
+    borderColor: 'border-slate-500/30',
+    icon: Settings2
+  },
 ];
 
 const getCategoryLabel = (category: string) => {
@@ -116,6 +128,11 @@ const getCategoryLabel = (category: string) => {
     'agent_d_agenda_generator': 'Agenda Generator',
     'agent_d_briefing_generator': 'Briefing Generator',
     'agent_copilot_insights': 'Copilot Insights',
+    // System Services
+    'pdi_generator': 'PDI Generator',
+    'secretariat_search_intent': 'Secretariat Search - Intent',
+    'secretariat_search_response': 'Secretariat Search - Response',
+    'predictive_insights_edge': 'Predictive Insights (Edge)',
   };
   return labels[category] || category;
 };
@@ -128,9 +145,14 @@ const getCategoryDescription = (category: string) => {
     'agent_b_pattern_detector': 'Detecta padrões e anomalias nos dados',
     'agent_c_scorer': 'Calcula scores de relevância e urgência',
     'agent_c_prioritizer': 'Ordena e prioriza itens para decisão',
-    'agent_d_agenda_generator': 'Gera pautas automáticas para reuniões',
-    'agent_d_briefing_generator': 'Cria briefings executivos e relatórios',
-    'agent_copilot_insights': 'Gera insights preditivos de governança usando Agent A + B',
+    'agent_d_agenda_generator': 'Gera pautas automaticas para reunioes',
+    'agent_d_briefing_generator': 'Cria briefings executivos e relatorios',
+    'agent_copilot_insights': 'Gera insights preditivos de governanca usando Agent A + B',
+    // System Services
+    'pdi_generator': 'Gera Planos de Desenvolvimento Individual para membros',
+    'secretariat_search_intent': 'Extrai intencao de busca do usuario',
+    'secretariat_search_response': 'Gera respostas conversacionais para buscas',
+    'predictive_insights_edge': 'Gera insights preditivos via edge function',
   };
   return descriptions[category] || '';
 };

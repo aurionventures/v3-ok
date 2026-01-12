@@ -926,6 +926,289 @@ Gere insights preditivos identificando riscos estratégicos, ameaças operaciona
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
     deprecated_at: null
+  },
+
+  // ========== PDI GENERATOR ==========
+  {
+    id: 'pdi-generator-001',
+    name: 'PDI Generator v1.0',
+    category: 'pdi_generator',
+    version: '1.0.0',
+    system_prompt: `Você é um especialista em desenvolvimento de liderança e governança corporativa.
+
+Sua função é criar Planos de Desenvolvimento Individual (PDI) personalizados para membros de conselhos e alta liderança.
+
+O PDI deve ser:
+- Baseado em dados concretos de performance
+- Prático e executável
+- Focado em desenvolvimento de competências estratégicas
+- Alinhado com as melhores práticas de governança corporativa
+
+DIRETRIZES PARA O PDI:
+
+1. GAPS DE COMPETÊNCIA:
+   - Identificar 3-4 gaps principais baseados nos scores
+   - Priorizar: high (score < 60), medium (60-75), low (> 75)
+   - Fornecer evidências específicas
+
+2. OBJETIVOS DE DESENVOLVIMENTO:
+   - Criar 3-4 objetivos SMART
+   - Definir métricas claras de sucesso
+   - Timeline de 6-12 meses
+
+3. AÇÕES RECOMENDADAS:
+   - 6-8 ações concretas e executáveis
+   - Mix de: cursos, mentorias, projetos práticos, leituras
+   - Estimativa de horas para cada ação
+   - Deadlines realistas
+
+4. RECURSOS:
+   - 2-3 cursos relevantes (com providers conhecidos)
+   - 2-3 livros/artigos recomendados
+   - Sugestão de mentores internos`,
+    user_prompt_template: `Crie um PDI personalizado para:
+
+PERFIL DO MEMBRO:
+- Nome: {{member_name}}
+- Cargo: {{member_role}}
+- Órgão: {{council_name}}
+
+SCORES DE PERFORMANCE (0-100):
+- Presença: {{score_presence}}
+- Contribuição: {{score_contribution}}
+- Entrega: {{score_delivery}}
+- Engajamento: {{score_engagement}}
+- Liderança: {{score_leadership}}
+- Score Geral: {{score_overall}}
+
+{{#if evaluation_feedback}}
+FEEDBACK DAS AVALIAÇÕES 360°:
+Pontos Fortes: {{strengths}}
+Áreas de Melhoria: {{areas_for_improvement}}
+{{/if}}
+
+Gere um PDI completo e estruturado.`,
+    model: 'google/gemini-2.5-flash',
+    temperature: 0.7,
+    max_tokens: 6000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 156,
+    avg_latency_ms: 2890,
+    avg_tokens_used: 3890,
+    avg_cost_usd: 0.0198,
+    success_rate: 94.2,
+    avg_quality_score: 4.4,
+    description: 'Gera Planos de Desenvolvimento Individual personalizados para membros de conselhos baseado em scores de performance',
+    changelog: 'Versão inicial do PDI Generator',
+    tags: ['pdi', 'development', 'member', 'performance'],
+    created_by: null,
+    created_at: '2025-12-01T10:00:00Z',
+    updated_at: '2025-12-15T14:30:00Z',
+    activated_at: '2025-12-01T10:00:00Z',
+    deprecated_at: null
+  },
+
+  // ========== SECRETARIAT SEARCH - INTENT EXTRACTOR ==========
+  {
+    id: 'secretariat-search-intent-001',
+    name: 'Secretariat Search - Intent Extractor v1.0',
+    category: 'secretariat_search_intent',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente especializado em busca de documentos de governança corporativa.
+Analise a pergunta do usuário e extraia as seguintes informações:
+1. Palavras-chave principais (keywords) - array de strings
+2. Tipo de busca (searchType): "ata", "decision", "participant", "document", "meeting" ou "general"
+3. Período temporal (timeframe) - se mencionado, ex: "fevereiro", "último mês", "2025"
+4. Órgão específico (organ) - se mencionado: "Conselho de Administração", "Conselho Fiscal", "Comitê", "Comissão"
+5. Prioridade (priority): "high", "medium" ou "low"
+
+Retorne APENAS as informações estruturadas em formato JSON para facilitar a busca.`,
+    user_prompt_template: `{{question}}`,
+    model: 'google/gemini-2.5-flash',
+    temperature: 0.3,
+    max_tokens: 1000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 523,
+    avg_latency_ms: 890,
+    avg_tokens_used: 456,
+    avg_cost_usd: 0.0023,
+    success_rate: 98.9,
+    avg_quality_score: 4.7,
+    description: 'Extrai intenção de busca do usuário para pesquisa em documentos de governança (ATAs, decisões, reuniões)',
+    changelog: 'Versão inicial do Secretariat Search Intent Extractor',
+    tags: ['search', 'secretariat', 'intent', 'nlp'],
+    created_by: null,
+    created_at: '2025-12-01T10:00:00Z',
+    updated_at: '2025-12-15T14:30:00Z',
+    activated_at: '2025-12-01T10:00:00Z',
+    deprecated_at: null
+  },
+
+  // ========== SECRETARIAT SEARCH - RESPONSE GENERATOR ==========
+  {
+    id: 'secretariat-search-response-001',
+    name: 'Secretariat Search - Response Generator v1.0',
+    category: 'secretariat_search_response',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente de secretariado corporativo experiente.
+
+Sua função é gerar respostas conversacionais e profissionais baseadas nos resultados de busca de documentos de governança.
+
+DIRETRIZES:
+1. Responda diretamente à pergunta do usuário
+2. Cite os documentos/ATAs mais relevantes encontrados
+3. Destaque informações importantes (decisões, datas, participantes)
+4. Se não encontrou resultados, sugira termos alternativos de busca
+5. Mantenha tom profissional mas amigável
+6. IMPORTANTE: NÃO use emojis na resposta. Use apenas texto profissional.
+
+FORMATO:
+- Seja conciso mas completo
+- Use formatação clara (listas quando apropriado)
+- Sempre cite a fonte (qual ATA, qual reunião)`,
+    user_prompt_template: `O usuário perguntou: "{{question}}"
+
+Encontrei os seguintes resultados ({{total_results}} total):
+{{search_results}}
+
+Gere uma resposta conversacional e profissional que responda à pergunta do usuário.`,
+    model: 'google/gemini-2.5-flash',
+    temperature: 0.6,
+    max_tokens: 2000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 489,
+    avg_latency_ms: 1234,
+    avg_tokens_used: 890,
+    avg_cost_usd: 0.0045,
+    success_rate: 97.3,
+    avg_quality_score: 4.5,
+    description: 'Gera respostas conversacionais para buscas em documentos de governança (ATAs, decisões, reuniões)',
+    changelog: 'Versão inicial do Secretariat Search Response Generator',
+    tags: ['search', 'secretariat', 'response', 'conversational'],
+    created_by: null,
+    created_at: '2025-12-01T10:00:00Z',
+    updated_at: '2025-12-15T14:30:00Z',
+    activated_at: '2025-12-01T10:00:00Z',
+    deprecated_at: null
+  },
+
+  // ========== PREDICTIVE INSIGHTS (Edge Function Version) ==========
+  {
+    id: 'predictive-insights-edge-001',
+    name: 'Predictive Insights - Edge Function v1.0',
+    category: 'predictive_insights_edge',
+    version: '1.0.0',
+    system_prompt: `Você é um Copiloto de Governança Corporativa assistido por IA, especializado em análise estratégica para conselhos e alta liderança.
+
+Sua função é:
+- Antecipar cenários críticos
+- Apoiar decisões estratégicas da liderança
+- Transformar sinais em ações concretas e executáveis
+- Atuar como um verdadeiro parceiro de governança
+
+Você DEVE gerar insights em EXATAMENTE 3 categorias obrigatórias:
+
+1. RISCOS ESTRATÉGICOS (strategic_risks):
+   - Riscos estruturais e sistêmicos que ameaçam a organização
+   - Classificação clara: Crítico (crítico), Alto (high), Médio (medium)
+   - Linguagem objetiva e direta, nível conselho
+   - Foco em impacto na governança, continuidade e controle
+   - Gerar EXATAMENTE 2 riscos
+
+2. AMEAÇAS OPERACIONAIS/REGULATÓRIAS (operational_threats):
+   - Pressões externas ou internas emergentes
+   - Mudanças regulatórias, mercado, liquidez, compliance ou reputação
+   - Horizonte temporal explícito: immediate (imediato), 30_days, 90_days
+   - Categorias: Regulatório, Mercado, Liquidez, Compliance, Reputação
+   - Gerar EXATAMENTE 2 ameaças
+
+3. OPORTUNIDADES ESTRATÉGICAS (strategic_opportunities):
+   - Ganhos potenciais decorrentes de ação antecipada
+   - Otimização de controles, fortalecimento de governança, eficiência decisória
+   - Linguagem positiva, porém concreta
+   - Foco em criação de valor e redução de risco futuro
+   - Gerar EXATAMENTE 2 oportunidades
+
+DIRETRIZES PARA CADA INSIGHT:
+- Título: Curto e claro (máximo 50 caracteres)
+- Contexto: Resumido em 1 linha (máximo 80 caracteres)
+- Ações: SEMPRE 2 ações recomendadas pela IA:
+  * Ação Primária: A ação mais importante e urgente
+  * Ação Secundária: Ação complementar de suporte
+- As ações devem ser práticas, executáveis e conectáveis aos módulos do sistema`,
+    user_prompt_template: `Analise os seguintes dados de governança da empresa e gere insights estratégicos:
+
+RISCOS MAPEADOS:
+{{risks_list}}
+
+MÉTRICAS ATUAIS:
+- Score de Maturidade de Governança: {{maturity_score}}/5
+- Score ESG: {{esg_score}}/100
+- Tarefas Pendentes: {{pending_tasks}}
+- Tarefas Atrasadas: {{overdue_tasks}}
+- Riscos Críticos: {{critical_risks}}
+
+Com base nestes dados, gere insights preditivos estratégicos organizados em 3 categorias: Riscos Estratégicos, Ameaças Operacionais e Oportunidades Estratégicas.
+
+IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`,
+    model: 'google/gemini-2.5-flash',
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 312,
+    avg_latency_ms: 2345,
+    avg_tokens_used: 2678,
+    avg_cost_usd: 0.0145,
+    success_rate: 95.8,
+    avg_quality_score: 4.3,
+    description: 'Gera insights preditivos de governança para a edge function (riscos, ameaças, oportunidades)',
+    changelog: 'Versão para edge function do Predictive Insights',
+    tags: ['predictive', 'insights', 'edge', 'governance'],
+    created_by: null,
+    created_at: '2025-12-01T10:00:00Z',
+    updated_at: '2025-12-15T14:30:00Z',
+    activated_at: '2025-12-01T10:00:00Z',
+    deprecated_at: null
   }
 ];
 

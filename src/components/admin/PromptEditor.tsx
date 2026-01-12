@@ -30,6 +30,7 @@ interface PromptEditorProps {
 }
 
 const CATEGORIES = [
+  // MOAT Engine Agents
   { value: 'agent_a_collector', label: 'Agent A - Collector' },
   { value: 'agent_a_classifier', label: 'Agent A - Classifier' },
   { value: 'agent_b_analyzer', label: 'Agent B - Analyzer' },
@@ -38,6 +39,13 @@ const CATEGORIES = [
   { value: 'agent_c_prioritizer', label: 'Agent C - Prioritizer' },
   { value: 'agent_d_agenda_generator', label: 'Agent D - Agenda Generator' },
   { value: 'agent_d_briefing_generator', label: 'Agent D - Briefing Generator' },
+  // Copilot
+  { value: 'agent_copilot_insights', label: 'Copilot - Insights' },
+  // System Services
+  { value: 'pdi_generator', label: 'PDI Generator' },
+  { value: 'secretariat_search_intent', label: 'Secretariat Search - Intent' },
+  { value: 'secretariat_search_response', label: 'Secretariat Search - Response' },
+  { value: 'predictive_insights_edge', label: 'Predictive Insights (Edge)' },
 ];
 
 const MODELS = [
