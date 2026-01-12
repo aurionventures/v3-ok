@@ -30,6 +30,11 @@ import {
   FileSignature,
   Receipt,
   LogOut,
+  Brain,
+  PieChart,
+  CheckCircle,
+  ActivitySquare,
+  Briefcase,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";

@@ -456,6 +456,7 @@ export default function GovernanceCopilot() {
     isLoading,
     error,
     lastUpdated,
+    activePrompt,
     fetchInsights
   } = usePredictiveInsights();
   const {

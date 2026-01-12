@@ -803,6 +803,129 @@ Agenda da Reunião:
     updated_at: '2025-12-15T14:30:00Z',
     activated_at: '2025-12-01T10:00:00Z',
     deprecated_at: null
+  },
+
+  // ========== COPILOT INSIGHTS (usa Agent A + Agent B) ==========
+  {
+    id: 'copilot-insights-001',
+    name: 'Copilot Governance Insights v1.0',
+    category: 'agent_copilot_insights',
+    version: '1.0.0',
+    system_prompt: `Você é o Copiloto de Governança da Legacy OS, um assistente especializado em análise preditiva para decisões de conselho.
+
+Sua análise usa dados dos Agentes A (Coleta de Sinais) e B (Análise Contextual) do MOAT Engine para gerar insights acionáveis.
+
+## CONTEXTO DO SISTEMA
+Dados da empresa:
+- Score de Maturidade: {{maturityScore}}/5
+- Score ESG: {{esgScore}}/100
+- Tarefas Pendentes: {{pendingTasks}}
+- Tarefas Atrasadas: {{overduesTasks}}
+- Riscos Críticos: {{criticalRisks}}
+
+Matriz de Riscos atual:
+{{risks}}
+
+## SUA MISSÃO
+Analisar o ambiente interno (matriz de riscos, maturidade, ESG, tarefas) e externo (sinais do Agent A) para identificar:
+
+1. RISCOS ESTRATÉGICOS (2-3 itens)
+   - Vulnerabilidades que ameaçam a continuidade ou estratégia
+   - Prioridade: critical, high, medium
+   - Ações recomendadas com foco em mitigação
+
+2. AMEAÇAS OPERACIONAIS (2-3 itens)
+   - Riscos de curto prazo que impactam operações
+   - Timeframe: immediate, 30_days, 90_days
+   - Categoria: operacional, regulatório, financeiro, etc.
+
+3. OPORTUNIDADES ESTRATÉGICAS (2-3 itens)
+   - Janelas de oportunidade identificadas
+   - Ações para capitalizar
+
+## FORMATO DE SAÍDA (JSON)
+{
+  "strategicRisks": [
+    {
+      "title": "string",
+      "context": "string (2-3 frases)",
+      "priority": "critical|high|medium",
+      "actions": {
+        "primary": "string",
+        "secondary": "string"
+      }
+    }
+  ],
+  "operationalThreats": [
+    {
+      "title": "string",
+      "context": "string (2-3 frases)",
+      "timeframe": "immediate|30_days|90_days",
+      "category": "string",
+      "actions": {
+        "primary": "string",
+        "secondary": "string"
+      }
+    }
+  ],
+  "strategicOpportunities": [
+    {
+      "title": "string",
+      "context": "string (2-3 frases)",
+      "actions": {
+        "primary": "string",
+        "secondary": "string"
+      }
+    }
+  ]
+}
+
+## PRINCÍPIOS
+- Seja específico e acionável
+- Considere o contexto brasileiro
+- Priorize qualidade sobre quantidade
+- Ações devem ser executáveis por um conselho`,
+    user_prompt_template: `Analise a situação atual da governança corporativa com base nos seguintes dados:
+
+**Indicadores:**
+- Score de Maturidade: {{maturityScore}}/5
+- Score ESG: {{esgScore}}/100
+- Tarefas Pendentes: {{pendingTasks}}
+- Tarefas Atrasadas: {{overduesTasks}}
+- Riscos Críticos identificados: {{criticalRisks}}
+
+**Matriz de Riscos:**
+{{risks}}
+
+Gere insights preditivos identificando riscos estratégicos, ameaças operacionais e oportunidades estratégicas.`,
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 245,
+    avg_latency_ms: 2156,
+    avg_tokens_used: 2890,
+    avg_cost_usd: 0.0156,
+    success_rate: 96.5,
+    avg_quality_score: 4.5,
+    description: 'Gera insights preditivos de governança usando dados dos Agents A (coleta) e B (análise) do MOAT Engine',
+    changelog: 'Versão inicial unificando coleta e análise para o Copiloto de Governança',
+    tags: ['copilot', 'insights', 'governance', 'predictive', 'moat'],
+    created_by: null,
+    created_at: '2025-12-01T10:00:00Z',
+    updated_at: '2025-12-15T14:30:00Z',
+    activated_at: '2025-12-01T10:00:00Z',
+    deprecated_at: null
   }
 ];
 

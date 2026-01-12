@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { usePrompts } from "@/hooks/usePrompts";
 
 export interface InsightAction {
   primary: string;
@@ -70,6 +71,7 @@ interface UsePredictiveInsightsResult {
   isLoading: boolean;
   error: string | null;
   lastUpdated: Date | null;
+  activePrompt: any | null;
   fetchInsights: (data: SystemData) => Promise<void>;
   clearInsights: () => void;
 }
@@ -80,6 +82,9 @@ const emptyGovernanceInsights: GovernanceInsights = {
   strategicOpportunities: [],
 };
 
+// Categoria do prompt para insights do Copiloto
+const COPILOT_INSIGHTS_CATEGORY = 'agent_copilot_insights';
+
 export function usePredictiveInsights(): UsePredictiveInsightsResult {
   const [insights, setInsights] = useState<PredictiveInsight[]>([]);
   const [governanceInsights, setGovernanceInsights] = useState<GovernanceInsights | null>(null);
@@ -87,14 +92,42 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Buscar prompt ativo via usePrompts
+  const { getActivePromptForCategory, getPromptsByCategory } = usePrompts();
+  
+  // Obter o prompt ativo para copilot insights
+  const activePrompt = useMemo(() => {
+    const active = getActivePromptForCategory(COPILOT_INSIGHTS_CATEGORY);
+    if (active) return active;
+    
+    // Fallback: pegar o primeiro prompt da categoria
+    const categoryPrompts = getPromptsByCategory(COPILOT_INSIGHTS_CATEGORY);
+    return categoryPrompts.length > 0 ? categoryPrompts[0] : null;
+  }, [getActivePromptForCategory, getPromptsByCategory]);
+
   const fetchInsights = useCallback(async (data: SystemData) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Preparar dados com o prompt ativo
+      const requestBody = {
+        ...data,
+        // Incluir configurações do prompt ativo
+        promptConfig: activePrompt ? {
+          promptId: activePrompt.id,
+          systemPrompt: activePrompt.system_prompt,
+          userPromptTemplate: activePrompt.user_prompt_template,
+          model: activePrompt.model,
+          temperature: activePrompt.temperature,
+          maxTokens: activePrompt.max_tokens,
+          topP: activePrompt.top_p,
+        } : null
+      };
+
       const { data: responseData, error: functionError } = await supabase.functions.invoke(
         "predictive-insights",
-        { body: data }
+        { body: requestBody }
       );
 
       if (functionError) {
@@ -143,7 +176,7 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activePrompt]);
 
   const clearInsights = useCallback(() => {
     setInsights([]);
@@ -158,6 +191,7 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
     isLoading,
     error,
     lastUpdated,
+    activePrompt,
     fetchInsights,
     clearInsights,
   };
