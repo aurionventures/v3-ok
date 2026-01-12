@@ -211,7 +211,24 @@ const MemberDashboard = () => {
           </TabsContent>
 
           {/* Briefing Tab */}
-
+          <TabsContent value="briefing" className="m-0">
+            {briefing ? (
+              <BriefingPreview 
+                briefing={briefing} 
+                onMarkAsRead={markAsRead}
+                onUpdateProgress={updateProgress}
+              />
+            ) : (
+              <Card className="p-8 text-center">
+                <CardContent className="pt-6">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Nenhum Briefing Disponível</h3>
+                  <p className="text-muted-foreground">
+                    O briefing para a próxima reunião será disponibilizado em breve.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Copilot Tab */}
