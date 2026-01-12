@@ -166,42 +166,27 @@ const MEGA_MENUS: MegaMenu[] = [
     highlight: true,
     sections: [
       {
-        title: "Agentes Inteligentes",
+        title: "14 Agentes Inteligentes",
         items: [
-          { label: "Agent A: Signals", href: "/ai-engine/agent-a", icon: Search, description: "Monitoramento de sinais" },
-          { label: "Agent B: Análise Histórico", href: "/ai-engine/agent-b", icon: TrendingUp, description: "Contexto temporal" },
-          { label: "Agent C: Priorização", href: "/ai-engine/agent-c", icon: Target, description: "Ranking inteligente" },
-          { label: "Agent D: Geração Conteúdo", href: "/ai-engine/agent-d", icon: Sparkles, description: "Pautas e briefings" },
-          { label: "Agent E: Insights Preditivos", href: "/ai-engine/agent-e", icon: Lightbulb, description: "Antecipação de tendências" },
+          { label: "Agentes Especializados", href: "#", icon: Bot },
+          { label: "Análise de Documentos", href: "#", icon: FileSearch },
+          { label: "Análise de Sentimento", href: "#", icon: Brain },
+          { label: "Briefings Personalizados", href: "#", icon: FileText },
+          { label: "Busca Inteligente (Semântica)", href: "#", icon: Search },
+          { label: "Classificação Automática", href: "#", icon: Target },
+          { label: "Extração de Entidades", href: "#", icon: Sparkles },
         ]
       },
       {
-        title: "Automações IA",
+        title: "",
         items: [
-          { label: "Pauta em 30 min", href: "/ai-engine/pauta-automatica", icon: Zap, badge: "-93% tempo" },
-          { label: "Resumos Executivos", href: "/ai-engine/resumos", icon: FileSearch },
-          { label: "Briefings Contextualizados", href: "/ai-engine/briefings", icon: FileText },
-          { label: "Alertas Inteligentes", href: "/ai-engine/alertas", icon: Bell },
-          { label: "Recomendações Proativas", href: "/ai-engine/recomendacoes", icon: Lightbulb },
-        ]
-      },
-      {
-        title: "Como Funciona",
-        items: [
-          { label: "Arquitetura IA Nativa", href: "/ai-engine/arquitetura", icon: Brain },
-          { label: "85+ Prompts Otimizados", href: "/ai-engine/prompts", icon: RefreshCw },
-          { label: "Aprende com Seu Conselho", href: "/ai-engine/aprendizado", icon: LineChart },
-        ]
-      },
-      {
-        title: "Add-ons IA-Powered",
-        items: [
-          { label: "Riscos Avançados", href: "/add-ons/riscos", icon: AlertTriangle },
-          { label: "ESG Completo", href: "/add-ons/esg", icon: Leaf },
-          { label: "Projetos Estratégicos", href: "/add-ons/projetos", icon: FolderKanban },
-          { label: "Gestão Pessoas", href: "/add-ons/pessoas", icon: UserCog },
-          { label: "Inteligência Mercado", href: "/add-ons/intel", icon: Globe },
-          { label: "Base Conhecimento", href: "/add-ons/base-conhecimento", icon: Library },
+          { label: "Geração de ATAs", href: "#", icon: FileText },
+          { label: "Geração de PDI", href: "#", icon: TrendingUp },
+          { label: "Identificação de GAPs", href: "#", icon: AlertTriangle },
+          { label: "Insights Preditivos", href: "#", icon: Lightbulb },
+          { label: "Inteligência de Mercado", href: "#", icon: LineChart },
+          { label: "OCR e Extração de Dados", href: "#", icon: Zap },
+          { label: "Sugestões de Pauta", href: "#", icon: RefreshCw },
         ]
       }
     ]
@@ -334,58 +319,43 @@ export function MegaMenuHeader() {
                   )} />
                 </button>
 
-                {/* Mega Dropdown */}
+                {/* Mega Dropdown - Non-clickable menu items */}
                 {activeMenu === menu.id && (
                   <div 
                     className={cn(
                       "absolute top-full left-0 mt-1 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden",
                       "animate-in fade-in-0 zoom-in-95 duration-200",
-                      menu.sections.length > 2 ? "w-[800px]" : "w-[500px]",
+                      menu.id === "ai-engine" ? "w-[500px]" : (menu.sections.length > 2 ? "w-[700px]" : "w-[450px]"),
                       menu.highlight && "border-[#C0A062]/30"
                     )}
                   >
                     <div className={cn(
                       "grid gap-6 p-6",
-                      menu.sections.length === 2 && "grid-cols-2",
-                      menu.sections.length === 3 && "grid-cols-3",
-                      menu.sections.length >= 4 && "grid-cols-4"
+                      menu.id === "ai-engine" ? "grid-cols-2" : (
+                        menu.sections.length === 2 ? "grid-cols-2" :
+                        menu.sections.length === 3 ? "grid-cols-3" : "grid-cols-3"
+                      )
                     )}>
                       {menu.sections.map((section, idx) => (
                         <div key={idx}>
-                          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-                            {section.title}
-                          </h4>
+                          {section.title && (
+                            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                              {section.title}
+                            </h4>
+                          )}
                           <ul className="space-y-1">
                             {section.items.map((item, itemIdx) => {
                               const Icon = item.icon;
                               return (
                                 <li key={itemIdx}>
-                                  <a
-                                    href={item.href}
-                                    className="flex items-start gap-3 px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors group"
-                                    onClick={(e) => { 
-                                      e.preventDefault(); 
-                                      navigate(item.href);
-                                      setActiveMenu(null);
-                                    }}
+                                  <span
+                                    className="flex items-start gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors group cursor-default"
                                   >
                                     <Icon className="h-4 w-4 text-slate-400 group-hover:text-[#C0A062] mt-0.5 flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-sm text-slate-700 group-hover:text-slate-900">
-                                          {item.label}
-                                        </span>
-                                        {item.badge && (
-                                          <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
-                                            {item.badge}
-                                          </span>
-                                        )}
-                                      </div>
-                                      {item.description && (
-                                        <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
-                                      )}
-                                    </div>
-                                  </a>
+                                    <span className="text-sm text-slate-700 group-hover:text-slate-900">
+                                      {item.label}
+                                    </span>
+                                  </span>
                                 </li>
                               );
                             })}
@@ -408,22 +378,15 @@ export function MegaMenuHeader() {
             </a>
           </nav>
 
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center space-x-3">
+          {/* CTA Button - Login Only */}
+          <div className="hidden lg:flex items-center">
             <Button 
               size="sm"
-              className="border-2 border-[#C0A062] bg-transparent hover:bg-[#C0A062]/10 text-[#C0A062] font-semibold"
+              className="bg-[#C0A062] hover:bg-[#A8893F] text-[#0A1929] font-semibold"
               onClick={() => navigate("/login")}
             >
               <Lock className="h-4 w-4 mr-2" />
               Login
-            </Button>
-            <Button 
-              size="sm"
-              className="bg-[#C0A062] hover:bg-[#A8893F] text-[#0A1929] font-semibold"
-              onClick={() => navigate("/pricing")}
-            >
-              Ver Planos
             </Button>
           </div>
 

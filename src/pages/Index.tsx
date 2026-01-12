@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search, Globe, AlertTriangle, LineChart, Bot, MapPin, ExternalLink } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
+import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
 import DiagnosticModal from "@/components/DiagnosticModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -631,6 +632,9 @@ const Index = () => {
 
       {/* Mega Footer */}
       <MegaFooter />
+
+      {/* LGPD Consent Banner */}
+      <LGPDConsentBanner />
     </div>;
 };
 export default Index;

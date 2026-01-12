@@ -57,31 +57,6 @@ export function MegaFooter() {
               <NewsletterForm />
             </div>
 
-            <div className="space-y-2 text-sm">
-              <a 
-                href="mailto:contato@governancalegacy.com.br" 
-                className="flex items-center gap-2 text-slate-400 hover:text-[#C0A062] transition-colors"
-              >
-                <Mail className="h-4 w-4" />
-                <span>contato@governancalegacy.com.br</span>
-              </a>
-              <a 
-                href="tel:+551130404050" 
-                className="flex items-center gap-2 text-slate-400 hover:text-[#C0A062] transition-colors"
-              >
-                <Phone className="h-4 w-4" />
-                <span>+55 11 3040-4050</span>
-              </a>
-              <a 
-                href="https://wa.me/5547991622220" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-slate-400 hover:text-[#C0A062] transition-colors"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span>WhatsApp</span>
-              </a>
-            </div>
 
           </div>
 
@@ -151,7 +126,7 @@ export function MegaFooter() {
           </FooterColumn>
 
           {/* COLUNA 5: AI Engine - 14 Agentes */}
-          <FooterColumn title="AI Engine" highlight>
+          <FooterColumn title="AI Engine">
             <FooterLinkGroup title="14 Agentes Inteligentes">
               <FooterLinkWithIcon href="/ai-engine/agentes-especializados" icon={Bot}>Agentes Especializados</FooterLinkWithIcon>
               <FooterLinkWithIcon href="/ai-engine/analise-documentos" icon={FileSearch}>Análise de Documentos</FooterLinkWithIcon>
@@ -191,10 +166,6 @@ export function MegaFooter() {
             <span className="hidden md:inline text-slate-700">|</span>
             <a href="/lgpd" className="hover:text-[#C0A062] transition-colors">
               LGPD
-            </a>
-            <span className="hidden md:inline text-slate-700">|</span>
-            <a href="/trust" className="hover:text-[#C0A062] transition-colors">
-              Trust Center
             </a>
           </div>
         </div>

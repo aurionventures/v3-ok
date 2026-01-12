@@ -117,6 +117,9 @@ import Signup from "./pages/Signup";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import AcceptInvite from "./pages/AcceptInvite";
 import StripeCheckout from "./pages/StripeCheckout";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
+import TermosUso from "./pages/TermosUso";
+import LGPD from "./pages/LGPD";
 
 
 const queryClient = new QueryClient();
@@ -144,6 +147,9 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+          <Route path="/termos" element={<TermosUso />} />
+          <Route path="/lgpd" element={<LGPD />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
           <Route path="/invite/accept" element={<AcceptInvite />} />
