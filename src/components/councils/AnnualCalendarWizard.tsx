@@ -32,7 +32,7 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
     dayRule: "",
     specificDay: "",
     time: "14:00",
-    modality: "Presencial" as "Presencial" | "Online" | "Híbrida",
+    modality: "Presencial" as "Presencial" | "Online" | "Híbrida" | "Virtual",
     location: "",
   });
 
@@ -607,8 +607,14 @@ export default function AnnualCalendarWizard({ onClose, onComplete }: WizardProp
                     <SelectItem value="Presencial">Presencial</SelectItem>
                     <SelectItem value="Online">Online</SelectItem>
                     <SelectItem value="Híbrida">Híbrida</SelectItem>
+                    <SelectItem value="Virtual">Virtual</SelectItem>
                   </SelectContent>
                 </Select>
+                {config.modality === "Virtual" && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Reuniões virtuais geram pautas e ATAs para aprovação assíncrona pelos membros no portal.
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Local (opcional)</Label>

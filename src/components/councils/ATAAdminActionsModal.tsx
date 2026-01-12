@@ -117,33 +117,50 @@ const ATAAdminActionsModal = ({
         const participant = ata.participants.find(p => p.id === participantId);
         if (!participant) continue;
 
-        // Find and update the approval record
-        const approvalIndex = approvals.findIndex(
+        // Find the approval record
+        let approvalIndex = approvals.findIndex(
           (a: any) => a.meeting_id === ata.meetingId && a.participant_id === participantId
         );
 
-        if (approvalIndex !== -1) {
-          if (action === 'approve') {
-            approvals[approvalIndex].approval_status = 'APROVADO';
-            approvals[approvalIndex].approval_comment = `Aprovado como ADM por ${adminName}: ${adminComment || 'Sem comentário'}`;
-            approvals[approvalIndex].approved_at = timestamp;
-            approvals[approvalIndex].updated_at = timestamp;
-          } else {
-            // Generate signature hash
-            const hashData = `${participantId}-${timestamp}-ADM-${adminName}`;
-            const encoder = new TextEncoder();
-            const data = encoder.encode(hashData);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const signatureHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        // If record doesn't exist, create a new one
+        if (approvalIndex === -1) {
+          const newApproval = {
+            id: `approval-${ata.meetingId}-${participantId}-${Date.now()}`,
+            meeting_id: ata.meetingId,
+            participant_id: participantId,
+            participant_name: participant.name,
+            participant_email: participant.email,
+            participant_role: participant.role,
+            approval_status: 'PENDENTE',
+            signature_status: 'NAO_ASSINADO',
+            created_at: timestamp,
+            updated_at: timestamp
+          };
+          approvals.push(newApproval);
+          approvalIndex = approvals.length - 1;
+        }
 
-            approvals[approvalIndex].signature_status = 'ASSINADO';
-            approvals[approvalIndex].signature_hash = signatureHash;
-            approvals[approvalIndex].signature_ip = 'ADM_ACTION';
-            approvals[approvalIndex].signature_user_agent = `ADM: ${adminName} - ${navigator.userAgent}`;
-            approvals[approvalIndex].signed_at = timestamp;
-            approvals[approvalIndex].updated_at = timestamp;
-          }
+        // Now update the record
+        if (action === 'approve') {
+          approvals[approvalIndex].approval_status = 'APROVADO';
+          approvals[approvalIndex].approval_comment = `Aprovado como ADM por ${adminName}: ${adminComment || 'Sem comentário'}`;
+          approvals[approvalIndex].approved_at = timestamp;
+          approvals[approvalIndex].updated_at = timestamp;
+        } else {
+          // Generate signature hash
+          const hashData = `${participantId}-${timestamp}-ADM-${adminName}`;
+          const encoder = new TextEncoder();
+          const data = encoder.encode(hashData);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const signatureHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+          approvals[approvalIndex].signature_status = 'ASSINADO';
+          approvals[approvalIndex].signature_hash = signatureHash;
+          approvals[approvalIndex].signature_ip = 'ADM_ACTION';
+          approvals[approvalIndex].signature_user_agent = `ADM: ${adminName} - ${navigator.userAgent}`;
+          approvals[approvalIndex].signed_at = timestamp;
+          approvals[approvalIndex].updated_at = timestamp;
         }
 
         // Create audit log

@@ -36,7 +36,7 @@ export interface MeetingSchedule {
   nextMeetingTopics?: string[];
   attendees?: string[];
   location?: string;
-  modalidade: "Presencial" | "Online" | "Híbrida";
+  modalidade: "Presencial" | "Online" | "Híbrida" | "Virtual";
   participants?: MeetingParticipant[];
   confirmed_participants?: number;
   notifications_sent?: boolean;

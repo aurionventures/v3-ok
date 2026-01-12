@@ -167,7 +167,7 @@ const AnnualAgenda = () => {
         time: meetingForm.time,
         type: meetingForm.type as 'Ordinária' | 'Extraordinária',
         status: "Agendada" as const,
-        modalidade: meetingForm.modalidade as 'Presencial' | 'Online' | 'Híbrida',
+        modalidade: meetingForm.modalidade as 'Presencial' | 'Online' | 'Híbrida' | 'Virtual',
         location: meetingForm.location,
         agenda: [],
         nextMeetingTopics: [],
@@ -828,8 +828,14 @@ const AnnualAgenda = () => {
                           <SelectItem value="Presencial">Presencial</SelectItem>
                           <SelectItem value="Online">Online</SelectItem>
                           <SelectItem value="Híbrida">Híbrida</SelectItem>
+                          <SelectItem value="Virtual">Virtual</SelectItem>
                         </SelectContent>
                       </Select>
+                      {meetingForm.modalidade === "Virtual" && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          Reuniões virtuais geram pautas e ATAs para aprovação assíncrona no portal do membro.
+                        </p>
+                      )}
                     </div>
                   </div>
 
