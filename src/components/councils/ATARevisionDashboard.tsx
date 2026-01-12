@@ -185,25 +185,62 @@ export const ATARevisionDashboard: React.FC<ATARevisionDashboardProps> = ({
       return;
     }
 
-    // Apply changes to ATA content (simplified - in real app would be more sophisticated)
+    // Gerar conteúdo com marcações de revisão
     let newContent = ataContent;
+    const revisionMarkers: string[] = [];
+
     for (const s of acceptedSuggestions) {
       const textToApply = s.finalText || s.suggestedText;
+      
       if (s.originalText && textToApply) {
-        newContent = newContent.replace(s.originalText, textToApply);
+        // Criar marcação visual da revisão
+        const revisionId = `REV-${s.id.slice(-4).toUpperCase()}`;
+        const revisionDate = new Date(s.createdAt).toLocaleDateString('pt-BR');
+        
+        const markedText = `[REVISAO ${revisionId}]\n` +
+          `Sugerido por: ${s.participantName}\n` +
+          `Data: ${revisionDate}\n` +
+          `Secao: ${s.sectionLabel}\n` +
+          `----------------------------------------\n` +
+          `TEXTO ORIGINAL:\n${s.originalText}\n\n` +
+          `TEXTO REVISADO:\n${textToApply}\n` +
+          `----------------------------------------`;
+
+        // Tentar substituir o texto original
+        if (newContent.includes(s.originalText)) {
+          newContent = newContent.replace(s.originalText, textToApply);
+          revisionMarkers.push(markedText);
+        } else {
+          // Se não encontrar o texto exato, adicionar como pendência
+          revisionMarkers.push(
+            `[ATENCAO - REVISAO NAO APLICADA AUTOMATICAMENTE ${revisionId}]\n` +
+            `Texto original nao encontrado na ATA atual.\n` +
+            markedText
+          );
+        }
       }
     }
 
+    // Adicionar seção de histórico de revisões no final da ATA
+    const revisionsSection = `\n\n` +
+      `================================================================\n` +
+      `                    HISTORICO DE REVISOES\n` +
+      `              Versao gerada em ${new Date().toLocaleString('pt-BR')}\n` +
+      `================================================================\n\n` +
+      revisionMarkers.join('\n\n');
+
+    const finalContent = newContent + revisionsSection;
+
     await createNewVersion(
       meetingId,
-      newContent,
+      finalContent,
       adminName,
       versionSummary || `Aplicadas ${acceptedSuggestions.length} sugestões de revisão`,
       acceptedSuggestions.map(s => s.id)
     );
 
-    onATAUpdated?.(newContent);
-    toast.success('Nova versão da ATA gerada com sucesso');
+    onATAUpdated?.(finalContent);
+    toast.success('Nova versão da ATA gerada com sucesso!');
     setGenerateVersionOpen(false);
     setVersionSummary('');
   };

@@ -126,6 +126,8 @@ import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
 import ComoFunciona from "./pages/ComoFunciona";
 import Plataforma from "./pages/Plataforma";
+import Governanca from "./pages/Governanca";
+import AIEngine from "./pages/AIEngine";
 
 
 const queryClient = new QueryClient();
@@ -159,6 +161,8 @@ const App = () => (
           <Route path="/sobre" element={<SobreNos />} />
           <Route path="/como-funciona" element={<ComoFunciona />} />
           <Route path="/plataforma" element={<Plataforma />} />
+          <Route path="/governanca" element={<Governanca />} />
+          <Route path="/ai-engine" element={<AIEngine />} />
           <Route path="/contato" element={<Contato />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />

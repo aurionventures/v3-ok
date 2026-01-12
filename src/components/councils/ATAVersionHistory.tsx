@@ -105,8 +105,56 @@ export const ATAVersionHistory: React.FC<ATAVersionHistoryProps> = ({ meetingId 
             <DialogTitle>Versão {viewContent?.version}</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh]">
-            <div className="prose prose-sm max-w-none whitespace-pre-wrap p-4">
-              {viewContent?.content}
+            <div className="prose prose-sm max-w-none p-4">
+              {viewContent?.content.split('\n').map((line, idx) => {
+                // Destacar marcadores de revisão
+                if (line.includes('[REVISAO REV-') || line.includes('[ATENCAO -')) {
+                  return (
+                    <div key={idx} className="bg-amber-100 border-l-4 border-amber-500 p-2 my-2 font-semibold text-amber-800">
+                      {line}
+                    </div>
+                  );
+                }
+                if (line.includes('TEXTO ORIGINAL:')) {
+                  return (
+                    <div key={idx} className="bg-red-50 border-l-4 border-red-400 p-2 text-red-700 font-medium">
+                      {line}
+                    </div>
+                  );
+                }
+                if (line.includes('TEXTO REVISADO:')) {
+                  return (
+                    <div key={idx} className="bg-green-50 border-l-4 border-green-400 p-2 text-green-700 font-medium">
+                      {line}
+                    </div>
+                  );
+                }
+                if (line.startsWith('Sugerido por:') || line.startsWith('Data:') || line.startsWith('Secao:')) {
+                  return (
+                    <div key={idx} className="text-sm text-gray-600 ml-4 py-0.5">
+                      {line}
+                    </div>
+                  );
+                }
+                if (line.includes('========') || line.includes('--------')) {
+                  return <hr key={idx} className="my-2 border-gray-300" />;
+                }
+                if (line.includes('HISTORICO DE REVISOES')) {
+                  return (
+                    <h3 key={idx} className="text-lg font-bold text-center text-primary my-4 bg-primary/10 p-3 rounded">
+                      {line}
+                    </h3>
+                  );
+                }
+                if (line.includes('Versao gerada em')) {
+                  return (
+                    <p key={idx} className="text-center text-sm text-muted-foreground mb-4">
+                      {line}
+                    </p>
+                  );
+                }
+                return <p key={idx} className="whitespace-pre-wrap my-1">{line}</p>;
+              })}
             </div>
           </ScrollArea>
         </DialogContent>

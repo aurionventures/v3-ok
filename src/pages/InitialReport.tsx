@@ -92,9 +92,12 @@ export default function InitialReport() {
   const navigate = useNavigate();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  useEffect(() => {
+  const [hasStarted, setHasStarted] = useState(false);
+
+  const handleGenerateReport = () => {
+    setHasStarted(true);
     generateReport();
-  }, []);
+  };
   const generateReport = async () => {
     setIsGenerating(true);
 
@@ -252,50 +255,93 @@ export default function InitialReport() {
       description: 'Download iniciado automaticamente'
     });
   };
-  if (isGenerating) {
-    return <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <h3 className="text-lg font-semibold">Gerando Relatório Inicial</h3>
-            <p className="text-sm text-muted-foreground">
-              Nossa IA está analisando documentos e entrevistas para gerar insights...
-            </p>
-            <Progress value={66} className="h-2" />
-          </CardContent>
-        </Card>
-      </div>;
-  }
-  if (!reportData) {
-    return <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold">Erro ao gerar relatório</h3>
-            <Button className="mt-4" onClick={generateReport}>
-              Tentar novamente
-            </Button>
-          </CardContent>
-        </Card>
-      </div>;
-  }
   return <div className="flex h-screen bg-background">
       <Sidebar />
       
       <div className="flex-1 flex flex-col">
-        <Header title="Relatório Inicial de Governança" />
+        <Header title="Análise e Ações" />
         
         <main className="flex-1 overflow-auto">
           <div className="p-6">
             <div className="max-w-6xl mx-auto space-y-6">
-              {/* Header Info */}
-              <div className="text-center space-y-4">
-                <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                  Análise completa baseada em documentos e entrevistas coletadas, 
-                  com insights da IA para melhorar a governança corporativa.
-                </p>
-                
-              </div>
+
+              {/* Estado inicial - Botão para gerar análise */}
+              {!hasStarted && !reportData && (
+                <Card className="max-w-2xl mx-auto">
+                  <CardHeader className="text-center">
+                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                      <FileText className="h-8 w-8 text-primary" />
+                    </div>
+                    <CardTitle className="text-2xl">Análise e Ações de Governança</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center space-y-6">
+                    <p className="text-muted-foreground">
+                      Nossa IA irá analisar todos os documentos e entrevistas coletadas 
+                      para gerar um relatório completo com insights, gaps identificados 
+                      e um plano de ação personalizado.
+                    </p>
+                    <div className="grid grid-cols-3 gap-4 text-center py-4">
+                      <div>
+                        <BookOpen className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+                        <div className="text-sm font-medium">Documentos</div>
+                        <div className="text-xs text-muted-foreground">Análise completa</div>
+                      </div>
+                      <div>
+                        <Users className="h-6 w-6 mx-auto mb-2 text-green-500" />
+                        <div className="text-sm font-medium">Entrevistas</div>
+                        <div className="text-xs text-muted-foreground">Cruzamento de dados</div>
+                      </div>
+                      <div>
+                        <Target className="h-6 w-6 mx-auto mb-2 text-purple-500" />
+                        <div className="text-sm font-medium">Plano de Ação</div>
+                        <div className="text-xs text-muted-foreground">Recomendações IA</div>
+                      </div>
+                    </div>
+                    <Button size="lg" onClick={handleGenerateReport} className="gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Gerar Análise com IA
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Estado de carregamento */}
+              {isGenerating && (
+                <Card className="max-w-md mx-auto">
+                  <CardContent className="p-8 text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <h3 className="text-lg font-semibold">Gerando Relatório Inicial</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Nossa IA está analisando documentos e entrevistas para gerar insights...
+                    </p>
+                    <Progress value={66} className="h-2" />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Estado de erro */}
+              {hasStarted && !isGenerating && !reportData && (
+                <Card className="max-w-md mx-auto">
+                  <CardContent className="p-8 text-center">
+                    <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold">Erro ao gerar relatório</h3>
+                    <Button className="mt-4" onClick={handleGenerateReport}>
+                      Tentar novamente
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Relatório gerado */}
+              {reportData && (
+                <>
+                  {/* Header Info */}
+                  <div className="text-center space-y-4">
+                    <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                      Análise completa baseada em documentos e entrevistas coletadas, 
+                      com insights da IA para melhorar a governança corporativa.
+                    </p>
+                  </div>
 
         {/* Executive Summary */}
         <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
@@ -495,6 +541,8 @@ export default function InitialReport() {
                 </p>
               </CardContent>
             </Card>
+                </>
+              )}
             </div>
           </div>
         </main>
