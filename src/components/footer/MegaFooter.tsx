@@ -9,10 +9,6 @@ import {
   SlidersHorizontal,
   BarChart3,
   Gift,
-  BookOpen,
-  GraduationCap,
-  Video,
-  Library,
   Bot,
   Brain,
   FileSearch,
@@ -117,13 +113,6 @@ export function MegaFooter() {
               <FooterLinkWithIcon href="/pricing/comparacao" icon={BarChart3}>Comparar com OnBoard</FooterLinkWithIcon>
               <FooterLinkWithIcon href="/pricing/promocoes" icon={Gift}>Promoções Ativas</FooterLinkWithIcon>
             </FooterLinkGroup>
-
-            <FooterLinkGroup title="Documentação">
-              <FooterLinkWithIcon href="/docs/quickstart" icon={BookOpen}>Guia de Início Rápido</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/ajuda" icon={GraduationCap}>Central de Ajuda</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/tutoriais" icon={Video}>Tutoriais em Vídeo</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="/base-conhecimento" icon={Library}>Base de Conhecimento</FooterLinkWithIcon>
-            </FooterLinkGroup>
           </FooterColumn>
 
           {/* COLUNA 3: Plataforma */}
@@ -148,8 +137,7 @@ export function MegaFooter() {
               <FooterLink href="/plataforma/conselhos" indent>├─ Conselhos & Comitês</FooterLink>
               <FooterLink href="/plataforma/membros" indent>├─ Gestão de Membros</FooterLink>
               <FooterLink href="/plataforma/avaliacao" indent>├─ Avaliação Desempenho</FooterLink>
-              <FooterLink href="/plataforma/compliance" indent>├─ Compliance & Auditoria</FooterLink>
-              <FooterLink href="/plataforma/microsoft365" indent>└─ Integração Microsoft 365</FooterLink>
+              <FooterLink href="/plataforma/compliance" indent>└─ Compliance & Auditoria</FooterLink>
             </FooterLinkGroup>
           </FooterColumn>
 
@@ -167,7 +155,9 @@ export function MegaFooter() {
               <FooterLink href="/industrias/governo" indent>├─ Governo & Público</FooterLink>
               <FooterLink href="/industrias/healthcare" indent>├─ Healthcare & Pharma</FooterLink>
               <FooterLink href="/industrias/educacao" indent>├─ Educação Superior</FooterLink>
-              <FooterLink href="/industrias/tech" indent>└─ Tecnologia & Startups</FooterLink>
+              <FooterLink href="/industrias/tech" indent>├─ Tecnologia & Startups</FooterLink>
+              <FooterLink href="/industrias/varejo" indent>├─ Varejo e Alimentos</FooterLink>
+              <FooterLink href="/industrias/manufatura" indent>└─ Indústria de Manufatura</FooterLink>
             </FooterLinkGroup>
           </FooterColumn>
 
