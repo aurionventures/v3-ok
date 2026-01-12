@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Play, Building2, TrendingUp, Target, Award, CheckCircle, ArrowRight, Star, Zap, Shield, Brain, Phone, Calendar, Rocket, Sparkles, FileText, BarChart, Gauge, Mail, Lock, Building, ChevronDown, Crown, Users, MessageSquare, FileSearch, Eye, ShieldCheck, Fingerprint, Lightbulb, Clock, Cpu, Search, Globe, AlertTriangle, LineChart, Bot, MapPin, ExternalLink } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
+import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import DiagnosticModal from "@/components/DiagnosticModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -147,79 +148,11 @@ const Index = () => {
     answer: "Empresas sem governança estruturada enfrentam riscos como conflitos familiares, decisões centralizadas inadequadas, falta de transparência, dificuldades na sucessão e perda de competitividade. Estatísticas mostram que 90% das empresas familiares não chegam à terceira geração, sendo a ausência de governança uma das principais causas."
   }];
   return <div className="min-h-screen bg-background">
-      {/* Professional Header with Full Navigation */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <img 
-              src={legacyLogo} 
-              alt="Legacy" 
-              className="h-8 w-auto cursor-pointer" 
-              onClick={() => navigate("/")}
-            />
-          </div>
-          
-          {/* Navigation Menu */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              className="text-sm font-medium text-foreground hover:text-accent transition-colors"
-            >
-              Home
-            </a>
-            <a 
-              href="#solucao" 
-              onClick={(e) => { e.preventDefault(); document.getElementById('solucao')?.scrollIntoView({ behavior: 'smooth' }); }}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Solução
-            </a>
-            <a 
-              href="#planos" 
-              onClick={(e) => { e.preventDefault(); document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' }); }}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Planos
-            </a>
-            <a 
-              href="#blog" 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Blog
-            </a>
-            <a 
-              href="#contato" 
-              onClick={(e) => { e.preventDefault(); document.getElementById('contato')?.scrollIntoView({ behavior: 'smooth' }); }}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contato
-            </a>
-          </nav>
-
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="hidden sm:inline-flex"
-              onClick={() => navigate("/pricing")}
-            >
-              Ver Planos
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground" 
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Mega Menu Header */}
+      <MegaMenuHeader />
 
       {/* HERO Section - High Conversion */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90">
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_25%,rgba(255,255,255,0.02)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.02)_75%)] bg-[length:60px_60px]" />
         <div className="relative container mx-auto px-6 py-24 lg:py-32">
