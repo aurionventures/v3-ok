@@ -2,6 +2,12 @@ import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { mockPromptsData } from '@/data/mockPromptsData';
 
+// Tipos estratégicos para governança de prompts
+export type StrategicType = 'strategic' | 'governance' | 'operational';
+export type ImpactLevel = 'low' | 'medium' | 'high' | 'critical';
+export type PromptScope = 'council' | 'committee' | 'operation' | 'system';
+export type AgentType = 'moat_engine' | 'copilot' | 'service';
+
 export interface AIPrompt {
   id: string;
   name: string;
@@ -37,6 +43,15 @@ export interface AIPrompt {
   updated_at: string;
   activated_at: string | null;
   deprecated_at: string | null;
+  // Campos estratégicos de governança
+  strategic_type: StrategicType;
+  impact_level: ImpactLevel;
+  scope: PromptScope;
+  agent_type: AgentType;
+  owner: string | null;
+  executive_description: string | null;
+  connected_copilots: string[] | null;
+  connected_services: string[] | null;
 }
 
 export interface CreatePromptInput {
@@ -58,6 +73,15 @@ export interface CreatePromptInput {
   description?: string | null;
   changelog?: string | null;
   tags?: string[] | null;
+  // Campos estratégicos
+  strategic_type?: StrategicType;
+  impact_level?: ImpactLevel;
+  scope?: PromptScope;
+  agent_type?: AgentType;
+  owner?: string | null;
+  executive_description?: string | null;
+  connected_copilots?: string[] | null;
+  connected_services?: string[] | null;
 }
 
 // Create a store for mock prompts that persists across hook instances

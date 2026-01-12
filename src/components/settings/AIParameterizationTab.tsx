@@ -278,14 +278,14 @@ ${localConfig.customInstructions ? `INSTRUÇÕES ESPECÍFICAS DO CLIENTE:\n${loc
                       value={[localConfig.summaryLength]}
                       onValueChange={(value) => handleConfigChange('summaryLength', value[0])}
                       min={100}
-                      max={400}
-                      step={25}
+                      max={2500}
+                      step={50}
                       className="w-full"
                     />
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>100 palavras</span>
                       <span className="font-medium text-foreground">{localConfig.summaryLength} palavras</span>
-                      <span>400 palavras</span>
+                      <span>2.500 palavras</span>
                     </div>
                   </div>
                 </CardContent>

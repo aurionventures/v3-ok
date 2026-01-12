@@ -245,6 +245,141 @@ const generateDefaultSchedule = (year: number): AgendaAnual => {
       
       meeting.notifications_sent = true;
     }
+
+    // Enrich April meeting (month 3) with AI-suggested agenda - demonstration model
+    if (month === 3) {
+      const meeting = meetings[meetings.length - 1];
+      
+      // Pauta sugerida pela IA para demonstração
+      meeting.agenda = [
+        {
+          id: `agenda-conselho-4-1`,
+          title: "Aprovação da Ata da Reunião Anterior",
+          description: "Revisão e aprovação da ata da reunião de março, com análise das deliberações e encaminhamentos realizados.",
+          presenter: "Secretário Executivo",
+          duration: 15,
+          order: 1,
+          type: "Deliberação",
+          keyPoints: ["Leitura da ata", "Verificação de deliberações", "Votação para aprovação"],
+          detailedScript: "O Secretário Executivo apresentará a ata da reunião anterior para revisão e votação.",
+          expectedOutcome: "Ata aprovada por unanimidade"
+        },
+        {
+          id: `agenda-conselho-4-2`,
+          title: "Análise de Performance ESG do 1º Trimestre",
+          description: "Apresentação dos indicadores ESG do primeiro trimestre, com destaque para ações de sustentabilidade e impacto social.",
+          presenter: "Diretora de Sustentabilidade - Ana Costa",
+          duration: 40,
+          order: 2,
+          type: "Informativo",
+          keyPoints: ["Indicadores ambientais", "Impacto social", "Governança corporativa", "Metas ODS"],
+          detailedScript: "A Diretora de Sustentabilidade apresentará o dashboard ESG com métricas comparativas e benchmarking setorial.",
+          expectedOutcome: "Compreensão do status ESG e aprovação de novas iniciativas"
+        },
+        {
+          id: `agenda-conselho-4-3`,
+          title: "Estratégia de Transformação Digital 2026-2028",
+          description: "Discussão do plano estratégico de transformação digital, incluindo investimentos em IA, automação e modernização de sistemas.",
+          presenter: "CTO - Ricardo Mendes",
+          duration: 50,
+          order: 3,
+          type: "Deliberação",
+          keyPoints: ["Roadmap tecnológico", "Investimentos previstos", "Impacto operacional", "Riscos de implementação"],
+          detailedScript: "O CTO apresentará o plano de transformação digital com cronograma de implementação e análise de ROI.",
+          expectedOutcome: "Aprovação do plano e liberação de budget inicial"
+        },
+        {
+          id: `agenda-conselho-4-4`,
+          title: "Revisão de Riscos Corporativos e Matriz de Materialidade",
+          description: "Análise da matriz de riscos atualizada com foco em riscos emergentes, cibersegurança e riscos climáticos.",
+          presenter: "Chief Risk Officer - Paulo Ferreira",
+          duration: 35,
+          order: 4,
+          type: "Deliberação",
+          keyPoints: ["Riscos críticos", "Plano de mitigação", "Indicadores de risco", "Cenários adversos"],
+          detailedScript: "O CRO apresentará a matriz de riscos atualizada com recomendações de tratamento para os riscos prioritários.",
+          expectedOutcome: "Aprovação dos planos de mitigação propostos"
+        },
+        {
+          id: `agenda-conselho-4-5`,
+          title: "Aprovação de Novos Conselheiros Independentes",
+          description: "Deliberação sobre a indicação de dois novos conselheiros independentes para composição do Conselho de Administração.",
+          presenter: "Presidente do Conselho - Carlos Alberto",
+          duration: 25,
+          order: 5,
+          type: "Deliberação",
+          keyPoints: ["Perfil dos candidatos", "Due diligence", "Diversidade do board", "Aprovação formal"],
+          detailedScript: "O Presidente apresentará os perfis dos candidatos e o parecer do Comitê de Nomeação.",
+          expectedOutcome: "Eleição dos novos conselheiros"
+        }
+      ];
+      
+      meeting.confirmed_participants = meeting.participants?.length || 0;
+      
+      meeting.meeting_tasks = [
+        {
+          id: `task-conselho-4-1`,
+          title: "Elaborar relatório de performance ESG detalhado",
+          responsible: "Diretora de Sustentabilidade - Ana Costa",
+          deadline: new Date(year, 4, 5).toISOString().split('T')[0],
+          status: "Concluída"
+        },
+        {
+          id: `task-conselho-4-2`,
+          title: "Preparar apresentação do plano de transformação digital",
+          responsible: "CTO - Ricardo Mendes",
+          deadline: new Date(year, 4, 8).toISOString().split('T')[0],
+          status: "Concluída"
+        },
+        {
+          id: `task-conselho-4-3`,
+          title: "Atualizar matriz de riscos corporativos",
+          responsible: "Chief Risk Officer - Paulo Ferreira",
+          deadline: new Date(year, 4, 10).toISOString().split('T')[0],
+          status: "Concluída"
+        }
+      ];
+      
+      meeting.nextMeetingTopics = [
+        "Status da implementação do plano de transformação digital",
+        "Relatório de progresso das iniciativas ESG",
+        "Avaliação de performance dos novos conselheiros",
+        "Revisão do orçamento do segundo semestre"
+      ];
+      
+      meeting.meeting_documents = [
+        {
+          id: `doc-conselho-4-1`,
+          name: "Relatorio_ESG_Q1_2026.pdf",
+          type: "application/pdf",
+          uploadDate: new Date(year, 3, 5).toISOString(),
+          url: "#"
+        },
+        {
+          id: `doc-conselho-4-2`,
+          name: "Plano_Transformacao_Digital_2026-2028.pptx",
+          type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          uploadDate: new Date(year, 3, 6).toISOString(),
+          url: "#"
+        },
+        {
+          id: `doc-conselho-4-3`,
+          name: "Matriz_Riscos_Abril_2026.xlsx",
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          uploadDate: new Date(year, 3, 7).toISOString(),
+          url: "#"
+        },
+        {
+          id: `doc-conselho-4-4`,
+          name: "Perfil_Candidatos_Conselheiros.pdf",
+          type: "application/pdf",
+          uploadDate: new Date(year, 3, 8).toISOString(),
+          url: "#"
+        }
+      ];
+      
+      meeting.notifications_sent = true;
+    }
   }
 
   // Generate 12 COMMITTEE meetings (3rd Thursday of each month at 10:00)

@@ -99,6 +99,7 @@ import SecretariatPanel from "./pages/SecretariatPanel";
 import BoardPerformance from "./pages/BoardPerformance";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import AdminPromptLibrary from "./pages/AdminPromptLibrary";
+import AdminLLMManagement from "./pages/AdminLLMManagement";
 import SimuladorCenarios from "./pages/SimuladorCenarios";
 
 // Parceiro Components
@@ -918,6 +919,14 @@ const App = () => (
             element={
               <ProtectedRoute >
                 <SecurityDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/llm-management" 
+            element={
+              <ProtectedRoute>
+                <AdminLLMManagement />
               </ProtectedRoute>
             } 
           />

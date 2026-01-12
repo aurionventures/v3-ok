@@ -24,6 +24,7 @@ import {
   Award,
   Target,
   Bot,
+  Cpu,
   Gift,
   Lock,
   Calculator,
@@ -130,6 +131,7 @@ const ADMIN_MENU_SECTIONS = [
   {
     label: "Tecnologia",
     items: [
+      { icon: Cpu, href: "/admin/llm-management", name: "Gestao de LLMs" },
       { icon: Bot, href: "/admin/prompts", name: "AI Engine" },
     ]
   },
