@@ -71,6 +71,7 @@ import {
 
 // Tipos
 interface OnboardingData {
+  [key: string]: unknown;
   // Step 1 - Empresa
   empresaId?: string;
   razaoSocial?: string;

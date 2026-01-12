@@ -29,8 +29,10 @@ import type {
 } from '@/types/onboarding';
 
 interface Phase3StrategicContextProps {
-  onComplete: () => void;
+  onComplete: (data?: Phase3FormData) => void;
   onBack?: () => void;
+  initialData?: Partial<Phase3FormData>;
+  isSaving?: boolean;
 }
 
 const TABS = [

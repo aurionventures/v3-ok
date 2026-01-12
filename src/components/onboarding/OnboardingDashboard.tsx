@@ -12,8 +12,32 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useOnboardingProgress, useDocumentLibrary, useDemoMode } from '@/hooks/useOnboardingMock';
 
+interface NextStep {
+  priority: number;
+  title: string;
+  description: string;
+}
+
+interface OnboardingProgress {
+  phase_1_basic_setup: boolean;
+  phase_2_document_upload: boolean;
+  phase_3_strategic_context: boolean;
+  basic_setup_score: number;
+  document_upload_score: number;
+  strategic_context_score: number;
+  overall_score: number;
+  missing_critical_data?: string[];
+  next_steps?: NextStep[];
+}
+
 interface OnboardingDashboardProps {
   onNavigateToPhase: (phase: number) => void;
+  // Optional props for integrated mode in Settings
+  progress?: OnboardingProgress;
+  score?: number;
+  nextSteps?: NextStep[];
+  onLaunchMOAT?: () => Promise<void>;
+  isReadyForUse?: boolean;
 }
 
 export function OnboardingDashboard({ onNavigateToPhase }: OnboardingDashboardProps) {

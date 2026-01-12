@@ -39,8 +39,8 @@ import {
   aiAgents, 
   aiCopilots, 
   getEngineStats,
-  type AIAgent 
 } from "@/data/aiEngineData";
+import type { AIAgent } from "@/types/aiArchitecture";
 
 // Mapeamento de ícones
 const iconMap: Record<string, React.ElementType> = {
