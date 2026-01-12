@@ -24,7 +24,8 @@ import {
   Zap,
   LineChart,
   Info,
-  Users
+  Users,
+  MapPin
 } from "lucide-react";
 import { FooterColumn, FooterLinkGroup, FooterLink } from "./FooterColumn";
 import { NewsletterForm } from "./NewsletterForm";
@@ -57,25 +58,34 @@ export function MegaFooter() {
               <NewsletterForm />
             </div>
 
+            {/* Endereço */}
+            <div className="flex gap-3">
+              <MapPin className="h-4 w-4 text-[#C0A062] shrink-0 mt-0.5" />
+              <div className="text-xs text-slate-400 leading-relaxed">
+                <p>Av. Brig. Faria Lima, 1811. ESC 1119</p>
+                <p>Jardim Paulistano, São Paulo - SP</p>
+                <p>CEP: 01452-001</p>
+              </div>
+            </div>
 
           </div>
 
           {/* COLUNA 2: Comece Agora */}
           <FooterColumn title="Comece Agora">
             <FooterLinkGroup>
-              <FooterLinkWithIcon href="#" icon={Calculator}>Calcular Meu Preço</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="#" icon={CalendarDays}>Agendar Demonstração</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="#" icon={MessageSquare}>Falar com Especialista</FooterLinkWithIcon>
+              <FooterLinkClickable href="/pricing#calculator" icon={Calculator}>Calcular Meu Preço</FooterLinkClickable>
+              <FooterLinkClickable href="/demo" icon={CalendarDays}>Agendar Demonstração</FooterLinkClickable>
+              <FooterLinkClickable href="/contato" icon={MessageSquare}>Falar com Especialista</FooterLinkClickable>
             </FooterLinkGroup>
 
             <FooterLinkGroup title="Planos">
-              <FooterLinkWithIcon href="#" icon={Gem}>Planos & Preços</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="#" icon={SlidersHorizontal}>Calculadora Interativa</FooterLinkWithIcon>
+              <FooterLinkClickable href="/pricing#planos" icon={Gem}>Planos & Preços</FooterLinkClickable>
+              <FooterLinkClickable href="/pricing#calculator" icon={SlidersHorizontal}>Calculadora Interativa</FooterLinkClickable>
             </FooterLinkGroup>
 
             <FooterLinkGroup title="Empresa">
-              <FooterLinkWithIcon href="#" icon={Info}>Sobre Nós</FooterLinkWithIcon>
-              <FooterLinkWithIcon href="#" icon={Users}>Contato</FooterLinkWithIcon>
+              <FooterLinkClickable href="/sobre" icon={Info}>Sobre Nós</FooterLinkClickable>
+              <FooterLinkClickable href="/contato" icon={Users}>Contato</FooterLinkClickable>
             </FooterLinkGroup>
           </FooterColumn>
 
@@ -153,7 +163,7 @@ export function MegaFooter() {
       {/* Bottom Bar - Copyright & Legal */}
       <div className="container mx-auto px-6 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-          <p>© 2026 Legacy OS. Todos os direitos reservados.</p>
+          <p>© 2025 - 2026 Legacy OS. Todos os direitos reservados.</p>
           
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <a href="/privacidade" className="hover:text-[#C0A062] transition-colors">
@@ -189,6 +199,25 @@ function FooterLinkWithIcon({ icon: Icon, children }: FooterLinkWithIconProps) {
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span>{children}</span>
     </span>
+  );
+}
+
+// Componente auxiliar para links clicáveis com ícones
+interface FooterLinkClickableProps {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}
+
+function FooterLinkClickable({ href, icon: Icon, children }: FooterLinkClickableProps) {
+  return (
+    <a
+      href={href}
+      className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-[#C0A062] transition-all duration-200 hover:pl-1 leading-relaxed"
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0" />
+      <span>{children}</span>
+    </a>
   );
 }
 

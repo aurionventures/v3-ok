@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { MegaMenuHeader } from '@/components/header/MegaMenuHeader';
+import { MegaFooter } from '@/components/footer';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -287,53 +289,10 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <img
-              src={legacyLogo}
-              alt="Legacy"
-              className="h-8 w-auto cursor-pointer"
-              onClick={() => navigate('/')}
-            />
-          </div>
-          <nav className="hidden md:flex items-center space-x-6 text-sm">
-            <button
-              onClick={() => navigate('/')}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Produto
-            </button>
-            <button className="text-foreground font-medium">Pricing</button>
-            <button
-              onClick={() => navigate('/#contato')}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contato
-            </button>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/login')}
-            >
-              Login
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => setCalculatorOpen(true)}
-              className="bg-accent hover:bg-accent/90 text-primary-foreground"
-            >
-              <Calculator className="h-4 w-4 mr-2" />
-              Descobrir Meu Plano
-            </Button>
-          </div>
-        </div>
-      </header>
+      <MegaMenuHeader />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90">
+      {/* Hero Section - com padding-top para compensar o header fixo */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/90 pt-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_25%,rgba(255,255,255,0.02)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.02)_75%)] bg-[length:60px_60px]" />
 
@@ -560,58 +519,7 @@ export default function Pricing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 py-12">
-        <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="space-y-4">
-                <img src={legacyLogo} alt="Legacy" className="h-8 w-auto" />
-                <p className="text-sm text-muted-foreground">
-                  Sistema Operacional de Governança para empresas de controle
-                  concentrado.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Soluções</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>Governança Corporativa</div>
-                  <div>Estrutura Societária</div>
-                  <div>Planejamento Sucessório</div>
-                  <div>Gestão de Riscos</div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Planos</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>Essencial</div>
-                  <div>Profissional</div>
-                  <div>Business</div>
-                  <div>Enterprise</div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Contato</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>contato@governancalegacy.com</div>
-                  <div>+55 (47) 99162-2220</div>
-                  <div className="leading-relaxed">
-                    Av. Brig. Faria Lima, 1811. ESC 1119
-                    <br />
-                    Jardim Paulistano, São Paulo - SP
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-              <p>&copy; 2026 Legacy. Todos os direitos reservados.</p>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <MegaFooter />
 
       {/* Modal Calculadora */}
       <Dialog open={calculatorOpen} onOpenChange={setCalculatorOpen}>

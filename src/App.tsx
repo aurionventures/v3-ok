@@ -120,6 +120,8 @@ import StripeCheckout from "./pages/StripeCheckout";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import TermosUso from "./pages/TermosUso";
 import LGPD from "./pages/LGPD";
+import SobreNos from "./pages/SobreNos";
+import Contato from "./pages/Contato";
 
 
 const queryClient = new QueryClient();
@@ -150,6 +152,8 @@ const App = () => (
           <Route path="/privacidade" element={<PoliticaPrivacidade />} />
           <Route path="/termos" element={<TermosUso />} />
           <Route path="/lgpd" element={<LGPD />} />
+          <Route path="/sobre" element={<SobreNos />} />
+          <Route path="/contato" element={<Contato />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
           <Route path="/invite/accept" element={<AcceptInvite />} />
