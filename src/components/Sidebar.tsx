@@ -6,7 +6,9 @@ import {
   Calendar, 
   FileText, 
   ChevronRight, 
-  ChevronLeft, 
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   LayoutDashboard, 
   Leaf, 
   Settings, 
@@ -135,10 +137,19 @@ const Sidebar = () => {
   const [open, setOpen] = useState(!isMobile);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState({ key: "", label: "" });
+  const [addonsExpanded, setAddonsExpanded] = useState(false);
   const { hasAccess } = useModuleAccess();
   const { user, logout } = useAuth();
   
   const isAdminRoute = pathname.startsWith("/admin");
+  
+  // Verificar quais add-ons o cliente tem ativados
+  const getEnabledAddons = () => {
+    // Aqui verificamos quais módulos o cliente tem acesso
+    return ADDON_ITEMS.filter(item => hasAccess(item.key));
+  };
+  
+  const enabledAddons = getEnabledAddons();
   
   useEffect(() => {
     setOpen(!isMobile);
@@ -270,87 +281,125 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* ===== ADD-ONS ===== */}
+      {/* ===== ADD-ONS (Colapsável) ===== */}
       <div>
-        {open && (
-          <div className="flex items-center gap-2 px-3 py-1 mb-0.5">
-            <Gift className="h-3 w-3 text-[#C0A062]" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C0A062]">
+        {/* Header clicável para expandir/colapsar */}
+        {open ? (
+          <button
+            onClick={() => setAddonsExpanded(!addonsExpanded)}
+            className="flex items-center gap-2 px-3 py-2 w-full hover:bg-white/5 rounded-lg transition-colors"
+          >
+            <Gift className="h-3.5 w-3.5 text-[#C0A062]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C0A062] flex-1 text-left">
               Add-ons
             </span>
-          </div>
+            {enabledAddons.length > 0 && (
+              <span className="text-[9px] bg-[#C0A062]/20 text-[#C0A062] px-1.5 py-0.5 rounded-full font-medium">
+                {enabledAddons.length}
+              </span>
+            )}
+            {addonsExpanded ? (
+              <ChevronUp className="h-3.5 w-3.5 text-[#C0A062]/70" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5 text-[#C0A062]/70" />
+            )}
+          </button>
+        ) : (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setAddonsExpanded(!addonsExpanded)}
+                  className="flex items-center justify-center py-2 px-3 w-full hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <Gift className="h-4 w-4 text-[#C0A062]" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Add-ons ({enabledAddons.length} ativos)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
 
-        <div className="space-y-0">
-          {ADDON_ITEMS.map(item => {
-            const Icon = item.icon;
-            const isActive = pathname === item.path;
-            const isLocked = item.key === "scenario_simulator";
+        {/* Lista de Add-ons - Mostrar apenas quando expandido */}
+        {addonsExpanded && (
+          <div className="space-y-0 mt-1">
+            {/* Mostrar add-ons ativados primeiro */}
+            {enabledAddons.length > 0 && (
+              <>
+                {enabledAddons.map(item => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.path;
 
-            // Itens bloqueados abrem modal de upgrade
-            if (isLocked) {
+                  return (
+                    <TooltipProvider key={item.path} delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            to={item.path}
+                            className={cn(
+                              "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
+                              isActive
+                                ? "bg-[#C0A062] text-white"
+                                : "text-white/80 hover:bg-white/10 hover:text-white"
+                            )}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {open && <span className="flex-1 text-left">{item.label}</span>}
+                          </Link>
+                        </TooltipTrigger>
+                        {!open && (
+                          <TooltipContent side="right">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Separador se houver add-ons ativados e desativados */}
+            {enabledAddons.length > 0 && enabledAddons.length < ADDON_ITEMS.length && open && (
+              <div className="px-3 py-2">
+                <div className="text-[9px] text-white/40 uppercase tracking-wider">Disponíveis</div>
+              </div>
+            )}
+
+            {/* Mostrar add-ons não ativados (com cadeado) */}
+            {ADDON_ITEMS.filter(item => !hasAccess(item.key)).map(item => {
+              const Icon = item.icon;
+
               return (
                 <TooltipProvider key={item.key} delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => handleLockedClick(item.key, item.label)}
-                        className={cn(
-                          "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all w-full",
-                          "text-white/80 hover:bg-white/10 hover:text-white"
-                        )}
+                        className="flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all w-full text-white/50 hover:bg-white/5 hover:text-white/70"
                       >
-                        <Icon className="h-4 w-4 shrink-0" />
+                        <Icon className="h-4 w-4 shrink-0 opacity-50" />
                         {open && (
                           <>
                             <span className="flex-1 text-left">{item.label}</span>
-                            <Lock className="h-3 w-3 text-[#C0A062]/70" />
+                            <Lock className="h-3 w-3 text-[#C0A062]/50" />
                           </>
                         )}
                       </button>
                     </TooltipTrigger>
                     {!open && (
                       <TooltipContent side="right">
-                        <p>{item.label}</p>
+                        <p>{item.label} (Bloqueado)</p>
                       </TooltipContent>
                     )}
                   </Tooltip>
                 </TooltipProvider>
               );
-            }
-
-            return (
-              <TooltipProvider key={item.path} delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-[#C0A062] text-white"
-                          : "text-white/80 hover:bg-white/10 hover:text-white"
-                      )}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      {open && (
-                        <>
-                          <span className="flex-1 text-left">{item.label}</span>
-                          <Lock className="h-3 w-3 text-[#C0A062]/70" />
-                        </>
-                      )}
-                    </Link>
-                  </TooltipTrigger>
-                  {!open && (
-                    <TooltipContent side="right">
-                      <p>{item.label}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            );
-          })}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -108,7 +108,7 @@ const Dashboard = () => {
           }}
         >
           {/* Row 1: KPIs Executivos */}
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {/* Score Geral */}
             <Card className="p-2.5 border-border/50">
               <div className="flex justify-between items-start">
