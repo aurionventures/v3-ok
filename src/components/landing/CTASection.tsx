@@ -45,7 +45,7 @@ export function CTASection({
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
               size="lg" 
-              className="bg-accent text-primary hover:bg-accent/90 font-semibold"
+              className="bg-accent text-primary hover:bg-accent/90 font-semibold px-8 py-3 h-12"
               asChild
             >
               <Link to={primaryCTA.href}>
@@ -56,7 +56,7 @@ export function CTASection({
             {secondaryCTA && (
               <Button 
                 size="lg" 
-                className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold"
+                className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold px-8 py-3 h-12"
                 asChild
               >
                 <Link to={secondaryCTA.href}>

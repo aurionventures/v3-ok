@@ -71,7 +71,7 @@ export function HeroSection({
                 primaryCTA.onClick ? (
                   <Button 
                     size="lg" 
-                    className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl font-semibold"
+                    className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-12 rounded-lg font-semibold"
                     onClick={primaryCTA.onClick}
                   >
                     {primaryCTA.icon}
@@ -80,7 +80,7 @@ export function HeroSection({
                 ) : (
                   <Button 
                     size="lg" 
-                    className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl font-semibold"
+                    className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-12 rounded-lg font-semibold"
                     asChild
                   >
                     <Link to={primaryCTA.href}>
@@ -93,7 +93,7 @@ export function HeroSection({
               {secondaryCTA && (
                 <Button 
                   size="lg" 
-                  className="bg-transparent border-2 border-accent text-accent hover:bg-accent/10 text-lg px-8 py-6 h-auto rounded-xl font-semibold"
+                  className="bg-transparent border-2 border-accent text-accent hover:bg-accent/10 text-lg px-8 py-3 h-12 rounded-lg font-semibold"
                   asChild
                 >
                   <Link to={secondaryCTA.href}>

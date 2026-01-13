@@ -308,13 +308,13 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-corporate-dark">
       {/* Header */}
       <MegaMenuHeader />
 
       {/* Hero Section - com padding-top para compensar o header fixo */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] pt-28">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent_50%)]" />
+      <section className="relative overflow-hidden bg-gradient-hero pt-28">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(192,160,98,0.1),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_25%,rgba(255,255,255,0.02)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.02)_75%)] bg-[length:60px_60px]" />
 
         <div className="relative container mx-auto px-6 py-20 lg:py-28">
@@ -337,7 +337,7 @@ export default function Pricing() {
             <Button
               size="lg"
               onClick={() => setCalculatorOpen(true)}
-              className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-12 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Target className="h-5 w-5 mr-2" />
               Descobrir Meu Plano e Investimento
@@ -348,14 +348,14 @@ export default function Pricing() {
       </section>
 
       {/* Planos e Add-ons Section - Visão Unificada */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-corporate-mid">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">
               Escolha o Plano Ideal para sua{' '}
-              <span className="text-primary">Governança</span>
+              <span className="text-accent">Governança</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-white/70 max-w-2xl mx-auto">
               Todos os planos incluem usuários ilimitados e os 13 módulos core
               da plataforma.
             </p>
@@ -467,13 +467,13 @@ export default function Pricing() {
 
 
       {/* FAQ Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 bg-corporate-light">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">
               Perguntas Frequentes
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-white/70 max-w-2xl mx-auto">
               Tire suas dúvidas sobre nossos planos e preços.
             </p>
           </div>
@@ -500,7 +500,7 @@ export default function Pricing() {
       </section>
 
       {/* CTA Final Section */}
-      <section className="py-20 bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B]">
+      <section className="py-20 bg-gradient-hero">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center text-white">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
@@ -515,7 +515,7 @@ export default function Pricing() {
               <Button
                 size="lg"
                 onClick={() => setCalculatorOpen(true)}
-                className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-xl"
+                className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-12 rounded-lg"
               >
                 <Calculator className="h-5 w-5 mr-2" />
                 Descobrir Meu Investimento
@@ -524,7 +524,7 @@ export default function Pricing() {
                 size="lg"
                 variant="outline"
                 onClick={handleContactSpecialist}
-                className="bg-transparent border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto rounded-xl"
+                className="bg-transparent border-white text-white hover:bg-white/10 text-lg px-8 py-3 h-12 rounded-lg"
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Falar com Especialista
