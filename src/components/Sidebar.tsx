@@ -218,7 +218,7 @@ const Sidebar = () => {
           {/* Section Label */}
           {open && (
             <div className="flex items-center gap-2 px-3 mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
                 {section.label}
               </span>
               <div className="flex-1 h-px bg-sidebar-border/50" />
