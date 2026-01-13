@@ -715,6 +715,13 @@ const App = () => (
           <Route path="/admin/prompt-library" element={<AdminPromptLibrary />} />
           <Route path="/admin/llm-management" element={<AdminLLMManagement />} />
           <Route path="/admin/companies" element={<Companies />} />
+          {/* Portuguese route aliases for admin sidebar */}
+          <Route path="/admin/empresas" element={<Companies />} />
+          <Route path="/admin/vendas" element={<AdminSales />} />
+          <Route path="/admin/planos" element={<AdminPlansComparison />} />
+          <Route path="/admin/contratos" element={<AdminContracts />} />
+          <Route path="/admin/faturas" element={<AdminInvoices />} />
+          <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
           <Route path="/login-admin" element={<LoginAdmin />} />
           
           {/* Audit & Security */}
