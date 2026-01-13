@@ -18,41 +18,61 @@ import {
 
 export type ColorVariant = 'primary' | 'success' | 'destructive' | 'warning' | 'info' | 'accent' | 'muted';
 
-export const VARIANT_STYLES: Record<ColorVariant, { bg: string; text: string; border: string }> = {
+export const VARIANT_STYLES: Record<ColorVariant, { 
+  bg: string; 
+  text: string; 
+  border: string;
+  iconBg: string;
+  iconText: string;
+}> = {
   primary: {
-    bg: 'bg-primary/10',
-    text: 'text-primary',
-    border: 'border-primary/20',
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    border: 'border-blue-200',
+    iconBg: 'bg-gradient-to-br from-blue-500 to-blue-600',
+    iconText: 'text-white',
   },
   success: {
-    bg: 'bg-success/10',
-    text: 'text-success',
-    border: 'border-success/20',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    border: 'border-emerald-200',
+    iconBg: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+    iconText: 'text-white',
   },
   destructive: {
-    bg: 'bg-destructive/10',
-    text: 'text-destructive',
-    border: 'border-destructive/20',
+    bg: 'bg-red-50',
+    text: 'text-red-700',
+    border: 'border-red-200',
+    iconBg: 'bg-gradient-to-br from-red-500 to-red-600',
+    iconText: 'text-white',
   },
   warning: {
-    bg: 'bg-warning/10',
-    text: 'text-warning',
-    border: 'border-warning/20',
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+    border: 'border-amber-200',
+    iconBg: 'bg-gradient-to-br from-amber-500 to-amber-600',
+    iconText: 'text-white',
   },
   info: {
-    bg: 'bg-info/10',
-    text: 'text-info',
-    border: 'border-info/20',
+    bg: 'bg-sky-50',
+    text: 'text-sky-700',
+    border: 'border-sky-200',
+    iconBg: 'bg-gradient-to-br from-sky-500 to-sky-600',
+    iconText: 'text-white',
   },
   accent: {
-    bg: 'bg-accent/50',
-    text: 'text-accent-foreground',
-    border: 'border-accent/30',
+    bg: 'bg-violet-50',
+    text: 'text-violet-700',
+    border: 'border-violet-200',
+    iconBg: 'bg-gradient-to-br from-violet-500 to-violet-600',
+    iconText: 'text-white',
   },
   muted: {
-    bg: 'bg-muted/50',
-    text: 'text-muted-foreground',
-    border: 'border-muted/30',
+    bg: 'bg-slate-50',
+    text: 'text-slate-600',
+    border: 'border-slate-200',
+    iconBg: 'bg-gradient-to-br from-slate-400 to-slate-500',
+    iconText: 'text-white',
   },
 };
 

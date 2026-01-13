@@ -44,9 +44,10 @@ export function AgentCard({
   return (
     <Card
       className={cn(
-        "bg-card/50 border-border/50 backdrop-blur-sm transition-all duration-200 cursor-pointer group",
-        "hover:shadow-md hover:border-primary/30",
-        isSelected && "ring-2 ring-primary border-primary",
+        "bg-white border-2 shadow-sm transition-all duration-300 cursor-pointer group",
+        "hover:shadow-lg hover:-translate-y-0.5",
+        styles.border,
+        isSelected && "ring-2 ring-primary border-primary shadow-lg",
         className
       )}
       onClick={onClick}
@@ -55,11 +56,11 @@ export function AgentCard({
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={cn("p-2.5 rounded-lg", styles.bg)}>
-              <Icon className={cn("h-5 w-5", styles.text)} />
+            <div className={cn("p-3 rounded-xl shadow-md", styles.iconBg)}>
+              <Icon className={cn("h-5 w-5", styles.iconText)} />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">{shortName}</h3>
+              <h3 className={cn("font-bold", styles.text)}>{shortName}</h3>
               <p className="text-xs text-muted-foreground">{name}</p>
             </div>
           </div>
@@ -74,12 +75,12 @@ export function AgentCard({
         {/* Stats */}
         <div className="flex items-center gap-2">
           {criticalCount > 0 && (
-            <Badge variant="destructive" className="text-xs">
+            <Badge className="text-xs bg-red-100 text-red-700 border border-red-200 hover:bg-red-100">
               {criticalCount} crítico{criticalCount > 1 ? 's' : ''}
             </Badge>
           )}
           {activeCount > 0 && (
-            <Badge variant="secondary" className="text-xs bg-success/10 text-success border-success/20">
+            <Badge className="text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
               {activeCount} ativo{activeCount > 1 ? 's' : ''}
             </Badge>
           )}
@@ -87,7 +88,7 @@ export function AgentCard({
 
         {/* Prompts Preview */}
         {prompts.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-border/50">
+          <div className="mt-3 pt-3 border-t border-border">
             <p className="text-xs text-muted-foreground mb-2">
               {prompts.length} prompt{prompts.length > 1 ? 's' : ''} associado{prompts.length > 1 ? 's' : ''}
             </p>
@@ -98,8 +99,12 @@ export function AgentCard({
                 return (
                   <Badge
                     key={prompt.id}
-                    variant="outline"
-                    className={cn("text-xs", impactStyles.bg, impactStyles.text, impactStyles.border)}
+                    className={cn(
+                      "text-xs border",
+                      impactStyles.bg, 
+                      impactStyles.text, 
+                      impactStyles.border
+                    )}
                   >
                     {prompt.name}
                   </Badge>
