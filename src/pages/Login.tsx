@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Shield, Briefcase } from 'lucide-react';
+import { Building2, Shield, Briefcase, Home } from 'lucide-react';
 import { UserRole } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import { invitationService } from '@/utils/invitationService';
@@ -184,6 +184,13 @@ export default function Login() {
                 alt="Legacy OS - Governança Corporativa" 
                 className="h-20 w-auto mx-auto mb-4"
               />
+              <Link 
+                to="/" 
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+              >
+                <Home className="h-4 w-4" />
+                Voltar para Home
+              </Link>
               <p className="text-muted-foreground">Escolha como deseja acessar</p>
             </div>
             
@@ -287,6 +294,13 @@ export default function Login() {
               alt="Legacy OS - Governança Corporativa" 
               className="h-20 w-auto mx-auto mb-4"
             />
+            <Link 
+              to="/" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+            >
+              <Home className="h-4 w-4" />
+              Voltar para Home
+            </Link>
             <p className="text-muted-foreground">Escolha como deseja acessar</p>
           </div>
           <div className="grid gap-4">
