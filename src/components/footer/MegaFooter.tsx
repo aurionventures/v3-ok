@@ -23,10 +23,10 @@ export function MegaFooter() {
     <footer className="bg-corporate-dark text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-6 py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           
           {/* COLUNA 1: Logo + Social + Newsletter + Endereço */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
             <div>
               <img 
                 src={legacyLogo} 
@@ -55,7 +55,7 @@ export function MegaFooter() {
             </div>
           </div>
 
-          {/* COLUNA 2: Comece Agora */}
+          {/* COLUNA 2: Comece Agora + Legacy OS */}
           <div>
             <h3 className="text-base font-semibold text-white mb-5">Comece Agora</h3>
             <div className="space-y-2.5">
@@ -92,7 +92,7 @@ export function MegaFooter() {
 
           {/* COLUNA 3: Planos */}
           <div>
-            <h3 className="text-base font-semibold text-accent mb-5">Planos</h3>
+            <h3 className="text-base font-semibold text-white mb-5">Planos</h3>
             <div className="space-y-2.5">
               <FooterLinkClickable href="/pricing" icon={Gem}>
                 Planos & Preços
@@ -105,7 +105,7 @@ export function MegaFooter() {
 
           {/* COLUNA 4: Empresa */}
           <div>
-            <h3 className="text-base font-semibold text-accent mb-5">Empresa</h3>
+            <h3 className="text-base font-semibold text-white mb-5">Empresa</h3>
             <div className="space-y-2.5">
               <FooterLinkClickable href="/sobre" icon={Info}>
                 Sobre Nós
