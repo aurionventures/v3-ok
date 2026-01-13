@@ -675,6 +675,14 @@ const App = () => (
             } 
           />
           <Route 
+            path="/copiloto-governanca" 
+            element={
+              <ProtectedRoute >
+                <GovernanceCopilot />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/ai-agents" 
             element={
               <ProtectedRoute >
