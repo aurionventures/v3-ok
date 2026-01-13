@@ -8,7 +8,6 @@ import { MegaFooter } from "@/components/footer";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { HeroSection, SectionHeader, FeatureCard, CTASection } from "@/components/landing";
 
 const AIEngine = () => {
   const agents = [
@@ -92,31 +91,50 @@ const AIEngine = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-corporate-dark">
       <MegaMenuHeader />
 
       {/* Hero */}
-      <HeroSection
-        title="AI Engine CORE"
-        subtitle="O cérebro da Legacy OS. 14 agentes inteligentes que monitoram, analisam, priorizam e geram conteúdo automaticamente. IA construída no DNA da plataforma."
-        primaryCTA={{ label: "Fazer Diagnóstico Gratuito", href: "/standalone-quiz" }}
-        secondaryCTA={{ label: "Ver Demo da IA", href: "/contato" }}
-        badge={{ icon: <Brain className="h-5 w-5 text-accent" aria-hidden="true" />, text: "IA Nativa - Não Bolt-On" }}
-      />
+      <section className="relative overflow-hidden bg-gradient-hero pt-32 pb-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(192,160,98,0.1),transparent_50%)]" />
+        <div className="container mx-auto px-6 relative">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent/30 mb-6">
+              <Brain className="h-5 w-5 text-accent" aria-hidden="true" />
+              <span className="text-sm font-medium text-accent">IA Nativa - Não Bolt-On</span>
+            </div>
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-8 leading-tight font-heading">
+              AI Engine CORE
+            </h1>
+            <p className="text-xl lg:text-2xl mb-12 text-white/80 leading-relaxed max-w-3xl mx-auto">
+              O cérebro da Legacy OS. 14 agentes inteligentes que monitoram, analisam, 
+              priorizam e geram conteúdo automaticamente. IA construída no DNA da plataforma.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold text-lg px-8" asChild>
+                <Link to="/standalone-quiz">Fazer Diagnóstico Gratuito</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 text-lg px-8" asChild>
+                <Link to="/contato">Ver Demo da IA</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Benefits Stats */}
-      <section className="py-16 bg-accent/10 border-b border-accent/20">
+      <section className="py-20 bg-corporate-mid border-b border-accent/20">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {benefits.map((benefit, index) => (
                 <div key={index} className="text-center">
-                  <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center mx-auto mb-3">
+                  <div className="w-14 h-14 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-3">
                     <benefit.icon className="h-7 w-7 text-accent" aria-hidden="true" />
                   </div>
-                  <div className="text-3xl font-bold text-foreground mb-1">{benefit.stat}</div>
-                  <div className="text-sm font-semibold text-foreground mb-1">{benefit.label}</div>
-                  <div className="text-xs text-muted-foreground">{benefit.desc}</div>
+                  <div className="text-3xl font-bold text-white mb-1">{benefit.stat}</div>
+                  <div className="text-sm font-semibold text-white mb-1">{benefit.label}</div>
+                  <div className="text-xs text-white/60">{benefit.desc}</div>
                 </div>
               ))}
             </div>
@@ -125,34 +143,34 @@ const AIEngine = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-corporate-dark">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
-            <SectionHeader
-              title="Como o AI Engine Funciona"
-              subtitle="Não é IA adicionada depois. É IA construída no núcleo da plataforma desde o dia 1."
-            />
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Como o AI Engine Funciona</h2>
+              <p className="text-lg text-white/70">Não é IA adicionada depois. É IA construída no núcleo da plataforma desde o dia 1.</p>
+            </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               {/* Before */}
-              <Card className="border border-destructive/30 bg-destructive/5">
+              <Card className="border border-destructive/30 bg-destructive/10">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-destructive mb-4">ANTES: Preparação Manual</h3>
                   <div className="text-4xl font-bold text-destructive mb-4">8 horas</div>
                   <ul className="space-y-3">
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-3 text-sm text-white/70">
                       <span className="text-destructive font-bold">1.</span>
                       Ler atas das últimas 6 reuniões (2h)
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-3 text-sm text-white/70">
                       <span className="text-destructive font-bold">2.</span>
                       Consolidar relatórios financeiros, ESG, projetos (3h)
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-3 text-sm text-white/70">
                       <span className="text-destructive font-bold">3.</span>
                       Escrever pauta do zero (2h)
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-3 text-sm text-white/70">
                       <span className="text-destructive font-bold">4.</span>
                       Criar briefings individuais por conselheiro (1h)
                     </li>
@@ -161,25 +179,25 @@ const AIEngine = () => {
               </Card>
 
               {/* After */}
-              <Card className="border border-success/30 bg-success/5">
+              <Card className="border border-green-500/30 bg-green-500/10">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-success mb-4">DEPOIS: AI Engine CORE</h3>
-                  <div className="text-4xl font-bold text-success mb-4">30 minutos</div>
+                  <h3 className="text-xl font-bold text-green-500 mb-4">DEPOIS: AI Engine CORE</h3>
+                  <div className="text-4xl font-bold text-green-500 mb-4">30 minutos</div>
                   <ul className="space-y-3">
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <li className="flex items-start gap-3 text-sm text-white/70">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       IA lê histórico completo automaticamente
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <li className="flex items-start gap-3 text-sm text-white/70">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       IA consolida 20+ fontes em dashboard único
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <li className="flex items-start gap-3 text-sm text-white/70">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       IA gera 3 versões de pauta prontas (15 min)
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" aria-hidden="true" />
+                    <li className="flex items-start gap-3 text-sm text-white/70">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
                       IA cria briefings contextualizados (15 min)
                     </li>
                   </ul>
@@ -201,23 +219,23 @@ const AIEngine = () => {
       </section>
 
       {/* 14 Agents */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 bg-corporate-mid">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            <SectionHeader
-              title="14 Agentes Inteligentes"
-              subtitle="Cada agente é especializado em uma função específica da governança corporativa"
-            />
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">14 Agentes Inteligentes</h2>
+              <p className="text-lg text-white/70">Cada agente é especializado em uma função específica da governança corporativa</p>
+            </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {agents.map((agent, index) => (
-                <Card key={index} className="border border-border bg-card hover:border-accent/30 hover:shadow-lg transition-all">
+                <Card key={index} className="bg-white/5 border-border/20 hover:border-accent/30 hover:bg-white/10 transition-all">
                   <CardContent className="p-5">
-                    <div className="w-10 h-10 bg-primary/5 rounded-lg flex items-center justify-center mb-3">
-                      <agent.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                    <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mb-3">
+                      <agent.icon className="h-5 w-5 text-accent" aria-hidden="true" />
                     </div>
-                    <h3 className="text-sm font-bold text-foreground mb-2">{agent.title}</h3>
-                    <p className="text-xs text-muted-foreground">{agent.description}</p>
+                    <h3 className="text-sm font-bold text-white mb-2">{agent.title}</h3>
+                    <p className="text-xs text-white/60">{agent.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -227,58 +245,72 @@ const AIEngine = () => {
       </section>
 
       {/* Architecture */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-corporate-dark">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
-            <SectionHeader
-              title="Arquitetura IA Nativa"
-              subtitle="Enquanto competidores adicionaram IA como feature depois, a Legacy OS foi construída desde o início com IA no núcleo."
-            />
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Arquitetura IA Nativa</h2>
+              <p className="text-lg text-white/70">Enquanto competidores adicionaram IA como feature depois, a Legacy OS foi construída desde o início com IA no núcleo.</p>
+            </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <FeatureCard
-                icon={Brain}
-                title="Monitoramento 24/7"
-                description="20+ fontes monitoradas continuamente: economia, política, regulação, setor. Alertas proativos sobre mudanças relevantes."
-                variant="accent"
-              />
-
-              <FeatureCard
-                icon={BarChart}
-                title="Análise de Histórico"
-                description="Padrões, gaps, questões recorrentes identificadas automaticamente. Aprende com cada reunião do seu conselho."
-                variant="accent"
-              />
-
-              <FeatureCard
-                icon={Target}
-                title="Priorização Inteligente"
-                description="Ranqueia temas por urgência, impacto estratégico e maturidade. Foco no que realmente importa."
-                variant="accent"
-              />
-
-              <FeatureCard
-                icon={FileText}
-                title="Geração Automática"
-                description="Pauta, briefings, contexto e recomendações prontos para aprovação. Você revisa, a IA trabalha."
-                variant="accent"
-              />
+              {[
+                {
+                  icon: Brain,
+                  title: "Monitoramento 24/7",
+                  description: "20+ fontes monitoradas continuamente: economia, política, regulação, setor. Alertas proativos sobre mudanças relevantes."
+                },
+                {
+                  icon: BarChart,
+                  title: "Análise de Histórico",
+                  description: "Padrões, gaps, questões recorrentes identificadas automaticamente. Aprende com cada reunião do seu conselho."
+                },
+                {
+                  icon: Target,
+                  title: "Priorização Inteligente",
+                  description: "Ranqueia temas por urgência, impacto estratégico e maturidade. Foco no que realmente importa."
+                },
+                {
+                  icon: FileText,
+                  title: "Geração Automática",
+                  description: "Pauta, briefings, contexto e recomendações prontos para aprovação. Você revisa, a IA trabalha."
+                }
+              ].map((feature, index) => (
+                <Card key={index} className="bg-accent/10 border-accent/30 hover:border-accent/50 transition-all">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center mb-4">
+                      <feature.icon className="h-6 w-6 text-accent" aria-hidden="true" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                    <p className="text-sm text-white/70">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <CTASection
-        title="Experimente o AI Engine"
-        subtitle="Faça o diagnóstico gratuito e veja o poder da IA aplicada à governança"
-        primaryCTA={{ 
-          label: "Fazer Diagnóstico Gratuito", 
-          href: "/standalone-quiz",
-          icon: <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
-        }}
-        secondaryCTA={{ label: "Ver Planos", href: "/pricing" }}
-      />
+      <section className="py-20 bg-gradient-hero">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Experimente o AI Engine</h2>
+            <p className="text-xl text-white/80 mb-8">Faça o diagnóstico gratuito e veja o poder da IA aplicada à governança</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold text-lg px-8" asChild>
+                <Link to="/standalone-quiz">
+                  Fazer Diagnóstico Gratuito
+                  <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 text-lg px-8" asChild>
+                <Link to="/pricing">Ver Planos</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <MegaFooter />
     </div>
