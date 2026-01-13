@@ -1,17 +1,33 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { Menu, X, Lock, Bot, Home } from "lucide-react";
+import { Menu, X, Lock, Bot, Home, ChevronDown, Brain, Shield, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import legacyLogo from "@/assets/legacy-logo-new.png";
 import { cn } from "@/lib/utils";
 
-// Menu items with Home
+// Menu items principais
 const MENU_ITEMS = [
   { id: "home", label: "Home", href: "/", icon: Home },
   { id: "plataforma", label: "Plataforma", href: "/plataforma" },
-  { id: "governanca", label: "Governança", href: "/governanca" },
-  { id: "ai-engine", label: "AI Engine", href: "/ai-engine", highlight: true },
   { id: "planos", label: "Planos", href: "/pricing" },
+];
+
+// Dropdown de Módulos
+const MODULOS_ITEMS = [
+  { id: "ai-engine", label: "AI Engine", href: "/ai-engine", icon: Brain },
+  { id: "governanca", label: "Governança", href: "/governanca", icon: Shield },
+  { id: "diagnostico", label: "Diagnóstico", href: "/standalone-quiz", icon: ClipboardCheck },
 ];
 
 const SECONDARY_LINKS = [
@@ -25,6 +41,7 @@ export const MegaMenuHeader = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isModulosOpen, setIsModulosOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,10 +56,18 @@ export const MegaMenuHeader = () => {
     return location.pathname.startsWith(href);
   };
 
+  const isModulosActive = () => {
+    return MODULOS_ITEMS.some(item => isActiveRoute(item.href));
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Top Bar */}
-      <div className="bg-corporate-dark text-slate-400 text-sm py-2 border-b border-border/20 hidden md:block">
+      <div className={cn(
+        "text-slate-400 text-sm py-2 border-b border-border/20 hidden md:block transition-all duration-300",
+        isScrolled ? "bg-corporate-dark/95" : "bg-corporate-dark/80",
+        "backdrop-blur-xl"
+      )}>
         <div className="container mx-auto px-6 flex justify-end items-center space-x-6">
           <nav className="flex items-center space-x-6">
             {SECONDARY_LINKS.map((link) => (
@@ -50,8 +75,8 @@ export const MegaMenuHeader = () => {
                 key={link.id}
                 to={link.href} 
                 className={cn(
-                  "hover:text-accent transition-colors",
-                  isActiveRoute(link.href) && "text-accent"
+                  "hover:text-accent transition-all duration-200 legacy-glow-gold-hover",
+                  isActiveRoute(link.href) && "text-accent legacy-glow-gold"
                 )}
                 aria-current={isActiveRoute(link.href) ? "page" : undefined}
               >
@@ -64,8 +89,8 @@ export const MegaMenuHeader = () => {
 
       {/* Main Nav */}
       <div className={cn(
-        "bg-corporate-dark border-b border-border/20 transition-all duration-300",
-        isScrolled ? "py-2" : "py-3"
+        "border-b border-border/20 transition-all duration-300 relative backdrop-blur-xl",
+        isScrolled ? "py-2 bg-corporate-dark/95" : "py-3 bg-corporate-dark/80"
       )}>
         <div className="container mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
@@ -81,29 +106,69 @@ export const MegaMenuHeader = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-2 ml-12" aria-label="Navegação principal">
+          <nav className="hidden lg:flex items-center space-x-1 ml-12" aria-label="Navegação principal">
             {MENU_ITEMS.map((item) => (
               <Link
                 key={item.id}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-2.5 text-lg font-medium rounded-md transition-colors",
+                  "flex items-center gap-2 px-5 py-2.5 text-lg font-medium rounded-md transition-all duration-200",
                   "text-white hover:text-accent hover:bg-white/5",
-                  isActiveRoute(item.href) && "text-accent bg-accent/10"
+                  isActiveRoute(item.href) && "text-accent bg-accent/10 drop-shadow-[0_0_8px_rgba(201,168,108,0.5)]"
                 )}
                 aria-current={isActiveRoute(item.href) ? "page" : undefined}
               >
-                {item.highlight && <Bot className="h-5 w-5" aria-hidden="true" />}
                 {item.label}
               </Link>
             ))}
+
+            {/* Dropdown Módulos */}
+            <DropdownMenu>
+              <DropdownMenuTrigger 
+                className={cn(
+                  "flex items-center gap-1.5 px-5 py-2.5 text-lg font-medium rounded-md transition-all duration-200 outline-none",
+                  "text-white hover:text-accent hover:bg-white/5",
+                  isModulosActive() && "text-accent bg-accent/10 drop-shadow-[0_0_8px_rgba(201,168,108,0.5)]"
+                )}
+              >
+                <Bot className="h-5 w-5" aria-hidden="true" />
+                Módulos
+                <ChevronDown className="h-4 w-4 ml-0.5" aria-hidden="true" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                className="bg-corporate-dark/95 backdrop-blur-xl border-accent/20 min-w-[200px]"
+                sideOffset={8}
+              >
+                {MODULOS_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem 
+                      key={item.id} 
+                      asChild
+                      className="focus:bg-accent/10 focus:text-accent cursor-pointer"
+                    >
+                      <Link 
+                        to={item.href} 
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 text-white hover:text-accent transition-all duration-200",
+                          isActiveRoute(item.href) && "text-accent"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           {/* CTA Button - Login Only */}
           <div className="hidden lg:flex items-center">
             <Button 
               size="lg"
-              className="bg-accent hover:bg-accent/90 text-primary font-semibold text-lg px-6"
+              className="bg-accent hover:bg-accent/90 text-primary font-semibold text-lg px-6 transition-all duration-200 hover:shadow-[0_0_20px_rgba(201,168,108,0.3)]"
               onClick={() => navigate("/login")}
             >
               <Lock className="h-5 w-5 mr-2" aria-hidden="true" />
@@ -131,6 +196,9 @@ export const MegaMenuHeader = () => {
             </button>
           </div>
         </div>
+
+        {/* Gradient Line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
       </div>
 
       {/* Mobile Menu Sidebar */}
@@ -138,7 +206,7 @@ export const MegaMenuHeader = () => {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -146,7 +214,7 @@ export const MegaMenuHeader = () => {
           {/* Sidebar */}
           <div 
             id="mobile-menu"
-            className="fixed top-0 right-0 h-full w-80 bg-corporate-dark z-50 lg:hidden overflow-y-auto animate-in slide-in-from-right duration-300"
+            className="fixed top-0 right-0 h-full w-80 bg-corporate-dark/95 backdrop-blur-xl z-50 lg:hidden overflow-y-auto animate-in slide-in-from-right duration-300"
             role="dialog"
             aria-modal="true"
             aria-label="Menu de navegação"
@@ -168,17 +236,57 @@ export const MegaMenuHeader = () => {
                   key={item.id}
                   to={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 text-lg font-medium rounded-lg transition-colors",
+                    "flex items-center gap-3 px-4 py-3 text-lg font-medium rounded-lg transition-all duration-200",
                     "text-white hover:text-accent hover:bg-white/5",
                     isActiveRoute(item.href) && "text-accent bg-accent/10"
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                   aria-current={isActiveRoute(item.href) ? "page" : undefined}
                 >
-                  {item.highlight && <Bot className="h-5 w-5" aria-hidden="true" />}
                   {item.label}
                 </Link>
               ))}
+
+              {/* Módulos Accordion */}
+              <Collapsible open={isModulosOpen} onOpenChange={setIsModulosOpen}>
+                <CollapsibleTrigger 
+                  className={cn(
+                    "flex items-center justify-between w-full px-4 py-3 text-lg font-medium rounded-lg transition-all duration-200",
+                    "text-white hover:text-accent hover:bg-white/5",
+                    isModulosActive() && "text-accent bg-accent/10"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Bot className="h-5 w-5" aria-hidden="true" />
+                    Módulos
+                  </div>
+                  <ChevronDown className={cn(
+                    "h-5 w-5 transition-transform duration-200",
+                    isModulosOpen && "rotate-180"
+                  )} aria-hidden="true" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  {MODULOS_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.id}
+                        to={item.href}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-2.5 text-base rounded-lg transition-all duration-200",
+                          "text-slate-300 hover:text-accent hover:bg-white/5",
+                          isActiveRoute(item.href) && "text-accent bg-accent/10"
+                        )}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        aria-current={isActiveRoute(item.href) ? "page" : undefined}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
 
               {/* Secondary Links */}
               <div className="pt-4 mt-4 border-t border-border/20 space-y-2">
