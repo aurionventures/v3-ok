@@ -3,6 +3,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Legacy OS Design System - Utility Classes */
+.legacy-glow-gold {
+  filter: drop-shadow(0 0 8px hsl(38 45% 57% / 0.5));
+}
+
+.legacy-glow-gold-hover:hover {
+  filter: drop-shadow(0 0 6px hsl(38 45% 57% / 0.3));
+}
+
+.legacy-glass {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.legacy-gradient-line {
+  background: linear-gradient(90deg, 
+    transparent, 
+    hsl(38 45% 57% / 0.5), 
+    transparent
+  );
+  height: 1px;
+}
+
 @layer base {
   :root {
     /* Corporate Color Palette - Professional Governance Theme */

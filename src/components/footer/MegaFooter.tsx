@@ -1,120 +1,164 @@
 import { Link } from "react-router-dom";
 import { 
-  Calculator, 
-  CalendarDays, 
-  MessageSquare,
-  Gem,
-  SlidersHorizontal,
-  Info,
-  Users,
-  MapPin,
-  FileText,
+  Brain,
+  Shield,
+  ClipboardCheck,
   Home,
   Layers,
-  Shield,
-  Brain,
   Building,
-  ShieldCheck
+  FileText,
+  MessageSquare,
+  Mail,
+  Phone,
+  Linkedin
 } from "lucide-react";
 import { SocialIcons } from "./SocialIcons";
 import legacyLogo from "@/assets/legacy-logo-new.png";
+
+// Links do Menu
+const MENU_LINKS = [
+  { label: "Home", href: "/", icon: Home },
+  { label: "Plataforma", href: "/plataforma", icon: Layers },
+  { label: "Empresa", href: "/sobre", icon: Building },
+  { label: "Blog", href: "/blog", icon: FileText },
+  { label: "Contato", href: "/contato", icon: MessageSquare },
+];
+
+// Links dos Módulos
+const MODULOS_LINKS = [
+  { label: "AI Engine", href: "/ai-engine", icon: Brain },
+  { label: "Governança", href: "/governanca", icon: Shield },
+  { label: "Diagnóstico", href: "/standalone-quiz", icon: ClipboardCheck },
+];
+
+// Links de Políticas
+const POLITICAS_LINKS = [
+  { label: "Privacidade", href: "/politica-privacidade" },
+  { label: "Termos de Uso", href: "/termos-uso" },
+  { label: "LGPD", href: "/lgpd" },
+];
 
 export function MegaFooter() {
   return (
     <footer className="bg-corporate-dark text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-6 py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           
-          {/* COLUNA 1: Logo + Social */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* COLUNA 1: Marca */}
+          <div className="space-y-6">
             <div>
               <img 
                 src={legacyLogo} 
                 alt="Legacy OS" 
-                className="h-8 w-auto brightness-0 invert"
+                className="h-10 w-auto brightness-0 invert"
               />
-              <p className="text-sm text-slate-400 mt-2">Governança Corporativa</p>
             </div>
-
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Sistema Operacional de Governança Corporativa. Transformando a gestão empresarial com inteligência artificial e boas práticas de governança.
+            </p>
             <SocialIcons />
           </div>
 
-          {/* COLUNA 2: Comece Agora */}
+          {/* COLUNA 2: Menu */}
           <div>
-            <h3 className="text-base font-semibold text-white mb-5">Comece Agora</h3>
-            <div className="space-y-2.5">
-              <FooterLinkClickable href="/pricing#calculator" icon={Calculator}>
-                Calcular Meu Preço
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/contato" icon={CalendarDays}>
-                Agendar Demonstração
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/contato" icon={MessageSquare}>
-                Falar com Especialista
-              </FooterLinkClickable>
+            <h3 className="text-base font-semibold text-white mb-5">Menu</h3>
+            <nav className="space-y-3" aria-label="Links do menu">
+              {MENU_LINKS.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 hover:pl-1 group"
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* COLUNA 3: Módulos + Políticas */}
+          <div className="space-y-8">
+            {/* Módulos */}
+            <div>
+              <h3 className="text-base font-semibold text-white mb-5">Módulos</h3>
+              <nav className="space-y-3" aria-label="Links dos módulos">
+                {MODULOS_LINKS.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 hover:pl-1 group"
+                    >
+                      <Icon className="h-3.5 w-3.5 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
+                      <span>{link.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Políticas */}
+            <div>
+              <h4 className="text-sm font-medium text-slate-300 mb-3">Políticas</h4>
+              <nav className="space-y-2" aria-label="Links de políticas">
+                {POLITICAS_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="block text-[13px] text-slate-500 hover:text-accent transition-all duration-200 hover:pl-1"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
             </div>
           </div>
 
-          {/* COLUNA 3: Legacy OS */}
+          {/* COLUNA 4: Contato */}
           <div>
-            <h3 className="text-base font-semibold text-white mb-5">Legacy OS</h3>
-            <div className="space-y-2.5">
-              <FooterLinkClickable href="/" icon={Home}>
-                Home
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/plataforma" icon={Layers}>
-                Plataforma
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/governanca" icon={Shield}>
-                Governança
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/ai-engine" icon={Brain}>
-                AI Engine
-              </FooterLinkClickable>
-            </div>
-          </div>
+            <h3 className="text-base font-semibold text-white mb-5">Contato</h3>
+            <div className="space-y-4">
+              {/* Email */}
+              <a 
+                href="mailto:contato@legacyos.com.br" 
+                className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 group"
+              >
+                <Mail className="h-4 w-4 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
+                <span>contato@legacyos.com.br</span>
+              </a>
 
-          {/* COLUNA 4: Planos */}
-          <div>
-            <h3 className="text-base font-semibold text-white mb-5">Planos</h3>
-            <div className="space-y-2.5">
-              <FooterLinkClickable href="/pricing" icon={Gem}>
-                Planos & Preços
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/pricing#calculator" icon={SlidersHorizontal}>
-                Calculadora Interativa
-              </FooterLinkClickable>
-            </div>
-          </div>
+              {/* Telefone */}
+              <a 
+                href="tel:+551140028922" 
+                className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 group"
+              >
+                <Phone className="h-4 w-4 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
+                <span>+55 (11) 4002-8922</span>
+              </a>
 
-          {/* COLUNA 5: Empresa */}
-          <div>
-            <h3 className="text-base font-semibold text-white mb-5">Empresa</h3>
-            <div className="space-y-2.5">
-              <FooterLinkClickable href="/sobre" icon={Info}>
-                Sobre Nós
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/contato" icon={Users}>
-                Contato
-              </FooterLinkClickable>
-              <FooterLinkClickable href="/blog" icon={FileText}>
-                Blog
-              </FooterLinkClickable>
-              
-              {/* Office - Endereço */}
-              <div className="pt-3">
-                <div className="flex items-start gap-2">
-                  <Building className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-[13px] text-slate-400">Office</span>
-                    <address className="text-xs text-slate-500 leading-relaxed not-italic mt-1">
-                      <p>Av. Brig. Faria Lima, 1811</p>
-                      <p>ESC 1119 - Jardim Paulistano</p>
-                      <p>São Paulo - SP, 01452-001</p>
-                    </address>
-                  </div>
-                </div>
+              {/* LinkedIn */}
+              <a 
+                href="https://linkedin.com/company/legacyos" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 group"
+              >
+                <Linkedin className="h-4 w-4 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
+                <span>LinkedIn</span>
+              </a>
+
+              {/* Endereço */}
+              <div className="pt-3 mt-3 border-t border-border/20">
+                <address className="text-xs text-slate-500 leading-relaxed not-italic">
+                  <p>Av. Brig. Faria Lima, 1811</p>
+                  <p>ESC 1119 - Jardim Paulistano</p>
+                  <p>São Paulo - SP, 01452-001</p>
+                </address>
               </div>
             </div>
           </div>
@@ -122,58 +166,16 @@ export function MegaFooter() {
         </div>
       </div>
 
-      {/* Trust Section */}
-      <div className="container mx-auto px-6 py-6">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
-          <div className="flex items-center gap-2 text-white">
-            <ShieldCheck className="h-4 w-4 text-accent" aria-hidden="true" />
-            <span className="text-base font-semibold">Trust</span>
-          </div>
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" aria-label="Links de confiança">
-            <Link to="/politica-privacidade" className="text-[13px] text-slate-400 hover:text-accent transition-colors">
-              Política de Privacidade
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">•</span>
-            <Link to="/termos-uso" className="text-[13px] text-slate-400 hover:text-accent transition-colors">
-              Termos de Uso
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">•</span>
-            <Link to="/lgpd" className="text-[13px] text-slate-400 hover:text-accent transition-colors">
-              LGPD
-            </Link>
-          </nav>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-border/20" />
+      {/* Gradient Line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
 
       {/* Bottom Bar - Copyright */}
       <div className="container mx-auto px-6 py-6">
         <p className="text-sm text-slate-500 text-center">
-          © 2025 - 2026 Legacy OS. Todos os direitos reservados.
+          © 2025 Legacy OS. Todos os direitos reservados.
         </p>
       </div>
     </footer>
-  );
-}
-
-// Componente auxiliar para links clicáveis com ícones
-interface FooterLinkClickableProps {
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-}
-
-function FooterLinkClickable({ href, icon: Icon, children }: FooterLinkClickableProps) {
-  return (
-    <Link
-      to={href}
-      className="flex items-center gap-2 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 hover:pl-1 leading-relaxed"
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      <span>{children}</span>
-    </Link>
   );
 }
 
