@@ -1057,12 +1057,12 @@ export default function AdminPromptLibrary() {
             <TableHeader>
               <TableRow>
                 <TableHead>Prompt</TableHead>
-                <TableHead>Versao</TableHead>
+                <TableHead>Versão</TableHead>
                 <TableHead>Autor</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead>Motivo</TableHead>
-                <TableHead>Alteracoes</TableHead>
-                <TableHead className="text-right">Acoes</TableHead>
+                <TableHead>Alterações</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
