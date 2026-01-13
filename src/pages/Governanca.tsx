@@ -8,6 +8,7 @@ import { MegaFooter } from "@/components/footer";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { HeroSection, SectionHeader, FeatureCard, CTASection } from "@/components/landing";
 
 const Governanca = () => {
   const engagementFeatures = [
@@ -91,64 +92,35 @@ const Governanca = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <MegaMenuHeader />
 
       {/* Hero */}
-      <section className="pt-32 pb-16 bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B]">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-              Governança Integrada
-            </h1>
-            <p className="text-xl text-white/70 mb-8">
-              Engajamento do conselho, continuidade do board e segurança enterprise 
-              em uma única plataforma. Governança de excelência para qualquer setor.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-[#C0A062] text-[#0A1628] hover:bg-[#C0A062]/90 font-semibold" asChild>
-                <Link to="/pricing">Ver Planos e Preços</Link>
-              </Button>
-              <Button size="lg" className="bg-transparent border-2 border-[#C0A062] text-[#C0A062] hover:bg-[#C0A062]/10 font-semibold" asChild>
-                <Link to="/contato">Agendar Demo</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection
+        title="Governança Integrada"
+        subtitle="Engajamento do conselho, continuidade do board e segurança enterprise em uma única plataforma. Governança de excelência para qualquer setor."
+        primaryCTA={{ label: "Ver Planos e Preços", href: "/pricing" }}
+        secondaryCTA={{ label: "Agendar Demo", href: "/contato" }}
+      />
 
       {/* Engagement Features */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A1628]">
-                Engajamento do Conselho
-              </h2>
-              <p className="text-lg text-gray-600">
-                Ferramentas para maximizar a participação e efetividade dos conselheiros
-              </p>
-            </div>
+            <SectionHeader
+              title="Engajamento do Conselho"
+              subtitle="Ferramentas para maximizar a participação e efetividade dos conselheiros"
+            />
 
             <div className="grid md:grid-cols-2 gap-6">
               {engagementFeatures.map((feature, index) => (
-                <Card key={index} className="border border-gray-200 hover:border-[#C0A062]/30 hover:shadow-lg transition-all">
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-[#0A1628]/5 rounded-xl flex items-center justify-center mb-4">
-                      <feature.icon className="h-6 w-6 text-[#0A1628]" />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#0A1628] mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{feature.description}</p>
-                    <ul className="space-y-1">
-                      {feature.features.map((item, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm text-[#0A1628]">
-                          <CheckCircle className="h-3 w-3 text-[#C0A062]" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <FeatureCard
+                  key={index}
+                  icon={feature.icon}
+                  title={feature.title}
+                  description={feature.description}
+                  features={feature.features}
+                />
               ))}
             </div>
           </div>
@@ -156,37 +128,24 @@ const Governanca = () => {
       </section>
 
       {/* Continuity Features */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A1628]">
-                Continuidade do Board
-              </h2>
-              <p className="text-lg text-gray-600">
-                Gestão de longo prazo, avaliações e desenvolvimento contínuo
-              </p>
-            </div>
+            <SectionHeader
+              title="Continuidade do Board"
+              subtitle="Gestão de longo prazo, avaliações e desenvolvimento contínuo"
+            />
 
             <div className="grid md:grid-cols-2 gap-6">
               {continuityFeatures.map((feature, index) => (
-                <Card key={index} className="border border-gray-200 bg-white hover:border-[#C0A062]/30 hover:shadow-lg transition-all">
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-[#C0A062]/10 rounded-xl flex items-center justify-center mb-4">
-                      <feature.icon className="h-6 w-6 text-[#C0A062]" />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#0A1628] mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{feature.description}</p>
-                    <ul className="space-y-1">
-                      {feature.features.map((item, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm text-[#0A1628]">
-                          <CheckCircle className="h-3 w-3 text-[#C0A062]" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <FeatureCard
+                  key={index}
+                  icon={feature.icon}
+                  title={feature.title}
+                  description={feature.description}
+                  features={feature.features}
+                  variant="accent"
+                />
               ))}
             </div>
           </div>
@@ -194,37 +153,23 @@ const Governanca = () => {
       </section>
 
       {/* Security */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A1628]">
-                Segurança Enterprise
-              </h2>
-              <p className="text-lg text-gray-600">
-                Certificações e compliance de nível mundial
-              </p>
-            </div>
+            <SectionHeader
+              title="Segurança Enterprise"
+              subtitle="Certificações e compliance de nível mundial"
+            />
 
             <div className="grid md:grid-cols-2 gap-6">
               {securityFeatures.map((feature, index) => (
-                <Card key={index} className="border border-gray-200 hover:border-[#C0A062]/30 hover:shadow-lg transition-all">
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-[#0A1628]/5 rounded-xl flex items-center justify-center mb-4">
-                      <feature.icon className="h-6 w-6 text-[#0A1628]" />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#0A1628] mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{feature.description}</p>
-                    <ul className="space-y-1">
-                      {feature.features.map((item, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm text-[#0A1628]">
-                          <CheckCircle className="h-3 w-3 text-[#C0A062]" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+                <FeatureCard
+                  key={index}
+                  icon={feature.icon}
+                  title={feature.title}
+                  description={feature.description}
+                  features={feature.features}
+                />
               ))}
             </div>
           </div>
@@ -232,25 +177,21 @@ const Governanca = () => {
       </section>
 
       {/* Industries */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A1628]">
-                Governança para Qualquer Setor
-              </h2>
-              <p className="text-lg text-gray-600">
-                Soluções adaptadas às necessidades específicas de cada indústria
-              </p>
-            </div>
+            <SectionHeader
+              title="Governança para Qualquer Setor"
+              subtitle="Soluções adaptadas às necessidades específicas de cada indústria"
+            />
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {industries.map((industry, index) => (
-                <div key={index} className="flex flex-col items-center p-6 bg-white rounded-xl border border-gray-200 hover:border-[#C0A062]/30 hover:shadow-lg transition-all">
-                  <div className="w-12 h-12 bg-[#0A1628]/5 rounded-full flex items-center justify-center mb-3">
-                    <industry.icon className="h-6 w-6 text-[#0A1628]" />
+                <div key={index} className="flex flex-col items-center p-6 bg-card rounded-xl border border-border hover:border-accent/30 hover:shadow-lg transition-all">
+                  <div className="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center mb-3">
+                    <industry.icon className="h-6 w-6 text-primary" aria-hidden="true" />
                   </div>
-                  <span className="text-sm font-medium text-center text-[#0A1628]">{industry.name}</span>
+                  <span className="text-sm font-medium text-center text-foreground">{industry.name}</span>
                 </div>
               ))}
             </div>
@@ -259,26 +200,12 @@ const Governanca = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B]">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center text-white">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Pronto para Elevar sua Governança?
-            </h2>
-            <p className="text-xl text-white/70 mb-8">
-              Agende uma demonstração e veja como a Legacy OS transforma a governança da sua empresa
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-[#C0A062] text-[#0A1628] hover:bg-[#C0A062]/90 font-semibold" asChild>
-                <Link to="/contato">Agendar Demonstração</Link>
-              </Button>
-              <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold" asChild>
-                <Link to="/pricing">Ver Planos</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CTASection
+        title="Pronto para Elevar sua Governança?"
+        subtitle="Agende uma demonstração e veja como a Legacy OS transforma a governança da sua empresa"
+        primaryCTA={{ label: "Agendar Demonstração", href: "/contato" }}
+        secondaryCTA={{ label: "Ver Planos", href: "/pricing" }}
+      />
 
       <MegaFooter />
     </div>

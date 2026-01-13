@@ -101,12 +101,17 @@ export default {
 					teal: {
 						500: '#2C7A7B',
 					}
+				},
+				corporate: {
+					dark: 'hsl(var(--corporate-dark))',
+					mid: 'hsl(var(--corporate-mid))',
+					light: 'hsl(var(--corporate-light))',
 				}
 			},
 			backgroundImage: {
 				'gradient-copilot': 'linear-gradient(to right, hsl(var(--gradient-copilot-from)), hsl(var(--gradient-copilot-to)))',
 				'gradient-success': 'linear-gradient(to right, hsl(var(--gradient-success-from)), hsl(var(--gradient-success-to)))',
-				'gradient-hero': 'linear-gradient(135deg, hsl(var(--gradient-hero-from)), hsl(var(--gradient-hero-to)))',
+				'gradient-hero': 'linear-gradient(135deg, hsl(var(--gradient-hero-from)), hsl(var(--gradient-hero-via)), hsl(var(--gradient-hero-to)))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

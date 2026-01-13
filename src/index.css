@@ -84,7 +84,13 @@
     --gradient-success-from: 142 71% 45%;
     --gradient-success-to: 160 84% 39%;
     --gradient-hero-from: 222 47% 11%;
-    --gradient-hero-to: 213 50% 23%;
+    --gradient-hero-via: 218 50% 13%;
+    --gradient-hero-to: 218 40% 17%;
+
+    /* ========== CORPORATE COLORS ========== */
+    --corporate-dark: 218 55% 10%;
+    --corporate-mid: 218 50% 13%;
+    --corporate-light: 218 40% 17%;
   }
 
   .dark {
@@ -148,7 +154,13 @@
     --gradient-success-from: 142 71% 45%;
     --gradient-success-to: 160 84% 39%;
     --gradient-hero-from: 222 47% 11%;
-    --gradient-hero-to: 213 50% 23%;
+    --gradient-hero-via: 218 50% 13%;
+    --gradient-hero-to: 218 40% 17%;
+
+    /* ========== CORPORATE COLORS (Dark) ========== */
+    --corporate-dark: 218 55% 10%;
+    --corporate-mid: 218 50% 13%;
+    --corporate-light: 218 40% 17%;
   }
 }
 

@@ -12,6 +12,7 @@ import {
   Sparkles,
   TrendingUp
 } from "lucide-react";
+import { HeroSection, CTASection } from "@/components/landing";
 import { 
   BLOG_ARTICLES, 
   BLOG_CATEGORIES, 
@@ -57,11 +58,11 @@ export default function Blog() {
       <MegaMenuHeader />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] pt-32 pb-16">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.1),transparent_50%)]" />
+      <section className="relative overflow-hidden bg-gradient-hero pt-32 pb-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(192,160,98,0.1),transparent_50%)]" />
         <div className="container mx-auto px-6 relative">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-6">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-6 font-heading">
               Insights sobre Governança Corporativa
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
@@ -71,13 +72,14 @@ export default function Blog() {
 
             {/* Search Bar */}
             <div className="max-w-xl mx-auto relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
               <Input
                 type="text"
                 placeholder="Buscar artigos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 h-12 bg-white text-foreground"
+                aria-label="Buscar artigos"
               />
             </div>
           </div>
@@ -87,12 +89,12 @@ export default function Blog() {
       {/* Categories */}
       <section className="py-8 border-b bg-muted/30">
         <div className="container mx-auto px-6">
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <nav className="flex flex-wrap items-center justify-center gap-3" aria-label="Categorias do blog">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
-              className={selectedCategory === null ? "bg-[#C0A062] hover:bg-[#C0A062]/90" : ""}
+              className={selectedCategory === null ? "bg-accent hover:bg-accent/90 text-primary" : ""}
             >
               Todos
             </Button>
@@ -102,12 +104,12 @@ export default function Blog() {
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className={selectedCategory === category.id ? "bg-[#C0A062] hover:bg-[#C0A062]/90" : ""}
+                className={selectedCategory === category.id ? "bg-accent hover:bg-accent/90 text-primary" : ""}
               >
                 {category.name}
               </Button>
             ))}
-          </div>
+          </nav>
         </div>
       </section>
 
@@ -116,8 +118,8 @@ export default function Blog() {
         <section className="py-16">
           <div className="container mx-auto px-6">
             <div className="flex items-center gap-2 mb-8">
-              <TrendingUp className="h-5 w-5 text-[#C0A062]" />
-              <h2 className="text-2xl font-bold">Artigos em Destaque</h2>
+              <TrendingUp className="h-5 w-5 text-accent" aria-hidden="true" />
+              <h2 className="text-2xl font-bold text-foreground">Artigos em Destaque</h2>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -130,7 +132,7 @@ export default function Blog() {
                       <div className="h-48 overflow-hidden">
                         <img 
                           src={coverImage} 
-                          alt={article.title}
+                          alt=""
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
@@ -140,7 +142,7 @@ export default function Blog() {
                             {category.name}
                           </Badge>
                         )}
-                        <h3 className="font-bold text-lg mb-3 group-hover:text-[#C0A062] transition-colors line-clamp-2">
+                        <h3 className="font-bold text-lg mb-3 group-hover:text-accent transition-colors line-clamp-2 text-foreground">
                           {article.title}
                         </h3>
                         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -148,7 +150,7 @@ export default function Blog() {
                         </p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="font-medium">{article.author}</span>
-                          <span>-</span>
+                          <span aria-hidden="true">-</span>
                           <span>{article.readTime} min</span>
                         </div>
                       </CardContent>
@@ -164,7 +166,7 @@ export default function Blog() {
       {/* All Articles */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-6">
-          <h2 className="text-2xl font-bold mb-8">
+          <h2 className="text-2xl font-bold mb-8 text-foreground">
             {searchTerm || selectedCategory ? `${filteredArticles.length} artigos encontrados` : "Todos os Artigos"}
           </h2>
 
@@ -186,7 +188,7 @@ export default function Blog() {
                       <div className="h-40 overflow-hidden">
                         <img 
                           src={coverImage} 
-                          alt={article.title}
+                          alt=""
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
@@ -201,7 +203,7 @@ export default function Blog() {
                             {formatDate(article.publishDate)}
                           </span>
                         </div>
-                        <h3 className="font-bold text-lg mb-3 group-hover:text-[#C0A062] transition-colors line-clamp-2">
+                        <h3 className="font-bold text-lg mb-3 group-hover:text-accent transition-colors line-clamp-2 text-foreground">
                           {article.title}
                         </h3>
                         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -210,12 +212,12 @@ export default function Blog() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="font-medium">{article.author}</span>
-                            <span>-</span>
+                            <span aria-hidden="true">-</span>
                             <span>{article.readTime} min</span>
                           </div>
-                          <div className="flex items-center gap-1 text-[#C0A062] text-sm font-medium group-hover:gap-2 transition-all">
+                          <div className="flex items-center gap-1 text-accent text-sm font-medium group-hover:gap-2 transition-all">
                             <span>Ler mais</span>
-                            <ArrowRight className="h-4 w-4" />
+                            <ArrowRight className="h-4 w-4" aria-hidden="true" />
                           </div>
                         </div>
                       </CardContent>
@@ -229,41 +231,17 @@ export default function Blog() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Transforme a Governança da Sua Empresa
-            </h2>
-            <p className="text-xl text-white/80 mb-8">
-              Experimente a Legacy OS gratuitamente por 30 dias e descubra como nossa plataforma
-              pode revolucionar a gestão do seu conselho.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-[#C0A062] hover:bg-[#C0A062]/90 text-white"
-                asChild
-              >
-                <Link to="/pricing">
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Começar Gratuitamente
-                </Link>
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10"
-                asChild
-              >
-                <Link to="/contato">
-                  Falar com Especialista
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CTASection
+        title="Transforme a Governança da Sua Empresa"
+        subtitle="Experimente a Legacy OS gratuitamente por 30 dias e descubra como nossa plataforma pode revolucionar a gestão do seu conselho."
+        primaryCTA={{ 
+          label: "Começar Gratuitamente", 
+          href: "/pricing",
+          icon: <Sparkles className="h-5 w-5 mr-2" aria-hidden="true" />
+        }}
+        secondaryCTA={{ label: "Falar com Especialista", href: "/contato" }}
+        variant="light"
+      />
 
       <MegaFooter />
     </div>
