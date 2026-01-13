@@ -27,6 +27,7 @@ import { CompanyFilters, CompanyFiltersState } from "@/components/admin/CompanyF
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import MetricCard from "@/components/metrics/MetricCard";
 import { AdminPlanManager } from "@/components/admin/AdminPlanManager";
+import { ClientWizard } from "@/components/admin/ClientWizard";
 
 const Companies = () => {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ const Companies = () => {
   });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [isClientWizardOpen, setIsClientWizardOpen] = useState(false);
 
   // Recarregar dados quando a página receber foco
   useEffect(() => {

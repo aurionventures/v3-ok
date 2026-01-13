@@ -134,6 +134,7 @@ const mockAgentUsage = aiAgents.flatMap(agent =>
   agent.prompts.map(prompt => ({
     agentId: prompt.id,
     agentName: `${agent.name} - ${prompt.name}`,
+    agentType: agent.name, // Tipo do agente (Agent A, Agent B, etc.)
     category: 'MOAT Engine',
     totalTokens: prompt.metrics.executions * 2500,
     totalCost: prompt.metrics.executions * 0.01,
@@ -145,7 +146,18 @@ const mockAgentUsage = aiAgents.flatMap(agent =>
   }))
 );
 
-const mockClientUsage: ClientUsage[] = [
+// Lista de tipos de agentes únicos
+const agentTypes = [...new Set(aiAgents.map(agent => agent.name))];
+
+// Uso por agente por cliente
+interface ClientAgentUsage {
+  agentType: string;
+  tokens: number;
+  cost: number;
+  executions: number;
+}
+
+const mockClientUsage: (ClientUsage & { agentUsage: ClientAgentUsage[] })[] = [
   {
     clientId: 'client-1',
     clientName: 'Grupo Industrial ABC',
@@ -156,6 +168,12 @@ const mockClientUsage: ClientUsage[] = [
     lastActivity: '2025-12-15T14:30:00Z',
     monthlyLimit: 10000000,
     usagePercent: 56.78,
+    agentUsage: [
+      { agentType: 'Agent A', tokens: 1500000, cost: 3.0, executions: 65 },
+      { agentType: 'Agent B', tokens: 1200000, cost: 2.4, executions: 52 },
+      { agentType: 'Agent C', tokens: 1100000, cost: 2.2, executions: 48 },
+      { agentType: 'Agent D', tokens: 1878000, cost: 3.76, executions: 69 },
+    ],
   },
   {
     clientId: 'client-2',
@@ -167,6 +185,12 @@ const mockClientUsage: ClientUsage[] = [
     lastActivity: '2025-12-15T12:00:00Z',
     monthlyLimit: 5000000,
     usagePercent: 69.12,
+    agentUsage: [
+      { agentType: 'Agent A', tokens: 900000, cost: 1.8, executions: 40 },
+      { agentType: 'Agent B', tokens: 850000, cost: 1.7, executions: 38 },
+      { agentType: 'Agent C', tokens: 806000, cost: 1.61, executions: 35 },
+      { agentType: 'Agent D', tokens: 900000, cost: 1.8, executions: 43 },
+    ],
   },
   {
     clientId: 'client-3',
@@ -178,6 +202,12 @@ const mockClientUsage: ClientUsage[] = [
     lastActivity: '2025-12-14T16:00:00Z',
     monthlyLimit: 1000000,
     usagePercent: 89.0,
+    agentUsage: [
+      { agentType: 'Agent A', tokens: 250000, cost: 0.5, executions: 12 },
+      { agentType: 'Agent B', tokens: 220000, cost: 0.44, executions: 11 },
+      { agentType: 'Agent C', tokens: 200000, cost: 0.4, executions: 10 },
+      { agentType: 'Agent D', tokens: 220000, cost: 0.44, executions: 12 },
+    ],
   },
 ];
 
@@ -350,25 +380,29 @@ function ModelUsageLineChart({ data }: { data: typeof mockModelDailyUsage }) {
 function AgentUsageTable({ 
   data, 
   searchTerm,
-  categoryFilter 
+  categoryFilter,
+  agentTypeFilter 
 }: { 
   data: typeof mockAgentUsage;
   searchTerm: string;
   categoryFilter: string;
+  agentTypeFilter: string;
 }) {
   const filteredData = useMemo(() => {
     return data.filter(agent => {
       const matchesSearch = agent.agentName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === 'all' || agent.category === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const matchesAgentType = agentTypeFilter === 'all' || agent.agentType === agentTypeFilter;
+      return matchesSearch && matchesCategory && matchesAgentType;
     });
-  }, [data, searchTerm, categoryFilter]);
+  }, [data, searchTerm, categoryFilter, agentTypeFilter]);
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Agente</TableHead>
+          <TableHead>Tipo</TableHead>
           <TableHead>Categoria</TableHead>
           <TableHead className="text-right">Tokens</TableHead>
           <TableHead className="text-right">Custo</TableHead>
@@ -382,6 +416,9 @@ function AgentUsageTable({
         {filteredData.map((agent) => (
           <TableRow key={agent.agentId}>
             <TableCell className="font-medium">{agent.agentName}</TableCell>
+            <TableCell>
+              <Badge className="bg-primary/10 text-primary">{agent.agentType}</Badge>
+            </TableCell>
             <TableCell>
               <Badge variant="outline">{agent.category}</Badge>
             </TableCell>
@@ -423,13 +460,43 @@ function AgentUsageTable({
   );
 }
 
-function ClientUsageTable({ data }: { data: ClientUsage[] }) {
+function ClientUsageTable({ 
+  data, 
+  agentTypeFilter 
+}: { 
+  data: (ClientUsage & { agentUsage: ClientAgentUsage[] })[]; 
+  agentTypeFilter: string;
+}) {
+  // Calcular dados filtrados por tipo de agente
+  const processedData = useMemo(() => {
+    return data.map(client => {
+      if (agentTypeFilter === 'all') {
+        return client;
+      }
+      
+      const filteredAgentUsage = client.agentUsage.filter(au => au.agentType === agentTypeFilter);
+      const totalTokens = filteredAgentUsage.reduce((sum, au) => sum + au.tokens, 0);
+      const totalCost = filteredAgentUsage.reduce((sum, au) => sum + au.cost, 0);
+      const executions = filteredAgentUsage.reduce((sum, au) => sum + au.executions, 0);
+      const usagePercent = (totalTokens / client.monthlyLimit) * 100;
+      
+      return {
+        ...client,
+        totalTokens,
+        totalCost,
+        executions,
+        usagePercent,
+      };
+    });
+  }, [data, agentTypeFilter]);
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Cliente</TableHead>
           <TableHead>Plano</TableHead>
+          {agentTypeFilter !== 'all' && <TableHead>Agente</TableHead>}
           <TableHead className="text-right">Tokens</TableHead>
           <TableHead className="text-right">Custo</TableHead>
           <TableHead className="text-right">Execucoes</TableHead>
@@ -438,18 +505,28 @@ function ClientUsageTable({ data }: { data: ClientUsage[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((client) => (
+        {processedData.map((client) => (
           <TableRow key={client.clientId}>
             <TableCell className="font-medium">{client.clientName}</TableCell>
             <TableCell>
               <Badge variant="outline">{client.plan}</Badge>
             </TableCell>
-            <TableCell className="text-right">{(client.totalTokens / 1000000).toFixed(2)}M</TableCell>
+            {agentTypeFilter !== 'all' && (
+              <TableCell>
+                <Badge className="bg-primary/10 text-primary">{agentTypeFilter}</Badge>
+              </TableCell>
+            )}
+            <TableCell className="text-right">
+              {client.totalTokens >= 1000000 
+                ? `${(client.totalTokens / 1000000).toFixed(2)}M`
+                : `${(client.totalTokens / 1000).toFixed(0)}K`
+              }
+            </TableCell>
             <TableCell className="text-right">R$ {(client.totalCost * 5).toFixed(2)}</TableCell>
             <TableCell className="text-right">{client.executions}</TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                <Progress value={client.usagePercent} className="h-2 w-24" />
+                <Progress value={Math.min(client.usagePercent, 100)} className="h-2 w-24" />
                 <span className={cn(
                   'text-xs',
                   client.usagePercent >= 90 && 'text-red-600',
@@ -766,6 +843,8 @@ export default function AdminLLMManagement() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [agentTypeFilter, setAgentTypeFilter] = useState('all');
+  const [clientAgentTypeFilter, setClientAgentTypeFilter] = useState('all');
   const [periodFilter, setPeriodFilter] = useState('30d');
 
   const stats = getEngineStats();
@@ -891,6 +970,63 @@ export default function AdminLLMManagement() {
 
             <TabsContent value="overview" className="space-y-4">
               <UsageChart data={mockDailyUsage} />
+              
+              {/* Resumo por Tipo de Agente */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Bot className="h-5 w-5" />
+                    Consumo por Tipo de Agente
+                  </CardTitle>
+                  <CardDescription>Distribuicao de tokens entre os agentes do MOAT Engine</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-4">
+                    {agentTypes.map(agentType => {
+                      const agentData = mockAgentUsage.filter(a => a.agentType === agentType);
+                      const totalTokens = agentData.reduce((sum, a) => sum + a.totalTokens, 0);
+                      const totalExecutions = agentData.reduce((sum, a) => sum + a.executions, 0);
+                      const totalCost = agentData.reduce((sum, a) => sum + a.totalCost, 0);
+                      const avgSuccess = agentData.length > 0 
+                        ? agentData.reduce((sum, a) => sum + a.successRate, 0) / agentData.length 
+                        : 0;
+                      
+                      return (
+                        <Card key={agentType} className="border-l-4 border-l-primary">
+                          <CardContent className="pt-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge className="bg-primary/10 text-primary">{agentType}</Badge>
+                              <span className={cn(
+                                'text-xs font-medium',
+                                avgSuccess >= 97 && 'text-green-600',
+                                avgSuccess >= 95 && avgSuccess < 97 && 'text-amber-600',
+                                avgSuccess < 95 && 'text-red-600'
+                              )}>
+                                {avgSuccess.toFixed(1)}% sucesso
+                              </span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Tokens:</span>
+                                <span className="font-medium">{(totalTokens / 1000).toFixed(0)}K</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Execucoes:</span>
+                                <span className="font-medium">{totalExecutions}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Custo:</span>
+                                <span className="font-medium">R$ {(totalCost * 5).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+              
               <ModelUsageLineChart data={mockModelDailyUsage} />
             </TabsContent>
 
@@ -921,6 +1057,18 @@ export default function AdminLLMManagement() {
                     <SelectItem value="Service">Service</SelectItem>
                     </SelectContent>
                   </Select>
+                <Select value={agentTypeFilter} onValueChange={setAgentTypeFilter}>
+                  <SelectTrigger className="w-40">
+                    <Bot className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Tipo Agente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Agentes</SelectItem>
+                    {agentTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 </div>
                 <Card>
                 <ScrollArea className="h-[500px]">
@@ -928,6 +1076,7 @@ export default function AdminLLMManagement() {
                     data={mockAgentUsage} 
                     searchTerm={searchTerm}
                     categoryFilter={categoryFilter}
+                    agentTypeFilter={agentTypeFilter}
                   />
                 </ScrollArea>
                 </Card>
@@ -936,13 +1085,31 @@ export default function AdminLLMManagement() {
               <TabsContent value="clients" className="space-y-4">
                 <Card>
                 <CardHeader>
-                  <CardTitle>Uso por Cliente</CardTitle>
-                  <CardDescription>
-                    Consumo de tokens e custos por organizacao
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Uso por Cliente</CardTitle>
+                      <CardDescription>
+                        Consumo de tokens e custos por organizacao
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select value={clientAgentTypeFilter} onValueChange={setClientAgentTypeFilter}>
+                        <SelectTrigger className="w-40">
+                          <Bot className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Tipo Agente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos Agentes</SelectItem>
+                          {agentTypes.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <ClientUsageTable data={mockClientUsage} />
+                  <ClientUsageTable data={mockClientUsage} agentTypeFilter={clientAgentTypeFilter} />
                   </CardContent>
                 </Card>
               </TabsContent>
