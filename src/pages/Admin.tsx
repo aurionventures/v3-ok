@@ -108,15 +108,10 @@ const Admin = () => {
               <h1 className="text-2xl font-bold">Dashboard Administrativo</h1>
               <p className="text-muted-foreground">Visão estratégica da plataforma Legacy</p>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={() => navigate("/admin/empresas")} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Nova Empresa
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/admin/vendas")}>
-                Ver Ativações
-              </Button>
-            </div>
+            <Button onClick={() => navigate("/admin/empresas")} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Empresa
+            </Button>
           </div>
 
           {/* Métricas principais - 3 cards */}
@@ -267,7 +262,6 @@ const Admin = () => {
                         <div className="font-medium">{activation.company}</div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <span>{activation.plan}</span>
-                          <span>•</span>
                           {getOriginBadge(activation.origin)}
                         </div>
                       </div>
