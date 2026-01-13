@@ -11,7 +11,6 @@ import {
   Edit, 
   ExternalLink, 
   Trash2,
-  Clock,
   Mail
 } from "lucide-react";
 import { mockOrganizationUsers } from "@/utils/mockUsers";
@@ -168,12 +167,6 @@ export const UserManagementTab = () => {
                         {isCurrentUser && (
                           <Badge variant="outline" className="text-xs">você</Badge>
                         )}
-                        {user.status === 'pending' && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Pendente
-                          </Badge>
-                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Mail className="h-3 w-3" />
@@ -187,11 +180,6 @@ export const UserManagementTab = () => {
                       <Badge variant={getRoleBadgeVariant(user.orgRole)}>
                         {ORG_ROLE_LABELS[user.orgRole]}
                       </Badge>
-                      {user.councilMemberships && user.councilMemberships.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {user.councilMemberships.length} órgão(s)
-                        </p>
-                      )}
                     </div>
                     
                     <div className="text-right text-xs text-muted-foreground">
