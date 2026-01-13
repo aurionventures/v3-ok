@@ -22,21 +22,22 @@ export function KPICard({
 
   return (
     <Card className={cn(
-      "bg-card/50 border-border/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md",
+      "bg-white border-2 shadow-sm hover:shadow-lg transition-all duration-300",
+      styles.border,
       className
     )}>
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+            <p className={cn("text-xs font-semibold uppercase tracking-wider", styles.text)}>
               {title}
             </p>
             <p className="text-3xl font-bold text-foreground mt-1">
               {value}
             </p>
           </div>
-          <div className={cn("p-2.5 rounded-lg", styles.bg)}>
-            <Icon className={cn("h-5 w-5", styles.text)} />
+          <div className={cn("p-3 rounded-xl shadow-md", styles.iconBg)}>
+            <Icon className={cn("h-6 w-6", styles.iconText)} />
           </div>
         </div>
       </CardContent>
