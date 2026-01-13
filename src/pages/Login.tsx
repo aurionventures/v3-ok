@@ -174,7 +174,7 @@ export default function Login() {
 
   if (!userType) {
     return (
-      <div className="min-h-screen flex">
+      <div className="min-h-screen flex bg-white">
         {/* Left side - Selection */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
           <div className="w-full max-w-md space-y-6">
@@ -277,7 +277,7 @@ export default function Login() {
 
   // Tela de seleção de tipo de usuário
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-white">
       {/* Left side - Selection */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
