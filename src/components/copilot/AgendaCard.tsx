@@ -268,18 +268,6 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
             </div>
           )}
 
-          {/* Generation Metadata */}
-          {agenda.generationMetadata && (
-            <div className="pt-4 border-t text-xs text-muted-foreground flex items-center justify-between">
-              <span>
-                Modelo: {agenda.generationMetadata.model} | Tokens:{" "}
-                {agenda.generationMetadata.tokensUsed.toLocaleString()}
-              </span>
-              <span>
-                Tempo de geração: {(agenda.generationMetadata.generationTimeMs / 1000).toFixed(1)}s
-              </span>
-            </div>
-          )}
         </CardContent>
       </Card>
 

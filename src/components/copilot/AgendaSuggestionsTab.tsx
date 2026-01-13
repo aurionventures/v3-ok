@@ -10,6 +10,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Calendar,
   Sparkles,
   Plus,
@@ -17,7 +22,6 @@ import {
   FileText,
   CheckCircle2,
   Loader2,
-  Brain,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -78,13 +82,67 @@ export function AgendaSuggestionsTab() {
       {/* Upcoming Meetings Timeline */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-indigo-600" />
-            Próximas Reuniões
-          </CardTitle>
-          <CardDescription>
-            Selecione uma reunião para gerar pautas com IA
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-indigo-600" />
+                Próximas Reuniões
+              </CardTitle>
+              <CardDescription>
+                Selecione uma reunião para gerar pautas com IA
+              </CardDescription>
+            </div>
+            
+            {meetingsWithoutAgenda.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Gerar Nova Pauta com IA
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="end">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Gerar Pauta com IA</h4>
+                      <p className="text-xs text-muted-foreground">
+                        A IA analisará dados internos, riscos e oportunidades.
+                      </p>
+                    </div>
+                    <Select value={selectedMeetingId} onValueChange={setSelectedMeetingId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma reunião" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {meetingsWithoutAgenda.map((meeting) => (
+                          <SelectItem key={meeting.id} value={meeting.id}>
+                            {format(new Date(meeting.date), "dd/MM/yyyy")} - {meeting.councilName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      onClick={handleGenerateAgenda} 
+                      disabled={!selectedMeetingId || isGenerating}
+                      className="w-full"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Gerar Pauta
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
@@ -150,78 +208,6 @@ export function AgendaSuggestionsTab() {
         </CardContent>
       </Card>
 
-      {/* Generate New Agenda */}
-      {meetingsWithoutAgenda.length > 0 && (
-        <Card className="border-2 border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-950/20">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="flex-1">
-                <h4 className="font-semibold text-lg mb-1 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-indigo-600" />
-                  Gerar Nova Pauta com IA
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  A IA analisará dados internos, riscos, oportunidades e contexto de
-                  mercado para sugerir pautas estratégicas.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <Select value={selectedMeetingId} onValueChange={setSelectedMeetingId}>
-                  <SelectTrigger className="w-[250px]">
-                    <SelectValue placeholder="Selecione uma reunião" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {meetingsWithoutAgenda.map((meeting) => (
-                      <SelectItem key={meeting.id} value={meeting.id}>
-                        {format(new Date(meeting.date), "dd/MM/yyyy")} -{" "}
-                        {meeting.councilName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  onClick={handleGenerateAgenda}
-                  disabled={!selectedMeetingId || isGenerating}
-                  className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Gerar Pauta
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Info sobre briefings automáticos */}
-      <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/50">
-              <Brain className="h-5 w-5 text-indigo-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
-                Geração Automática de Briefings
-              </p>
-              <p className="text-xs text-indigo-700 dark:text-indigo-300">
-                Ao aprovar uma pauta, o sistema gera automaticamente briefings personalizados para cada membro do conselho usando IA.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Filters */}
       <div className="flex items-center justify-between">
