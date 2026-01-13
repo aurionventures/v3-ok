@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { getRecommendedPlan, PLAN_DATA } from '@/utils/planRecommendation';
 import legacyLogo from "@/assets/legacy-logo-new.png";
+import { InputCNPJ, InputCEP, type CompanyData, type AddressData } from '@/components/ui/input-masked';
+import { toast } from 'sonner';
 
 type PaymentMethod = 'cartao' | 'pix' | 'boleto';
 
@@ -31,16 +33,25 @@ export default function Checkout() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   
   // Form fields
-  const [cnpj, setCnpj] = useState('12.345.678/0001-90');
+  const [cnpj, setCnpj] = useState('');
   const [razaoSocial, setRazaoSocial] = useState('');
-  const [endereco, setEndereco] = useState('Av. Paulista, 1000 - São Paulo/SP');
+  const [nomeFantasia, setNomeFantasia] = useState('');
+  const [cep, setCep] = useState('');
+  const [endereco, setEndereco] = useState({
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    uf: '',
+  });
 
   useEffect(() => {
     const quizResult = localStorage.getItem('quiz_result');
     if (quizResult) {
       const data = JSON.parse(quizResult);
       setQuizData(data);
-      setRazaoSocial(data.empresaNome || 'Empresa Demo Ltda');
+      setNomeFantasia(data.empresaNome || '');
       
       const recommended = getRecommendedPlan({
         faturamentoFaixa: data.faturamentoFaixa,
@@ -62,12 +73,42 @@ export default function Checkout() {
       paymentMethod,
       cnpj,
       razaoSocial,
-      endereco,
+      nomeFantasia,
+      endereco: `${endereco.logradouro}, ${endereco.numero}${endereco.complemento ? ` - ${endereco.complemento}` : ''}, ${endereco.bairro} - ${endereco.cidade}/${endereco.uf}`,
+      cep,
       valor: plan.precoMensal,
       timestamp: new Date().toISOString()
     }));
     
     navigate('/payment');
+  };
+
+  // Handler para quando o CNPJ é carregado
+  const handleCompanyLoaded = (company: CompanyData) => {
+    setRazaoSocial(company.razaoSocial);
+    setNomeFantasia(company.nomeFantasia || company.razaoSocial);
+    setCep(company.endereco.cep);
+    setEndereco({
+      logradouro: company.endereco.logradouro,
+      numero: company.endereco.numero,
+      complemento: company.endereco.complemento,
+      bairro: company.endereco.bairro,
+      cidade: company.endereco.cidade,
+      uf: company.endereco.uf,
+    });
+    toast.success('Dados da empresa carregados automaticamente!');
+  };
+
+  // Handler para quando o CEP é carregado
+  const handleAddressLoaded = (address: AddressData) => {
+    setEndereco({
+      logradouro: address.street,
+      numero: '',
+      complemento: address.complement,
+      bairro: address.neighborhood,
+      cidade: address.city,
+      uf: address.state,
+    });
   };
 
   return (
@@ -106,31 +147,87 @@ export default function Checkout() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cnpj">CNPJ</Label>
-                    <Input 
-                      id="cnpj" 
-                      value={cnpj}
-                      onChange={(e) => setCnpj(e.target.value)}
-                      placeholder="00.000.000/0000-00"
-                    />
-                  </div>
+                  <InputCNPJ
+                    id="cnpj"
+                    label="CNPJ"
+                    value={cnpj}
+                    onChange={(value) => setCnpj(value)}
+                    onCompanyLoaded={handleCompanyLoaded}
+                    autoFetch={true}
+                    showSearchButton={true}
+                    showCompanyPreview={false}
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="razao">Razão Social</Label>
                     <Input 
                       id="razao" 
                       value={razaoSocial}
                       onChange={(e) => setRazaoSocial(e.target.value)}
+                      className={razaoSocial ? 'bg-muted/50' : ''}
+                      placeholder="Preenchido automaticamente via CNPJ"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço</Label>
-                  <Input 
-                    id="endereco" 
-                    value={endereco}
-                    onChange={(e) => setEndereco(e.target.value)}
+                
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <InputCEP
+                    id="cep"
+                    label="CEP"
+                    value={cep}
+                    onChange={(value) => setCep(value)}
+                    onAddressLoaded={handleAddressLoaded}
+                    autoFetch={true}
+                    showSearchButton={true}
                   />
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="logradouro">Logradouro</Label>
+                    <Input 
+                      id="logradouro" 
+                      value={endereco.logradouro}
+                      onChange={(e) => setEndereco(prev => ({ ...prev, logradouro: e.target.value }))}
+                      placeholder="Rua, Av., etc."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="numero">Numero</Label>
+                    <Input 
+                      id="numero" 
+                      value={endereco.numero}
+                      onChange={(e) => setEndereco(prev => ({ ...prev, numero: e.target.value }))}
+                      placeholder="123"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="complemento">Complemento</Label>
+                    <Input 
+                      id="complemento" 
+                      value={endereco.complemento}
+                      onChange={(e) => setEndereco(prev => ({ ...prev, complemento: e.target.value }))}
+                      placeholder="Sala 101"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bairro">Bairro</Label>
+                    <Input 
+                      id="bairro" 
+                      value={endereco.bairro}
+                      onChange={(e) => setEndereco(prev => ({ ...prev, bairro: e.target.value }))}
+                      className={endereco.bairro ? 'bg-muted/30' : ''}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cidade">Cidade/UF</Label>
+                    <Input 
+                      id="cidade" 
+                      value={endereco.cidade ? `${endereco.cidade}/${endereco.uf}` : ''}
+                      readOnly
+                      className="bg-muted/30"
+                      placeholder="Via CEP"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

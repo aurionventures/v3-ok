@@ -23,6 +23,7 @@ import {
   DollarSign,
   Award,
   Target,
+  Zap,
   Bot,
   Cpu,
   Gift,
@@ -111,6 +112,7 @@ const ADMIN_MENU_SECTIONS = [
       { icon: Building2, href: "/admin/empresas", name: "Empresas" },
       { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
       { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
+      { icon: Zap, href: "/admin/slg-pipeline", name: "Pipeline SLG" },
       { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
     ]
   },

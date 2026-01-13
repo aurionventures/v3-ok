@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Send, CheckCircle, MapPin, Phone, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { formatCellphone } from "@/utils/masks";
 
 export default function Contato() {
   const [formData, setFormData] = useState({
@@ -114,7 +115,8 @@ export default function Contato() {
                             id="telefone"
                             placeholder="(00) 00000-0000"
                             value={formData.telefone}
-                            onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, telefone: formatCellphone(e.target.value) })}
+                            maxLength={15}
                             className="bg-white/10 border-border/30 text-white placeholder:text-white/50"
                           />
                         </div>

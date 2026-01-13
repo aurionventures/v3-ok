@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Building2, Search, PlusCircle, Download, Trash2, Pencil, Loader2,
-  Briefcase, Users, Crown
+  Briefcase, Users, Crown, Mail
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ import { CompanyFilters, CompanyFiltersState } from "@/components/admin/CompanyF
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import MetricCard from "@/components/metrics/MetricCard";
 import { AdminPlanManager } from "@/components/admin/AdminPlanManager";
-import { ClientWizard } from "@/components/admin/ClientWizard";
+import { SLGClientWizard } from "@/components/admin/SLGClientWizard";
 
 const Companies = () => {
   const navigate = useNavigate();
@@ -260,11 +260,19 @@ const Companies = () => {
                 <Download className="h-4 w-4 mr-2" />
                 Exportar
               </Button>
+              
+              {/* Botão para abrir wizard de cadastro completo */}
+              <Button onClick={() => setIsClientWizardOpen(true)}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Nova Empresa
+              </Button>
+
+              {/* Dialog alternativo para convites */}
               <Dialog open={isNewCompanyDialogOpen} onOpenChange={handleDialogChange}>
                 <DialogTrigger asChild>
-                  <Button>
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Nova Empresa
+                  <Button variant="outline">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Enviar Convite
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
@@ -547,6 +555,19 @@ const Companies = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* Wizard SLG de Cadastro e Ativação de Cliente */}
+          <SLGClientWizard
+            isOpen={isClientWizardOpen}
+            onClose={() => setIsClientWizardOpen(false)}
+            onSuccess={() => {
+              fetchCompanies();
+              toast({
+                title: "Cliente cadastrado!",
+                description: "O cliente foi cadastrado e ativado com sucesso."
+              });
+            }}
+          />
         </div>
       </div>
     </div>

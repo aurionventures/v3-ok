@@ -26,12 +26,13 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import type { CompanySize, ModuleKey } from '@/types/organization';
-import { ModuleConfigurator } from '@/components/admin/ModuleConfigurator';
+import { ModuleConfigurator, ConfigMode as ModuleConfigMode } from '@/components/admin/ModuleConfigurator';
 import { 
   BASE_MODULES, 
   ALL_ADDON_MODULES, 
-  calculateModulePrice 
-} from '@/components/admin/ModuleSelector';
+  PLAN_PRICES,
+  calculateTotalPrice
+} from '@/utils/moduleMatrix';
 
 // Tipos
 export type ConfigMode = 'automatic' | 'manual';
@@ -96,7 +97,7 @@ const COMPANY_SIZES: { value: CompanySize; label: string; description: string }[
   { value: 'small', label: 'Pequena', description: 'R$ 4,8M - R$ 16M/ano' },
   { value: 'medium', label: 'Média', description: 'R$ 16M - R$ 90M/ano' },
   { value: 'large', label: 'Grande', description: 'R$ 90M - R$ 300M/ano' },
-  { value: 'enterprise', label: 'Enterprise', description: 'Acima de R$ 300M/ano' }
+  { value: 'listed', label: 'Listada/Enterprise', description: 'Acima de R$ 300M/ano' }
 ];
 
 // Origens do cliente
@@ -163,11 +164,12 @@ export function ClientWizard({ isOpen, onClose, onSuccess, plgLeadEmail }: Clien
 
   // Calcular preço quando módulos mudarem
   useEffect(() => {
-    const price = calculateModulePrice(
-      clientForm.companySize, 
-      planConfig.selectedModules, 
-      planConfig.configMode
+    // Calcular add-ons selecionados que não estão na base
+    const baseModules = BASE_MODULES[clientForm.companySize] || [];
+    const selectedAddons = planConfig.selectedModules.filter(
+      m => ALL_ADDON_MODULES.includes(m) && !baseModules.includes(m)
     );
+    const price = calculateTotalPrice(clientForm.companySize, selectedAddons);
     setPlanConfig(prev => ({ ...prev, totalPrice: price }));
   }, [clientForm.companySize, planConfig.selectedModules, planConfig.configMode]);
 
@@ -349,7 +351,7 @@ export function ClientWizard({ isOpen, onClose, onSuccess, plgLeadEmail }: Clien
       'small': 'Pequena',
       'medium': 'Média',
       'large': 'Grande',
-      'enterprise': 'Enterprise'
+      'listed': 'Listada'
     };
     return labels[size] || 'Startup';
   };
@@ -586,76 +588,17 @@ export function ClientWizard({ isOpen, onClose, onSuccess, plgLeadEmail }: Clien
         </CardContent>
       </Card>
 
-      {/* Modo de Configuração */}
+      {/* Configurador de Módulos (inclui seletor de modo) */}
       <div className="space-y-3">
-        <Label>Modo de Configuração</Label>
-        <div className="grid grid-cols-2 gap-4">
-          <Card 
-            className={`cursor-pointer transition-all ${planConfig.configMode === 'automatic' ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'}`}
-            onClick={() => setPlanConfig(prev => ({ ...prev, configMode: 'automatic' }))}
-          >
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border-2 ${planConfig.configMode === 'automatic' ? 'border-primary bg-primary' : 'border-muted-foreground'}`} />
-                <div>
-                  <h4 className="font-medium">Automático</h4>
-                  <p className="text-xs text-muted-foreground">Módulos pré-definidos por porte</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card 
-            className={`cursor-pointer transition-all ${planConfig.configMode === 'manual' ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'}`}
-            onClick={() => setPlanConfig(prev => ({ ...prev, configMode: 'manual' }))}
-          >
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border-2 ${planConfig.configMode === 'manual' ? 'border-primary bg-primary' : 'border-muted-foreground'}`} />
-                <div>
-                  <h4 className="font-medium">Manual</h4>
-                  <p className="text-xs text-muted-foreground">Selecionar módulos individualmente</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Configurador de Módulos */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label>Módulos Habilitados</Label>
-          <Badge variant="secondary">
-            {planConfig.selectedModules.length} módulos
-          </Badge>
-        </div>
         <ModuleConfigurator
           companySize={clientForm.companySize}
-          configMode={planConfig.configMode}
+          mode={planConfig.configMode}
+          onModeChange={(mode) => setPlanConfig(prev => ({ ...prev, configMode: mode }))}
           selectedModules={planConfig.selectedModules}
           onModulesChange={(modules) => setPlanConfig(prev => ({ ...prev, selectedModules: modules }))}
         />
       </div>
 
-      {/* Resumo de Preço */}
-      <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="pt-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Valor Mensal Estimado</p>
-              <p className="text-2xl font-bold">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(planConfig.totalPrice / 100)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Add-ons inclusos</p>
-              <p className="font-medium">
-                {planConfig.selectedModules.filter(m => ALL_ADDON_MODULES.includes(m)).length}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 

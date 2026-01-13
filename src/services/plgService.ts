@@ -98,7 +98,16 @@ export function generateSessionId(): string {
 /**
  * Rastrear evento do funil PLG
  */
-export async function trackPLGEvent(params: TrackEventParams): Promise<{ success: boolean; eventId?: string; leadId?: string; error?: string }> {
+export interface TrackEventResult {
+  success: boolean;
+  eventId?: string;
+  leadId?: string;
+  leadPath?: 'plg' | 'slg';
+  slgPriority?: 'low' | 'normal' | 'high' | 'urgent';
+  error?: string;
+}
+
+export async function trackPLGEvent(params: TrackEventParams): Promise<TrackEventResult> {
   try {
     const { data, error } = await supabase.functions.invoke('plg-track-event', {
       body: {
@@ -120,7 +129,9 @@ export async function trackPLGEvent(params: TrackEventParams): Promise<{ success
     return { 
       success: true, 
       eventId: data.event_id,
-      leadId: data.lead_id 
+      leadId: data.lead_id,
+      leadPath: data.lead_path,
+      slgPriority: data.slg_priority
     };
   } catch (error) {
     console.error('Erro ao rastrear evento PLG:', error);

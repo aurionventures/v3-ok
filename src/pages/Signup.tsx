@@ -29,9 +29,9 @@ import legacyLogo from '@/assets/legacy-logo-new.png';
 import {
   isCorporateEmail,
   validatePasswordStrength,
-  formatPhone,
   createAccount,
 } from '@/data/signupData';
+import { formatCellphone } from '@/utils/masks';
 import { PLANS, revealPricing } from '@/data/pricingData';
 
 export default function Signup() {
@@ -94,7 +94,7 @@ export default function Signup() {
     const { name, value } = e.target;
 
     if (name === 'telefone') {
-      setFormData((prev) => ({ ...prev, [name]: formatPhone(value) }));
+      setFormData((prev) => ({ ...prev, [name]: formatCellphone(value) }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatCPF, formatCNPJ, formatCellphone, onlyNumbers } from "@/utils/masks";
 import {
   GOVERNANCE_CATEGORIES,
   RFB_QUALIFICATION_CODES,
@@ -99,8 +100,15 @@ export function CorporateStructureForm({ formData, onChange, editingMemberId }: 
               <Input
                 id="document"
                 value={formData.document || ""}
-                onChange={(e) => onChange({ ...formData, document: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const numbers = onlyNumbers(value);
+                  // Detecta se é CPF ou CNPJ baseado no tamanho
+                  const formatted = numbers.length <= 11 ? formatCPF(value) : formatCNPJ(value);
+                  onChange({ ...formData, document: formatted });
+                }}
                 placeholder="000.000.000-00"
+                maxLength={18}
               />
             </div>
 
@@ -120,8 +128,9 @@ export function CorporateStructureForm({ formData, onChange, editingMemberId }: 
               <Input
                 id="phone"
                 value={formData.phone || ""}
-                onChange={(e) => onChange({ ...formData, phone: e.target.value })}
+                onChange={(e) => onChange({ ...formData, phone: formatCellphone(e.target.value) })}
                 placeholder="(00) 00000-0000"
+                maxLength={15}
               />
             </div>
           </div>
