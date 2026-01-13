@@ -115,7 +115,7 @@ const Index = () => {
       <MegaMenuHeader />
 
       {/* SEÇÃO 1: HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] pt-32 pb-20">
+      <section className="relative overflow-hidden bg-gradient-hero pt-32 pb-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(192,160,98,0.1),transparent_50%)]" />
         <div className="container mx-auto px-6 relative">
           <div className="max-w-5xl mx-auto text-center text-white">
@@ -127,17 +127,17 @@ const Index = () => {
             
             {/* Subheadline */}
             <p className="text-xl lg:text-2xl mb-8 text-white/80 leading-relaxed max-w-4xl mx-auto">
-              A única plataforma com <strong className="text-[#C0A062]">IA treinada em governança corporativa</strong>. 
+              A única plataforma com <strong className="text-accent">IA treinada em governança corporativa</strong>. 
               Monitora 20+ fontes (economia, regulação, setor), analisa histórico e gera 
               pautas completas automaticamente. 
-              <strong className="text-[#C0A062]"> Validada por 50+ líderes de governança.</strong>
+              <strong className="text-accent"> Validada por 50+ líderes de governança.</strong>
             </p>
             
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button 
                 size="lg" 
-                className="bg-[#C0A062] text-[#0A1628] hover:bg-[#C0A062]/90 text-lg px-8 py-6 h-auto rounded-xl font-semibold"
+                className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-12 rounded-lg font-semibold"
                 onClick={() => navigate('/standalone-quiz')}
               >
                 <Play className="h-5 w-5 mr-2" />
@@ -145,7 +145,7 @@ const Index = () => {
               </Button>
               <Button 
                 size="lg" 
-                className="bg-transparent border-2 border-[#C0A062] text-[#C0A062] hover:bg-[#C0A062]/10 text-lg px-8 py-6 h-auto rounded-xl font-semibold"
+                className="bg-transparent border-2 border-accent text-accent hover:bg-accent/10 text-lg px-8 py-3 h-12 rounded-lg font-semibold"
                 onClick={() => navigate('/como-funciona')}
               >
                 <Eye className="h-5 w-5 mr-2" />
@@ -156,15 +156,15 @@ const Index = () => {
             {/* Stats */}
             <div className="flex flex-wrap justify-center gap-8 lg:gap-16">
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-[#C0A062]">-93%</div>
+                <div className="text-3xl lg:text-4xl font-bold text-accent">-93%</div>
                 <div className="text-sm text-white/60">Tempo de Preparação</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-[#C0A062]">50+</div>
+                <div className="text-3xl lg:text-4xl font-bold text-accent">50+</div>
                 <div className="text-sm text-white/60">Validações Reais</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl lg:text-4xl font-bold text-[#C0A062]">13</div>
+                <div className="text-3xl lg:text-4xl font-bold text-accent">13</div>
                 <div className="text-sm text-white/60">Módulos Integrados</div>
               </div>
             </div>
@@ -173,13 +173,13 @@ const Index = () => {
       </section>
 
       {/* SEÇÃO 2: TRUSTED BY */}
-      <section className="py-16 bg-white border-b border-gray-100">
+      <section className="py-16 bg-corporate-mid border-b border-border/20">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto text-center">
-            <h3 className="text-xl font-semibold text-[#0A1628] mb-2">
+            <h3 className="text-xl font-semibold text-white mb-2">
               Metodologia Validada por 50+ Líderes de Governança
             </h3>
-            <p className="text-gray-600 mb-8">
+            <p className="text-white/60 mb-8">
               Alinhada com frameworks IBGC, IBRI e melhores práticas globais de governança corporativa
             </p>
 
@@ -187,10 +187,10 @@ const Index = () => {
             <div className="flex flex-wrap justify-center gap-8 mb-8">
               {["IBGC", "IBRI", "AMCHAM"].map((logo) => (
                 <div key={logo} className="flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 bg-[#0A1628]/5 rounded-full flex items-center justify-center">
-                    <Award className="h-8 w-8 text-[#0A1628]" />
+                  <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+                    <Award className="h-8 w-8 text-accent" />
                   </div>
-                  <span className="text-xs text-gray-500">Metodologia {logo}</span>
+                  <span className="text-xs text-white/50">Metodologia {logo}</span>
                 </div>
               ))}
             </div>
@@ -198,22 +198,22 @@ const Index = () => {
             {/* Early Stage Stats */}
             <div className="flex flex-wrap justify-center gap-12 mb-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-[#0A1628]">3 conselhos</div>
-                <div className="text-sm text-gray-500">Ativos desde jan/2026</div>
+                <div className="text-2xl font-bold text-white">3 conselhos</div>
+                <div className="text-sm text-white/50">Ativos desde jan/2026</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-[#0A1628]">47 pautas</div>
-                <div className="text-sm text-gray-500">Geradas com IA</div>
+                <div className="text-2xl font-bold text-white">47 pautas</div>
+                <div className="text-sm text-white/50">Geradas com IA</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-[#0A1628]">12 reuniões</div>
-                <div className="text-sm text-gray-500">Gerenciadas na plataforma</div>
+                <div className="text-2xl font-bold text-white">12 reuniões</div>
+                <div className="text-sm text-white/50">Gerenciadas na plataforma</div>
               </div>
             </div>
 
             {/* Transparency Note */}
-            <div className="max-w-2xl mx-auto bg-[#C0A062]/10 border-l-4 border-[#C0A062] rounded-r-lg p-4 text-left">
-              <p className="text-sm text-[#0A1628]">
+            <div className="max-w-2xl mx-auto bg-accent/20 border-l-4 border-accent rounded-r-lg p-4 text-left">
+              <p className="text-sm text-white">
                 <strong>Early Adopters:</strong> Estamos embarcando os primeiros conselhos agora. 
                 Vagas limitadas para garantir suporte premium durante onboarding.
               </p>
@@ -223,28 +223,28 @@ const Index = () => {
       </section>
 
       {/* SEÇÃO 3: PAIN POINTS */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-corporate-light">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12 text-[#0A1628]">
+            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12 text-white">
               Você ainda está...
             </h2>
 
             <div className="grid md:grid-cols-2 gap-6">
               {painPoints.map((pain, index) => (
-                <Card key={index} className="border border-gray-200 bg-white hover:border-red-200 transition-all hover:shadow-md">
+                <Card key={index} className="border border-white/10 bg-white/5 hover:border-destructive/30 transition-all hover:shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4 mb-4">
-                      <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center shrink-0">
-                        <X className="h-5 w-5 text-red-500" />
+                      <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center shrink-0">
+                        <X className="h-5 w-5 text-destructive" />
                       </div>
-                      <h3 className="font-bold text-lg text-[#0A1628]">{pain.title}</h3>
+                      <h3 className="font-bold text-lg text-white">{pain.title}</h3>
                     </div>
-                    <p className="text-gray-600 text-sm mb-4 ml-14">
+                    <p className="text-white/60 text-sm mb-4 ml-14">
                       {pain.description}
                     </p>
-                    <div className="ml-14 flex items-center gap-2 text-sm font-medium text-[#0A1628]">
-                      <CheckCircle className="h-4 w-4 text-[#C0A062]" />
+                    <div className="ml-14 flex items-center gap-2 text-sm font-medium text-white">
+                      <CheckCircle className="h-4 w-4 text-accent" />
                       {pain.solution}
                     </div>
                   </CardContent>
@@ -256,12 +256,12 @@ const Index = () => {
       </section>
 
       {/* SEÇÃO 4: 3 PILARES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-corporate-mid">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A1628]">A Solução: Legacy OS</h2>
-              <p className="text-lg text-gray-600">
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">A Solução: Legacy OS</h2>
+              <p className="text-lg text-white/60">
                 A primeira plataforma all-in-one com IA nativa para governança corporativa
               </p>
             </div>
@@ -271,27 +271,27 @@ const Index = () => {
                 <Card 
                   key={index} 
                   className={`relative overflow-hidden transition-all hover:shadow-xl border ${
-                    pillar.highlight ? 'border-2 border-[#C0A062] bg-[#C0A062]/5' : 'border-gray-200'
+                    pillar.highlight ? 'border-2 border-accent bg-accent/10' : 'border-white/10 bg-white/5'
                   }`}
                 >
                   {pillar.highlight && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-[#C0A062]" />
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-accent" />
                   )}
                   <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-[#0A1628]/5 rounded-xl flex items-center justify-center mb-4">
-                      <pillar.icon className="h-6 w-6 text-[#0A1628]" />
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-4">
+                      <pillar.icon className="h-6 w-6 text-accent" />
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-[#0A1628]">{pillar.title}</h3>
-                    <p className="text-gray-600 text-sm mb-6">{pillar.description}</p>
+                    <h3 className="text-xl font-bold mb-3 text-white">{pillar.title}</h3>
+                    <p className="text-white/60 text-sm mb-6">{pillar.description}</p>
                     <ul className="space-y-2 mb-6">
                       {pillar.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm text-[#0A1628]">
-                          <CheckCircle className="h-4 w-4 text-[#C0A062]" />
+                        <li key={i} className="flex items-center gap-2 text-sm text-white">
+                          <CheckCircle className="h-4 w-4 text-accent" />
                           <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
-                    <Link to={pillar.link} className="text-[#C0A062] font-medium text-sm hover:underline flex items-center gap-1">
+                    <Link to={pillar.link} className="text-accent font-medium text-sm hover:underline flex items-center gap-1">
                       {pillar.linkText} <ArrowRight className="h-4 w-4" />
                     </Link>
                   </CardContent>
@@ -303,7 +303,7 @@ const Index = () => {
       </section>
 
       {/* SEÇÃO 5: AI ENGINE DEEP DIVE */}
-      <section className="py-20 bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] text-white">
+      <section className="py-20 bg-gradient-hero text-white">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
@@ -323,22 +323,22 @@ const Index = () => {
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4 text-white/90">ANTES: Preparação Manual</h3>
-                  <div className="text-4xl font-bold text-red-400 mb-4">8 horas</div>
+                  <div className="text-4xl font-bold text-destructive mb-4">8 horas</div>
                   <ul className="space-y-2 text-sm text-white/70">
                     <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
                       Ler atas das últimas 6 reuniões (2h)
                     </li>
                     <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
                       Consolidar relatórios financeiros, ESG, projetos (3h)
                     </li>
                     <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
                       Escrever pauta do zero (2h)
                     </li>
                     <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+                      <div className="w-1.5 h-1.5 bg-destructive rounded-full" />
                       Criar briefings individuais por conselheiro (1h)
                     </li>
                   </ul>
@@ -346,25 +346,25 @@ const Index = () => {
               </Card>
 
               {/* After */}
-              <Card className="bg-[#C0A062]/20 border-[#C0A062]/30">
+              <Card className="bg-accent/20 border-accent/30">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4 text-white/90">DEPOIS: AI Engine CORE</h3>
-                  <div className="text-4xl font-bold text-[#C0A062] mb-4">30 minutos</div>
+                  <div className="text-4xl font-bold text-accent mb-4">30 minutos</div>
                   <ul className="space-y-2 text-sm text-white/70">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-[#C0A062]" />
+                      <CheckCircle className="h-4 w-4 text-accent" />
                       IA lê histórico completo automaticamente (0h)
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-[#C0A062]" />
+                      <CheckCircle className="h-4 w-4 text-accent" />
                       IA consolida 20+ fontes em dashboard único (0h)
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-[#C0A062]" />
+                      <CheckCircle className="h-4 w-4 text-accent" />
                       IA gera 3 versões de pauta prontas para escolher (15 min)
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-[#C0A062]" />
+                      <CheckCircle className="h-4 w-4 text-accent" />
                       IA cria briefings contextualizados automaticamente (15 min)
                     </li>
                   </ul>
@@ -373,7 +373,7 @@ const Index = () => {
             </div>
 
             {/* Savings Banner */}
-            <div className="bg-[#C0A062] text-[#0A1628] rounded-xl p-6 text-center mb-8">
+            <div className="bg-accent text-primary rounded-xl p-6 text-center mb-8">
               <div className="text-2xl font-bold mb-2">-93% TEMPO</div>
               <div className="text-sm mb-4">Economia estimada: R$ 180k/ano por conselho</div>
               
@@ -387,7 +387,7 @@ const Index = () => {
               </button>
               
               {showCalculation && (
-                <div className="mt-4 text-left bg-[#0A1628]/10 rounded-lg p-4 text-sm">
+                <div className="mt-4 text-left bg-primary/10 rounded-lg p-4 text-sm">
                   <p className="mb-2"><strong>Premissas:</strong></p>
                   <ul className="list-disc list-inside space-y-1 mb-3">
                     <li>Secretário executivo: custo total R$ 2.000/h (salário + encargos + overhead)</li>
@@ -414,7 +414,7 @@ const Index = () => {
               ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <item.icon className="h-6 w-6 text-[#C0A062]" />
+                    <item.icon className="h-6 w-6 text-accent" />
                       </div>
                   <h4 className="font-semibold mb-1">{item.title}</h4>
                   <p className="text-sm text-white/60">{item.desc}</p>
@@ -424,10 +424,10 @@ const Index = () => {
 
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
-              <Button size="lg" className="bg-[#C0A062] text-[#0A1628] hover:bg-[#C0A062]/90 font-semibold" asChild>
+              <Button size="lg" className="bg-accent text-primary hover:bg-accent/90 font-semibold px-8 py-3 h-12" asChild>
                 <Link to="/pricing">Conhecer AI Engine CORE Completo</Link>
               </Button>
-              <Button size="lg" className="bg-transparent border-2 border-[#C0A062] text-[#C0A062] hover:bg-[#C0A062]/10 font-semibold" asChild>
+              <Button size="lg" className="bg-transparent border-2 border-accent text-accent hover:bg-accent/10 font-semibold px-8 py-3 h-12" asChild>
                 <Link to="/contato">Agendar Demo</Link>
               </Button>
             </div>
@@ -436,40 +436,40 @@ const Index = () => {
       </section>
 
       {/* SEÇÃO 6: FEATURES GRID */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-corporate-light">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-[#0A1628]">
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">
                 As 6 Funcionalidades Que Mais Importam
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-white/60">
                 Núcleo da plataforma: o que você vai usar toda semana
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {coreFeatures.map((feature, index) => (
-                <Card key={index} className="bg-white border border-gray-200 hover:shadow-lg transition-all hover:border-[#C0A062]/30">
+                <Card key={index} className="bg-white/5 border border-white/10 hover:shadow-lg transition-all hover:border-accent/30">
                   <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-[#0A1628]/5 rounded-xl flex items-center justify-center mb-4">
-                      <feature.icon className="h-6 w-6 text-[#0A1628]" />
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-4">
+                      <feature.icon className="h-6 w-6 text-accent" />
                     </div>
-                    <h3 className="font-bold mb-2 text-[#0A1628]">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
+                    <h3 className="font-bold mb-2 text-white">{feature.title}</h3>
+                    <p className="text-sm text-white/60">{feature.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
             <div className="text-center">
-              <Button className="bg-[#0A1628] text-white hover:bg-[#0A1628]/90" size="lg" asChild>
+              <Button className="bg-accent text-primary hover:bg-accent/90 px-8 py-3 h-12" size="lg" asChild>
                 <Link to="/pricing">
                   Ver Todas as Funcionalidades e Planos
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-white/50 mt-4">
                 + 7 add-ons disponíveis (Inteligência de Mercado, Sucessão, People Analytics, etc.)
               </p>
             </div>
@@ -688,7 +688,7 @@ const Index = () => {
       </section>
 
       {/* SEÇÃO 10: FINAL CTA */}
-      <section className="py-20 bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-[#1B263B] text-white">
+      <section className="py-20 bg-gradient-hero text-white">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
