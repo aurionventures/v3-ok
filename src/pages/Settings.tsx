@@ -266,49 +266,7 @@ const Settings = () => {
                       <UserManagementTab />
                     </div>
                     
-                    <Separator />
-                    
-                    {/* Seção 3: Segurança */}
-                    <div>
-                      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-muted-foreground" />
-                        Segurança
-                      </h3>
-                      <div className="space-y-6">
-                        <div className="space-y-4">
-                          <h4 className="text-base font-medium">Alterar Senha</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="current-password">Senha Atual</Label>
-                              <Input id="current-password" type="password" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="new-password">Nova Senha</Label>
-                              <Input id="new-password" type="password" />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                              <Input id="confirm-password" type="password" />
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm">Alterar Senha</Button>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <h4 className="text-base font-medium">Autenticação de Dois Fatores</h4>
-                          <div className="flex items-center justify-between max-w-md">
-                            <div>
-                              <Label>Ativar 2FA</Label>
-                              <p className="text-sm text-muted-foreground">
-                                Proteja sua conta com autenticação de dois fatores
-                              </p>
-                            </div>
-                            <Switch />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
+
                     <Separator />
                     
                     <Button onClick={handleSaveSettings}>
