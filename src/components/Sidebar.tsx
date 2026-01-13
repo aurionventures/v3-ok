@@ -116,8 +116,7 @@ const ADMIN_MENU_SECTIONS = [
   {
     label: "Catálogo",
     items: [
-      { icon: FileText, href: "/admin/planos", name: "Planos" },
-      { icon: Layers, href: "/admin/addons", name: "Add-ons" },
+      { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
     ]
   },
   {
