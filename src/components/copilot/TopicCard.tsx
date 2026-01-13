@@ -34,27 +34,27 @@ interface TopicCardProps {
 const categoryConfig = {
   strategic: {
     label: "Estratégico",
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    color: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
     icon: Target,
   },
   risk: {
     label: "Risco",
-    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    color: "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive",
     icon: Shield,
   },
   opportunity: {
     label: "Oportunidade",
-    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    color: "bg-success/10 text-success dark:bg-success/20 dark:text-success",
     icon: Lightbulb,
   },
   governance: {
     label: "Governança",
-    color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+    color: "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground",
     icon: Settings,
   },
   operational: {
     label: "Operacional",
-    color: "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-400",
+    color: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground",
     icon: TrendingUp,
   },
 };
@@ -63,30 +63,30 @@ const priorityConfig = {
   critical: {
     label: "Crítico",
     icon: AlertCircle,
-    color: "text-red-600",
-    bgColor: "bg-red-50 dark:bg-red-950/30",
-    borderColor: "border-red-200 dark:border-red-800",
+    color: "text-destructive",
+    bgColor: "bg-destructive/5 dark:bg-destructive/10",
+    borderColor: "border-destructive/20 dark:border-destructive/20",
   },
   high: {
     label: "Alto",
     icon: AlertTriangle,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50 dark:bg-orange-950/30",
-    borderColor: "border-orange-200 dark:border-orange-800",
+    color: "text-warning",
+    bgColor: "bg-warning/5 dark:bg-warning/10",
+    borderColor: "border-warning/20 dark:border-warning/20",
   },
   medium: {
     label: "Médio",
     icon: Info,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50 dark:bg-blue-950/30",
-    borderColor: "border-blue-200 dark:border-blue-800",
+    color: "text-primary",
+    bgColor: "bg-primary/5 dark:bg-primary/10",
+    borderColor: "border-primary/20 dark:border-primary/20",
   },
   low: {
     label: "Baixo",
     icon: Info,
-    color: "text-gray-600",
-    bgColor: "bg-gray-50 dark:bg-gray-900/30",
-    borderColor: "border-gray-200 dark:border-gray-700",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted/50 dark:bg-muted/30",
+    borderColor: "border-border",
   },
 };
 
@@ -103,10 +103,10 @@ export function TopicCard({ topic, index, onSelect }: TopicCardProps) {
       className={cn(
         "p-4 transition-all hover:shadow-lg cursor-pointer border-l-4",
         priority.bgColor,
-        topic.priority === "critical" ? "border-l-red-500" : "",
-        topic.priority === "high" ? "border-l-orange-500" : "",
-        topic.priority === "medium" ? "border-l-blue-500" : "",
-        topic.priority === "low" ? "border-l-gray-400" : ""
+        topic.priority === "critical" ? "border-l-destructive" : "",
+        topic.priority === "high" ? "border-l-warning" : "",
+        topic.priority === "medium" ? "border-l-primary" : "",
+        topic.priority === "low" ? "border-l-muted-foreground/50" : ""
       )}
       onClick={() => onSelect?.(topic)}
     >
@@ -175,7 +175,7 @@ export function TopicCard({ topic, index, onSelect }: TopicCardProps) {
             <ul className="space-y-1.5">
               {topic.suggestedActions.map((action, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success mt-0.5 flex-shrink-0" />
                   <span>{action}</span>
                 </li>
               ))}
@@ -193,7 +193,7 @@ export function TopicCard({ topic, index, onSelect }: TopicCardProps) {
                   <Badge
                     key={i}
                     variant="outline"
-                    className="text-[9px] bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800"
+                    className="text-[9px] bg-destructive/5 text-destructive border-destructive/20 dark:bg-destructive/10 dark:text-destructive dark:border-destructive/20"
                   >
                     {risk}
                   </Badge>
@@ -213,7 +213,7 @@ export function TopicCard({ topic, index, onSelect }: TopicCardProps) {
                   <Badge
                     key={i}
                     variant="outline"
-                    className="text-[9px] bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800"
+                    className="text-[9px] bg-success/5 text-success border-success/20 dark:bg-success/10 dark:text-success dark:border-success/20"
                   >
                     {opp}
                   </Badge>

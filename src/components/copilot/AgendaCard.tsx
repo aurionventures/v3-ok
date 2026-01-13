@@ -43,19 +43,19 @@ interface AgendaCardProps {
 const statusConfig = {
   pending: {
     label: "Aguardando Aprovação",
-    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+    color: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning",
   },
   approved: {
     label: "Aprovada",
-    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    color: "bg-success/10 text-success dark:bg-success/10 dark:text-success",
   },
   rejected: {
     label: "Rejeitada",
-    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    color: "bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive",
   },
   archived: {
     label: "Arquivada",
-    color: "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-400",
+    color: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground",
   },
 };
 
@@ -78,11 +78,11 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
   return (
     <>
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-b">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/5 dark:to-primary/10 border-b">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Calendar className="h-4 w-4 text-indigo-600" />
+                <Calendar className="h-4 w-4 text-primary" />
                 <CardTitle className="text-lg">
                   Reunião de{" "}
                   {format(meetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
@@ -109,7 +109,7 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                   onClick={() => setShowRejectDialog(true)}
                 >
                   <X className="h-4 w-4 mr-1" />
@@ -117,7 +117,7 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-success hover:bg-success/90 text-success-foreground"
                   onClick={() => setShowApproveDialog(true)}
                 >
                   <Check className="h-4 w-4 mr-1" />
@@ -144,27 +144,27 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
               </div>
               <div className="text-xs text-muted-foreground">Duração Estimada</div>
             </div>
-            <div className="text-center p-3 bg-red-50 dark:bg-red-950/30 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">
+            <div className="text-center p-3 bg-destructive/10 dark:bg-destructive/10 rounded-lg">
+              <div className="text-2xl font-bold text-destructive">
                 {criticalTopics.length}
               </div>
-              <div className="text-xs text-red-600/80">Críticas</div>
+              <div className="text-xs text-destructive/80">Críticas</div>
             </div>
-            <div className="text-center p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">
+            <div className="text-center p-3 bg-warning/10 dark:bg-warning/10 rounded-lg">
+              <div className="text-2xl font-bold text-warning">
                 {highTopics.length}
               </div>
-              <div className="text-xs text-orange-600/80">Alta Prioridade</div>
+              <div className="text-xs text-warning/80">Alta Prioridade</div>
             </div>
           </div>
 
           {/* Market Context Alert */}
-          <Alert className="border-indigo-200 bg-indigo-50/50 dark:bg-indigo-950/20 dark:border-indigo-800">
-            <TrendingUp className="h-4 w-4 text-indigo-600" />
-            <AlertTitle className="text-indigo-700 dark:text-indigo-400">
+          <Alert className="border-primary/30 bg-primary/5 dark:bg-primary/10 dark:border-primary/20">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary dark:text-primary">
               Contexto de Mercado
             </AlertTitle>
-            <AlertDescription className="text-sm text-indigo-600/80 dark:text-indigo-400/80">
+            <AlertDescription className="text-sm text-primary/80 dark:text-primary/80">
               {agenda.marketContext}
             </AlertDescription>
           </Alert>
@@ -173,17 +173,17 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Risk Alerts */}
             {agenda.riskAlerts.length > 0 && (
-              <div className="p-4 rounded-lg bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+              <div className="p-4 rounded-lg bg-destructive/5 dark:bg-destructive/10 border border-destructive/20 dark:border-destructive/20">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <span className="font-semibold text-sm text-red-700 dark:text-red-400">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <span className="font-semibold text-sm text-destructive dark:text-destructive">
                     Alertas de Risco
                   </span>
                 </div>
                 <ul className="space-y-2">
                   {agenda.riskAlerts.map((alert, i) => (
-                    <li key={i} className="text-xs text-red-600/80 dark:text-red-400/80 flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                    <li key={i} className="text-xs text-destructive/80 dark:text-destructive/80 flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 flex-shrink-0" />
                       {alert}
                     </li>
                   ))}
@@ -193,17 +193,17 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
 
             {/* Opportunity Highlights */}
             {agenda.opportunityHighlights.length > 0 && (
-              <div className="p-4 rounded-lg bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+              <div className="p-4 rounded-lg bg-success/5 dark:bg-success/10 border border-success/20 dark:border-success/20">
                 <div className="flex items-center gap-2 mb-3">
-                  <Lightbulb className="h-4 w-4 text-green-600" />
-                  <span className="font-semibold text-sm text-green-700 dark:text-green-400">
+                  <Lightbulb className="h-4 w-4 text-success" />
+                  <span className="font-semibold text-sm text-success dark:text-success">
                     Oportunidades em Destaque
                   </span>
                 </div>
                 <ul className="space-y-2">
                   {agenda.opportunityHighlights.map((opp, i) => (
-                    <li key={i} className="text-xs text-green-600/80 dark:text-green-400/80 flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
+                    <li key={i} className="text-xs text-success/80 dark:text-success/80 flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success mt-1.5 flex-shrink-0" />
                       {opp}
                     </li>
                   ))}
@@ -241,25 +241,25 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
 
           {/* Briefing Info (quando aprovada) */}
           {agenda.status === "approved" && (
-            <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800">
+            <div className="p-4 rounded-lg bg-gradient-to-r from-success/5 to-success/10 dark:from-success/5 dark:to-success/10 border border-success/20 dark:border-success/20">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/50">
-                  <Brain className="h-5 w-5 text-green-600" />
+                <div className="p-2 rounded-lg bg-success/10 dark:bg-success/20">
+                  <Brain className="h-5 w-5 text-success" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                  <p className="text-sm font-medium text-foreground">
                     Briefings Personalizados Gerados
                   </p>
-                  <p className="text-xs text-green-700 dark:text-green-300">
+                  <p className="text-xs text-muted-foreground">
                     Os membros do conselho receberam seus briefings personalizados com análises e perguntas críticas.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600 text-white">
+                  <Badge className="bg-success text-success-foreground">
                     <Users className="h-3 w-3 mr-1" />
                     Enviados
                   </Badge>
-                  <Badge variant="outline" className="border-green-300 text-green-700 dark:text-green-300">
+                  <Badge variant="outline" className="border-success/30 text-success">
                     <Send className="h-3 w-3 mr-1" />
                     Notificados
                   </Badge>
@@ -276,7 +276,7 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-green-600" />
+              <Check className="h-5 w-5 text-success" />
               Aprovar Agenda
             </DialogTitle>
             <DialogDescription>
@@ -285,28 +285,28 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
           </DialogHeader>
           
           {/* Info sobre briefings */}
-          <div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+          <div className="p-4 rounded-lg bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/20">
             <div className="flex items-start gap-3">
-              <Brain className="h-5 w-5 text-indigo-600 mt-0.5" />
+              <Brain className="h-5 w-5 text-primary mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+                <p className="text-sm font-medium text-foreground">
                   Geração Automática de Briefings
                 </p>
-                <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   O Agent D irá gerar briefings personalizados para cada membro do conselho com:
                 </p>
-                <ul className="text-xs text-indigo-600 dark:text-indigo-400 mt-2 space-y-1">
+                <ul className="text-xs text-muted-foreground mt-2 space-y-1">
                   <li className="flex items-center gap-1">
-                    <Check className="h-3 w-3" /> Resumo executivo personalizado
+                    <Check className="h-3 w-3 text-success" /> Resumo executivo personalizado
                   </li>
                   <li className="flex items-center gap-1">
-                    <Check className="h-3 w-3" /> Análise por pauta
+                    <Check className="h-3 w-3 text-success" /> Análise por pauta
                   </li>
                   <li className="flex items-center gap-1">
-                    <Check className="h-3 w-3" /> Perguntas críticas específicas
+                    <Check className="h-3 w-3 text-success" /> Perguntas críticas específicas
                   </li>
                   <li className="flex items-center gap-1">
-                    <Check className="h-3 w-3" /> Checklist de preparação
+                    <Check className="h-3 w-3 text-success" /> Checklist de preparação
                   </li>
                 </ul>
               </div>
@@ -318,7 +318,7 @@ export function AgendaCard({ agenda, onApprove, onReject, onEdit }: AgendaCardPr
               Cancelar
             </Button>
             <Button
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-success hover:bg-success/90 text-success-foreground"
               onClick={() => {
                 onApprove(agenda.id);
                 setShowApproveDialog(false);

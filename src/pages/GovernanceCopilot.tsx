@@ -55,35 +55,35 @@ function detectRoute(actionText: string): string | null {
 const priorityConfig = {
   critical: {
     label: "Crítico",
-    bgColor: "bg-red-600",
-    textColor: "text-white"
+    bgColor: "bg-destructive",
+    textColor: "text-destructive-foreground"
   },
   high: {
     label: "Alto",
-    bgColor: "bg-orange-500",
-    textColor: "text-white"
+    bgColor: "bg-warning",
+    textColor: "text-warning-foreground"
   },
   medium: {
     label: "Médio",
-    bgColor: "bg-yellow-500",
-    textColor: "text-white"
+    bgColor: "bg-primary",
+    textColor: "text-primary-foreground"
   }
 };
 const timeframeConfig = {
   immediate: {
     label: "Imediato",
-    bgColor: "bg-red-600",
-    textColor: "text-white"
+    bgColor: "bg-destructive",
+    textColor: "text-destructive-foreground"
   },
   "30_days": {
     label: "30 dias",
-    bgColor: "bg-amber-500",
-    textColor: "text-white"
+    bgColor: "bg-warning",
+    textColor: "text-warning-foreground"
   },
   "90_days": {
     label: "90 dias",
-    bgColor: "bg-blue-500",
-    textColor: "text-white"
+    bgColor: "bg-primary",
+    textColor: "text-primary-foreground"
   }
 };
 
@@ -95,17 +95,17 @@ function TrendBadge({
 }) {
   if (!trend) return null;
   if (trend.type === 'improving') {
-    return <Badge className="text-[9px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+    return <Badge className="text-[9px] px-1.5 py-0 bg-success/10 text-success dark:bg-success/20 dark:text-success">
         <TrendingDown className="h-2.5 w-2.5 mr-0.5" /> Melhorou
       </Badge>;
   }
   if (trend.type === 'worsening') {
-    return <Badge className="text-[9px] px-1.5 py-0 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+    return <Badge className="text-[9px] px-1.5 py-0 bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
         <TrendingUp className="h-2.5 w-2.5 mr-0.5" /> Piorou
       </Badge>;
   }
   if (trend.type === 'new') {
-    return <Badge className="text-[9px] px-1.5 py-0 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+    return <Badge className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
         <Sparkles className="h-2.5 w-2.5 mr-0.5" /> Novo
       </Badge>;
   }
@@ -149,8 +149,8 @@ function StrategicRiskItem({
 }) {
   const priority = priorityConfig[risk.priority] || priorityConfig.medium;
   const isCritical = risk.priority === 'critical';
-  return <div className={cn("relative p-4 rounded-lg bg-red-50/80 dark:bg-red-950/30 border-l-4 border-l-red-500", isCritical && "ring-1 ring-red-300 dark:ring-red-800")}>
-      {isCritical && <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />}
+  return <div className={cn("relative p-4 rounded-lg bg-destructive/5 dark:bg-destructive/10 border-l-4 border-l-destructive", isCritical && "ring-1 ring-destructive/30 dark:ring-destructive/30")}>
+      {isCritical && <div className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full animate-pulse" />}
       <div className="flex items-start gap-2 mb-2 flex-wrap">
         <Badge className={cn("text-[10px] px-2 py-0.5 font-semibold", priority.bgColor, priority.textColor)}>
           {priority.label}
@@ -163,8 +163,8 @@ function StrategicRiskItem({
       <p className="text-xs text-muted-foreground mb-3">
         {risk.context}
       </p>
-      <div className="space-y-2 pt-3 border-t border-red-200/50 dark:border-red-800/50">
-        <p className="text-[10px] font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">
+      <div className="space-y-2 pt-3 border-t border-destructive/20 dark:border-destructive/20">
+        <p className="text-[10px] font-semibold text-destructive dark:text-destructive uppercase tracking-wide">
           Ações Recomendadas
         </p>
         <ActionButton action={risk.actions.primary} variant="primary" />
@@ -182,13 +182,13 @@ function OperationalThreatItem({
   trend?: TrendInfo;
 }) {
   const timeframe = timeframeConfig[threat.timeframe] || timeframeConfig["30_days"];
-  return <div className="relative p-4 rounded-lg bg-amber-50/80 dark:bg-amber-950/30 border-l-4 border-l-amber-500">
+  return <div className="relative p-4 rounded-lg bg-warning/5 dark:bg-warning/10 border-l-4 border-l-warning">
       <div className="flex items-start gap-2 mb-2 flex-wrap">
         <Badge className={cn("text-[10px] px-2 py-0.5 font-semibold", timeframe.bgColor, timeframe.textColor)}>
           <Clock className="h-3 w-3 mr-1" />
           {timeframe.label}
         </Badge>
-        <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-medium border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400">
+        <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-medium border-warning/30 text-warning dark:border-warning/30 dark:text-warning">
           {threat.category}
         </Badge>
         <TrendBadge trend={trend} />
@@ -199,8 +199,8 @@ function OperationalThreatItem({
       <p className="text-xs text-muted-foreground mb-3">
         {threat.context}
       </p>
-      <div className="space-y-2 pt-3 border-t border-amber-200/50 dark:border-amber-800/50">
-        <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+      <div className="space-y-2 pt-3 border-t border-warning/20 dark:border-warning/20">
+        <p className="text-[10px] font-semibold text-warning dark:text-warning uppercase tracking-wide">
           Ações Recomendadas
         </p>
         <ActionButton action={threat.actions.primary} variant="primary" />
@@ -217,9 +217,9 @@ function StrategicOpportunityItem({
   opportunity: StrategicOpportunity;
   trend?: TrendInfo;
 }) {
-  return <div className="relative p-4 rounded-lg bg-blue-50/80 dark:bg-blue-950/30 border-l-4 border-l-blue-500">
+  return <div className="relative p-4 rounded-lg bg-success/5 dark:bg-success/10 border-l-4 border-l-success">
       <div className="flex items-start gap-2 mb-2 flex-wrap">
-        <Badge className="text-[10px] px-2 py-0.5 font-semibold bg-blue-600 text-white">
+        <Badge className="text-[10px] px-2 py-0.5 font-semibold bg-success text-success-foreground">
           Estratégica
         </Badge>
         <TrendBadge trend={trend} />
@@ -230,8 +230,8 @@ function StrategicOpportunityItem({
       <p className="text-xs text-muted-foreground mb-3">
         {opportunity.context}
       </p>
-      <div className="space-y-2 pt-3 border-t border-blue-200/50 dark:border-blue-800/50">
-        <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
+      <div className="space-y-2 pt-3 border-t border-success/20 dark:border-success/20">
+        <p className="text-[10px] font-semibold text-success dark:text-success uppercase tracking-wide">
           Ações Recomendadas
         </p>
         <ActionButton action={opportunity.actions.primary} variant="primary" />
@@ -448,17 +448,17 @@ export default function GovernanceCopilot() {
                   </div>
                 </Card> : <div className="grid grid-cols-3 gap-4 h-full">
                   {/* Column 1: Strategic Risks */}
-                  <InsightColumn title="Riscos Estratégicos" icon={Shield} iconColor="text-red-600" headerBg="bg-red-50/80 dark:bg-red-950/30" count={displayInsights.strategicRisks.length}>
+                  <InsightColumn title="Riscos Estratégicos" icon={Shield} iconColor="text-destructive" headerBg="bg-destructive/5 dark:bg-destructive/10" count={displayInsights.strategicRisks.length}>
                     {displayInsights.strategicRisks.map((risk, index) => <StrategicRiskItem key={index} risk={risk} trend={hasRefreshed ? trends.get(`risk_${index}`) : undefined} />)}
                   </InsightColumn>
 
                   {/* Column 2: Operational Threats */}
-                  <InsightColumn title="Ameaças Operacionais" icon={AlertTriangle} iconColor="text-amber-600" headerBg="bg-amber-50/80 dark:bg-amber-950/30" count={displayInsights.operationalThreats.length}>
+                  <InsightColumn title="Ameaças Operacionais" icon={AlertTriangle} iconColor="text-warning" headerBg="bg-warning/5 dark:bg-warning/10" count={displayInsights.operationalThreats.length}>
                     {displayInsights.operationalThreats.map((threat, index) => <OperationalThreatItem key={index} threat={threat} trend={hasRefreshed ? trends.get(`threat_${index}`) : undefined} />)}
                   </InsightColumn>
 
                   {/* Column 3: Strategic Opportunities */}
-                  <InsightColumn title="Oportunidades Estratégicas" icon={Lightbulb} iconColor="text-blue-600" headerBg="bg-blue-50/80 dark:bg-blue-950/30" count={displayInsights.strategicOpportunities.length}>
+                  <InsightColumn title="Oportunidades Estratégicas" icon={Lightbulb} iconColor="text-success" headerBg="bg-success/5 dark:bg-success/10" count={displayInsights.strategicOpportunities.length}>
                     {displayInsights.strategicOpportunities.map((opportunity, index) => <StrategicOpportunityItem key={index} opportunity={opportunity} trend={hasRefreshed ? trends.get(`opportunity_${index}`) : undefined} />)}
                   </InsightColumn>
                 </div>}
