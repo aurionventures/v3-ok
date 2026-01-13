@@ -48,7 +48,7 @@ export default function LoginAdmin({ onBack }: LoginAdminProps) {
 
   
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-white">
       {/* Left side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
