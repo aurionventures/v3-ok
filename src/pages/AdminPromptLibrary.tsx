@@ -55,6 +55,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { PromptDetailView } from '@/components/admin/PromptDetailView';
 import { PromptEditor } from '@/components/admin/PromptEditor';
+import { ClientPromptsList } from '@/components/admin/ClientPromptsList';
 import { usePrompts, AIPrompt, StrategicType, ImpactLevel, PromptScope, AgentType } from '@/hooks/usePrompts';
 import { cn } from '@/lib/utils';
 
@@ -1109,6 +1110,13 @@ export default function AdminPromptLibrary() {
                     Biblioteca de Prompts
                   </TabsTrigger>
                   <TabsTrigger 
+                    value="clients" 
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Prompts por Cliente
+                  </TabsTrigger>
+                  <TabsTrigger 
                     value="audit" 
                     className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
                   >
@@ -1137,9 +1145,17 @@ export default function AdminPromptLibrary() {
               <>
                 {activeTab === 'overview' && renderOverviewTab()}
                 {activeTab === 'agents' && renderAgentsTab()}
-                
                 {activeTab === 'services' && renderServicesTab()}
                 {activeTab === 'library' && renderLibraryTab()}
+                {activeTab === 'clients' && (
+                  <div className="p-6">
+                    <ClientPromptsList 
+                      agentCategory={selectedAgent ? AGENT_CONFIGS.find(a => a.id === selectedAgent)?.categories[0] : undefined}
+                      agentName={selectedAgent ? AGENT_CONFIGS.find(a => a.id === selectedAgent)?.name : undefined}
+                      basePrompt={prompts?.find(p => p.category === (selectedAgent ? AGENT_CONFIGS.find(a => a.id === selectedAgent)?.categories[0] : ''))?.system_prompt}
+                    />
+                  </div>
+                )}
                 {activeTab === 'audit' && renderAuditTab()}
               </>
             )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bot, FileText, Sparkles, RotateCcw, Save, Check, Clock, Code, Settings2, AlertTriangle } from "lucide-react";
+import { Bot, FileText, Sparkles, RotateCcw, Save, Check, Clock, Code, Settings2, AlertTriangle, Wand2, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,8 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { useATAConfig, ATAConfig, DEFAULT_CONFIG, DEFAULT_ATA_PROMPT } from "@/hooks/useATAConfig";
+import { useClientPromptConfig } from "@/hooks/useClientPromptConfig";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 const TEMPLATES = [
@@ -67,10 +70,23 @@ const VERBAL_PERSON_OPTIONS = [
 
 export const AIParameterizationTab: React.FC = () => {
   const { config, saveConfig, loading } = useATAConfig();
+  const { user } = useAuth();
+  
+  // Hook para carregar prompt sugerido pelo Super Admin
+  const { 
+    defaultPrompt, 
+    suggestedPrompt, 
+    loading: loadingClientConfig 
+  } = useClientPromptConfig(
+    user?.user_metadata?.organization_id || null, 
+    'agent_g_ata_generator'
+  );
+  
   const [localConfig, setLocalConfig] = useState<ATAConfig>(config || DEFAULT_CONFIG);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(localConfig.advancedMode ? 'advanced' : 'simple');
+  const [usingSuggestedPrompt, setUsingSuggestedPrompt] = useState(false);
 
   useEffect(() => {
     if (config) {
@@ -78,6 +94,24 @@ export const AIParameterizationTab: React.FC = () => {
       setActiveTab(config.advancedMode ? 'advanced' : 'simple');
     }
   }, [config]);
+
+  // Aplicar prompt sugerido pelo Super Admin
+  const handleApplySuggestedPrompt = () => {
+    if (suggestedPrompt) {
+      setLocalConfig(prev => ({
+        ...prev,
+        fullPrompt: suggestedPrompt,
+        advancedMode: true
+      }));
+      setActiveTab('advanced');
+      setUsingSuggestedPrompt(true);
+      setHasChanges(true);
+      toast({
+        title: "Prompt sugerido aplicado",
+        description: "O prompt sugerido pelo administrador foi aplicado. Voce pode edita-lo conforme necessario.",
+      });
+    }
+  };
 
   const handleTemplateSelect = (template: typeof TEMPLATES[0]) => {
     setSelectedTemplate(template.id);
@@ -383,6 +417,48 @@ ${localConfig.customInstructions ? `INSTRUÇÕES ESPECÍFICAS DO CLIENTE:\n${loc
         {/* MODO AVANÇADO - EDITOR DE PROMPT */}
         <TabsContent value="advanced" className="mt-6">
           <div className="space-y-6">
+            {/* Prompt Sugerido pelo Super Admin */}
+            {suggestedPrompt && !usingSuggestedPrompt && (
+              <Card className="border-primary/50 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded bg-primary/20">
+                        <Wand2 className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base text-primary">Prompt Sugerido Disponivel</CardTitle>
+                        <CardDescription>
+                          O administrador do sistema sugeriu um prompt otimizado para sua organizacao
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button onClick={handleApplySuggestedPrompt} size="sm">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Usar Prompt Sugerido
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-background/80 rounded-lg p-3 font-mono text-xs max-h-[150px] overflow-y-auto border">
+                    {suggestedPrompt.slice(0, 500)}
+                    {suggestedPrompt.length > 500 && '...'}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Indicador de que está usando prompt sugerido */}
+            {usingSuggestedPrompt && (
+              <Alert className="border-green-500/50 bg-green-500/10">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <AlertTitle className="text-green-600">Usando Prompt Sugerido</AlertTitle>
+                <AlertDescription className="text-muted-foreground">
+                  Voce esta usando o prompt sugerido pelo administrador. Sinta-se a vontade para personaliza-lo.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Alerta de Modo Avançado */}
             <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
               <AlertTriangle className="h-4 w-4 text-amber-500" />

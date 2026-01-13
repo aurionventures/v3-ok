@@ -1,10 +1,63 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { loadPromptConfig, updatePromptMetrics, type PromptConfig } from "../_shared/prompt-loader.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Interface para configuração do cliente
+interface ClientPromptConfig {
+  custom_prompt: string | null;
+  uses_default: boolean;
+  tone: string;
+  verbal_person: string;
+  summary_length: number;
+  custom_instructions: string | null;
+  advanced_mode: boolean;
+}
+
+// Função para carregar configuração do cliente do banco
+async function loadClientPromptConfig(
+  organizationId: string | null,
+  agentCategory: string
+): Promise<ClientPromptConfig | null> {
+  if (!organizationId) return null;
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.log('[client-config] Supabase não configurado');
+      return null;
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data, error } = await supabase
+      .from("client_prompt_configs")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("agent_category", agentCategory)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[client-config] Erro ao carregar:', error);
+      return null;
+    }
+
+    if (data) {
+      console.log(`[client-config] Configuração do cliente carregada para org ${organizationId}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('[client-config] Erro:', error);
+    return null;
+  }
+}
 
 // Fallback prompt caso não encontre no banco
 const FALLBACK_PROMPT: PromptConfig = {
@@ -56,10 +109,12 @@ serve(async (req) => {
       participants = [],
       meeting_tasks = [],
       nextMeetingTopics = [],
-      ataConfig = null
+      ataConfig = null,
+      organizationId = null  // ID da organização do cliente
     } = await req.json();
 
     console.log('📝 Generating ATA for meeting:', meetingId);
+    console.log('📋 Organization ID:', organizationId);
 
     if (!council || !date || !time) {
       return new Response(
@@ -71,8 +126,18 @@ serve(async (req) => {
       );
     }
 
-    // Carregar prompt do banco de dados
+    // Carregar prompt base do banco de dados (definido pelo Super Admin)
     const promptConfig = await loadPromptConfig('agent_g_ata_generator', FALLBACK_PROMPT);
+
+    // Carregar configuração específica do cliente do banco (se existir)
+    const clientConfig = await loadClientPromptConfig(organizationId, 'agent_g_ata_generator');
+    
+    // Log para auditoria
+    if (clientConfig) {
+      console.log(`🔧 Cliente tem configuração customizada: uses_default=${clientConfig.uses_default}, advanced_mode=${clientConfig.advanced_mode}`);
+    } else {
+      console.log('🔧 Usando configuração padrão (sem customização do cliente)');
+    }
 
     const confirmedParticipants = participants.filter((p: any) => p.confirmed);
     const participantsList = confirmedParticipants.map((p: any) => 
@@ -92,16 +157,8 @@ serve(async (req) => {
     ).join('\n');
 
     // Build dynamic prompt based on config
-    const buildStyleInstructions = (config: any) => {
-      if (!config) {
-        return {
-          tone: 'Seja direto e focado em decisões e ações. Priorize clareza e objetividade.',
-          person: 'Use terceira pessoa do singular',
-          length: 200,
-          custom: ''
-        };
-      }
-
+    // Prioridade: 1. clientConfig do banco, 2. ataConfig enviado pelo frontend, 3. padrão
+    const buildStyleInstructions = (clientCfg: ClientPromptConfig | null, frontendCfg: any) => {
       const toneMap: Record<string, string> = {
         'formal': 'Use linguagem jurídica formal e cerimonial. Utilize vocabulário jurídico-corporativo com referências a deliberações formais.',
         'semi-formal': 'Use linguagem profissional mas acessível. Mantenha o tom corporativo sem excesso de formalidades.',
@@ -114,15 +171,43 @@ serve(async (req) => {
         'primeira_plural': 'Use primeira pessoa do plural (Ex: "Deliberamos...", "Aprovamos...")'
       };
 
+      // Se cliente tem configuração no banco e não usa o padrão
+      if (clientCfg && !clientCfg.uses_default) {
+        return {
+          tone: toneMap[clientCfg.tone] || toneMap['executivo'],
+          person: personMap[clientCfg.verbal_person] || personMap['terceira'],
+          length: clientCfg.summary_length || 200,
+          custom: clientCfg.custom_instructions || '',
+          customPrompt: clientCfg.advanced_mode ? clientCfg.custom_prompt : null
+        };
+      }
+
+      // Se tem config do frontend
+      if (frontendCfg) {
+        return {
+          tone: toneMap[frontendCfg.tone] || toneMap['executivo'],
+          person: personMap[frontendCfg.verbalPerson] || personMap['terceira'],
+          length: frontendCfg.summaryLength || 200,
+          custom: frontendCfg.customInstructions || '',
+          customPrompt: frontendCfg.advancedMode ? frontendCfg.fullPrompt : null
+        };
+      }
+
+      // Padrão
       return {
-        tone: toneMap[config.tone] || toneMap['executivo'],
-        person: personMap[config.verbalPerson] || personMap['terceira'],
-        length: config.summaryLength || 200,
-        custom: config.customInstructions || ''
+        tone: 'Seja direto e focado em decisões e ações. Priorize clareza e objetividade.',
+        person: 'Use terceira pessoa do singular',
+        length: 200,
+        custom: '',
+        customPrompt: null
       };
     };
 
-    const styleInstructions = buildStyleInstructions(ataConfig);
+    const styleInstructions = buildStyleInstructions(clientConfig, ataConfig);
+
+    // Determinar o system prompt final
+    // Se o cliente tem um prompt customizado, usar ele; senão usar o do Super Admin
+    const finalSystemPrompt = styleInstructions.customPrompt || promptConfig.system_prompt;
 
     const userPrompt = `INSTRUÇÕES DE ESTILO:
 - ${styleInstructions.tone}
@@ -159,6 +244,8 @@ INSTRUÇÕES:
       throw new Error('LOVABLE_API_KEY não configurada');
     }
 
+    console.log('🤖 Using system prompt:', styleInstructions.customPrompt ? 'CLIENT_CUSTOM' : 'SUPER_ADMIN_DEFAULT');
+
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -170,7 +257,7 @@ INSTRUÇÕES:
         temperature: promptConfig.temperature,
         max_tokens: promptConfig.max_tokens,
         messages: [
-          { role: 'system', content: promptConfig.system_prompt },
+          { role: 'system', content: finalSystemPrompt },
           { role: 'user', content: userPrompt }
         ],
       }),

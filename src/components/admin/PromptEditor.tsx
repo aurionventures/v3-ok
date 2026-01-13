@@ -39,12 +39,14 @@ const CATEGORIES = [
   { value: 'agent_c_prioritizer', label: 'Agent C - Prioritizer' },
   { value: 'agent_d_agenda_generator', label: 'Agent D - Agenda Generator' },
   { value: 'agent_d_briefing_generator', label: 'Agent D - Briefing Generator' },
+  { value: 'agent_g_ata_generator', label: 'Agent G - ATA Generator' },
+  { value: 'agent_h_governance_insights', label: 'Agent H - Governance Insights' },
+  { value: 'agent_i_pdi_generator', label: 'Agent I - PDI Generator' },
   // Copilot
   { value: 'agent_copilot_insights', label: 'Copilot - Insights' },
   // System Services
-  { value: 'pdi_generator', label: 'PDI Generator' },
-  { value: 'secretariat_search_intent', label: 'Secretariat Search - Intent' },
-  { value: 'secretariat_search_response', label: 'Secretariat Search - Response' },
+  { value: 'agent_f_search_intent', label: 'Agent F - Search Intent' },
+  { value: 'agent_f_search_response', label: 'Agent F - Search Response' },
   { value: 'predictive_insights_edge', label: 'Predictive Insights (Edge)' },
 ];
 
@@ -90,7 +92,7 @@ const AGENT_TYPES = [
   { value: 'service', label: 'Servico', description: 'Servicos auxiliares do sistema' },
 ];
 
-const defaultFormData: CreatePromptInput = {
+const defaultFormData: CreatePromptInput & { suggested_client_prompt?: string | null } = {
   name: '',
   category: 'agent_a_collector',
   version: '1.0.0',
@@ -118,13 +120,15 @@ const defaultFormData: CreatePromptInput = {
   executive_description: null,
   connected_copilots: null,
   connected_services: null,
+  // Client prompt suggestion
+  suggested_client_prompt: null,
 };
 
 export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
   const { prompts, createPrompt, updatePrompt } = usePrompts();
   const isEditing = !!promptId;
 
-  const [formData, setFormData] = useState<CreatePromptInput>(defaultFormData);
+  const [formData, setFormData] = useState<CreatePromptInput & { suggested_client_prompt?: string | null }>(defaultFormData);
   const [functionsText, setFunctionsText] = useState('');
   const [examplesText, setExamplesText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -162,6 +166,8 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
         executive_description: existingPrompt.executive_description || null,
         connected_copilots: existingPrompt.connected_copilots || null,
         connected_services: existingPrompt.connected_services || null,
+        // Client prompt suggestion
+        suggested_client_prompt: (existingPrompt as any).suggested_client_prompt || null,
       });
       setFunctionsText(existingPrompt.functions ? JSON.stringify(existingPrompt.functions, null, 2) : '');
       setExamplesText(existingPrompt.examples ? JSON.stringify(existingPrompt.examples, null, 2) : '');
@@ -195,10 +201,13 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
         }
       }
 
+      const { suggested_client_prompt, ...baseFormData } = formData;
       const data = {
-        ...formData,
+        ...baseFormData,
         functions,
-        examples
+        examples,
+        // Incluir suggested_client_prompt como campo adicional
+        ...(suggested_client_prompt ? { suggested_client_prompt } : {}),
       };
 
       if (isEditing && promptId) {
@@ -454,9 +463,12 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
                   value={formData.system_prompt}
                   onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
                   placeholder="Você é um especialista em..."
-                  rows={16}
+                  rows={12}
                   className="font-mono text-sm"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Prompt base usado pelo agente. Este prompt é gerenciado pelo Super Admin.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -465,12 +477,45 @@ export function PromptEditor({ open, onClose, promptId }: PromptEditorProps) {
                   value={formData.user_prompt_template || ''}
                   onChange={(e) => setFormData({ ...formData, user_prompt_template: e.target.value })}
                   placeholder="Analise o seguinte contexto: {{context}}"
-                  rows={6}
+                  rows={4}
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
                   Use {'{{variável}}'} para conteúdo dinâmico
                 </p>
+              </div>
+
+              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50/50">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="p-1.5 rounded bg-amber-100">
+                    <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-amber-900">Prompt Sugerido para Cliente</h4>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      O cliente pode usar este prompt como base para customização. Se não for preenchido, 
+                      o cliente começará com o System Prompt acima.
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-amber-800">Prompt Sugerido para Cliente (Opcional)</Label>
+                  <Textarea
+                    value={formData.suggested_client_prompt || ''}
+                    onChange={(e) => setFormData({ ...formData, suggested_client_prompt: e.target.value || null })}
+                    placeholder="Sugestão de prompt para o cliente personalizar...
+
+Exemplo: Você é o assistente de governança da [NOME DA EMPRESA]. 
+Gere ATAs formais seguindo o padrão corporativo específico..."
+                    rows={8}
+                    className="font-mono text-sm bg-white"
+                  />
+                  <p className="text-xs text-amber-700">
+                    Este prompt aparecerá como sugestão no painel do cliente para customização.
+                  </p>
+                </div>
               </div>
             </TabsContent>
 
