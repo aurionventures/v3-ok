@@ -304,27 +304,6 @@ export function OnboardingDashboard({ onNavigateToPhase }: OnboardingDashboardPr
         </Card>
       )}
 
-      {/* Ready to Launch */}
-      {progress.overall_score >= 50 && (
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-          <CardContent className="pt-6 pb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-green-800">
-                  MOAT Engine Pronto!
-                </h3>
-                <p className="text-sm text-green-600 mt-1">
-                  Sua base de conhecimento atingiu o minimo necessario para operacao eficaz
-                </p>
-              </div>
-              <Button className="bg-green-600 hover:bg-green-700">
-                Acessar MOAT Engine
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
