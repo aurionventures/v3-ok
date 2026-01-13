@@ -13,9 +13,7 @@ import { MembersTable } from '@/components/governance/MembersTable';
 import { CreateMemberModal } from '@/components/governance/CreateMemberModal';
 import { AllocateMemberModal } from '@/components/governance/AllocateMemberModal';
 import { OrganDocumentsSection } from '@/components/governance/OrganDocumentsSection';
-import LegacyContent from '@/components/governance/LegacyContent';
-import RitualsContent from '@/components/governance/RitualsContent';
-import { Building2, Users, UserCog, Plus, Trash2, BookText, Calendar } from 'lucide-react';
+import { Building2, Users, UserCog, Plus, Trash2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +24,7 @@ const GovernanceConfig = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const isAdmin = user?.orgRole === 'org_admin';
-  const [activeTab, setActiveTab] = useState<OrganType | 'membros' | 'legado' | 'rituais'>('conselho');
+  const [activeTab, setActiveTab] = useState<OrganType | 'membros'>('conselho');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -193,8 +191,8 @@ const GovernanceConfig = () => {
             </div>
 
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as OrganType | 'membros' | 'legado' | 'rituais')}>
-              <TabsList className="grid w-full grid-cols-6">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as OrganType | 'membros')}>
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="conselho" className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Conselhos</span>
@@ -210,14 +208,6 @@ const GovernanceConfig = () => {
                 <TabsTrigger value="membros" className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Membros</span>
-                </TabsTrigger>
-                <TabsTrigger value="legado" className="flex items-center gap-1">
-                  <BookText className="h-4 w-4" />
-                  <span className="hidden sm:inline">Legado</span>
-                </TabsTrigger>
-                <TabsTrigger value="rituais" className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Rituais</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -408,31 +398,6 @@ const GovernanceConfig = () => {
                 </TabsContent>
               ))}
 
-              {/* Aba Legado */}
-              <TabsContent value="legado" className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-medium">Gestão de Legado</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Manifesto de legado, valores e documentos da organização
-                    </p>
-                  </div>
-                </div>
-                <LegacyContent />
-              </TabsContent>
-
-              {/* Aba Rituais */}
-              <TabsContent value="rituais" className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-medium">Rituais Corporativos</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Assembleias, fóruns e encontros de governança
-                    </p>
-                  </div>
-                </div>
-                <RitualsContent />
-              </TabsContent>
             </Tabs>
 
             {/* Modais de Membros */}
