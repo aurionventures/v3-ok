@@ -14,9 +14,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import GovMetrixQuizModal from "@/components/governanca-corporativa/GovMetrixQuizModal";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -111,7 +113,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-14 rounded-lg font-semibold"
-                onClick={() => navigate('/standalone-quiz')}
+                onClick={() => setIsQuizOpen(true)}
               >
                 <Play className="h-5 w-5 mr-2" />
                 Fazer Diagnóstico Gratuito (5 min)
@@ -376,12 +378,19 @@ const Index = () => {
                 <Button 
                   size="lg" 
                   className="w-full bg-transparent border-2 border-accent text-accent hover:bg-accent/10 text-base md:text-lg px-6 md:px-8 py-5 md:py-6 h-auto rounded-lg font-semibold"
-                  onClick={() => navigate('/standalone-quiz')}
+                  onClick={() => setIsQuizOpen(true)}
                 >
                   <Play className="h-5 w-5 mr-2 flex-shrink-0" />
                   <span>Fazer Diagnóstico de Governança</span>
                 </Button>
               </div>
+
+              {/* GovMetrix Quiz Modal */}
+              <GovMetrixQuizModal 
+                isOpen={isQuizOpen} 
+                onClose={() => setIsQuizOpen(false)}
+                onScrollToPricing={() => navigate('/pricing')}
+              />
 
               {/* Contact Form */}
               <Card className="bg-white/5 border-white/10">
