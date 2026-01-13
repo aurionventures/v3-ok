@@ -469,7 +469,7 @@ export default function AdminPromptLibrary() {
               <Download className="h-4 w-4 mr-2" />
               Exportar Auditoria
             </Button>
-            <Button className="bg-warning hover:bg-warning/90 text-warning-foreground" onClick={handleCreateNew}>
+            <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md" onClick={handleCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Prompt
             </Button>
