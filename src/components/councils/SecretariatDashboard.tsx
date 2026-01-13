@@ -137,19 +137,19 @@ export const SecretariatDashboard = ({
   const statusChartData = [{
     name: 'Resolvidas',
     value: completed.length,
-    color: '#22c55e'
+    color: 'hsl(var(--success))'
   }, {
     name: 'Pendentes',
     value: pendingOnTime.length,
-    color: '#3b82f6'
+    color: 'hsl(var(--info))'
   }, {
     name: 'Em Andamento',
     value: inProgress.length,
-    color: '#a855f7'
+    color: 'hsl(var(--accent))'
   }, {
     name: 'Atrasadas',
     value: overdue.length,
-    color: '#ef4444'
+    color: 'hsl(var(--destructive))'
   }].filter(item => item.value > 0);
   const organChartData = actions.filter(action => action.meetings?.councils?.name) // Filter out actions without organ
   .reduce((acc, action) => {
@@ -248,10 +248,10 @@ export const SecretariatDashboard = ({
     const due = new Date(dueDate);
     due.setHours(0, 0, 0, 0);
     const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return 'border-l-4 border-red-500 bg-red-50';
-    if (diffDays === 0) return 'border-l-4 border-orange-500 bg-orange-50';
-    if (diffDays <= 3) return 'border-l-4 border-yellow-500 bg-yellow-50';
-    return 'border-l-4 border-green-500 bg-white';
+    if (diffDays < 0) return 'border-l-4 border-destructive bg-destructive/5';
+    if (diffDays === 0) return 'border-l-4 border-warning bg-warning/5';
+    if (diffDays <= 3) return 'border-l-4 border-warning/70 bg-warning/5';
+    return 'border-l-4 border-success bg-background';
   };
   return <div className="space-y-6">
       <Tabs defaultValue="library" className="w-full">
@@ -287,7 +287,7 @@ export const SecretariatDashboard = ({
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Target className="h-4 w-4 text-blue-600" />
+                    <Target className="h-4 w-4 text-info" />
                     Total Criadas
                   </CardTitle>
                 </CardHeader>
@@ -301,12 +301,12 @@ export const SecretariatDashboard = ({
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                     Resolvidas
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-600">{metrics.resolved}</div>
+                  <div className="text-3xl font-bold text-success">{metrics.resolved}</div>
                   <Progress value={metrics.resolutionRate} className="mt-2" />
                   <p className="text-xs text-muted-foreground mt-2">
                     {metrics.resolutionRate}% do total
@@ -317,12 +317,12 @@ export const SecretariatDashboard = ({
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-orange-600" />
+                    <Clock className="h-4 w-4 text-warning" />
                     Pendentes
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-orange-600">{metrics.pending}</div>
+                  <div className="text-3xl font-bold text-warning">{metrics.pending}</div>
                   <Progress value={metrics.pending / metrics.total * 100} className="mt-2" />
                   <p className="text-xs text-muted-foreground mt-2">
                     {Math.round(metrics.pending / metrics.total * 100)}% do total
@@ -333,12 +333,12 @@ export const SecretariatDashboard = ({
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    <TrendingUp className="h-4 w-4 text-accent" />
                     Taxa de Resolução
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-purple-600">{metrics.resolutionRate}%</div>
+                  <div className="text-3xl font-bold text-accent">{metrics.resolutionRate}%</div>
                   <Progress value={metrics.resolutionRate} className="mt-2" />
                   <p className="text-xs text-muted-foreground mt-2">Eficiência da equipe</p>
                 </CardContent>
@@ -346,26 +346,26 @@ export const SecretariatDashboard = ({
             </div>
 
             {/* ATAs Pendentes Card */}
-            <Card className="border-amber-200 bg-amber-50/30">
+            <Card className="border-warning/30 bg-warning/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <FileSignature className="h-4 w-4 text-amber-600" />
+                  <FileSignature className="h-4 w-4 text-warning" />
                   ATAs Pendentes de Aprovação/Assinatura
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-amber-100 rounded-lg">
-                    <div className="text-2xl font-bold text-amber-700">{ataMetrics.pendingApproval}</div>
-                    <p className="text-xs text-amber-600">Aguardando Aprovação</p>
+                  <div className="text-center p-3 bg-warning/20 rounded-lg">
+                    <div className="text-2xl font-bold text-warning">{ataMetrics.pendingApproval}</div>
+                    <p className="text-xs text-warning/80">Aguardando Aprovação</p>
                   </div>
-                  <div className="text-center p-3 bg-blue-100 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-700">{ataMetrics.pendingSignature}</div>
-                    <p className="text-xs text-blue-600">Aguardando Assinatura</p>
+                  <div className="text-center p-3 bg-info/20 rounded-lg">
+                    <div className="text-2xl font-bold text-info">{ataMetrics.pendingSignature}</div>
+                    <p className="text-xs text-info/80">Aguardando Assinatura</p>
                   </div>
-                  <div className="text-center p-3 bg-green-100 rounded-lg">
-                    <div className="text-2xl font-bold text-green-700">{ataMetrics.finalized}</div>
-                    <p className="text-xs text-green-600">Finalizadas</p>
+                  <div className="text-center p-3 bg-success/20 rounded-lg">
+                    <div className="text-2xl font-bold text-success">{ataMetrics.finalized}</div>
+                    <p className="text-xs text-success/80">Finalizadas</p>
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">

@@ -124,19 +124,19 @@ export const ATAApprovalSection = ({ meetingId, hasATA }: ATAApprovalSectionProp
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'APROVADO':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Aprovado</Badge>;
+        return <Badge className="bg-success/10 text-success"><CheckCircle className="h-3 w-3 mr-1" />Aprovado</Badge>;
       case 'REJEITADO':
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" />Rejeitado</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive"><XCircle className="h-3 w-3 mr-1" />Rejeitado</Badge>;
       case 'REVISAO_SOLICITADA':
-        return <Badge className="bg-amber-100 text-amber-800"><AlertCircle className="h-3 w-3 mr-1" />Revisão</Badge>;
+        return <Badge className="bg-warning/10 text-warning"><AlertCircle className="h-3 w-3 mr-1" />Revisão</Badge>;
       default:
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
+        return <Badge className="bg-info/10 text-info"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
     }
   };
 
   const getSignatureBadge = (status: string) => {
     if (status === 'ASSINADO') {
-      return <Badge className="bg-emerald-100 text-emerald-800"><PenTool className="h-3 w-3 mr-1" />Assinado</Badge>;
+      return <Badge className="bg-success/10 text-success"><PenTool className="h-3 w-3 mr-1" />Assinado</Badge>;
     }
     return <Badge variant="outline" className="text-muted-foreground">Aguardando</Badge>;
   };
@@ -144,13 +144,13 @@ export const ATAApprovalSection = ({ meetingId, hasATA }: ATAApprovalSectionProp
   const getATAStatusLabel = (status: ATAStatus) => {
     switch (status) {
       case 'EM_APROVACAO':
-        return { label: 'Em Aprovação', color: 'bg-blue-100 text-blue-800' };
+        return { label: 'Em Aprovação', color: 'bg-info/10 text-info' };
       case 'APROVADO':
-        return { label: 'Aprovado - Aguardando Assinaturas', color: 'bg-amber-100 text-amber-800' };
+        return { label: 'Aprovado - Aguardando Assinaturas', color: 'bg-warning/10 text-warning' };
       case 'ASSINADO':
-        return { label: 'Finalizado - Todas Assinaturas Coletadas', color: 'bg-green-100 text-green-800' };
+        return { label: 'Finalizado - Todas Assinaturas Coletadas', color: 'bg-success/10 text-success' };
       default:
-        return { label: 'Aguardando Envio', color: 'bg-gray-100 text-gray-800' };
+        return { label: 'Aguardando Envio', color: 'bg-muted text-muted-foreground' };
     }
   };
 
@@ -162,11 +162,11 @@ export const ATAApprovalSection = ({ meetingId, hasATA }: ATAApprovalSectionProp
     <>
       <Separator className="my-6" />
       
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-info/30 bg-info/5">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <FileSignature className="h-5 w-5 text-blue-600" />
+              <FileSignature className="h-5 w-5 text-info" />
               Aprovação e Assinatura da ATA
             </span>
             <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
@@ -214,7 +214,7 @@ export const ATAApprovalSection = ({ meetingId, hasATA }: ATAApprovalSectionProp
                       {signatureProgress.signed}/{signatureProgress.total}
                     </span>
                   </div>
-                  <Progress value={signatureProgress.percentage} className="h-2 bg-emerald-100 [&>div]:bg-emerald-600" />
+                  <Progress value={signatureProgress.percentage} className="h-2 bg-success/20 [&>div]:bg-success" />
                 </div>
               </div>
 
@@ -276,7 +276,7 @@ export const ATAApprovalSection = ({ meetingId, hasATA }: ATAApprovalSectionProp
                     {approvals
                       .filter(a => a.approval_comment)
                       .map((approval) => (
-                        <div key={approval.id} className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <div key={approval.id} className="p-3 bg-warning/10 rounded-lg border border-warning/30">
                           <p className="text-sm font-medium">{approval.participant?.external_name}</p>
                           <p className="text-sm text-muted-foreground">{approval.approval_comment}</p>
                         </div>
