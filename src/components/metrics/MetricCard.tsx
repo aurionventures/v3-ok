@@ -25,14 +25,14 @@ const MetricCard = ({
     <div className={cn("legacy-card", className)}>
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
           <div className="mt-0.5 flex items-baseline">
-            <p className="text-xl font-semibold text-legacy-500">{value}</p>
+            <p className="text-xl font-semibold text-primary">{value}</p>
             {trend && (
               <span
                 className={cn(
                   "ml-2 text-sm",
-                  trend.isPositive ? "text-green-600" : "text-red-600"
+                  trend.isPositive ? "text-success" : "text-destructive"
                 )}
               >
                 {trend.isPositive ? "+" : "-"}
@@ -41,10 +41,10 @@ const MetricCard = ({
             )}
           </div>
           {description && (
-            <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
           )}
         </div>
-        {icon && <div className="text-legacy-purple-500">{icon}</div>}
+        {icon && <div className="text-accent">{icon}</div>}
       </div>
     </div>
   );

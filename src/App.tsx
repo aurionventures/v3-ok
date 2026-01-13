@@ -1,141 +1,176 @@
-
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import LoginAdmin from "./components/auth/LoginAdmin"; 
-import Dashboard from "./pages/Dashboard";
-import ShareholderStructure from "./pages/ShareholderStructure";
-import Councils from "./pages/Councils";
-import GovernanceConfig from "./pages/GovernanceConfig";
-import SubmitProjects from "./pages/SubmitProjects";
-import Rituals from "./pages/Rituals";
-import Succession from "./pages/Succession";
-import Documents from "./pages/Documents";
-import Maturity from "./pages/Maturity";
-import ESG from "./pages/ESG";
-import Settings from "./pages/Settings";
-import Activities from "./pages/Activities";
-import Alerts from "./pages/Alerts";
-import NotFound from "./pages/NotFound";
-import Benchmarking from "./pages/Benchmarking";
-import Insights from "./pages/Insights";
-import Monitoring from "./pages/Monitoring";
-import DadosESG from "./pages/DadosESG";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import PeopleDevelopment from "./pages/PeopleDevelopment";
-import Subsystems from "./pages/Subsystems";
-import Legacy from "./pages/Legacy";
-import GovernanceRiskManagement from "./pages/GovernanceRiskManagement";
-import MarketIntelligence from "./pages/MarketIntelligence";
-import Admin from "./pages/Admin";
-import AdminFinances from "./pages/AdminFinances";
-import AdminAgentConfig from "./pages/AdminAgentConfig";
-import AdminPlansComparison from "./pages/AdminPlansComparison";
-import AdminPricingConfig from "./pages/AdminPricingConfig";
-import AdminPlanConfigurator from "./pages/AdminPlanConfigurator";
-import AdminClientManagement from "./pages/AdminClientManagement";
-import AdminPartners from "./pages/AdminPartners";
-import AdminAddons from "./pages/AdminAddons";
-import AdminContracts from "./pages/AdminContracts";
-import AdminInvoices from "./pages/AdminInvoices";
-import AdminSales from "./pages/AdminSales";
-import AIConfig from "./pages/AIConfig";
-import GovernanceCopilot from "./pages/GovernanceCopilot";
-import AIAgents from "./pages/AIAgents";
-import Companies from "./pages/Companies";
-import CapTable from "./pages/CapTable";
-import MaturityQuiz from "./pages/MaturityQuiz";
-import StandaloneQuiz from "./pages/StandaloneQuiz";
-import PlanDiscoveryQuiz from "./pages/PlanDiscoveryQuiz";
-import PlanActivation from "./pages/PlanActivation";
-import Investors from "./pages/Investors";
-import Onboarding from "./pages/Onboarding";
-import GovernanceHistory from "./pages/GovernanceHistory";
-import ESGHistory from "./pages/ESGHistory";
-import DocumentChecklist from "./pages/DocumentChecklist";
-import Interviews from "./pages/Interviews";
-import InitialReport from "./pages/InitialReport";
-import PeopleGovernance from "./pages/PeopleGovernance";
-import Heirs from "./pages/Heirs";
-import KeyPositions from "./pages/KeyPositions";
-import BoardMembers from "./pages/BoardMembers";
-import PeopleManagement from "./pages/PeopleManagement";
-import AnnualAgenda from "./pages/AnnualAgenda";
-import Reunioes from "./pages/Reunioes";
-import ReuniaoDetalhes from "./pages/ReuniaoDetalhes";
-import GuestAccess from "./pages/GuestAccess";
-import TaskAccess from "./pages/TaskAccess";
-import ATAApproval from "./pages/ATAApproval";
-import ATAPendingManagement from "./pages/ATAPendingManagement";
-import MemberDashboard from "./pages/member/MemberDashboard";
-import MemberMaturidade from "./pages/member/MemberMaturidade";
-import MemberRiscos from "./pages/member/MemberRiscos";
-import MemberReunioes from "./pages/member/MemberReunioes";
-import MemberATAs from "./pages/member/MemberATAs";
-import MemberPendencias from "./pages/member/MemberPendencias";
-import MemberOrgaos from "./pages/member/MemberOrgaos";
-import MemberDesempenho from "./pages/member/MemberDesempenho";
-import MemberPerfil from "./pages/member/MemberPerfil";
-import PlanResult from "./pages/PlanResult";
-import Checkout from "./pages/Checkout";
-import ContractCheckout from "./pages/ContractCheckout";
-import Payment from "./pages/Payment";
-import PaymentConfirmed from "./pages/PaymentConfirmed";
-import EmailConfirmation from "./pages/EmailConfirmation";
-import DemoLogin from "./pages/DemoLogin";
-import InitialSetup from "./pages/InitialSetup";
-import NotificationSettings from "./pages/NotificationSettings";
-import NotificationsCenter from "./pages/NotificationsCenter";
-import AuditLogs from "./pages/AuditLogs";
-import SecurityDashboard from "./pages/SecurityDashboard";
-import SecretariatPanel from "./pages/SecretariatPanel";
-import BoardPerformance from "./pages/BoardPerformance";
-import KnowledgeBase from "./pages/KnowledgeBase";
-import AdminPromptLibrary from "./pages/AdminPromptLibrary";
-import AdminLLMManagement from "./pages/AdminLLMManagement";
-import SimuladorCenarios from "./pages/SimuladorCenarios";
+// ========== Lazy Loading - Pages agrupadas por feature ==========
 
-// Parceiro Components
-import BancaDashboard from "./pages/BancaDashboard";
-import { ParceiroClientes } from "./pages/ParceiroClientes";
-import { ParceiroRelatorios } from "./pages/ParceiroRelatorios";
-import { ParceiroAssessments } from "./pages/ParceiroAssessments";
+// Public Pages
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Signup = lazy(() => import("./pages/Signup"));
+const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
+const TermosUso = lazy(() => import("./pages/TermosUso"));
+const LGPD = lazy(() => import("./pages/LGPD"));
+const SobreNos = lazy(() => import("./pages/SobreNos"));
+const ComoFunciona = lazy(() => import("./pages/ComoFunciona"));
+const Plataforma = lazy(() => import("./pages/Plataforma"));
+const Governanca = lazy(() => import("./pages/Governanca"));
+const AIEngine = lazy(() => import("./pages/AIEngine"));
+const Contato = lazy(() => import("./pages/Contato"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogArticle = lazy(() => import("./pages/BlogArticle"));
+const EmpresasLanding = lazy(() => import("./pages/EmpresasLanding"));
+const ParceirosLanding = lazy(() => import("./pages/ParceirosLanding"));
+const Investors = lazy(() => import("./pages/Investors"));
 
-import { ParceiroPerformance } from "./pages/ParceiroPerformance";
-import ClientDetails from "./pages/ClientDetails";
+// Auth & Onboarding
+const LoginAdmin = lazy(() => import("./components/auth/LoginAdmin"));
+const DemoLogin = lazy(() => import("./pages/DemoLogin"));
+const InitialSetup = lazy(() => import("./pages/InitialSetup"));
+const OnboardingWizard = lazy(() => import("./pages/OnboardingWizard"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
+const EmailConfirmation = lazy(() => import("./pages/EmailConfirmation"));
+
+// Quiz & Discovery
+const StandaloneQuiz = lazy(() => import("./pages/StandaloneQuiz"));
+const PlanDiscoveryQuiz = lazy(() => import("./pages/PlanDiscoveryQuiz"));
+const PlanResult = lazy(() => import("./pages/PlanResult"));
+const MaturityQuiz = lazy(() => import("./pages/MaturityQuiz"));
+
+// Checkout & Payment
+const Checkout = lazy(() => import("./pages/Checkout"));
+const ContractCheckout = lazy(() => import("./pages/ContractCheckout"));
+const StripeCheckout = lazy(() => import("./pages/StripeCheckout"));
+const Payment = lazy(() => import("./pages/Payment"));
+const PaymentConfirmed = lazy(() => import("./pages/PaymentConfirmed"));
+
+// Guest & Token Access
+const GuestAccess = lazy(() => import("./pages/GuestAccess"));
+const TaskAccess = lazy(() => import("./pages/TaskAccess"));
+const ATAApproval = lazy(() => import("./pages/ATAApproval"));
+const GenerateCompanyToken = lazy(() => import("./pages/GenerateCompanyToken"));
+const GenerateAdminToken = lazy(() => import("./pages/GenerateAdminToken"));
+const GeneratePartnerToken = lazy(() => import("./pages/GeneratePartnerToken"));
+
+// Dashboard & Core
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Governance Structure
+const ShareholderStructure = lazy(() => import("./pages/ShareholderStructure"));
+const GovernanceConfig = lazy(() => import("./pages/GovernanceConfig"));
+const Councils = lazy(() => import("./pages/Councils"));
+const CapTable = lazy(() => import("./pages/CapTable"));
+
+// Meetings & Secretariat
+const AnnualAgenda = lazy(() => import("./pages/AnnualAgenda"));
+const Reunioes = lazy(() => import("./pages/Reunioes"));
+const ReuniaoDetalhes = lazy(() => import("./pages/ReuniaoDetalhes"));
+const SecretariatPanel = lazy(() => import("./pages/SecretariatPanel"));
+const ATAPendingManagement = lazy(() => import("./pages/ATAPendingManagement"));
+
+// People & Development
+const PeopleDevelopment = lazy(() => import("./pages/PeopleDevelopment"));
+const PeopleManagement = lazy(() => import("./pages/PeopleManagement"));
+const PeopleGovernance = lazy(() => import("./pages/PeopleGovernance"));
+const BoardMembers = lazy(() => import("./pages/BoardMembers"));
+const BoardPerformance = lazy(() => import("./pages/BoardPerformance"));
+const Heirs = lazy(() => import("./pages/Heirs"));
+const KeyPositions = lazy(() => import("./pages/KeyPositions"));
+const Succession = lazy(() => import("./pages/Succession"));
+
+// Documents & Compliance
+const Documents = lazy(() => import("./pages/Documents"));
+const DocumentChecklist = lazy(() => import("./pages/DocumentChecklist"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const Interviews = lazy(() => import("./pages/Interviews"));
+const InitialReport = lazy(() => import("./pages/InitialReport"));
+
+// Analytics & Intelligence
+const Maturity = lazy(() => import("./pages/Maturity"));
+const ESG = lazy(() => import("./pages/ESG"));
+const ESGHistory = lazy(() => import("./pages/ESGHistory"));
+const DadosESG = lazy(() => import("./pages/DadosESG"));
+const GovernanceRiskManagement = lazy(() => import("./pages/GovernanceRiskManagement"));
+const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
+const GovernanceHistory = lazy(() => import("./pages/GovernanceHistory"));
+const Benchmarking = lazy(() => import("./pages/Benchmarking"));
+const Insights = lazy(() => import("./pages/Insights"));
+const SimuladorCenarios = lazy(() => import("./pages/SimuladorCenarios"));
+
+// AI & Copilot
+const GovernanceCopilot = lazy(() => import("./pages/GovernanceCopilot"));
+const AIAgents = lazy(() => import("./pages/AIAgents"));
+const AIConfig = lazy(() => import("./pages/AIConfig"));
+
+// Monitoring & Notifications
+const Monitoring = lazy(() => import("./pages/Monitoring"));
+const Alerts = lazy(() => import("./pages/Alerts"));
+const Activities = lazy(() => import("./pages/Activities"));
+const NotificationSettings = lazy(() => import("./pages/NotificationSettings"));
+const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
+
+// Security & Audit
+const AuditLogs = lazy(() => import("./pages/AuditLogs"));
+const SecurityDashboard = lazy(() => import("./pages/SecurityDashboard"));
+
+// Projects & Subsystems
+const SubmitProjects = lazy(() => import("./pages/SubmitProjects"));
+const Subsystems = lazy(() => import("./pages/Subsystems"));
+const Legacy = lazy(() => import("./pages/Legacy"));
+const Rituals = lazy(() => import("./pages/Rituals"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const PlanActivation = lazy(() => import("./pages/PlanActivation"));
+
+// Admin
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminFinances = lazy(() => import("./pages/AdminFinances"));
+const AdminAgentConfig = lazy(() => import("./pages/AdminAgentConfig"));
+const AdminPlansComparison = lazy(() => import("./pages/AdminPlansComparison"));
+const AdminPricingConfig = lazy(() => import("./pages/AdminPricingConfig"));
+const AdminPlanConfigurator = lazy(() => import("./pages/AdminPlanConfigurator"));
+const AdminClientManagement = lazy(() => import("./pages/AdminClientManagement"));
+const AdminPartners = lazy(() => import("./pages/AdminPartners"));
+const AdminAddons = lazy(() => import("./pages/AdminAddons"));
+const AdminContracts = lazy(() => import("./pages/AdminContracts"));
+const AdminInvoices = lazy(() => import("./pages/AdminInvoices"));
+const AdminSales = lazy(() => import("./pages/AdminSales"));
+const AdminPromptLibrary = lazy(() => import("./pages/AdminPromptLibrary"));
+const AdminLLMManagement = lazy(() => import("./pages/AdminLLMManagement"));
+const Companies = lazy(() => import("./pages/Companies"));
+
+// Member Portal
+const MemberDashboard = lazy(() => import("./pages/member/MemberDashboard"));
+const MemberMaturidade = lazy(() => import("./pages/member/MemberMaturidade"));
+const MemberRiscos = lazy(() => import("./pages/member/MemberRiscos"));
+const MemberReunioes = lazy(() => import("./pages/member/MemberReunioes"));
+const MemberATAs = lazy(() => import("./pages/member/MemberATAs"));
+const MemberPendencias = lazy(() => import("./pages/member/MemberPendencias"));
+const MemberOrgaos = lazy(() => import("./pages/member/MemberOrgaos"));
+const MemberDesempenho = lazy(() => import("./pages/member/MemberDesempenho"));
+const MemberPerfil = lazy(() => import("./pages/member/MemberPerfil"));
+
+// Partner Portal
+const BancaDashboard = lazy(() => import("./pages/BancaDashboard"));
+const ParceiroClientes = lazy(() => import("./pages/ParceiroClientes").then(m => ({ default: m.ParceiroClientes })));
+const ParceiroRelatorios = lazy(() => import("./pages/ParceiroRelatorios").then(m => ({ default: m.ParceiroRelatorios })));
+const ParceiroAssessments = lazy(() => import("./pages/ParceiroAssessments").then(m => ({ default: m.ParceiroAssessments })));
+const ParceiroPerformance = lazy(() => import("./pages/ParceiroPerformance").then(m => ({ default: m.ParceiroPerformance })));
+const ClientDetails = lazy(() => import("./pages/ClientDetails"));
+
+// Layouts
 import { BancaSidebar } from "./components/BancaSidebar";
-import GenerateCompanyToken from "./pages/GenerateCompanyToken";
-import GenerateAdminToken from "./pages/GenerateAdminToken";
-import GeneratePartnerToken from "./pages/GeneratePartnerToken";
-import EmpresasLanding from "./pages/EmpresasLanding";
-import ParceirosLanding from "./pages/ParceirosLanding";
-import Pricing from "./pages/Pricing";
-import Signup from "./pages/Signup";
-import OnboardingWizard from "./pages/OnboardingWizard";
-import AcceptInvite from "./pages/AcceptInvite";
-import StripeCheckout from "./pages/StripeCheckout";
-import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
-import TermosUso from "./pages/TermosUso";
-import LGPD from "./pages/LGPD";
-import SobreNos from "./pages/SobreNos";
-import Contato from "./pages/Contato";
-import Blog from "./pages/Blog";
-import BlogArticle from "./pages/BlogArticle";
-import ComoFunciona from "./pages/ComoFunciona";
-import Plataforma from "./pages/Plataforma";
-import Governanca from "./pages/Governanca";
-import AIEngine from "./pages/AIEngine";
-
 
 const queryClient = new QueryClient();
-
 
 const BancaLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex h-screen">
@@ -155,7 +190,8 @@ const App = () => (
         <BrowserRouter>
           <div className="min-h-screen">
             <main>
-              <Routes>
+              <Suspense fallback={<PageSkeleton variant="dashboard" />}>
+                <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/pricing" element={<Pricing />} />
@@ -501,38 +537,34 @@ const App = () => (
             } 
           />
           <Route 
-            path="/dados-esg" 
-            element={<Navigate to="/esg?tab=new-assessment" replace />}
+            path="/simulador-cenarios" 
+            element={
+              <ProtectedRoute >
+                <SimuladorCenarios />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/reunioes" 
+            element={
+              <ProtectedRoute >
+                <Reunioes />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/reuniao/:id" 
+            element={
+              <ProtectedRoute >
+                <ReuniaoDetalhes />
+              </ProtectedRoute>
+            } 
           />
           <Route 
             path="/onboarding" 
             element={
               <ProtectedRoute >
                 <Onboarding />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/knowledge-base" 
-            element={
-              <ProtectedRoute >
-                <KnowledgeBase />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/governance-history" 
-            element={
-              <ProtectedRoute >
-                <GovernanceHistory />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/esg-history" 
-            element={
-              <ProtectedRoute >
-                <ESGHistory />
               </ProtectedRoute>
             } 
           />
@@ -561,42 +593,34 @@ const App = () => (
             } 
           />
           <Route 
+            path="/governance-history" 
+            element={
+              <ProtectedRoute >
+                <GovernanceHistory />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/esg-history" 
+            element={
+              <ProtectedRoute >
+                <ESGHistory />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dados-esg" 
+            element={
+              <ProtectedRoute >
+                <DadosESG />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/people-governance" 
             element={
               <ProtectedRoute >
                 <PeopleGovernance />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/people-governance/heirs" 
-            element={
-              <ProtectedRoute >
-                <Heirs />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/people-governance/key-positions" 
-            element={
-              <ProtectedRoute >
-                <KeyPositions />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/people-governance/board-members" 
-            element={
-              <ProtectedRoute >
-                <BoardMembers />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/board-performance" 
-            element={
-              <ProtectedRoute >
-                <BoardPerformance />
               </ProtectedRoute>
             } 
           />
@@ -625,259 +649,36 @@ const App = () => (
             } 
           />
           <Route 
-            path="/simulador-cenarios" 
+            path="/board-performance" 
             element={
               <ProtectedRoute >
-                <SimuladorCenarios />
+                <BoardPerformance />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/knowledge-base" 
+            element={
+              <ProtectedRoute >
+                <KnowledgeBase />
               </ProtectedRoute>
             } 
           />
           
-          {/* Parceiro Routes */}
+          {/* AI Copilot Routes */}
           <Route 
-            path="/parceiro" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-              <BancaDashboard />
-            </BancaLayout>
-          </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/parceiro/clientes" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-              <ParceiroClientes />
-            </BancaLayout>
-          </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/parceiro/cliente/:id" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-              <ClientDetails />
-            </BancaLayout>
-          </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/parceiro/relatorios" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-              <ParceiroRelatorios />
-            </BancaLayout>
-          </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/parceiro/assessments" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-              <ParceiroAssessments />
-            </BancaLayout>
-          </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/parceiro/performance" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-              <ParceiroPerformance />
-            </BancaLayout>
-          </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/parceiro/suporte" 
-            element={
-          <ProtectedRoute >
-            <BancaLayout>
-                  <div className="p-8">
-                    <h1 className="text-2xl font-bold mb-4">Suporte</h1>
-                    <p>Entre em contato com nossa equipe de suporte.</p>
-                  </div>
-                </BancaLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Admin Routes */}
-          <Route 
-            path="/admin/login" 
-            element={<LoginAdmin />}
-          />
-          <Route 
-            path="/admin" 
+            path="/copilot" 
             element={
               <ProtectedRoute >
-                <Admin />
+                <GovernanceCopilot />
               </ProtectedRoute>
             } 
           />
           <Route 
-            path="/admin/finances" 
+            path="/ai-agents" 
             element={
               <ProtectedRoute >
-                <AdminFinances />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/clientes" 
-            element={
-              <ProtectedRoute >
-                <AdminClientManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/empresas" 
-            element={
-              <ProtectedRoute >
-                <AdminClientManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/planos" 
-            element={
-              <ProtectedRoute >
-                <AdminPricingConfig />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/addons" 
-            element={
-              <ProtectedRoute >
-                <AdminAddons />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/contratos" 
-            element={
-              <ProtectedRoute >
-                <AdminContracts />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/faturas" 
-            element={
-              <ProtectedRoute >
-                <AdminInvoices />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/vendas" 
-            element={
-              <ProtectedRoute >
-                <AdminSales />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/parceiros" 
-            element={
-              <ProtectedRoute >
-                <AdminPartners />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/companies" 
-            element={
-              <ProtectedRoute >
-                <Companies />
-              </ProtectedRoute>
-            }
-          />
-          <Route 
-            path="/admin/settings" 
-            element={
-              <ProtectedRoute >
-                <Settings />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/marketing" 
-            element={
-              <ProtectedRoute >
-                <Admin />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/activities" 
-            element={
-              <ProtectedRoute >
-                <Activities />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/insights" 
-            element={
-              <ProtectedRoute >
-                <Admin />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/reports" 
-            element={
-              <ProtectedRoute >
-                <Admin />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/finances/invoices" 
-            element={
-              <ProtectedRoute >
-                <AdminFinances />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/finances/payments" 
-            element={
-              <ProtectedRoute >
-                <AdminFinances />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/agent-config" 
-            element={
-              <ProtectedRoute >
-                <AdminAgentConfig />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/plans-comparison" 
-            element={
-              <ProtectedRoute >
-                <AdminPlansComparison />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/plan-configurator" 
-            element={
-              <ProtectedRoute >
-                <AdminPlanConfigurator />
+                <AIAgents />
               </ProtectedRoute>
             } 
           />
@@ -889,25 +690,28 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/finances" element={<AdminFinances />} />
+          <Route path="/admin/agent-config" element={<AdminAgentConfig />} />
+          <Route path="/admin/plans-comparison" element={<AdminPlansComparison />} />
+          <Route path="/admin/pricing-config" element={<AdminPricingConfig />} />
+          <Route path="/admin/plan-configurator" element={<AdminPlanConfigurator />} />
+          <Route path="/admin/client-management" element={<AdminClientManagement />} />
+          <Route path="/admin/partners" element={<AdminPartners />} />
+          <Route path="/admin/addons" element={<AdminAddons />} />
+          <Route path="/admin/contracts" element={<AdminContracts />} />
+          <Route path="/admin/invoices" element={<AdminInvoices />} />
+          <Route path="/admin/sales" element={<AdminSales />} />
+          <Route path="/admin/prompt-library" element={<AdminPromptLibrary />} />
+          <Route path="/admin/llm-management" element={<AdminLLMManagement />} />
+          <Route path="/admin/companies" element={<Companies />} />
+          <Route path="/login-admin" element={<LoginAdmin />} />
+          
+          {/* Audit & Security */}
           <Route 
-            path="/copiloto-governanca" 
-            element={
-              <ProtectedRoute >
-                <GovernanceCopilot />
-              </ProtectedRoute>
-            } 
-          />
-          {/* AI Agents - MOAT Engine */}
-          <Route 
-            path="/ai-agents" 
-            element={
-              <ProtectedRoute>
-                <AIAgents />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/auditoria" 
+            path="/audit-logs" 
             element={
               <ProtectedRoute >
                 <AuditLogs />
@@ -915,37 +719,83 @@ const App = () => (
             } 
           />
           <Route 
-            path="/admin/seguranca" 
+            path="/security-dashboard" 
             element={
               <ProtectedRoute >
                 <SecurityDashboard />
               </ProtectedRoute>
             } 
           />
+          
+          {/* Parceiro Routes */}
           <Route 
-            path="/admin/llm-management" 
+            path="/banca" 
             element={
               <ProtectedRoute>
-                <AdminLLMManagement />
+                <BancaLayout>
+                  <BancaDashboard />
+                </BancaLayout>
               </ProtectedRoute>
             } 
           />
           <Route 
-            path="/admin/prompts" 
+            path="/banca/clientes" 
             element={
               <ProtectedRoute>
-                <AdminPromptLibrary />
+                <BancaLayout>
+                  <ParceiroClientes />
+                </BancaLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/banca/relatorios" 
+            element={
+              <ProtectedRoute>
+                <BancaLayout>
+                  <ParceiroRelatorios />
+                </BancaLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/banca/assessments" 
+            element={
+              <ProtectedRoute>
+                <BancaLayout>
+                  <ParceiroAssessments />
+                </BancaLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/banca/performance" 
+            element={
+              <ProtectedRoute>
+                <BancaLayout>
+                  <ParceiroPerformance />
+                </BancaLayout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/banca/cliente/:id" 
+            element={
+              <ProtectedRoute>
+                <BancaLayout>
+                  <ClientDetails />
+                </BancaLayout>
               </ProtectedRoute>
             } 
           />
           
-          {/* Catch-all route for 404 */}
+          {/* 404 */}
           <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-        </div>
-        
-      </BrowserRouter>
+                </Routes>
+              </Suspense>
+            </main>
+          </div>
+        </BrowserRouter>
       </OrganizationProvider>
     </AuthProvider>
   </QueryClientProvider>

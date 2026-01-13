@@ -265,16 +265,16 @@ export const ATARevisionDashboard: React.FC<ATARevisionDashboardProps> = ({
               <div className="text-2xl font-bold">{stats.total}</div>
               <div className="text-xs text-muted-foreground">Total</div>
             </Card>
-            <Card className="p-3 text-center border-amber-500">
-              <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
+            <Card className="p-3 text-center border-warning">
+              <div className="text-2xl font-bold text-warning">{stats.pending}</div>
               <div className="text-xs text-muted-foreground">Pendentes</div>
             </Card>
-            <Card className="p-3 text-center border-emerald-500">
-              <div className="text-2xl font-bold text-emerald-600">{stats.accepted}</div>
+            <Card className="p-3 text-center border-success">
+              <div className="text-2xl font-bold text-success">{stats.accepted}</div>
               <div className="text-xs text-muted-foreground">Aceitas</div>
             </Card>
-            <Card className="p-3 text-center border-blue-500">
-              <div className="text-2xl font-bold text-blue-600">{stats.modified}</div>
+            <Card className="p-3 text-center border-info">
+              <div className="text-2xl font-bold text-info">{stats.modified}</div>
               <div className="text-xs text-muted-foreground">Modificadas</div>
             </Card>
             <Card className="p-3 text-center border-destructive">
@@ -340,7 +340,7 @@ export const ATARevisionDashboard: React.FC<ATARevisionDashboardProps> = ({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-emerald-600"
+                      className="text-success"
                       onClick={handleBatchAccept}
                     >
                       <Check className="h-4 w-4 mr-1" />
