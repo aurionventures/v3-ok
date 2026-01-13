@@ -36,7 +36,6 @@ import {
   CheckCircle,
   ActivitySquare,
   Briefcase,
-  Target,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
