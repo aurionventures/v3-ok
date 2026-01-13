@@ -1,3 +1,8 @@
+/**
+ * Página Admin: Gestão de Contratos
+ * Lista e gerencia todos os contratos gerados
+ */
+
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
@@ -15,362 +20,364 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  FileSignature,
-  Search,
-  MoreVertical,
-  Eye,
-  Download,
-  XCircle,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Building2,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  FileText,
-  Mail,
-  RefreshCw,
-  Filter,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  FileText, Plus, MoreVertical, Send, Download, Eye,
+  CheckCircle, Clock, AlertCircle, XCircle, RefreshCw,
+  Search, Building2, Pen, Mail, Copy, ExternalLink
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
-import { 
-  Contract, 
-  CONTRACT_STATUS_LABELS,
-  ContractStatus,
-} from "@/types/billing";
-import { contractService } from "@/services/asaasService";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ContractPDF, ContractData } from "@/components/contracts/ContractPDF";
 
-// Mock de contratos para demonstração
-const getMockContracts = (): Contract[] => {
-  const stored = localStorage.getItem('billing_contracts');
-  if (stored) {
-    return JSON.parse(stored);
-  }
-  
-  // Dados de demonstração
-  const mockContracts: Contract[] = [
-    {
-      id: 'cont_1',
-      contract_number: 'CONT-2026-0001',
-      proposal_id: 'prop_1',
-      client_id: 'client_1',
-      plan_id: 'profissional',
-      plan_name: 'Profissional',
-      addons: ['riscos', 'pessoas'],
-      monthly_value: 8497,
-      annual_value: 101964,
-      total_contract_value: 203928,
-      setup_fee: 4497,
-      start_date: '2026-01-01',
-      end_date: '2027-12-31',
-      term_months: 24,
-      auto_renewal: true,
-      renewal_notice_days: 30,
-      signature_status: 'countersigned',
-      client_signature: {
-        signer_name: 'João Silva',
-        signer_email: 'joao@empresa.com.br',
-        signer_role: 'Diretor de Governança',
-        signed_at: '2025-12-20T14:30:00Z',
-        signature_ip: '189.123.45.67',
-        signature_hash: 'abc123def456',
-        signature_method: 'electronic',
-      },
-      company_signature: {
-        signer_name: 'Legacy OS',
-        signer_email: 'contratos@legacyos.com.br',
-        signer_role: 'Sistema Automático',
-        signed_at: '2025-12-20T14:35:00Z',
-        signature_ip: '10.0.0.1',
-        signature_hash: 'xyz789',
-        signature_method: 'digital',
-      },
-      asaas_subscription_id: 'sub_123',
-      asaas_customer_id: 'cus_123',
-      contract_pdf_url: '#',
-      signed_contract_pdf_url: '#',
-      status: 'active',
-      created_at: '2025-12-15T10:00:00Z',
-      created_by: 'admin',
-      updated_at: '2025-12-20T14:35:00Z',
-    },
-    {
-      id: 'cont_2',
-      contract_number: 'CONT-2026-0002',
-      proposal_id: 'prop_2',
-      client_id: 'client_2',
-      plan_id: 'business',
-      plan_name: 'Business',
-      addons: ['riscos', 'esg', 'inteligencia'],
-      monthly_value: 15997,
-      annual_value: 191964,
-      total_contract_value: 575892,
-      setup_fee: 5997,
-      start_date: '2026-01-15',
-      end_date: '2028-01-14',
-      term_months: 24,
-      auto_renewal: true,
-      renewal_notice_days: 30,
-      signature_status: 'pending',
-      asaas_customer_id: 'cus_456',
-      status: 'pending_signature',
-      created_at: '2026-01-10T09:00:00Z',
-      created_by: 'admin',
-      updated_at: '2026-01-10T09:00:00Z',
-    },
-    {
-      id: 'cont_3',
-      contract_number: 'CONT-2025-0015',
-      proposal_id: 'prop_3',
-      client_id: 'client_3',
-      plan_id: 'essencial',
-      plan_name: 'Essencial',
-      addons: [],
-      monthly_value: 2997,
-      annual_value: 35964,
-      total_contract_value: 35964,
-      setup_fee: 2997,
-      start_date: '2025-01-01',
-      end_date: '2025-12-31',
-      term_months: 12,
-      auto_renewal: false,
-      renewal_notice_days: 30,
-      signature_status: 'countersigned',
-      client_signature: {
-        signer_name: 'Maria Santos',
-        signer_email: 'maria@outraempresa.com.br',
-        signer_role: 'CEO',
-        signed_at: '2024-12-20T10:00:00Z',
-        signature_ip: '200.100.50.25',
-        signature_hash: 'def789',
-        signature_method: 'electronic',
-      },
-      company_signature: {
-        signer_name: 'Legacy OS',
-        signer_email: 'contratos@legacyos.com.br',
-        signer_role: 'Sistema Automático',
-        signed_at: '2024-12-20T10:05:00Z',
-        signature_ip: '10.0.0.1',
-        signature_hash: 'ghi012',
-        signature_method: 'digital',
-      },
-      asaas_subscription_id: 'sub_789',
-      asaas_customer_id: 'cus_789',
-      status: 'expired',
-      created_at: '2024-12-15T14:00:00Z',
-      created_by: 'admin',
-      updated_at: '2025-12-31T23:59:59Z',
-    },
-  ];
-  
-  localStorage.setItem('billing_contracts', JSON.stringify(mockContracts));
-  return mockContracts;
+interface Contract {
+  id: string;
+  contract_number: string;
+  client_name: string;
+  client_document: string;
+  client_email: string;
+  signatory_name: string;
+  signatory_role: string;
+  plan_name: string;
+  plan_type: string;
+  addons: string[];
+  monthly_value: number;
+  total_value: number;
+  start_date: string;
+  end_date: string;
+  duration_months: number;
+  status: string;
+  sent_at: string | null;
+  sent_count: number;
+  client_signed_at: string | null;
+  counter_signed_at: string | null;
+  client_signature_token: string | null;
+  created_at: string;
+}
+
+interface ContractMetrics {
+  total: number;
+  draft: number;
+  pending_signature: number;
+  pending_counter_signature: number;
+  active: number;
+  expired: number;
+  cancelled: number;
+  active_mrr: number;
+}
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  draft: { label: "Rascunho", color: "bg-gray-500", icon: <FileText className="h-3 w-3" /> },
+  pending_signature: { label: "Aguardando Assinatura", color: "bg-amber-500", icon: <Clock className="h-3 w-3" /> },
+  pending_counter_signature: { label: "Aguardando Contra-Assinatura", color: "bg-blue-500", icon: <Pen className="h-3 w-3" /> },
+  active: { label: "Ativo", color: "bg-emerald-500", icon: <CheckCircle className="h-3 w-3" /> },
+  expired: { label: "Expirado", color: "bg-red-500", icon: <AlertCircle className="h-3 w-3" /> },
+  cancelled: { label: "Cancelado", color: "bg-gray-400", icon: <XCircle className="h-3 w-3" /> },
+  suspended: { label: "Suspenso", color: "bg-orange-500", icon: <AlertCircle className="h-3 w-3" /> },
 };
 
-// Mock de clientes
-const MOCK_CLIENTS: Record<string, { name: string; cnpj: string }> = {
-  'client_1': { name: 'Empresa ABC Ltda', cnpj: '12.345.678/0001-90' },
-  'client_2': { name: 'Grupo XYZ S.A.', cnpj: '98.765.432/0001-10' },
-  'client_3': { name: 'Indústria QWE Ltda', cnpj: '11.222.333/0001-44' },
-};
-
-const AdminContracts = () => {
+export default function AdminContracts() {
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [metrics, setMetrics] = useState<ContractMetrics>({
+    total: 0, draft: 0, pending_signature: 0, pending_counter_signature: 0,
+    active: 0, expired: 0, cancelled: 0, active_mrr: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("all");
+  
+  // Modal de detalhes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  
+  // Estado de ações
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    loadContracts();
+    fetchContracts();
   }, []);
 
-  const loadContracts = () => {
-    const data = getMockContracts();
-    setContracts(data);
+  const fetchContracts = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("contracts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      setContracts(data || []);
+      calculateMetrics(data || []);
+    } catch (error) {
+      console.error("Error fetching contracts:", error);
+      // Mock data
+      const mockData = getMockContracts();
+      setContracts(mockData);
+      calculateMetrics(mockData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const getStatusBadge = (status: ContractStatus) => {
-    const config: Record<ContractStatus, { color: string; icon: React.ComponentType<any> }> = {
-      pending_signature: { color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300", icon: Clock },
-      active: { color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300", icon: CheckCircle2 },
-      suspended: { color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300", icon: AlertTriangle },
-      cancelled: { color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300", icon: XCircle },
-      expired: { color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300", icon: Calendar },
+  const calculateMetrics = (data: Contract[]) => {
+    const m: ContractMetrics = {
+      total: data.length,
+      draft: data.filter(c => c.status === 'draft').length,
+      pending_signature: data.filter(c => c.status === 'pending_signature').length,
+      pending_counter_signature: data.filter(c => c.status === 'pending_counter_signature').length,
+      active: data.filter(c => c.status === 'active').length,
+      expired: data.filter(c => c.status === 'expired').length,
+      cancelled: data.filter(c => c.status === 'cancelled').length,
+      active_mrr: data.filter(c => c.status === 'active').reduce((sum, c) => sum + c.monthly_value, 0),
     };
-    
-    const { color, icon: Icon } = config[status];
-    
-    return (
-      <Badge variant="outline" className={color}>
-        <Icon className="h-3 w-3 mr-1" />
-        {CONTRACT_STATUS_LABELS[status]}
-      </Badge>
-    );
+    setMetrics(m);
   };
 
-  const filteredContracts = contracts.filter(contract => {
-    const matchesSearch = 
-      contract.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contract.plan_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      MOCK_CLIENTS[contract.client_id]?.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || contract.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  const handleSendContract = async (contract: Contract) => {
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contract-email', {
+        body: {
+          contract_id: contract.id,
+          email_type: 'signature_request',
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Contrato enviado com sucesso!");
+      await fetchContracts();
+    } catch (error) {
+      console.error("Error sending contract:", error);
+      toast.error("Erro ao enviar contrato");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendReminder = async (contract: Contract) => {
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contract-email', {
+        body: {
+          contract_id: contract.id,
+          email_type: 'reminder',
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Lembrete enviado!");
+      await fetchContracts();
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      toast.error("Erro ao enviar lembrete");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleCounterSign = async (contract: Contract) => {
+    try {
+      const { error } = await supabase
+        .from("contracts")
+        .update({
+          status: 'active',
+          counter_signed_at: new Date().toISOString(),
+        })
+        .eq("id", contract.id);
+
+      if (error) throw error;
+
+      toast.success("Contrato ativado com sucesso!");
+
+      // Enviar cópia do contrato
+      await supabase.functions.invoke('send-contract-email', {
+        body: {
+          contract_id: contract.id,
+          email_type: 'contract_copy',
+        },
+      });
+
+      await fetchContracts();
+    } catch (error) {
+      console.error("Error counter-signing:", error);
+      toast.error("Erro ao contra-assinar contrato");
+    }
+  };
+
+  const copySignatureLink = (contract: Contract) => {
+    if (contract.client_signature_token) {
+      const url = `${window.location.origin}/contract/sign/${contract.client_signature_token}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Link copiado!");
+    }
+  };
+
+  const getPDFData = (contract: Contract): ContractData => ({
+    contractNumber: contract.contract_number,
+    status: contract.status as any,
+    clientName: contract.client_name,
+    clientDocument: contract.client_document,
+    clientEmail: contract.client_email,
+    signatoryName: contract.signatory_name,
+    signatoryRole: contract.signatory_role,
+    planName: contract.plan_name,
+    planType: contract.plan_type,
+    addons: contract.addons || [],
+    monthlyValue: contract.monthly_value,
+    totalValue: contract.total_value,
+    startDate: contract.start_date,
+    endDate: contract.end_date,
+    durationMonths: contract.duration_months,
+    clientSignedAt: contract.client_signed_at || undefined,
+    counterSignedAt: contract.counter_signed_at || undefined,
+    generatedAt: contract.created_at,
   });
 
-  const handleViewDetails = (contract: Contract) => {
-    setSelectedContract(contract);
-    setIsDetailModalOpen(true);
-  };
-
-  const handleCancelContract = async () => {
-    if (!selectedContract || !cancelReason) {
-      toast.error("Informe o motivo do cancelamento");
-      return;
-    }
+  // Filtrar contratos
+  const filteredContracts = contracts.filter(contract => {
+    const matchesSearch = 
+      contract.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.client_email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    await contractService.cancel(selectedContract.id, cancelReason);
-    loadContracts();
-    setIsCancelModalOpen(false);
-    setCancelReason("");
-    toast.success("Contrato cancelado");
-  };
-
-  const handleResendContract = (contract: Contract) => {
-    toast.success(`Email reenviado para o cliente do contrato ${contract.contract_number}`);
-  };
-
-  // Métricas
-  const activeContracts = contracts.filter(c => c.status === 'active').length;
-  const pendingContracts = contracts.filter(c => c.status === 'pending_signature').length;
-  const totalMRR = contracts
-    .filter(c => c.status === 'active')
-    .reduce((sum, c) => sum + c.monthly_value, 0);
-  const totalContractValue = contracts
-    .filter(c => c.status === 'active')
-    .reduce((sum, c) => sum + c.total_contract_value, 0);
-
-  const formatCurrency = (value: number) => {
-    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  };
+    const matchesStatus = statusFilter === 'all' || contract.status === statusFilter;
+    const matchesTab = activeTab === 'all' || contract.status === activeTab;
+    
+    return matchesSearch && matchesStatus && matchesTab;
+  });
 
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Gestão de Contratos" />
-        <div className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-primary" />
+                  Contratos
+                </h1>
+                <p className="text-muted-foreground">
+                  Gerencie todos os contratos da plataforma
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={fetchContracts} disabled={isLoading}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Atualizar
+                </Button>
+                <Button onClick={() => window.location.href = '/admin/contract-templates'}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Contrato
+                </Button>
+              </div>
+            </div>
+
             {/* Métricas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <FileSignature className="h-4 w-4" />
-                    Contratos Ativos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">{activeContracts}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    de {contracts.length} total
-                  </p>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold">{metrics.total}</p>
+                  <p className="text-xs text-muted-foreground">Total</p>
                 </CardContent>
               </Card>
-              
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Aguardando Assinatura
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-amber-600">{pendingContracts}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    contratos pendentes
-                  </p>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-gray-500">{metrics.draft}</p>
+                  <p className="text-xs text-muted-foreground">Rascunhos</p>
                 </CardContent>
               </Card>
-              
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    MRR
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-primary">
-                    {formatCurrency(totalMRR)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    receita recorrente mensal
-                  </p>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-amber-500">{metrics.pending_signature}</p>
+                  <p className="text-xs text-muted-foreground">Aguardando</p>
                 </CardContent>
               </Card>
-              
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    Valor Contratado
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {formatCurrency(totalContractValue)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    total em contratos ativos
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-500">{metrics.pending_counter_signature}</p>
+                  <p className="text-xs text-muted-foreground">Contra-Assinar</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-emerald-500">{metrics.active}</p>
+                  <p className="text-xs text-muted-foreground">Ativos</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-red-500">{metrics.expired}</p>
+                  <p className="text-xs text-muted-foreground">Expirados</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-primary">
+                    R$ {metrics.active_mrr.toLocaleString('pt-BR')}
                   </p>
+                  <p className="text-xs text-muted-foreground">MRR Ativo</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Filtros */}
+            {/* Filtros e Busca */}
             <Card>
-              <CardContent className="pt-4">
-                <div className="flex flex-col sm:flex-row gap-4">
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Buscar por número, cliente ou plano..."
+                      placeholder="Buscar por empresa, número ou email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
                     />
                   </div>
-                  <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
-                    <TabsList>
-                      <TabsTrigger value="all">Todos</TabsTrigger>
-                      <TabsTrigger value="active">Ativos</TabsTrigger>
-                      <TabsTrigger value="pending_signature">Pendentes</TabsTrigger>
-                      <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Status</SelectItem>
+                      <SelectItem value="draft">Rascunho</SelectItem>
+                      <SelectItem value="pending_signature">Aguardando Assinatura</SelectItem>
+                      <SelectItem value="pending_counter_signature">Contra-Assinatura</SelectItem>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="expired">Expirado</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -378,12 +385,9 @@ const AdminContracts = () => {
             {/* Tabela de Contratos */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileSignature className="h-5 w-5" />
-                  Contratos
-                </CardTitle>
+                <CardTitle className="text-base">Lista de Contratos</CardTitle>
                 <CardDescription>
-                  {filteredContracts.length} contrato(s) encontrado(s)
+                  {filteredContracts.length} contratos encontrados
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -393,302 +397,362 @@ const AdminContracts = () => {
                       <TableHead>Contrato</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Plano</TableHead>
-                      <TableHead>Valor Mensal</TableHead>
+                      <TableHead>Valor</TableHead>
                       <TableHead>Vigência</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredContracts.map((contract) => {
-                      const client = MOCK_CLIENTS[contract.client_id];
-                      const daysToExpire = differenceInDays(new Date(contract.end_date), new Date());
-                      
-                      return (
-                        <TableRow key={contract.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{contract.contract_number}</p>
-                              <p className="text-xs text-muted-foreground">
-                                Criado em {format(new Date(contract.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredContracts.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          Nenhum contrato encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredContracts.map((contract) => {
+                        const statusConfig = STATUS_CONFIG[contract.status] || STATUS_CONFIG.draft;
+                        const daysToExpiry = differenceInDays(new Date(contract.end_date), new Date());
+                        
+                        return (
+                          <TableRow key={contract.id}>
+                            <TableCell>
                               <div>
-                                <p className="font-medium">{client?.name || 'Cliente'}</p>
-                                <p className="text-xs text-muted-foreground">{client?.cnpj}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{contract.plan_name}</p>
-                              {contract.addons.length > 0 && (
+                                <p className="font-mono font-medium">{contract.contract_number}</p>
                                 <p className="text-xs text-muted-foreground">
+                                  {format(new Date(contract.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="font-medium">{contract.client_name}</p>
+                                  <p className="text-xs text-muted-foreground">{contract.client_document}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{contract.plan_name}</Badge>
+                              {contract.addons?.length > 0 && (
+                                <p className="text-xs text-muted-foreground mt-1">
                                   +{contract.addons.length} add-on(s)
                                 </p>
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <p className="font-semibold">{formatCurrency(contract.monthly_value)}</p>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="text-sm">
-                                {format(new Date(contract.start_date), "dd/MM/yyyy")} - {format(new Date(contract.end_date), "dd/MM/yyyy")}
+                            </TableCell>
+                            <TableCell>
+                              <p className="font-medium">
+                                R$ {contract.monthly_value.toLocaleString('pt-BR')}/mês
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {contract.term_months} meses
-                                {contract.status === 'active' && daysToExpire <= 60 && daysToExpire > 0 && (
-                                  <span className="text-amber-600 ml-1">
-                                    ({daysToExpire} dias restantes)
-                                  </span>
-                                )}
+                                Total: R$ {contract.total_value.toLocaleString('pt-BR')}
                               </p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(contract.status)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewDetails(contract)}>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Ver Detalhes
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Baixar PDF
-                                </DropdownMenuItem>
-                                {contract.status === 'pending_signature' && (
-                                  <DropdownMenuItem onClick={() => handleResendContract(contract)}>
-                                    <Mail className="h-4 w-4 mr-2" />
-                                    Reenviar Email
+                            </TableCell>
+                            <TableCell>
+                              <p className="text-sm">{contract.duration_months} meses</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(contract.start_date), "dd/MM/yy")} - {format(new Date(contract.end_date), "dd/MM/yy")}
+                              </p>
+                              {contract.status === 'active' && daysToExpiry < 30 && daysToExpiry > 0 && (
+                                <Badge variant="outline" className="mt-1 text-amber-500 border-amber-500">
+                                  {daysToExpiry}d para expirar
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={statusConfig.color}>
+                                {statusConfig.icon}
+                                <span className="ml-1">{statusConfig.label}</span>
+                              </Badge>
+                              {contract.sent_at && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Enviado {contract.sent_count}x
+                                </p>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => { setSelectedContract(contract); setShowDetailsModal(true); }}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Ver Detalhes
                                   </DropdownMenuItem>
-                                )}
-                                {contract.status === 'active' && (
-                                  <DropdownMenuItem 
-                                    className="text-destructive"
-                                    onClick={() => {
-                                      setSelectedContract(contract);
-                                      setIsCancelModalOpen(true);
-                                    }}
+                                  
+                                  {contract.status === 'draft' && (
+                                    <DropdownMenuItem onClick={() => handleSendContract(contract)} disabled={isSending}>
+                                      <Send className="h-4 w-4 mr-2" />
+                                      Enviar para Assinatura
+                                    </DropdownMenuItem>
+                                  )}
+                                  
+                                  {contract.status === 'pending_signature' && (
+                                    <>
+                                      <DropdownMenuItem onClick={() => handleSendReminder(contract)} disabled={isSending}>
+                                        <Mail className="h-4 w-4 mr-2" />
+                                        Enviar Lembrete
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => copySignatureLink(contract)}>
+                                        <Copy className="h-4 w-4 mr-2" />
+                                        Copiar Link de Assinatura
+                                      </DropdownMenuItem>
+                                      {contract.client_signature_token && (
+                                        <DropdownMenuItem onClick={() => window.open(`/contract/sign/${contract.client_signature_token}`, '_blank')}>
+                                          <ExternalLink className="h-4 w-4 mr-2" />
+                                          Abrir Link de Assinatura
+                                        </DropdownMenuItem>
+                                      )}
+                                    </>
+                                  )}
+                                  
+                                  {contract.status === 'pending_counter_signature' && (
+                                    <DropdownMenuItem onClick={() => handleCounterSign(contract)}>
+                                      <Pen className="h-4 w-4 mr-2" />
+                                      Contra-Assinar e Ativar
+                                    </DropdownMenuItem>
+                                  )}
+                                  
+                                  <DropdownMenuSeparator />
+                                  
+                                  <PDFDownloadLink
+                                    document={<ContractPDF data={getPDFData(contract)} />}
+                                    fileName={`${contract.contract_number}.pdf`}
                                   >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Cancelar Contrato
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                                    {({ loading }) => (
+                                      <DropdownMenuItem disabled={loading}>
+                                        <Download className="h-4 w-4 mr-2" />
+                                        {loading ? "Gerando..." : "Baixar PDF"}
+                                      </DropdownMenuItem>
+                                    )}
+                                  </PDFDownloadLink>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* Modal de Detalhes */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileSignature className="h-5 w-5" />
-              Contrato {selectedContract?.contract_number}
-            </DialogTitle>
-            <DialogDescription>
-              Detalhes completos do contrato
-            </DialogDescription>
-          </DialogHeader>
-          
           {selectedContract && (
-            <div className="space-y-6">
-              {/* Status */}
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  {getStatusBadge(selectedContract.status)}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Assinatura</p>
-                  <Badge variant="outline">
-                    {selectedContract.signature_status === 'countersigned' ? 'Assinado' :
-                     selectedContract.signature_status === 'signed' ? 'Aguardando Contra-assinatura' :
-                     'Pendente'}
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Contrato {selectedContract.contract_number}
+                </DialogTitle>
+                <DialogDescription>
+                  Detalhes completos do contrato
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge className={STATUS_CONFIG[selectedContract.status]?.color || 'bg-gray-500'}>
+                    {STATUS_CONFIG[selectedContract.status]?.label || selectedContract.status}
                   </Badge>
                 </div>
-              </div>
-              
-              {/* Cliente */}
-              <div>
-                <h4 className="font-medium mb-2 flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Cliente
-                </h4>
-                <div className="p-3 border rounded-lg">
-                  <p className="font-medium">{MOCK_CLIENTS[selectedContract.client_id]?.name}</p>
-                  <p className="text-sm text-muted-foreground">{MOCK_CLIENTS[selectedContract.client_id]?.cnpj}</p>
-                </div>
-              </div>
-              
-              {/* Plano */}
-              <div>
-                <h4 className="font-medium mb-2">Plano Contratado</h4>
-                <div className="p-3 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{selectedContract.plan_name}</p>
-                      {selectedContract.addons.length > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          Add-ons: {selectedContract.addons.join(', ')}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg">{formatCurrency(selectedContract.monthly_value)}/mês</p>
-                      <p className="text-sm text-muted-foreground">
-                        Total: {formatCurrency(selectedContract.total_contract_value)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Vigência */}
-              <div>
-                <h4 className="font-medium mb-2 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Vigência
-                </h4>
-                <div className="grid grid-cols-3 gap-4 p-3 border rounded-lg">
+                
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                   <div>
-                    <p className="text-sm text-muted-foreground">Início</p>
-                    <p className="font-medium">
-                      {format(new Date(selectedContract.start_date), "dd/MM/yyyy")}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Cliente</p>
+                    <p className="font-medium">{selectedContract.client_name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedContract.client_document}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Término</p>
-                    <p className="font-medium">
-                      {format(new Date(selectedContract.end_date), "dd/MM/yyyy")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Prazo</p>
-                    <p className="font-medium">{selectedContract.term_months} meses</p>
+                    <p className="text-xs text-muted-foreground">Signatário</p>
+                    <p className="font-medium">{selectedContract.signatory_name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedContract.signatory_role}</p>
                   </div>
                 </div>
-              </div>
-              
-              {/* Assinaturas */}
-              {selectedContract.client_signature && (
-                <div>
-                  <h4 className="font-medium mb-2">Assinaturas</h4>
-                  <div className="space-y-2">
-                    <div className="p-3 border rounded-lg flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{selectedContract.client_signature.signer_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedContract.client_signature.signer_role} - Cliente
-                        </p>
-                      </div>
-                      <div className="text-right text-sm text-muted-foreground">
-                        {format(new Date(selectedContract.client_signature.signed_at), "dd/MM/yyyy HH:mm")}
-                      </div>
-                    </div>
-                    {selectedContract.company_signature && (
-                      <div className="p-3 border rounded-lg flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{selectedContract.company_signature.signer_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedContract.company_signature.signer_role} - Legacy OS
-                          </p>
-                        </div>
-                        <div className="text-right text-sm text-muted-foreground">
-                          {format(new Date(selectedContract.company_signature.signed_at), "dd/MM/yyyy HH:mm")}
-                        </div>
-                      </div>
+                
+                <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Plano</p>
+                    <p className="font-medium">{selectedContract.plan_name}</p>
+                    {selectedContract.addons?.length > 0 && (
+                      <p className="text-sm text-muted-foreground">Add-ons: {selectedContract.addons.join(', ')}</p>
                     )}
                   </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor</p>
+                    <p className="font-medium">R$ {selectedContract.monthly_value.toLocaleString('pt-BR')}/mês</p>
+                    <p className="text-sm text-muted-foreground">Total: R$ {selectedContract.total_value.toLocaleString('pt-BR')}</p>
+                  </div>
                 </div>
-              )}
-            </div>
+                
+                <div className="grid grid-cols-3 gap-4 p-4 border rounded-lg">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Início</p>
+                    <p className="font-medium">{format(new Date(selectedContract.start_date), "dd/MM/yyyy")}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Término</p>
+                    <p className="font-medium">{format(new Date(selectedContract.end_date), "dd/MM/yyyy")}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Prazo</p>
+                    <p className="font-medium">{selectedContract.duration_months} meses</p>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium mb-2">Assinaturas</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                      {selectedContract.client_signed_at ? (
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-amber-500" />
+                      )}
+                      <div>
+                        <p className="text-sm">{selectedContract.signatory_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedContract.client_signed_at 
+                            ? format(new Date(selectedContract.client_signed_at), "dd/MM/yyyy HH:mm")
+                            : 'Pendente'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedContract.counter_signed_at ? (
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-amber-500" />
+                      )}
+                      <div>
+                        <p className="text-sm">Legacy OS</p>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedContract.counter_signed_at 
+                            ? format(new Date(selectedContract.counter_signed_at), "dd/MM/yyyy HH:mm")
+                            : 'Pendente'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowDetailsModal(false)}>
+                  Fechar
+                </Button>
+                <PDFDownloadLink
+                  document={<ContractPDF data={getPDFData(selectedContract)} />}
+                  fileName={`${selectedContract.contract_number}.pdf`}
+                >
+                  {({ loading }) => (
+                    <Button disabled={loading}>
+                      <Download className="h-4 w-4 mr-2" />
+                      {loading ? "Gerando..." : "Baixar Contrato"}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              </DialogFooter>
+            </>
           )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>
-              Fechar
-            </Button>
-            <Button>
-              <Download className="h-4 w-4 mr-2" />
-              Baixar Contrato
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Cancelamento */}
-      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-destructive flex items-center gap-2">
-              <XCircle className="h-5 w-5" />
-              Cancelar Contrato
-            </DialogTitle>
-            <DialogDescription>
-              Esta ação cancelará o contrato {selectedContract?.contract_number} e 
-              interromperá as cobranças recorrentes.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-sm text-destructive">
-                Atenção: O cancelamento é irreversível. O cliente perderá acesso 
-                à plataforma ao final do período já pago.
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Motivo do Cancelamento *</label>
-              <Input
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Informe o motivo..."
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCancelModalOpen(false)}>
-              Voltar
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleCancelContract}
-              disabled={!cancelReason}
-            >
-              Confirmar Cancelamento
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-};
+}
 
-export default AdminContracts;
+// Mock data
+function getMockContracts(): Contract[] {
+  return [
+    {
+      id: '1',
+      contract_number: 'CONT-2026-0001',
+      client_name: 'Empresa ABC Ltda',
+      client_document: '12.345.678/0001-90',
+      client_email: 'contato@empresaabc.com.br',
+      signatory_name: 'João Silva',
+      signatory_role: 'Diretor de Governança',
+      plan_name: 'Profissional',
+      plan_type: 'governance_plus',
+      addons: ['riscos', 'pessoas'],
+      monthly_value: 8497,
+      total_value: 203928,
+      start_date: '2025-12-31',
+      end_date: '2027-12-30',
+      duration_months: 24,
+      status: 'active',
+      sent_at: '2025-12-15T10:00:00Z',
+      sent_count: 1,
+      client_signed_at: '2025-12-20T11:30:00Z',
+      counter_signed_at: '2025-12-20T11:35:00Z',
+      client_signature_token: null,
+      created_at: '2025-12-10T08:00:00Z',
+    },
+    {
+      id: '2',
+      contract_number: 'CONT-2026-0002',
+      client_name: 'Tech Solutions XYZ S.A.',
+      client_document: '98.765.432/0001-10',
+      client_email: 'legal@techxyz.com.br',
+      signatory_name: 'Maria Santos',
+      signatory_role: 'CEO',
+      plan_name: 'Business',
+      plan_type: 'legacy_360',
+      addons: ['esg', 'inteligencia', 'cap_table'],
+      monthly_value: 15997,
+      total_value: 383928,
+      start_date: '2026-01-14',
+      end_date: '2028-01-13',
+      duration_months: 24,
+      status: 'pending_signature',
+      sent_at: '2026-01-10T14:00:00Z',
+      sent_count: 2,
+      client_signed_at: null,
+      counter_signed_at: null,
+      client_signature_token: 'abc123def456',
+      created_at: '2026-01-05T09:00:00Z',
+    },
+    {
+      id: '3',
+      contract_number: 'CONT-2026-0003',
+      client_name: 'Indústria Nacional ME',
+      client_document: '55.555.555/0001-55',
+      client_email: 'diretoria@industria.com.br',
+      signatory_name: 'Pedro Oliveira',
+      signatory_role: 'Sócio-Administrador',
+      plan_name: 'Starter',
+      plan_type: 'core',
+      addons: [],
+      monthly_value: 2497,
+      total_value: 29964,
+      start_date: '2026-02-01',
+      end_date: '2027-01-31',
+      duration_months: 12,
+      status: 'pending_counter_signature',
+      sent_at: '2026-01-08T16:00:00Z',
+      sent_count: 1,
+      client_signed_at: '2026-01-12T09:45:00Z',
+      counter_signed_at: null,
+      client_signature_token: 'xyz789',
+      created_at: '2026-01-08T15:00:00Z',
+    },
+  ];
+}

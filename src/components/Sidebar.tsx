@@ -31,6 +31,7 @@ import {
   Calculator,
   FileSignature,
   Receipt,
+  ScrollText,
   LogOut,
   Brain,
   PieChart,
@@ -120,12 +121,13 @@ const ADMIN_MENU_SECTIONS = [
     label: "Catálogo",
     items: [
       { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
+      { icon: ScrollText, href: "/admin/contract-templates", name: "Minutas de Contrato" },
     ]
   },
   {
     label: "Financeiro",
     items: [
-      { icon: FileSignature, href: "/admin/contratos", name: "Contratos" },
+      { icon: FileSignature, href: "/admin/contracts", name: "Contratos" },
       { icon: Receipt, href: "/admin/faturas", name: "Faturas" },
       { icon: DollarSign, href: "/admin/finances", name: "Financeiro" },
     ]

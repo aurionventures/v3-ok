@@ -142,6 +142,8 @@ const AdminClientManagement = lazy(() => import("./pages/AdminClientManagement")
 const AdminPartners = lazy(() => import("./pages/AdminPartners"));
 const AdminAddons = lazy(() => import("./pages/AdminAddons"));
 const AdminContracts = lazy(() => import("./pages/AdminContracts"));
+const AdminContractTemplates = lazy(() => import("./pages/AdminContractTemplates"));
+const ContractSign = lazy(() => import("./pages/ContractSign"));
 const AdminInvoices = lazy(() => import("./pages/AdminInvoices"));
 const AdminSales = lazy(() => import("./pages/AdminSales"));
 const AdminPLGFunnel = lazy(() => import("./pages/AdminPLGFunnel"));
@@ -209,6 +211,7 @@ const App = () => (
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/contract/sign/:token" element={<ContractSign />} />
           <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
           <Route path="/invite/accept" element={<AcceptInvite />} />
           <Route path="/empresas" element={<EmpresasLanding />} />
@@ -712,6 +715,7 @@ const App = () => (
           <Route path="/admin/partners" element={<AdminPartners />} />
           <Route path="/admin/addons" element={<AdminAddons />} />
           <Route path="/admin/contracts" element={<AdminContracts />} />
+          <Route path="/admin/contract-templates" element={<AdminContractTemplates />} />
           <Route path="/admin/invoices" element={<AdminInvoices />} />
           <Route path="/admin/sales" element={<AdminSales />} />
           <Route path="/admin/plg-funnel" element={<AdminPLGFunnel />} />
