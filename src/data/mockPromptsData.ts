@@ -1326,6 +1326,227 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`,
     executive_description: 'Versão serverless do Copiloto. Gera insights preditivos em tempo real para decisões urgentes.',
     connected_copilots: ['copilot-insights-001'],
     connected_services: ['predictive_analysis', 'edge_computing']
+  },
+
+  // ========== AGENT E: Governance Diagnostic ==========
+  {
+    id: 'e1-doc-analyzer-001',
+    name: 'Agent E - Document Analyzer v1.0',
+    category: 'agent_e_doc_analyzer',
+    version: '1.0.0',
+    system_prompt: `Você é o Agent E do MOAT Engine, especializado em análise de documentos de governança corporativa.
+
+SUA MISSÃO:
+Analisar documentos (estatutos, atas, políticas, acordos) para extrair informações estruturadas.
+
+EXTRAIA:
+1. TIPO DE DOCUMENTO e data
+2. ENTIDADES mencionadas (pessoas, empresas, cargos)
+3. DECISÕES ou deliberações
+4. PRAZOS e RESPONSÁVEIS
+5. RISCOS identificados
+6. GAPS ou ausências
+7. SENTIMENTO GERAL (-1 a 1)
+
+OUTPUT: JSON estruturado com os campos acima`,
+    user_prompt_template: 'Analise o documento:\n{{document_text}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.5,
+    max_tokens: 6000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 145,
+    avg_latency_ms: 2456,
+    avg_tokens_used: 3245,
+    avg_cost_usd: 0.0178,
+    success_rate: 96.2,
+    avg_quality_score: 4.5,
+    description: 'Analisa documentos corporativos extraindo entidades, decisões, riscos e gaps',
+    changelog: 'Versão inicial do Agent E Document Analyzer',
+    tags: ['document', 'analysis', 'governance', 'diagnostic', 'agent_e'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'governance',
+    impact_level: 'critical',
+    scope: 'system',
+    agent_type: 'diagnostic',
+    owner: 'Legacy AI Team',
+    executive_description: 'Processa documentos do checklist para diagnóstico de governança.',
+    connected_copilots: ['copilot-governance'],
+    connected_services: ['document_processing', 'analysis']
+  },
+  {
+    id: 'e2-interview-analyzer-001',
+    name: 'Agent E - Interview Analyzer v1.0',
+    category: 'agent_e_interview_analyzer',
+    version: '1.0.0',
+    system_prompt: `Você é o Agent E, especializado em análise de entrevistas com stakeholders.
+
+EXTRAIA:
+1. Dados do ENTREVISTADO
+2. TEMAS PRINCIPAIS
+3. VISÃO sobre governança
+4. EXPECTATIVAS e PREOCUPAÇÕES
+5. CONFLITOS POTENCIAIS
+6. SCORE DE ALINHAMENTO (0-100)
+7. CITAÇÕES-CHAVE
+
+OUTPUT: JSON estruturado`,
+    user_prompt_template: 'Analise a transcrição:\n{{transcript_text}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.6,
+    max_tokens: 6000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 89,
+    avg_latency_ms: 2234,
+    avg_tokens_used: 2890,
+    avg_cost_usd: 0.0156,
+    success_rate: 97.1,
+    avg_quality_score: 4.4,
+    description: 'Analisa transcrições de entrevistas extraindo visões e conflitos',
+    changelog: 'Versão inicial do Agent E Interview Analyzer',
+    tags: ['interview', 'analysis', 'governance', 'diagnostic', 'agent_e'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'governance',
+    impact_level: 'critical',
+    scope: 'system',
+    agent_type: 'diagnostic',
+    owner: 'Legacy AI Team',
+    executive_description: 'Processa entrevistas para mapear perspectivas dos stakeholders.',
+    connected_copilots: ['copilot-governance'],
+    connected_services: ['interview_processing', 'analysis']
+  },
+  {
+    id: 'e3-incongruence-detector-001',
+    name: 'Agent E - Incongruence Detector v1.0',
+    category: 'agent_e_incongruence_detector',
+    version: '1.0.0',
+    system_prompt: `Você é o detector de incongruências do Agent E.
+
+DETECTE:
+1. Incongruências DOCUMENTO-ENTREVISTA
+2. Incongruências DOCUMENTO-DOCUMENTO
+3. Incongruências ENTREVISTA-ENTREVISTA
+
+Para cada: severidade (critical/high/medium/low) e recomendação.
+
+OUTPUT: JSON com array de incongruências`,
+    user_prompt_template: 'Documentos: {{doc_analyses}}\nEntrevistas: {{interview_analyses}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.4,
+    max_tokens: 8000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 67,
+    avg_latency_ms: 3456,
+    avg_tokens_used: 4123,
+    avg_cost_usd: 0.0234,
+    success_rate: 94.8,
+    avg_quality_score: 4.3,
+    description: 'Detecta incongruências entre documentos e entrevistas',
+    changelog: 'Versão inicial do Incongruence Detector',
+    tags: ['incongruence', 'detection', 'governance', 'diagnostic', 'agent_e'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'governance',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'diagnostic',
+    owner: 'Legacy AI Team',
+    executive_description: 'Revela divergências que podem gerar conflitos societários.',
+    connected_copilots: ['copilot-governance'],
+    connected_services: ['analysis', 'pattern_detection']
+  },
+  {
+    id: 'e4-action-planner-001',
+    name: 'Agent E - Action Planner v1.0',
+    category: 'agent_e_action_planner',
+    version: '1.0.0',
+    system_prompt: `Você é o gerador de plano de ação do Agent E.
+
+GERE PLANO COM:
+1. Ações priorizadas (imediata/curto/médio/longo prazo)
+2. Categorias: estrutura, documentação, alinhamento, compliance, sucessão
+3. Responsáveis sugeridos
+4. Métricas de sucesso
+5. Governance Health Score (0-100)
+
+OUTPUT: JSON com action_plan e summary`,
+    user_prompt_template: 'Análises: {{analyses}}\nIncongruências: {{incongruences}}\nGaps: {{gaps}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.6,
+    max_tokens: 8000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 54,
+    avg_latency_ms: 3789,
+    avg_tokens_used: 4567,
+    avg_cost_usd: 0.0267,
+    success_rate: 95.4,
+    avg_quality_score: 4.6,
+    description: 'Gera plano de ação priorizado para melhoria de governança',
+    changelog: 'Versão inicial do Action Planner',
+    tags: ['action_plan', 'governance', 'diagnostic', 'strategic', 'agent_e'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'diagnostic',
+    owner: 'Legacy AI Team',
+    executive_description: 'Sintetiza análises em plano de ação com prioridades.',
+    connected_copilots: ['copilot-governance'],
+    connected_services: ['synthesis', 'planning']
   }
 ];
 

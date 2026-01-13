@@ -114,6 +114,15 @@ const AGENT_CONFIGS = [
     function: 'Producao de Documentos',
     categories: ['agent_d_agenda_generator', 'agent_d_briefing_generator'],
     variant: 'accent' as ColorVariant,
+  },
+  { 
+    id: 'agent_e',
+    name: 'Agent E', 
+    label: 'Analise de Governanca',
+    description: 'Analisa documentos e entrevistas para diagnostico de governanca',
+    function: 'Diagnostico Inicial',
+    categories: ['agent_e_doc_analyzer', 'agent_e_interview_analyzer', 'agent_e_incongruence_detector', 'agent_e_action_planner'],
+    variant: 'info' as ColorVariant,
   }
 ];
 
@@ -270,6 +279,10 @@ const getCategoryLabel = (category: string) => {
     'agent_c_prioritizer': 'Prioritizer',
     'agent_d_agenda_generator': 'Agenda Generator',
     'agent_d_briefing_generator': 'Briefing Generator',
+    'agent_e_doc_analyzer': 'Document Analyzer',
+    'agent_e_interview_analyzer': 'Interview Analyzer',
+    'agent_e_incongruence_detector': 'Incongruence Detector',
+    'agent_e_action_planner': 'Action Planner',
     'agent_copilot_insights': 'Copilot Insights',
     'pdi_generator': 'PDI Generator',
     'secretariat_search_intent': 'Search Intent',

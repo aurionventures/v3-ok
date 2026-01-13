@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.test-prompt]
 verify_jwt = false
+
+[functions.analyze-governance]
+verify_jwt = false
