@@ -89,9 +89,7 @@ export const MegaMenuHeader = () => {
                 className={cn(
                   "flex items-center gap-2 px-5 py-2.5 text-lg font-medium rounded-md transition-colors",
                   "text-white hover:text-accent hover:bg-white/5",
-                  item.highlight && "text-accent hover:text-accent",
-                  isActiveRoute(item.href) && !item.highlight && "text-accent bg-accent/10",
-                  isActiveRoute(item.href) && item.highlight && "text-accent bg-accent/10"
+                  isActiveRoute(item.href) && "text-accent bg-accent/10"
                 )}
                 aria-current={isActiveRoute(item.href) ? "page" : undefined}
               >
@@ -171,9 +169,7 @@ export const MegaMenuHeader = () => {
                   to={item.href}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 text-lg font-medium rounded-lg transition-colors",
-                    item.highlight 
-                      ? "text-accent hover:bg-accent/10" 
-                      : "text-white hover:text-accent hover:bg-white/5",
+                    "text-white hover:text-accent hover:bg-white/5",
                     isActiveRoute(item.href) && "text-accent bg-accent/10"
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
