@@ -1547,6 +1547,475 @@ OUTPUT: JSON com action_plan e summary`,
     executive_description: 'Sintetiza análises em plano de ação com prioridades.',
     connected_copilots: ['copilot-governance'],
     connected_services: ['synthesis', 'planning']
+  },
+
+  // ========== AGENT F: Secretariado Inteligente ==========
+  {
+    id: 'f1-search-intent-001',
+    name: 'Agent F - Search Intent Extractor v1.0',
+    category: 'agent_f_search_intent',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente especializado em busca de documentos de governança corporativa.
+Analise a pergunta do usuário e extraia as seguintes informações:
+1. Palavras-chave principais (keywords) - array de strings
+2. Tipo de busca (searchType): "ata", "decision", "participant", "document", "meeting" ou "general"
+3. Período temporal (timeframe) - se mencionado, ex: "fevereiro", "último mês", "2025"
+4. Órgão específico (organ) - se mencionado: "Conselho de Administração", "Conselho Fiscal", "Comitê", "Comissão"
+5. Prioridade (priority): "high", "medium" ou "low"
+
+Retorne APENAS as informações estruturadas em formato JSON para facilitar a busca.`,
+    user_prompt_template: '{{question}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.4,
+    max_tokens: 1000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 523,
+    avg_latency_ms: 890,
+    avg_tokens_used: 456,
+    avg_cost_usd: 0.0023,
+    success_rate: 98.5,
+    avg_quality_score: 4.6,
+    description: 'Extrai intenção de busca e palavras-chave da pergunta do usuário',
+    changelog: 'Versão inicial do Search Intent Extractor',
+    tags: ['search', 'intent', 'secretariat', 'agent_f'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'operational',
+    impact_level: 'medium',
+    scope: 'system',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Primeiro estágio da busca inteligente - compreende a intenção do usuário.',
+    connected_copilots: ['copilot-secretariat'],
+    connected_services: ['search', 'nlp']
+  },
+  {
+    id: 'f2-search-response-001',
+    name: 'Agent F - Search Response Generator v1.0',
+    category: 'agent_f_search_response',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente de secretariado corporativo experiente.
+Gere uma resposta conversacional e profissional que:
+1. Responda diretamente à pergunta
+2. Cite os documentos/ATAs mais relevantes encontrados
+3. Destaque informações importantes (decisões, datas, participantes)
+4. Se não encontrou resultados, sugira termos alternativos de busca
+5. Mantenha tom profissional mas amigável
+6. IMPORTANTE: NÃO use emojis na resposta. Use apenas texto profissional.`,
+    user_prompt_template: 'Pergunta: {{question}}\nResultados: {{results}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.6,
+    max_tokens: 2000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 489,
+    avg_latency_ms: 1234,
+    avg_tokens_used: 890,
+    avg_cost_usd: 0.0045,
+    success_rate: 97.8,
+    avg_quality_score: 4.5,
+    description: 'Gera resposta conversacional baseada nos resultados da busca',
+    changelog: 'Versão inicial do Search Response Generator',
+    tags: ['search', 'response', 'secretariat', 'agent_f'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'operational',
+    impact_level: 'medium',
+    scope: 'system',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Segundo estágio - sintetiza resultados em resposta humanizada.',
+    connected_copilots: ['copilot-secretariat'],
+    connected_services: ['search', 'synthesis']
+  },
+
+  // ========== AGENT G: Geração de ATAs ==========
+  {
+    id: 'g1-ata-generator-001',
+    name: 'Agent G - ATA Generator v1.0',
+    category: 'agent_g_ata_generator',
+    version: '1.0.0',
+    system_prompt: `Você é um secretário executivo experiente em governança corporativa brasileira. 
+Gere uma ATA formal e profissional em português brasileiro baseada nos dados fornecidos.
+
+INSTRUÇÕES DE ESTILO:
+- {{style_instructions}}
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "summary": "texto do resumo executivo aqui",
+  "decisions": ["decisão 1", "decisão 2", "decisão 3", ...]
+}
+
+DIRETRIZES:
+1. Gere um resumo executivo narrativo que contextualize a reunião
+2. Liste de 4 a 6 decisões principais tomadas
+3. Use linguagem formal típica de ATAs corporativas brasileiras
+4. Seja objetivo e preciso`,
+    user_prompt_template: 'Dados da Reunião:\n{{meeting_data}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 234,
+    avg_latency_ms: 2345,
+    avg_tokens_used: 1890,
+    avg_cost_usd: 0.0098,
+    success_rate: 96.5,
+    avg_quality_score: 4.4,
+    description: 'Gera ATAs formais e profissionais a partir de dados de reuniões',
+    changelog: 'Versão inicial do ATA Generator',
+    tags: ['ata', 'meeting', 'documentation', 'agent_g'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'operational',
+    impact_level: 'high',
+    scope: 'council',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Automatiza geração de ATAs com qualidade profissional.',
+    connected_copilots: ['copilot-secretariat'],
+    connected_services: ['documentation', 'synthesis']
+  },
+
+  // ========== AGENT H: Insights Preditivos ==========
+  {
+    id: 'h1-governance-insights-001',
+    name: 'Agent H - Governance Insights v1.0',
+    category: 'agent_h_governance_insights',
+    version: '1.0.0',
+    system_prompt: `Você é um Copiloto de Governança Corporativa assistido por IA, especializado em análise estratégica para conselhos e alta liderança.
+
+Sua função é:
+- Antecipar cenários críticos
+- Apoiar decisões estratégicas da liderança
+- Transformar sinais em ações concretas e executáveis
+- Atuar como um verdadeiro parceiro de governança
+
+Você DEVE gerar insights em EXATAMENTE 3 categorias obrigatórias:
+
+1. RISCOS ESTRATÉGICOS (strategic_risks): 2 riscos estruturais
+2. AMEAÇAS OPERACIONAIS (operational_threats): 2 ameaças emergentes  
+3. OPORTUNIDADES ESTRATÉGICAS (strategic_opportunities): 2 oportunidades
+
+DIRETRIZES PARA CADA INSIGHT:
+- Título: Curto e claro (máximo 50 caracteres)
+- Contexto: Resumido em 1 linha (máximo 80 caracteres)
+- Ações: SEMPRE 2 ações recomendadas (primária e secundária)`,
+    user_prompt_template: 'Dados de Governança:\n{{system_data}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 312,
+    avg_latency_ms: 2567,
+    avg_tokens_used: 2456,
+    avg_cost_usd: 0.0134,
+    success_rate: 95.8,
+    avg_quality_score: 4.3,
+    description: 'Gera insights preditivos estratégicos para governança',
+    changelog: 'Versão inicial do Governance Insights',
+    tags: ['insights', 'predictive', 'governance', 'agent_h'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'strategic',
+    impact_level: 'critical',
+    scope: 'council',
+    agent_type: 'copilot',
+    owner: 'Legacy AI Team',
+    executive_description: 'Motor de insights preditivos para antecipar riscos e oportunidades.',
+    connected_copilots: ['copilot-governance'],
+    connected_services: ['predictive_analysis', 'risk_assessment']
+  },
+
+  // ========== AGENT I: Desenvolvimento Individual ==========
+  {
+    id: 'i1-pdi-generator-001',
+    name: 'Agent I - PDI Generator v1.0',
+    category: 'agent_i_pdi_generator',
+    version: '1.0.0',
+    system_prompt: `Você é um especialista em desenvolvimento de liderança e governança corporativa.
+
+Sua função é criar Planos de Desenvolvimento Individual (PDI) personalizados para membros de conselhos e alta liderança.
+
+O PDI deve ser:
+- Baseado em dados concretos de performance
+- Prático e executável
+- Focado em desenvolvimento de competências estratégicas
+- Alinhado com as melhores práticas de governança corporativa
+
+DIRETRIZES PARA O PDI:
+
+1. GAPS DE COMPETÊNCIA: 3-4 gaps principais baseados nos scores
+2. OBJETIVOS DE DESENVOLVIMENTO: 3-4 objetivos SMART
+3. AÇÕES RECOMENDADAS: 6-8 ações concretas (cursos, mentorias, projetos, leituras)
+4. RECURSOS: Cursos, livros/artigos, sugestão de mentores`,
+    user_prompt_template: 'Dados do Membro:\n{{member_data}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.7,
+    max_tokens: 6000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 156,
+    avg_latency_ms: 3456,
+    avg_tokens_used: 3890,
+    avg_cost_usd: 0.0212,
+    success_rate: 97.2,
+    avg_quality_score: 4.6,
+    description: 'Gera PDIs personalizados para desenvolvimento de conselheiros',
+    changelog: 'Versão inicial do PDI Generator',
+    tags: ['pdi', 'development', 'leadership', 'agent_i'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'governance',
+    impact_level: 'high',
+    scope: 'council',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Automatiza criação de PDIs baseados em dados de performance.',
+    connected_copilots: ['copilot-development'],
+    connected_services: ['pdi', 'development']
+  },
+
+  // ========== AGENT J: Processamento de Documentos ==========
+  {
+    id: 'j1-doc-processor-001',
+    name: 'Agent J - Document Processor v1.0',
+    category: 'agent_j_doc_processor',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente especializado em análise de documentos corporativos.
+Extraia as seguintes informações do texto:
+1. Entidades nomeadas: pessoas, organizações, datas, valores monetários, localizações
+2. Tópicos principais discutidos (máximo 5)
+3. Sentimento geral do documento (-1 a 1, onde -1 é negativo, 0 é neutro, 1 é positivo)
+
+Retorne em formato JSON com a estrutura:
+{
+  "entities": {
+    "people": [],
+    "organizations": [],
+    "dates": [],
+    "monetary_values": [],
+    "locations": []
+  },
+  "topics": [],
+  "sentiment": 0
+}`,
+    user_prompt_template: '{{document_text}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.3,
+    max_tokens: 4000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 678,
+    avg_latency_ms: 1890,
+    avg_tokens_used: 2345,
+    avg_cost_usd: 0.0128,
+    success_rate: 98.1,
+    avg_quality_score: 4.5,
+    description: 'Processa documentos extraindo entidades, tópicos e sentimento',
+    changelog: 'Versão inicial do Document Processor',
+    tags: ['document', 'processing', 'nlp', 'agent_j'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'operational',
+    impact_level: 'medium',
+    scope: 'system',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Extrai informações estruturadas de documentos corporativos.',
+    connected_copilots: ['copilot-documents'],
+    connected_services: ['document_processing', 'nlp']
+  },
+  {
+    id: 'j2-governance-extractor-001',
+    name: 'Agent J - Governance Extractor v1.0',
+    category: 'agent_j_governance_extractor',
+    version: '1.0.0',
+    system_prompt: `Você é um especialista em governança corporativa. Extraia histórico de governança desta ata de reunião.
+
+Para cada item encontrado, extraia:
+- record_type: 'decision', 'risk', 'task', 'policy'
+- title: título breve do item
+- description: descrição do item
+- date: data no formato YYYY-MM-DD
+- decision_outcome: se for decisão (Aprovado, Rejeitado, Adiado)
+- decision_rationale: justificativa da decisão
+- risk_category: se for risco (Operacional, Financeiro, Regulatório, etc)
+- risk_severity: se for risco (low, medium, high, critical)
+
+Retorne um JSON com { "records": [...] }`,
+    user_prompt_template: '{{document_text}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.4,
+    max_tokens: 6000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 234,
+    avg_latency_ms: 2678,
+    avg_tokens_used: 3456,
+    avg_cost_usd: 0.0189,
+    success_rate: 95.6,
+    avg_quality_score: 4.3,
+    description: 'Extrai histórico de governança de atas e documentos',
+    changelog: 'Versão inicial do Governance Extractor',
+    tags: ['governance', 'extraction', 'history', 'agent_j'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'governance',
+    impact_level: 'high',
+    scope: 'system',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Popula memória de governança a partir de documentos históricos.',
+    connected_copilots: ['copilot-governance'],
+    connected_services: ['document_processing', 'governance']
+  },
+
+  // ========== AGENT K: Briefings Executivos ==========
+  {
+    id: 'k1-briefing-generator-001',
+    name: 'Agent K - Briefing Generator v1.0',
+    category: 'agent_k_briefing_generator',
+    version: '1.0.0',
+    system_prompt: `Você é um especialista em comunicação executiva para conselhos de administração.
+
+Gere um briefing personalizado para o conselheiro contendo:
+1. Resumo executivo da próxima reunião
+2. Pontos críticos que requerem atenção
+3. Histórico relevante de decisões anteriores
+4. Materiais de leitura recomendados
+5. Sugestões de posicionamento
+
+O briefing deve ser:
+- Objetivo e direto ao ponto
+- Personalizado para o papel do conselheiro
+- Focado em apoiar a tomada de decisão
+- Formatado profissionalmente`,
+    user_prompt_template: 'Contexto:\n{{context}}',
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.6,
+    max_tokens: 5000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+    examples: null,
+    status: 'active',
+    is_default: true,
+    ab_test_enabled: false,
+    ab_test_traffic_percentage: 0,
+    ab_test_competing_version: null,
+    total_executions: 189,
+    avg_latency_ms: 2890,
+    avg_tokens_used: 3234,
+    avg_cost_usd: 0.0176,
+    success_rate: 96.8,
+    avg_quality_score: 4.5,
+    description: 'Gera briefings executivos personalizados para conselheiros',
+    changelog: 'Versão inicial do Briefing Generator',
+    tags: ['briefing', 'executive', 'communication', 'agent_k'],
+    created_by: null,
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-13T14:30:00Z',
+    activated_at: '2026-01-10T10:00:00Z',
+    deprecated_at: null,
+    strategic_type: 'governance',
+    impact_level: 'high',
+    scope: 'council',
+    agent_type: 'service',
+    owner: 'Legacy AI Team',
+    executive_description: 'Prepara conselheiros com informações relevantes pré-reunião.',
+    connected_copilots: ['copilot-briefing'],
+    connected_services: ['briefing', 'synthesis']
   }
 ];
 

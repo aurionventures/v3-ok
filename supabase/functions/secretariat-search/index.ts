@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { loadPromptConfig, updatePromptMetrics, type PromptConfig } from "../_shared/prompt-loader.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +24,14 @@ interface SearchResult {
   metadata: Record<string, any>;
 }
 
-const systemPrompt = `Você é um assistente especializado em busca de documentos de governança corporativa.
+// Fallback prompts caso não encontre no banco
+const FALLBACK_PROMPTS: Record<string, PromptConfig> = {
+  agent_f_search_intent: {
+    id: 'fallback-search-intent',
+    name: 'Search Intent Extractor (Fallback)',
+    category: 'agent_f_search_intent',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente especializado em busca de documentos de governança corporativa.
 Analise a pergunta do usuário e extraia as seguintes informações:
 1. Palavras-chave principais (keywords) - array de strings
 2. Tipo de busca (searchType): "ata", "decision", "participant", "document", "meeting" ou "general"
@@ -31,12 +39,48 @@ Analise a pergunta do usuário e extraia as seguintes informações:
 4. Órgão específico (organ) - se mencionado: "Conselho de Administração", "Conselho Fiscal", "Comitê", "Comissão"
 5. Prioridade (priority): "high", "medium" ou "low"
 
-Retorne APENAS as informações estruturadas em formato JSON para facilitar a busca.`;
+Retorne APENAS as informações estruturadas em formato JSON para facilitar a busca.`,
+    user_prompt_template: null,
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.4,
+    max_tokens: 1000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+  },
+  agent_f_search_response: {
+    id: 'fallback-search-response',
+    name: 'Search Response Generator (Fallback)',
+    category: 'agent_f_search_response',
+    version: '1.0.0',
+    system_prompt: `Você é um assistente de secretariado corporativo experiente.
+Gere uma resposta conversacional e profissional que:
+1. Responda diretamente à pergunta
+2. Cite os documentos/ATAs mais relevantes encontrados
+3. Destaque informações importantes (decisões, datas, participantes)
+4. Se não encontrou resultados, sugira termos alternativos de busca
+5. Mantenha tom profissional mas amigável
+6. IMPORTANTE: NÃO use emojis na resposta. Use apenas texto profissional.`,
+    user_prompt_template: null,
+    model: 'google/gemini-3-flash-preview',
+    temperature: 0.6,
+    max_tokens: 2000,
+    top_p: 1.0,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    functions: null,
+    tool_choice: 'auto',
+  }
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const { question, meetings = [], documents = [], searchScope = 'all' } = await req.json() as SearchQuery;
@@ -55,6 +99,10 @@ serve(async (req) => {
 
     console.log(`[secretariat-search] Processando pergunta: "${question}"`);
 
+    // Carregar prompts do banco de dados
+    const intentPrompt = await loadPromptConfig('agent_f_search_intent', FALLBACK_PROMPTS.agent_f_search_intent);
+    const responsePrompt = await loadPromptConfig('agent_f_search_response', FALLBACK_PROMPTS.agent_f_search_response);
+
     // 1. Usar Lovable AI para entender a intenção
     const intentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -63,9 +111,11 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: intentPrompt.model,
+        temperature: intentPrompt.temperature,
+        max_tokens: intentPrompt.max_tokens,
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: intentPrompt.system_prompt },
           { role: "user", content: question }
         ],
         tools: [{
@@ -110,6 +160,18 @@ serve(async (req) => {
     });
 
     if (!intentResponse.ok) {
+      if (intentResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em alguns instantes." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (intentResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Créditos insuficientes. Por favor, adicione créditos à sua conta." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       console.error(`[secretariat-search] Erro ao processar intenção: ${intentResponse.status}`);
       throw new Error(`Erro ao processar intenção: ${intentResponse.status}`);
     }
@@ -125,7 +187,6 @@ serve(async (req) => {
     const results: SearchResult[] = [];
 
     if (searchScope === 'atas_only') {
-      // Buscar APENAS em ATAs
       meetings.forEach((meeting: any) => {
         if (meeting.minutes) {
           const ataContent = `${meeting.minutes.full || ''}\n${meeting.minutes.summary || ''}`;
@@ -149,7 +210,6 @@ serve(async (req) => {
         }
       });
     } else if (searchScope === 'documents_only') {
-      // Buscar APENAS em Documentos
       documents.forEach((doc: any) => {
         const docContent = `${doc.name || ''} ${doc.type || ''}`;
         const matchScore = calculateRelevance(docContent, searchIntent.keywords);
@@ -168,7 +228,6 @@ serve(async (req) => {
       });
     } else {
       // Busca completa (all)
-      // Buscar em ATAs
       meetings.forEach((meeting: any) => {
         if (meeting.minutes) {
           const ataContent = `${meeting.minutes.full || ''}\n${meeting.minutes.summary || ''}`;
@@ -192,7 +251,6 @@ serve(async (req) => {
         }
       });
 
-      // Buscar em Decisões
       meetings.forEach((meeting: any) => {
         if (meeting.ata?.decisions) {
           meeting.ata.decisions.forEach((decision: string) => {
@@ -213,7 +271,6 @@ serve(async (req) => {
         }
       });
 
-      // Buscar em Documentos
       documents.forEach((doc: any) => {
         const docContent = `${doc.name || ''} ${doc.type || ''}`;
         const matchScore = calculateRelevance(docContent, searchIntent.keywords);
@@ -231,7 +288,6 @@ serve(async (req) => {
         }
       });
 
-      // Buscar em Reuniões (informações gerais)
       meetings.forEach((meeting: any) => {
         const meetingContent = `${meeting.title || ''} ${meeting.council || ''} ${meeting.status || ''}`;
         const matchScore = calculateRelevance(meetingContent, searchIntent.keywords);
@@ -255,19 +311,17 @@ serve(async (req) => {
       });
     }
 
-    // Ordenar por relevância
     results.sort((a, b) => b.relevance - a.relevance);
 
     console.log(`[secretariat-search] Encontrados ${results.length} resultados`);
 
     // 3. Gerar resposta em linguagem natural com Lovable AI
-    const summaryPrompt = `Você é um assistente de secretariado corporativo. O usuário perguntou: "${question}"\n\nEncontrei os seguintes resultados (${results.length} total):\n${JSON.stringify(results.slice(0, 5), null, 2)}\n\nGere uma resposta conversacional e profissional que:
-1. Responda diretamente à pergunta
-2. Cite os documentos/ATAs mais relevantes encontrados
-3. Destaque informações importantes (decisões, datas, participantes)
-4. Se não encontrou resultados, sugira termos alternativos de busca
-5. Mantenha tom profissional mas amigável
-6. IMPORTANTE: NÃO use emojis na resposta. Use apenas texto profissional.`;
+    const summaryPrompt = `${responsePrompt.system_prompt}
+
+O usuário perguntou: "${question}"
+
+Encontrei os seguintes resultados (${results.length} total):
+${JSON.stringify(results.slice(0, 5), null, 2)}`;
 
     const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -276,15 +330,28 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: responsePrompt.model,
+        temperature: responsePrompt.temperature,
+        max_tokens: responsePrompt.max_tokens,
         messages: [
-          { role: "system", content: "Você é um assistente de secretariado experiente." },
           { role: "user", content: summaryPrompt }
         ],
       }),
     });
 
     if (!summaryResponse.ok) {
+      if (summaryResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em alguns instantes." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (summaryResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Créditos insuficientes. Por favor, adicione créditos à sua conta." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       console.error(`[secretariat-search] Erro ao gerar resumo: ${summaryResponse.status}`);
       throw new Error(`Erro ao gerar resumo: ${summaryResponse.status}`);
     }
@@ -292,12 +359,19 @@ serve(async (req) => {
     const summaryData = await summaryResponse.json();
     const aiSummary = summaryData.choices[0].message.content;
 
-    console.log(`[secretariat-search] Resposta gerada com sucesso`);
+    const executionTime = Date.now() - startTime;
+    console.log(`[secretariat-search] Resposta gerada com sucesso em ${executionTime}ms`);
+
+    // Atualizar métricas dos prompts
+    await Promise.all([
+      updatePromptMetrics(intentPrompt.id, { execution_time_ms: executionTime / 2, tokens_used: 500, success: true }),
+      updatePromptMetrics(responsePrompt.id, { execution_time_ms: executionTime / 2, tokens_used: 1000, success: true })
+    ]);
 
     return new Response(
       JSON.stringify({ 
         answer: aiSummary,
-        results: results.slice(0, 10), // Retornar top 10
+        results: results.slice(0, 10),
         searchIntent,
         totalResults: results.length
       }),
@@ -316,7 +390,6 @@ serve(async (req) => {
   }
 });
 
-// Função auxiliar para calcular relevância
 function calculateRelevance(text: string, keywords: string[]): number {
   if (!text || !keywords || keywords.length === 0) return 0;
   
@@ -326,8 +399,8 @@ function calculateRelevance(text: string, keywords: string[]): number {
   keywords.forEach(keyword => {
     const lowerKeyword = keyword.toLowerCase();
     const occurrences = (lowerText.match(new RegExp(lowerKeyword, 'g')) || []).length;
-    score += occurrences * 0.15; // Cada ocorrência adiciona 15% de relevância
+    score += occurrences * 0.15;
   });
   
-  return Math.min(score, 1); // Limitar a 100%
+  return Math.min(score, 1);
 }

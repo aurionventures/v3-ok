@@ -1,15 +1,48 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { loadPromptConfig, updatePromptMetrics, type PromptConfig } from "../_shared/prompt-loader.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Fallback prompt caso não encontre no banco
+const FALLBACK_PROMPT: PromptConfig = {
+  id: 'fallback-ata-generator',
+  name: 'ATA Generator (Fallback)',
+  category: 'agent_g_ata_generator',
+  version: '1.0.0',
+  system_prompt: `Você é um secretário executivo experiente em governança corporativa brasileira. 
+Gere uma ATA formal e profissional em português brasileiro baseada nos dados fornecidos.
+
+FORMATO DE RESPOSTA (JSON):
+{
+  "summary": "texto do resumo executivo aqui",
+  "decisions": ["decisão 1", "decisão 2", "decisão 3", ...]
+}
+
+DIRETRIZES:
+1. Gere um resumo executivo narrativo que contextualize a reunião
+2. Liste de 4 a 6 decisões principais tomadas
+3. Use linguagem formal típica de ATAs corporativas brasileiras
+4. Seja objetivo e preciso`,
+  user_prompt_template: null,
+  model: 'google/gemini-3-flash-preview',
+  temperature: 0.7,
+  max_tokens: 4000,
+  top_p: 1.0,
+  frequency_penalty: 0,
+  presence_penalty: 0,
+  functions: null,
+  tool_choice: 'auto',
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const { 
@@ -28,7 +61,6 @@ serve(async (req) => {
 
     console.log('📝 Generating ATA for meeting:', meetingId);
 
-    // Validar dados de entrada
     if (!council || !date || !time) {
       return new Response(
         JSON.stringify({ error: 'Dados da reunião incompletos' }), 
@@ -39,7 +71,9 @@ serve(async (req) => {
       );
     }
 
-    // Construir prompt estruturado para a IA
+    // Carregar prompt do banco de dados
+    const promptConfig = await loadPromptConfig('agent_g_ata_generator', FALLBACK_PROMPT);
+
     const confirmedParticipants = participants.filter((p: any) => p.confirmed);
     const participantsList = confirmedParticipants.map((p: any) => 
       `- ${p.external_name || 'Membro'} (${p.role})`
@@ -90,10 +124,7 @@ serve(async (req) => {
 
     const styleInstructions = buildStyleInstructions(ataConfig);
 
-    const prompt = `Você é um secretário executivo experiente em governança corporativa brasileira. 
-Gere uma ATA formal e profissional em português brasileiro baseada nos dados abaixo.
-
-INSTRUÇÕES DE ESTILO:
+    const userPrompt = `INSTRUÇÕES DE ESTILO:
 - ${styleInstructions.tone}
 - ${styleInstructions.person}
 ${styleInstructions.custom ? `\nINSTRUÇÕES ESPECÍFICAS DO CLIENTE:\n${styleInstructions.custom}\n` : ''}
@@ -118,24 +149,8 @@ PRÓXIMOS ASSUNTOS:
 ${nextMeetingTopics.map((t: string) => `- ${t}`).join('\n') || 'Não definidos'}
 
 INSTRUÇÕES:
-1. Gere um resumo executivo narrativo de ${styleInstructions.length - 50}-${styleInstructions.length + 50} palavras que:
-   - Contextualize a reunião e seu objetivo
-   - Destaque os principais pontos discutidos na pauta
-   - Mencione as tarefas atribuídas
-   - Tenha tom formal e profissional
-   - Use terceira pessoa do singular
-   
-2. Liste de 4 a 6 decisões principais tomadas durante a reunião, baseando-se nos resultados esperados da pauta
-
-3. Use linguagem formal típica de ATAs corporativas brasileiras
-
-4. Seja objetivo e preciso
-
-FORMATO DE RESPOSTA (JSON):
-{
-  "summary": "texto do resumo executivo aqui",
-  "decisions": ["decisão 1", "decisão 2", "decisão 3", ...]
-}`;
+1. Gere um resumo executivo narrativo de ${styleInstructions.length - 50}-${styleInstructions.length + 50} palavras
+2. Liste de 4 a 6 decisões principais tomadas durante a reunião`;
 
     console.log('🤖 Calling Lovable AI...');
 
@@ -151,11 +166,13 @@ FORMATO DE RESPOSTA (JSON):
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: promptConfig.model,
+        temperature: promptConfig.temperature,
+        max_tokens: promptConfig.max_tokens,
         messages: [
-          { role: 'user', content: prompt }
+          { role: 'system', content: promptConfig.system_prompt },
+          { role: 'user', content: userPrompt }
         ],
-        temperature: 0.7,
       }),
     });
 
@@ -163,19 +180,13 @@ FORMATO DE RESPOSTA (JSON):
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Limite de requisições atingido. Tente novamente em alguns instantes.' }), 
-          { 
-            status: 429, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (aiResponse.status === 402) {
         return new Response(
           JSON.stringify({ error: 'Créditos insuficientes. Por favor, adicione créditos à sua conta.' }), 
-          { 
-            status: 402, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
@@ -193,10 +204,8 @@ FORMATO DE RESPOSTA (JSON):
 
     console.log('✅ AI response received');
 
-    // Tentar extrair JSON da resposta
     let parsedResponse;
     try {
-      // Tentar extrair JSON se estiver em markdown code block
       const jsonMatch = aiContent.match(/```json\n([\s\S]*?)\n```/) || 
                        aiContent.match(/```\n([\s\S]*?)\n```/) ||
                        [null, aiContent];
@@ -205,7 +214,6 @@ FORMATO DE RESPOSTA (JSON):
     } catch (parseError) {
       console.error('Failed to parse AI response, using fallback:', parseError);
       
-      // Fallback: criar estrutura básica
       parsedResponse = {
         summary: aiContent.substring(0, 500),
         decisions: [
@@ -217,7 +225,6 @@ FORMATO DE RESPOSTA (JSON):
       };
     }
 
-    // Montar ATA estruturada
     const ata = {
       id: `ata-${meetingId}`,
       summary: parsedResponse.summary || 'Resumo não disponível',
@@ -228,13 +235,19 @@ FORMATO DE RESPOSTA (JSON):
       generatedBy: 'IA - Lovable Assistant'
     };
 
-    console.log('📄 ATA generated successfully');
+    const executionTime = Date.now() - startTime;
+    console.log(`📄 ATA generated successfully in ${executionTime}ms`);
+
+    // Atualizar métricas do prompt
+    await updatePromptMetrics(promptConfig.id, {
+      execution_time_ms: executionTime,
+      tokens_used: aiData.usage?.total_tokens || 2000,
+      success: true
+    });
 
     return new Response(
       JSON.stringify(ata),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
@@ -243,10 +256,7 @@ FORMATO DE RESPOSTA (JSON):
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Erro desconhecido ao gerar ATA' 
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
