@@ -58,6 +58,22 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Semantic Status Colors
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))',
+					muted: 'hsl(var(--success-muted))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))',
+					muted: 'hsl(var(--warning-muted))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))',
+					muted: 'hsl(var(--info-muted))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -74,18 +90,23 @@ export default {
 					200: '#A3B7CF',
 					300: '#7593B7',
 					400: '#476F9F',
-					500: '#1A365D', // primary navy
+					500: '#1A365D',
 					600: '#15304F',
 					700: '#102841',
 					800: '#0B2033',
 					900: '#061625',
 					purple: {
-						500: '#553C9A', // secondary purple
+						500: '#553C9A',
 					},
 					teal: {
-						500: '#2C7A7B', // accent teal
+						500: '#2C7A7B',
 					}
 				}
+			},
+			backgroundImage: {
+				'gradient-copilot': 'linear-gradient(to right, hsl(var(--gradient-copilot-from)), hsl(var(--gradient-copilot-to)))',
+				'gradient-success': 'linear-gradient(to right, hsl(var(--gradient-success-from)), hsl(var(--gradient-success-to)))',
+				'gradient-hero': 'linear-gradient(135deg, hsl(var(--gradient-hero-from)), hsl(var(--gradient-hero-to)))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
