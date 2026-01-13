@@ -269,6 +269,16 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
+    
+    // Validação de telefone (se preenchido)
+    if (leadData.whatsapp) {
+      const phoneNumbers = leadData.whatsapp.replace(/\D/g, '');
+      if (phoneNumbers.length < 10 || phoneNumbers.length > 11) {
+        toast.error("Telefone inválido. Use o formato (DD) NNNNN-NNNN");
+        return;
+      }
+    }
+    
     // Agora chama handleSubmit para calcular e mostrar resultado
     await handleSubmit();
   };
@@ -476,9 +486,27 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="whatsapp"
-                        placeholder="(00) 00000-0000"
+                        placeholder="(11) 99999-9999"
                         value={leadData.whatsapp}
-                        onChange={(e) => setLeadData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numbers = value.replace(/\D/g, '');
+                          const limited = numbers.slice(0, 11);
+                          
+                          let formatted = '';
+                          if (limited.length <= 2) {
+                            formatted = limited.length > 0 ? `(${limited}` : '';
+                          } else if (limited.length <= 6) {
+                            formatted = `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+                          } else if (limited.length <= 10) {
+                            formatted = `(${limited.slice(0, 2)}) ${limited.slice(2, 6)}-${limited.slice(6)}`;
+                          } else {
+                            formatted = `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7)}`;
+                          }
+                          
+                          setLeadData(prev => ({ ...prev, whatsapp: formatted }));
+                        }}
+                        maxLength={16}
                         className="pl-10"
                       />
                     </div>
@@ -696,8 +724,8 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <Button
                   onClick={() => {
-                    onClose();
                     onScrollToPricing?.();
+                    onClose();
                   }}
                   className="flex-1 bg-accent text-primary hover:bg-accent/90"
                 >
