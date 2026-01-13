@@ -6,7 +6,7 @@ import { mockPromptsData } from '@/data/mockPromptsData';
 export type StrategicType = 'strategic' | 'governance' | 'operational';
 export type ImpactLevel = 'low' | 'medium' | 'high' | 'critical';
 export type PromptScope = 'council' | 'committee' | 'operation' | 'system';
-export type AgentType = 'moat_engine' | 'copilot' | 'service';
+export type AgentType = 'moat_engine' | 'copilot' | 'service' | 'diagnostic';
 
 export interface AIPrompt {
   id: string;

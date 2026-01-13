@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { loadPromptConfig, updatePromptMetrics, type PromptConfig } from "../_shared/prompt-loader.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,20 +25,13 @@ interface SystemData {
   criticalRisks: number;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const systemData: SystemData = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    const systemPrompt = `Você é um Copiloto de Governança Corporativa assistido por IA, especializado em análise estratégica para conselhos e alta liderança.
+// Fallback prompt caso não encontre no banco
+const FALLBACK_PROMPT: PromptConfig = {
+  id: 'fallback-governance-insights',
+  name: 'Governance Insights (Fallback)',
+  category: 'agent_h_governance_insights',
+  version: '1.0.0',
+  system_prompt: `Você é um Copiloto de Governança Corporativa assistido por IA, especializado em análise estratégica para conselhos e alta liderança.
 
 Sua função é:
 - Antecipar cenários críticos
@@ -50,31 +44,49 @@ Você DEVE gerar insights em EXATAMENTE 3 categorias obrigatórias:
 1. RISCOS ESTRATÉGICOS (strategic_risks):
    - Riscos estruturais e sistêmicos que ameaçam a organização
    - Classificação clara: Crítico (crítico), Alto (high), Médio (medium)
-   - Linguagem objetiva e direta, nível conselho
-   - Foco em impacto na governança, continuidade e controle
    - Gerar EXATAMENTE 2 riscos
 
 2. AMEAÇAS OPERACIONAIS/REGULATÓRIAS (operational_threats):
    - Pressões externas ou internas emergentes
-   - Mudanças regulatórias, mercado, liquidez, compliance ou reputação
    - Horizonte temporal explícito: immediate (imediato), 30_days, 90_days
-   - Categorias: Regulatório, Mercado, Liquidez, Compliance, Reputação
    - Gerar EXATAMENTE 2 ameaças
 
 3. OPORTUNIDADES ESTRATÉGICAS (strategic_opportunities):
    - Ganhos potenciais decorrentes de ação antecipada
-   - Otimização de controles, fortalecimento de governança, eficiência decisória
-   - Linguagem positiva, porém concreta
-   - Foco em criação de valor e redução de risco futuro
    - Gerar EXATAMENTE 2 oportunidades
 
 DIRETRIZES PARA CADA INSIGHT:
 - Título: Curto e claro (máximo 50 caracteres)
 - Contexto: Resumido em 1 linha (máximo 80 caracteres)
-- Ações: SEMPRE 2 ações recomendadas pela IA:
-  • Ação Primária: A ação mais importante e urgente
-  • Ação Secundária: Ação complementar de suporte
-- As ações devem ser práticas, executáveis e conectáveis aos módulos do sistema`;
+- Ações: SEMPRE 2 ações recomendadas pela IA`,
+  user_prompt_template: null,
+  model: 'google/gemini-3-flash-preview',
+  temperature: 0.7,
+  max_tokens: 4000,
+  top_p: 1.0,
+  frequency_penalty: 0,
+  presence_penalty: 0,
+  functions: null,
+  tool_choice: 'auto',
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const startTime = Date.now();
+
+  try {
+    const systemData: SystemData = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Carregar prompt do banco de dados
+    const promptConfig = await loadPromptConfig('agent_h_governance_insights', FALLBACK_PROMPT);
 
     const userPrompt = `Analise os seguintes dados de governança da empresa e gere insights estratégicos:
 
@@ -99,9 +111,11 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: promptConfig.model,
+        temperature: promptConfig.temperature,
+        max_tokens: promptConfig.max_tokens,
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: promptConfig.system_prompt },
           { role: "user", content: userPrompt }
         ],
         tools: [
@@ -119,31 +133,14 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
                     items: {
                       type: "object",
                       properties: {
-                        title: { 
-                          type: "string",
-                          description: "Título curto e claro (máx 50 caracteres)"
-                        },
-                        context: { 
-                          type: "string",
-                          description: "Contexto resumido em 1 linha (máx 80 caracteres)"
-                        },
-                        priority: { 
-                          type: "string", 
-                          enum: ["critical", "high", "medium"],
-                          description: "Classificação: critical, high, medium"
-                        },
+                        title: { type: "string", description: "Título curto e claro (máx 50 caracteres)" },
+                        context: { type: "string", description: "Contexto resumido em 1 linha (máx 80 caracteres)" },
+                        priority: { type: "string", enum: ["critical", "high", "medium"], description: "Classificação" },
                         actions: {
                           type: "object",
-                          description: "2 ações recomendadas pela IA",
                           properties: {
-                            primary: { 
-                              type: "string",
-                              description: "Ação prioritária principal"
-                            },
-                            secondary: { 
-                              type: "string",
-                              description: "Ação complementar de suporte"
-                            }
+                            primary: { type: "string", description: "Ação prioritária principal" },
+                            secondary: { type: "string", description: "Ação complementar de suporte" }
                           },
                           required: ["primary", "secondary"]
                         }
@@ -157,35 +154,15 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
                     items: {
                       type: "object",
                       properties: {
-                        title: { 
-                          type: "string",
-                          description: "Título curto e claro (máx 50 caracteres)"
-                        },
-                        context: { 
-                          type: "string",
-                          description: "Contexto resumido em 1 linha (máx 80 caracteres)"
-                        },
-                        timeframe: { 
-                          type: "string", 
-                          enum: ["immediate", "30_days", "90_days"],
-                          description: "Horizonte temporal: immediate, 30_days, 90_days"
-                        },
-                        category: {
-                          type: "string",
-                          description: "Categoria: Regulatório, Mercado, Liquidez, Compliance, Reputação"
-                        },
+                        title: { type: "string", description: "Título curto e claro" },
+                        context: { type: "string", description: "Contexto resumido" },
+                        timeframe: { type: "string", enum: ["immediate", "30_days", "90_days"], description: "Horizonte temporal" },
+                        category: { type: "string", description: "Categoria: Regulatório, Mercado, Liquidez, Compliance, Reputação" },
                         actions: {
                           type: "object",
-                          description: "2 ações recomendadas pela IA",
                           properties: {
-                            primary: { 
-                              type: "string",
-                              description: "Ação prioritária principal"
-                            },
-                            secondary: { 
-                              type: "string",
-                              description: "Ação complementar de suporte"
-                            }
+                            primary: { type: "string" },
+                            secondary: { type: "string" }
                           },
                           required: ["primary", "secondary"]
                         }
@@ -199,26 +176,13 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
                     items: {
                       type: "object",
                       properties: {
-                        title: { 
-                          type: "string",
-                          description: "Título curto e claro (máx 50 caracteres)"
-                        },
-                        context: { 
-                          type: "string",
-                          description: "Contexto resumido em 1 linha (máx 80 caracteres)"
-                        },
+                        title: { type: "string", description: "Título curto e claro" },
+                        context: { type: "string", description: "Contexto resumido" },
                         actions: {
                           type: "object",
-                          description: "2 ações recomendadas pela IA",
                           properties: {
-                            primary: { 
-                              type: "string",
-                              description: "Ação prioritária principal"
-                            },
-                            secondary: { 
-                              type: "string",
-                              description: "Ação complementar de suporte"
-                            }
+                            primary: { type: "string" },
+                            secondary: { type: "string" }
                           },
                           required: ["primary", "secondary"]
                         }
@@ -261,13 +225,10 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
     }
 
     const data = await response.json();
+    console.log("AI Response received");
     
-    console.log("AI Response:", JSON.stringify(data, null, 2));
-    
-    // Try to extract governance insights from different response formats
     let governanceInsights = null;
     
-    // Format 1: Tool call response
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       try {
@@ -284,7 +245,6 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
       }
     }
     
-    // Format 2: Direct content with JSON
     if (!governanceInsights && data.choices?.[0]?.message?.content) {
       const content = data.choices[0].message.content;
       try {
@@ -304,7 +264,6 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
       }
     }
     
-    // Format 3: Function call (older format)
     if (!governanceInsights && data.choices?.[0]?.message?.function_call?.arguments) {
       try {
         const parsed = JSON.parse(data.choices[0].message.function_call.arguments);
@@ -319,14 +278,22 @@ IMPORTANTE: Cada insight deve ter ações práticas e executáveis.`;
         console.error("Failed to parse function call arguments:", e);
       }
     }
+
+    const executionTime = Date.now() - startTime;
     
     if (governanceInsights) {
+      // Atualizar métricas do prompt
+      await updatePromptMetrics(promptConfig.id, {
+        execution_time_ms: executionTime,
+        tokens_used: data.usage?.total_tokens || 2500,
+        success: true
+      });
+
       return new Response(JSON.stringify({ governanceInsights }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     
-    // Fallback: generate mock governance insights if AI fails
     console.warn("Could not parse AI response, using fallback governance insights");
     const fallbackGovernanceInsights = {
       strategicRisks: [
