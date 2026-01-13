@@ -180,26 +180,6 @@ const AGENT_CONFIGS = [
   }
 ];
 
-const COPILOT_CONFIGS = [
-  {
-    id: 'copilot_governance',
-    name: 'Copiloto de Governanca',
-    description: 'Interface principal de insights para o conselho',
-    scope: 'Conselho de Administracao',
-    categories: ['agent_copilot_insights'],
-    variant: 'info' as ColorVariant,
-    dependsOn: ['agent_a', 'agent_b']
-  },
-  {
-    id: 'copilot_predictive',
-    name: 'Insights Preditivos',
-    description: 'Versao serverless para analises em tempo real',
-    scope: 'Sistema',
-    categories: ['predictive_insights_edge'],
-    variant: 'info' as ColorVariant,
-    dependsOn: ['agent_a', 'agent_b']
-  }
-];
 
 const SERVICE_CONFIGS = [
   {
@@ -357,9 +337,6 @@ const getCategoryLabel = (category: string) => {
 const getAgentForCategory = (category: string) => {
   for (const agent of AGENT_CONFIGS) {
     if (agent.categories.includes(category)) return agent;
-  }
-  for (const copilot of COPILOT_CONFIGS) {
-    if (copilot.categories.includes(category)) return { ...copilot, name: copilot.name };
   }
   return null;
 };
@@ -827,87 +804,6 @@ export default function AdminPromptLibrary() {
     </div>
   );
 
-  // ============================================
-  // RENDER: TAB - COPILOTS
-  // ============================================
-
-  const renderCopilotsTab = () => (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {COPILOT_CONFIGS.map(copilot => {
-          const copilotPrompts = filteredPrompts.filter(p => copilot.categories.includes(p.category));
-          const styles = getVariantStyles(copilot.variant);
-          const Icon = copilot.id === 'copilot_governance' ? Brain : Shield;
-          const dependentAgents = AGENT_CONFIGS.filter(a => copilot.dependsOn.includes(a.id));
-          
-          return (
-            <Card key={copilot.id} className="border-2 hover:shadow-lg transition-all">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-3 rounded-xl", styles.bg)}>
-                    <Icon className={cn("h-6 w-6", styles.text)} />
-                  </div>
-                  <div>
-                    <CardTitle>{copilot.name}</CardTitle>
-                    <CardDescription>{copilot.description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Escopo</p>
-                    <Badge variant="secondary">
-                      <Building2 className="h-3 w-3 mr-1" />
-                      {copilot.scope}
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Agentes Dependentes</p>
-                    <div className="flex flex-wrap gap-2">
-                      {dependentAgents.map(agent => {
-                        const agentConfig = NEW_AGENT_CONFIGS.find(a => a.id === agent.id);
-                        const AgentIcon = agentConfig?.icon || Bot;
-                        const agentStyles = getVariantStyles(agent.variant);
-                        return (
-                          <Badge key={agent.id} className={cn(agentStyles.bg, agentStyles.text, "border", agentStyles.border)}>
-                            <AgentIcon className="h-3 w-3 mr-1" />
-                            {agent.name}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Prompts Conectados</p>
-                    <div className="space-y-2">
-                      {copilotPrompts.map(prompt => (
-                        <div 
-                          key={prompt.id}
-                          className="flex items-center justify-between p-2 rounded bg-muted/50 cursor-pointer hover:bg-muted"
-                          onClick={() => handlePromptSelect(prompt.id)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-success" />
-                            <span className="text-sm font-medium">{getCategoryLabel(prompt.category)}</span>
-                          </div>
-                          <span className="text-xs text-muted-foreground">v{prompt.version}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
 
   // ============================================
   // RENDER: TAB - SERVICES
@@ -1209,13 +1105,6 @@ export default function AdminPromptLibrary() {
                     Agentes de IA
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="copilots" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
-                  >
-                    <Brain className="h-4 w-4 mr-2" />
-                    Copilotos
-                  </TabsTrigger>
-                  <TabsTrigger 
                     value="services" 
                     className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
                   >
@@ -1258,7 +1147,7 @@ export default function AdminPromptLibrary() {
               <>
                 {activeTab === 'overview' && renderOverviewTab()}
                 {activeTab === 'agents' && renderAgentsTab()}
-                {activeTab === 'copilots' && renderCopilotsTab()}
+                
                 {activeTab === 'services' && renderServicesTab()}
                 {activeTab === 'library' && renderLibraryTab()}
                 {activeTab === 'audit' && renderAuditTab()}
