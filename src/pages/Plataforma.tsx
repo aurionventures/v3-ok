@@ -102,14 +102,14 @@ const Plataforma = () => {
       <MegaMenuHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-hero pt-32 pb-20">
+      <section className="relative overflow-hidden bg-gradient-hero pt-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(192,160,98,0.1),transparent_50%)]" />
-        <div className="container mx-auto px-6 relative">
+        <div className="container mx-auto px-6 py-20 lg:py-28 relative">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-8 leading-tight font-heading">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight font-heading">
               Plataforma Legacy OS
             </h1>
-            <p className="text-xl lg:text-2xl mb-12 text-white/80 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-xl lg:text-2xl mb-4 text-white/90 leading-relaxed max-w-3xl mx-auto">
               13 módulos nativamente integrados para governança corporativa completa. 
               Tudo o que você precisa em uma única plataforma.
             </p>

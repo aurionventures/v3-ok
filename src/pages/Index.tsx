@@ -92,17 +92,17 @@ const Index = () => {
       <MegaMenuHeader />
 
       {/* HERO SECTION - Premium Institutional */}
-      <section className="relative overflow-hidden bg-gradient-hero pt-40 pb-24">
+      <section className="relative overflow-hidden bg-gradient-hero pt-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(192,160,98,0.08),transparent_50%)]" />
-        <div className="container mx-auto px-6 relative">
+        <div className="container mx-auto px-6 py-20 lg:py-28 relative">
           <div className="max-w-4xl mx-auto text-center text-white">
             {/* H1 - Main Headline */}
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-8 leading-tight font-heading">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight font-heading">
               A Inteligência por Trás das Melhores Decisões de Conselho
             </h1>
             
             {/* H2 - Subtitle */}
-            <p className="text-xl lg:text-2xl mb-12 text-white/80 leading-relaxed max-w-3xl mx-auto font-normal">
+            <p className="text-xl lg:text-2xl mb-4 text-white/90 leading-relaxed max-w-3xl mx-auto font-normal">
               Legacy OS é o primeiro Sistema Operacional de Governança Corporativa com IA nativa, 
               que monitora riscos, antecipa cenários e prioriza decisões estratégicas — 
               transformando dados dispersos em pautas inteligentes antes mesmo da reunião acontecer.
