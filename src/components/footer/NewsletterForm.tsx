@@ -6,9 +6,10 @@ import { toast } from "sonner";
 
 interface NewsletterFormProps {
   className?: string;
+  compact?: boolean;
 }
 
-export function NewsletterForm({ className }: NewsletterFormProps) {
+export function NewsletterForm({ className, compact = false }: NewsletterFormProps) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -42,13 +43,13 @@ export function NewsletterForm({ className }: NewsletterFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`flex gap-2 ${className || ""}`}>
+    <form onSubmit={handleSubmit} className={`flex gap-2 ${compact ? "max-w-[280px]" : ""} ${className || ""}`}>
       <Input
         type="email"
         placeholder="seu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="bg-white/5 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#C0A062]/50 h-9 text-sm"
+        className={`bg-white/5 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#C0A062]/50 h-9 text-sm ${compact ? "w-[180px]" : ""}`}
         disabled={isLoading}
       />
       <Button 
