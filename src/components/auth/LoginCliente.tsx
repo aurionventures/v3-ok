@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, BarChart3, TrendingUp, Users } from 'lucide-react';
+import { Building2, TrendingUp, Users, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
@@ -84,8 +84,15 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
             <img 
               src={legacyLogoFull} 
               alt="Legacy OS - Governança Corporativa" 
-              className="h-20 w-auto mx-auto"
+              className="h-20 w-auto mx-auto mb-4"
             />
+            <Link 
+              to="/" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Home className="h-4 w-4" />
+              Voltar para Home
+            </Link>
           </div>
           
           <Card>
