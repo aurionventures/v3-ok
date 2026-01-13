@@ -423,37 +423,8 @@ export default function GovernanceCopilot() {
         <Header title="Copiloto de Governança" />
         
         <main className="flex-1 overflow-auto p-6">
-          {/* Hero Section */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
-                  <Brain className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    Copiloto de Governança
-                  </h1>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    IA Preditiva para Decisões Estratégicas
-                    
-                  </p>
-                </div>
-              </div>
-              {lastUpdated && <span className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
-                  Última atualização: {lastUpdated.toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  })}
-                </span>}
-            </div>
-            <p className="text-sm text-muted-foreground max-w-2xl">
-              Antecipação • Clareza • Inteligência Aplicada — Apoio direto à decisão da alta liderança
-            </p>
-          </div>
-
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-[calc(100%-8rem)]">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-[calc(100%-2rem)]">
             <TabsList className="mb-4">
               <TabsTrigger value="analysis" className="gap-2">
                 <Shield className="h-4 w-4" />
