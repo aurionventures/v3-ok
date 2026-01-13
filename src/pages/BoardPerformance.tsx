@@ -83,39 +83,28 @@ export default function BoardPerformance() {
   return <div className="flex min-h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Header />
+        <Header title="Desempenho do Conselho" />
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Cabeçalho */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                  <Trophy className="h-6 w-6 text-amber-500" />
-                  Desempenho do Conselho
-                </h1>
-                <p className="text-muted-foreground">
-                  Avaliação 360°, PDI com IA e análise preditiva de performance
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {currentPeriod?.name && (
-                  <Badge variant="outline" className="text-sm font-normal">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {currentPeriod.name}
-                  </Badge>
-                )}
-                <Button variant="outline" size="sm" onClick={refresh}>
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Atualizar
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-1" />
-                  Exportar
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
+            {/* Ações do cabeçalho */}
+            <div className="flex items-center justify-end gap-2">
+              {currentPeriod?.name && (
+                <Badge variant="outline" className="text-sm font-normal">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {currentPeriod.name}
+                </Badge>
+              )}
+              <Button variant="outline" size="sm" onClick={refresh}>
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Atualizar
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-1" />
+                Exportar
+              </Button>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
             </div>
 
             {/* Cards de Resumo */}
