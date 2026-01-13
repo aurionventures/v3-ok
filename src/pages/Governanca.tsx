@@ -5,6 +5,7 @@ import {
   Factory, ShoppingCart, Cpu, Landmark, ClipboardCheck, Bell
 } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, governancaFAQs } from "@/components/footer/FAQSection";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -260,6 +261,12 @@ const Governanca = () => {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Dúvidas sobre governança integrada"
+        faqs={governancaFAQs}
+      />
 
       <MegaFooter />
     </div>

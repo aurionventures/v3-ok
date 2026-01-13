@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, contatoFAQs } from "@/components/footer/FAQSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,6 +237,12 @@ export default function Contato() {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Dúvidas sobre contato e suporte"
+        faqs={contatoFAQs}
+      />
 
       <MegaFooter />
     </div>

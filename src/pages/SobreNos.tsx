@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, sobreFAQs } from "@/components/footer/FAQSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, Eye, Heart, Users, Shield, Sparkles, ArrowRight } from "lucide-react";
@@ -196,6 +197,12 @@ export default function SobreNos() {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Dúvidas sobre a empresa"
+        faqs={sobreFAQs}
+      />
 
       <MegaFooter />
     </div>

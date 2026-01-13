@@ -6,6 +6,7 @@ import {
   FolderOpen, PenTool, LineChart
 } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, plataformaFAQs } from "@/components/footer/FAQSection";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -216,32 +217,6 @@ const Plataforma = () => {
         </div>
       </section>
 
-      {/* Integrations */}
-      <section className="py-20 bg-corporate-dark">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Integrações Enterprise</h2>
-            <p className="text-lg text-white/70 mb-12">Conecte a Legacy OS com as ferramentas que você já usa</p>
-
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {["Microsoft 365", "Google Workspace", "Slack", "Zoom", "SAP", "Salesforce"].map((integration) => (
-                <div key={integration} className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg">
-                  <Plug className="h-4 w-4 text-accent" aria-hidden="true" />
-                  <span className="font-medium text-white">{integration}</span>
-                </div>
-              ))}
-            </div>
-
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold" asChild>
-              <Link to="/pricing">
-                Começar Agora
-                <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-20 bg-gradient-hero">
         <div className="container mx-auto px-6">
@@ -259,6 +234,12 @@ const Plataforma = () => {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Dúvidas sobre a plataforma Legacy OS"
+        faqs={plataformaFAQs}
+      />
 
       <MegaFooter />
     </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, blogFAQs } from "@/components/footer/FAQSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -251,6 +252,12 @@ export default function Blog() {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Dúvidas sobre o blog e conteúdo"
+        faqs={blogFAQs}
+      />
 
       <MegaFooter />
     </div>

@@ -6,6 +6,7 @@ import {
   Calendar, BarChart3, Lightbulb
 } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, indexFAQs } from "@/components/footer/FAQSection";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
 import { Button } from "@/components/ui/button";
@@ -445,6 +446,12 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Tire suas dúvidas sobre o Legacy OS"
+        faqs={indexFAQs}
+      />
 
       <MegaFooter />
       <LGPDConsentBanner />
