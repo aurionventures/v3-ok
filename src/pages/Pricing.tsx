@@ -338,11 +338,11 @@ export default function Pricing() {
             <Button
               size="lg"
               onClick={() => setCalculatorOpen(true)}
-              className="bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-3 h-12 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-accent text-primary hover:bg-accent/90 text-base md:text-lg px-6 md:px-8 py-4 md:py-3 h-auto min-h-[48px] md:h-12 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 whitespace-normal"
             >
-              <Target className="h-5 w-5 mr-2" />
-              Descobrir Meu Plano e Investimento
-              <ArrowRight className="h-5 w-5 ml-2" />
+              <Target className="h-5 w-5 mr-2 flex-shrink-0" />
+              <span className="text-center">Descobrir Meu Plano e Investimento</span>
+              <ArrowRight className="h-5 w-5 ml-2 flex-shrink-0" />
             </Button>
           </div>
         </div>
