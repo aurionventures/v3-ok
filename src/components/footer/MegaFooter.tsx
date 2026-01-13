@@ -23,10 +23,10 @@ export function MegaFooter() {
     <footer className="bg-corporate-dark text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-6 py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8">
           
           {/* COLUNA 1: Logo + Social + Newsletter + Endereço */}
-          <div className="space-y-6">
+          <div className="lg:col-span-1 space-y-6">
             <div>
               <img 
                 src={legacyLogo} 
@@ -55,7 +55,7 @@ export function MegaFooter() {
             </div>
           </div>
 
-          {/* COLUNA 2: Comece Agora + Legacy OS */}
+          {/* COLUNA 2: Comece Agora */}
           <div>
             <h3 className="text-base font-semibold text-white mb-5">Comece Agora</h3>
             <div className="space-y-2.5">
@@ -69,11 +69,11 @@ export function MegaFooter() {
                 Falar com Especialista
               </FooterLinkClickable>
             </div>
+          </div>
 
-            {/* Sub-section: Legacy OS */}
-            <h4 className="text-xs font-semibold text-accent uppercase tracking-wider mt-6 mb-3">
-              Legacy OS
-            </h4>
+          {/* COLUNA 3: Legacy OS */}
+          <div>
+            <h3 className="text-base font-semibold text-white mb-5">Legacy OS</h3>
             <div className="space-y-2.5">
               <FooterLinkClickable href="/" icon={Home}>
                 Home
@@ -90,7 +90,7 @@ export function MegaFooter() {
             </div>
           </div>
 
-          {/* COLUNA 3: Planos */}
+          {/* COLUNA 4: Planos */}
           <div>
             <h3 className="text-base font-semibold text-white mb-5">Planos</h3>
             <div className="space-y-2.5">
@@ -103,7 +103,7 @@ export function MegaFooter() {
             </div>
           </div>
 
-          {/* COLUNA 4: Empresa */}
+          {/* COLUNA 5: Empresa */}
           <div>
             <h3 className="text-base font-semibold text-white mb-5">Empresa</h3>
             <div className="space-y-2.5">
