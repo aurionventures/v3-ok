@@ -25,13 +25,13 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Must Discuss */}
-      <Card className="p-4 border-l-4 border-l-red-500 bg-red-50/50 dark:bg-red-950/20">
+      <Card className="p-4 border-l-4 border-l-destructive bg-destructive/5 dark:bg-destructive/10">
         <div className="flex items-center gap-2 mb-3">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <h4 className="font-semibold text-sm text-red-700 dark:text-red-400">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <h4 className="font-semibold text-sm text-destructive dark:text-destructive">
             Obrigatório
           </h4>
-          <Badge className="ml-auto bg-red-600 text-white text-[10px]">
+          <Badge className="ml-auto bg-destructive text-destructive-foreground text-[10px]">
             {matrix.mustDiscuss.length}
           </Badge>
         </div>
@@ -39,7 +39,7 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
           {matrix.mustDiscuss.map((id) => (
             <li
               key={id}
-              className="text-xs p-2 bg-white dark:bg-background rounded border border-red-200 dark:border-red-800 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              className="text-xs p-2 bg-white dark:bg-background rounded border border-destructive/20 dark:border-destructive/20 cursor-pointer hover:bg-destructive/10 dark:hover:bg-destructive/20 transition-colors"
               onClick={() => onTopicClick?.(id)}
             >
               <span className="line-clamp-2">{getTopicTitle(topics, id)}</span>
@@ -49,13 +49,13 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
       </Card>
 
       {/* Should Discuss */}
-      <Card className="p-4 border-l-4 border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20">
+      <Card className="p-4 border-l-4 border-l-warning bg-warning/5 dark:bg-warning/10">
         <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="h-4 w-4 text-orange-600" />
-          <h4 className="font-semibold text-sm text-orange-700 dark:text-orange-400">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <h4 className="font-semibold text-sm text-warning dark:text-warning">
             Importante
           </h4>
-          <Badge className="ml-auto bg-orange-500 text-white text-[10px]">
+          <Badge className="ml-auto bg-warning text-warning-foreground text-[10px]">
             {matrix.shouldDiscuss.length}
           </Badge>
         </div>
@@ -63,7 +63,7 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
           {matrix.shouldDiscuss.map((id) => (
             <li
               key={id}
-              className="text-xs p-2 bg-white dark:bg-background rounded border border-orange-200 dark:border-orange-800 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+              className="text-xs p-2 bg-white dark:bg-background rounded border border-warning/20 dark:border-warning/20 cursor-pointer hover:bg-warning/10 dark:hover:bg-warning/20 transition-colors"
               onClick={() => onTopicClick?.(id)}
             >
               <span className="line-clamp-2">{getTopicTitle(topics, id)}</span>
@@ -73,13 +73,13 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
       </Card>
 
       {/* Could Discuss */}
-      <Card className="p-4 border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+      <Card className="p-4 border-l-4 border-l-primary bg-primary/5 dark:bg-primary/10">
         <div className="flex items-center gap-2 mb-3">
-          <Clock className="h-4 w-4 text-blue-600" />
-          <h4 className="font-semibold text-sm text-blue-700 dark:text-blue-400">
+          <Clock className="h-4 w-4 text-primary" />
+          <h4 className="font-semibold text-sm text-primary dark:text-primary">
             Se houver tempo
           </h4>
-          <Badge className="ml-auto bg-blue-500 text-white text-[10px]">
+          <Badge className="ml-auto bg-primary text-primary-foreground text-[10px]">
             {matrix.couldDiscuss.length}
           </Badge>
         </div>
@@ -87,7 +87,7 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
           {matrix.couldDiscuss.map((id) => (
             <li
               key={id}
-              className="text-xs p-2 bg-white dark:bg-background rounded border border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              className="text-xs p-2 bg-white dark:bg-background rounded border border-primary/20 dark:border-primary/20 cursor-pointer hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
               onClick={() => onTopicClick?.(id)}
             >
               <span className="line-clamp-2">{getTopicTitle(topics, id)}</span>
@@ -97,13 +97,13 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
       </Card>
 
       {/* Future Topics */}
-      <Card className="p-4 border-l-4 border-l-gray-400 bg-gray-50/50 dark:bg-gray-900/20">
+      <Card className="p-4 border-l-4 border-l-muted-foreground/50 bg-muted/30 dark:bg-muted/20">
         <div className="flex items-center gap-2 mb-3">
-          <Calendar className="h-4 w-4 text-gray-600" />
-          <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-400">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <h4 className="font-semibold text-sm text-muted-foreground">
             Próximas Reuniões
           </h4>
-          <Badge className="ml-auto bg-gray-500 text-white text-[10px]">
+          <Badge className="ml-auto bg-muted-foreground/80 text-background text-[10px]">
             {matrix.futureTopics.length}
           </Badge>
         </div>
@@ -111,7 +111,7 @@ export function PriorityMatrix({ matrix, topics, onTopicClick }: PriorityMatrixP
           {matrix.futureTopics.map((topic, i) => (
             <li
               key={i}
-              className="text-xs p-2 bg-white dark:bg-background rounded border border-gray-200 dark:border-gray-700"
+              className="text-xs p-2 bg-white dark:bg-background rounded border border-border"
             >
               <span className="line-clamp-2 text-muted-foreground">{topic}</span>
             </li>

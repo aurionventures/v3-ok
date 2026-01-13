@@ -85,7 +85,7 @@ export function AgendaSuggestionsTab() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-indigo-600" />
+                <Calendar className="h-5 w-5 text-primary" />
                 Próximas Reuniões
               </CardTitle>
               <CardDescription>
@@ -96,7 +96,7 @@ export function AgendaSuggestionsTab() {
             {meetingsWithoutAgenda.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700">
+                  <Button className="bg-primary hover:bg-primary/90">
                     <Sparkles className="h-4 w-4 mr-2" />
                     Gerar Nova Pauta com IA
                   </Button>
@@ -159,10 +159,10 @@ export function AgendaSuggestionsTab() {
                   className={cn(
                     "flex-1 min-w-[200px] p-4 rounded-lg border-2 transition-all",
                     hasApprovedAgenda
-                      ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+                      ? "bg-success/5 dark:bg-success/10 border-success/30 dark:border-success/20"
                       : hasAgenda
-                      ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800"
-                      : "bg-muted/50 border-dashed hover:border-indigo-300 cursor-pointer"
+                      ? "bg-warning/5 dark:bg-warning/10 border-warning/30 dark:border-warning/20"
+                      : "bg-muted/50 border-dashed hover:border-primary/50 cursor-pointer"
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -185,12 +185,12 @@ export function AgendaSuggestionsTab() {
                   </p>
                   <div className="flex items-center gap-1">
                     {hasApprovedAgenda ? (
-                      <Badge className="text-[10px] bg-green-600">
+                      <Badge className="text-[10px] bg-success text-success-foreground">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Aprovada
                       </Badge>
                     ) : hasAgenda ? (
-                      <Badge className="text-[10px] bg-yellow-600">
+                      <Badge className="text-[10px] bg-warning text-warning-foreground">
                         <Clock className="h-3 w-3 mr-1" />
                         Pendente
                       </Badge>
@@ -224,7 +224,7 @@ export function AgendaSuggestionsTab() {
             variant={filter === "pending" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter("pending")}
-            className={filter === "pending" ? "bg-yellow-600 hover:bg-yellow-700" : ""}
+            className={filter === "pending" ? "bg-warning hover:bg-warning/90 text-warning-foreground" : ""}
           >
             <Clock className="h-4 w-4 mr-1" />
             Pendentes ({pendingAgendas.length})
@@ -233,7 +233,7 @@ export function AgendaSuggestionsTab() {
             variant={filter === "approved" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter("approved")}
-            className={filter === "approved" ? "bg-green-600 hover:bg-green-700" : ""}
+            className={filter === "approved" ? "bg-success hover:bg-success/90 text-success-foreground" : ""}
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
             Aprovadas ({approvedAgendas.length})
