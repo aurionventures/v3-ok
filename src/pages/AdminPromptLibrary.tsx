@@ -7,24 +7,18 @@ import {
   CheckCircle2,
   AlertCircle,
   Archive,
-  Sparkles,
-  Cpu,
-  Zap,
-  FileText,
+  Bot,
   Settings2,
   Eye,
   Edit3,
   Copy,
   MoreVertical,
-  TrendingUp,
   Shield,
   Target,
   Users,
   LayoutDashboard,
-  Bot,
   Layers,
   History,
-  AlertTriangle,
   Clock,
   GitBranch,
   RefreshCw,
@@ -38,7 +32,7 @@ import {
   CircleDot,
   ArrowUpRight,
   ArrowDownRight,
-  Circle
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,19 +51,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { PromptDetailView } from '@/components/admin/PromptDetailView';
 import { PromptEditor } from '@/components/admin/PromptEditor';
 import { usePrompts, AIPrompt, StrategicType, ImpactLevel, PromptScope, AgentType } from '@/hooks/usePrompts';
 import { cn } from '@/lib/utils';
+
+// Import new componentized cards
+import {
+  KPICard,
+  AgentCard,
+  CriticalPromptsCard,
+  RecentChangesCard,
+  GovernanceMapCard,
+  AGENT_CONFIGS as NEW_AGENT_CONFIGS,
+  KPI_CONFIGS,
+  getVariantStyles,
+  getImpactConfig,
+  getStatusConfig,
+  type ImpactLevel as AIImpactLevel,
+  type ColorVariant,
+} from '@/components/admin/ai-engine';
 
 // ============================================
 // CONSTANTS & CONFIGURATIONS
@@ -83,11 +86,7 @@ const AGENT_CONFIGS = [
     description: 'Coleta sinais externos e classifica informacoes relevantes para decisoes estrategicas',
     function: 'Inteligencia de Mercado',
     categories: ['agent_a_collector', 'agent_a_classifier'],
-    color: 'bg-blue-500',
-    textColor: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    icon: Sparkles
+    variant: 'primary' as ColorVariant,
   },
   { 
     id: 'agent_b',
@@ -96,11 +95,7 @@ const AGENT_CONFIGS = [
     description: 'Analisa historico de governanca e detecta padroes de recorrencia',
     function: 'Memoria Institucional',
     categories: ['agent_b_analyzer', 'agent_b_pattern_detector'],
-    color: 'bg-purple-500',
-    textColor: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
-    icon: Cpu
+    variant: 'warning' as ColorVariant,
   },
   { 
     id: 'agent_c',
@@ -109,11 +104,7 @@ const AGENT_CONFIGS = [
     description: 'Calcula priority scores e prioriza temas para agenda do conselho',
     function: 'Priorizacao Estrategica',
     categories: ['agent_c_scorer', 'agent_c_prioritizer'],
-    color: 'bg-green-500',
-    textColor: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    icon: Zap
+    variant: 'success' as ColorVariant,
   },
   { 
     id: 'agent_d',
@@ -122,11 +113,7 @@ const AGENT_CONFIGS = [
     description: 'Gera pautas estruturadas e briefings personalizados',
     function: 'Producao de Documentos',
     categories: ['agent_d_agenda_generator', 'agent_d_briefing_generator'],
-    color: 'bg-amber-500',
-    textColor: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    icon: FileText
+    variant: 'accent' as ColorVariant,
   }
 ];
 
@@ -137,8 +124,7 @@ const COPILOT_CONFIGS = [
     description: 'Interface principal de insights para o conselho',
     scope: 'Conselho de Administracao',
     categories: ['agent_copilot_insights'],
-    icon: Brain,
-    color: 'bg-indigo-500',
+    variant: 'info' as ColorVariant,
     dependsOn: ['agent_a', 'agent_b']
   },
   {
@@ -147,8 +133,7 @@ const COPILOT_CONFIGS = [
     description: 'Versao serverless para analises em tempo real',
     scope: 'Sistema',
     categories: ['predictive_insights_edge'],
-    icon: TrendingUp,
-    color: 'bg-cyan-500',
+    variant: 'info' as ColorVariant,
     dependsOn: ['agent_a', 'agent_b']
   }
 ];
@@ -220,11 +205,11 @@ const getStrategicTypeLabel = (type: StrategicType) => {
 
 const getStrategicTypeBadge = (type: StrategicType) => {
   const styles: Record<StrategicType, string> = {
-    strategic: 'bg-blue-100 text-blue-700 border-blue-200',
-    governance: 'bg-purple-100 text-purple-700 border-purple-200',
-    operational: 'bg-gray-100 text-gray-700 border-gray-200'
+    strategic: 'bg-primary/10 text-primary border-primary/20',
+    governance: 'bg-accent/50 text-accent-foreground border-accent/30',
+    operational: 'bg-muted/50 text-muted-foreground border-muted/30'
   };
-  return styles[type] || 'bg-gray-100 text-gray-700';
+  return styles[type] || 'bg-muted/50 text-muted-foreground';
 };
 
 const getImpactLabel = (impact: ImpactLevel) => {
@@ -238,13 +223,15 @@ const getImpactLabel = (impact: ImpactLevel) => {
 };
 
 const getImpactBadge = (impact: ImpactLevel) => {
-  const styles: Record<ImpactLevel, { bg: string; text: string; icon: React.ReactNode }> = {
-    critical: { bg: 'bg-red-100', text: 'text-red-700', icon: <AlertTriangle className="h-3 w-3" /> },
-    high: { bg: 'bg-orange-100', text: 'text-orange-700', icon: <ArrowUpRight className="h-3 w-3" /> },
-    medium: { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <CircleDot className="h-3 w-3" /> },
-    low: { bg: 'bg-green-100', text: 'text-green-700', icon: <ArrowDownRight className="h-3 w-3" /> }
+  const config = getImpactConfig(impact as AIImpactLevel);
+  const styles = getVariantStyles(config.variant);
+  const icons: Record<ImpactLevel, React.ReactNode> = {
+    critical: <AlertTriangle className="h-3 w-3" />,
+    high: <ArrowUpRight className="h-3 w-3" />,
+    medium: <CircleDot className="h-3 w-3" />,
+    low: <ArrowDownRight className="h-3 w-3" />
   };
-  return styles[impact] || { bg: 'bg-gray-100', text: 'text-gray-700', icon: null };
+  return { ...styles, icon: icons[impact] };
 };
 
 const getScopeLabel = (scope: PromptScope) => {
@@ -258,15 +245,18 @@ const getScopeLabel = (scope: PromptScope) => {
 };
 
 const getStatusBadge = (status: string) => {
+  const config = getStatusConfig(status as 'active' | 'inactive' | 'beta' | 'deprecated');
+  const styles = getVariantStyles(config.variant);
+  
   switch (status) {
     case 'active':
-      return <Badge className="bg-green-100 text-green-700 border-green-200">Ativo</Badge>;
+      return <Badge className={cn(styles.bg, styles.text, styles.border)}>Ativo</Badge>;
     case 'testing':
-      return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Teste</Badge>;
+      return <Badge className={cn('bg-warning/10 text-warning border-warning/20')}>Teste</Badge>;
     case 'deprecated':
-      return <Badge className="bg-gray-100 text-gray-500 border-gray-200">Depreciado</Badge>;
+      return <Badge className={cn(styles.bg, styles.text, styles.border)}>Depreciado</Badge>;
     default:
-      return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Rascunho</Badge>;
+      return <Badge className={cn('bg-info/10 text-info border-info/20')}>Rascunho</Badge>;
   }
 };
 
@@ -390,7 +380,7 @@ export default function AdminPromptLibrary() {
     
     return prompts.filter(p => {
       const matchesSearch = searchQuery === '' || 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.executive_description && p.executive_description.toLowerCase().includes(searchQuery.toLowerCase()));
       
@@ -466,97 +456,58 @@ export default function AdminPromptLibrary() {
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm">
               <Brain className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
+            </div>
+            <div>
               <h1 className="text-2xl font-bold tracking-tight">AI Engine — Governanca de Prompts</h1>
               <p className="text-slate-300 text-sm mt-1">
                 Gestao estrategica da inteligencia do Legacy OS
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
             <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
               <Download className="h-4 w-4 mr-2" />
               Exportar Auditoria
             </Button>
-            <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleCreateNew}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Prompt
-                  </Button>
-                </div>
-              </div>
+            <Button className="bg-warning hover:bg-warning/90 text-warning-foreground" onClick={handleCreateNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Prompt
+            </Button>
+          </div>
+        </div>
 
-        {/* KPI Cards */}
+        {/* KPI Cards - Using new componentized cards */}
         <div className="grid grid-cols-5 gap-4">
-          <Card className="bg-white/10 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-300 uppercase tracking-wider">Total Prompts</p>
-                  <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
-                </div>
-                <div className="p-2 rounded-lg bg-blue-500/20">
-                  <Code className="h-5 w-5 text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-300 uppercase tracking-wider">Ativos</p>
-                  <p className="text-3xl font-bold text-green-400 mt-1">{stats.active}</p>
-                </div>
-                <div className="p-2 rounded-lg bg-green-500/20">
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-300 uppercase tracking-wider">Criticos</p>
-                  <p className="text-3xl font-bold text-red-400 mt-1">{stats.critical}</p>
-                </div>
-                <div className="p-2 rounded-lg bg-red-500/20">
-                  <AlertTriangle className="h-5 w-5 text-red-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-300 uppercase tracking-wider">Agentes</p>
-                  <p className="text-3xl font-bold text-purple-400 mt-1">4</p>
-                </div>
-                <div className="p-2 rounded-lg bg-purple-500/20">
-                  <Bot className="h-5 w-5 text-purple-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 border-white/10 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-300 uppercase tracking-wider">Copilotos</p>
-                  <p className="text-3xl font-bold text-cyan-400 mt-1">2</p>
-                </div>
-                <div className="p-2 rounded-lg bg-cyan-500/20">
-                  <Brain className="h-5 w-5 text-cyan-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KPICard 
+            title="Total Prompts" 
+            value={stats.total} 
+            icon={Code} 
+            variant="primary" 
+          />
+          <KPICard 
+            title="Ativos" 
+            value={stats.active} 
+            icon={CheckCircle2} 
+            variant="success" 
+          />
+          <KPICard 
+            title="Críticos" 
+            value={stats.critical} 
+            icon={AlertTriangle} 
+            variant="destructive" 
+          />
+          <KPICard 
+            title="Agentes" 
+            value={4} 
+            icon={Bot} 
+            variant="accent" 
+          />
+          <KPICard 
+            title="Copilotos" 
+            value={2} 
+            icon={Brain} 
+            variant="info" 
+          />
         </div>
       </div>
     </div>
@@ -566,186 +517,138 @@ export default function AdminPromptLibrary() {
   // RENDER: TAB - OVERVIEW
   // ============================================
 
-  const renderOverviewTab = () => (
-    <div className="p-6 space-y-6">
-      {/* Visual Map: Agents -> Prompts -> Impact */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5" />
-            Mapa de Governanca de IA
-          </CardTitle>
-          <CardDescription>
-            Visao sistemica: Agentes, Prompts e Impacto Estrategico
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-4 gap-4">
-            {AGENT_CONFIGS.map(agent => {
-                    const agentPrompts = getPromptsForAgent(agent.id);
-              const criticalCount = agentPrompts.filter(p => p.impact_level === 'critical').length;
-              const Icon = agent.icon;
-                    
-                    return (
-                <div 
-                        key={agent.id}
-                  className={cn(
-                    "p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-lg",
-                    agent.bgColor, agent.borderColor
-                  )}
-                  onClick={() => {
-                    setActiveTab('agents');
-                    setSelectedAgent(agent.id);
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={cn("p-2 rounded-lg", agent.color)}>
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h4 className={cn("font-semibold", agent.textColor)}>{agent.name}</h4>
-                      <p className="text-xs text-muted-foreground">{agent.function}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{agentPrompts.length} prompts</span>
-                    {criticalCount > 0 && (
-                      <Badge className="bg-red-100 text-red-700">{criticalCount} criticos</Badge>
-                    )}
-                  </div>
-                  <div className="mt-3">
-                    <Progress 
-                      value={(agentPrompts.filter(p => p.status === 'active').length / Math.max(agentPrompts.length, 1)) * 100} 
-                      className="h-1.5"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+  const renderOverviewTab = () => {
+    // Prepare data for CriticalPromptsCard
+    const criticalPromptsData = criticalPrompts.slice(0, 5).map(prompt => ({
+      id: prompt.id,
+      name: getCategoryLabel(prompt.category),
+      agentName: getAgentForCategory(prompt.category)?.name || '',
+      impactLevel: prompt.impact_level as AIImpactLevel,
+      version: prompt.version
+    }));
 
-      <div className="grid grid-cols-2 gap-6">
-        {/* Critical Prompts */}
-        <Card>
+    // Prepare data for RecentChangesCard
+    const recentChangesData = recentChanges.map(prompt => ({
+      id: prompt.id,
+      name: getCategoryLabel(prompt.category),
+      agentName: getAgentForCategory(prompt.category)?.name || '',
+      changeType: 'updated' as const,
+      timestamp: new Date(prompt.updated_at).toLocaleDateString('pt-BR'),
+      version: prompt.version
+    }));
+
+    return (
+      <div className="p-6 space-y-6">
+        {/* Governance Map */}
+        <GovernanceMapCard 
+          copilotsCount={2}
+          agentsCount={4}
+          servicesCount={SERVICE_CONFIGS.length}
+        />
+
+        {/* Agent Cards Grid */}
+        <Card className="bg-card/50 border-border/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
-              Prompts Criticos
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bot className="h-5 w-5 text-primary" />
+              Agentes de IA
             </CardTitle>
             <CardDescription>
-              Prompts com impacto critico ou alto que requerem atencao
+              Visao sistemica: Agentes, Prompts e Impacto Estrategico
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {criticalPrompts.slice(0, 5).map(prompt => {
-                const impactStyle = getImpactBadge(prompt.impact_level);
+            <div className="grid grid-cols-4 gap-4">
+              {AGENT_CONFIGS.map(agent => {
+                const agentPrompts = getPromptsForAgent(agent.id);
+                const criticalCount = agentPrompts.filter(p => p.impact_level === 'critical').length;
+                const activeCount = agentPrompts.filter(p => p.status === 'active').length;
+                const agentConfig = NEW_AGENT_CONFIGS.find(a => a.id === agent.id);
+                const Icon = agentConfig?.icon || Bot;
+                
                 return (
-                  <div 
-                    key={prompt.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer"
-                    onClick={() => handlePromptSelect(prompt.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn("p-1.5 rounded", impactStyle.bg)}>
-                        {impactStyle.icon}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{getCategoryLabel(prompt.category)}</p>
-                        <p className="text-xs text-muted-foreground">{getAgentForCategory(prompt.category)?.name}</p>
-                      </div>
-                    </div>
-                    <Badge className={cn(impactStyle.bg, impactStyle.text)}>
-                      {getImpactLabel(prompt.impact_level)}
-                        </Badge>
-                  </div>
-                    );
-                  })}
-              {criticalPrompts.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum prompt critico identificado
-                </p>
-              )}
+                  <AgentCard
+                    key={agent.id}
+                    code={agentConfig?.code || agent.id.split('_')[1].toUpperCase()}
+                    name={agent.function}
+                    shortName={agent.name}
+                    description={agent.description}
+                    icon={Icon}
+                    variant={agent.variant}
+                    criticalCount={criticalCount}
+                    activeCount={activeCount}
+                    isSelected={selectedAgent === agent.id}
+                    onClick={() => {
+                      setActiveTab('agents');
+                      setSelectedAgent(agent.id);
+                    }}
+                    prompts={agentPrompts.map(p => ({
+                      id: p.id,
+                      name: getCategoryLabel(p.category),
+                      impactLevel: p.impact_level as AIImpactLevel
+                    }))}
+                  />
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Changes */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Ultimas Alteracoes
-            </CardTitle>
-            <CardDescription>
-              Prompts modificados recentemente
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentChanges.map(prompt => (
-                <div 
-                  key={prompt.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer"
-                  onClick={() => handlePromptSelect(prompt.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-blue-100">
-                      <Edit3 className="h-3 w-3 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{getCategoryLabel(prompt.category)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        v{prompt.version} • {new Date(prompt.updated_at).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-          </div>
+        <div className="grid grid-cols-2 gap-6">
+          {/* Critical Prompts - Using new component */}
+          <CriticalPromptsCard
+            prompts={criticalPromptsData}
+            onPromptClick={handlePromptSelect}
+            onViewAll={() => setActiveTab('library')}
+          />
 
-      {/* Alerts */}
-      {alerts.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-700">
-              <AlertCircle className="h-5 w-5" />
-              Alertas de Governanca
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {alerts.map((alert, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2 rounded bg-yellow-100/50">
-                  <AlertCircle className="h-4 w-4 text-yellow-600" />
-                  <p className="text-sm text-yellow-800">{alert.message}</p>
+          {/* Recent Changes - Using new component */}
+          <RecentChangesCard
+            changes={recentChangesData}
+            onChangeClick={handlePromptSelect}
+            onViewAll={() => setActiveTab('audit')}
+          />
+        </div>
+
+        {/* Alerts */}
+        {alerts.length > 0 && (
+          <Card className="border-warning/30 bg-warning/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-warning">
+                <AlertCircle className="h-5 w-5" />
+                Alertas de Governanca
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {alerts.map((alert, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-2 rounded bg-warning/10">
+                    <AlertCircle className="h-4 w-4 text-warning" />
+                    <p className="text-sm text-warning">{alert.message}</p>
+                  </div>
+                ))}
               </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
 
   // ============================================
   // RENDER: TAB - AGENTS
   // ============================================
 
   const renderAgentsTab = () => (
-                <div className="p-6">
+    <div className="p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {AGENT_CONFIGS.map(agent => {
           const agentPrompts = getPromptsForAgent(agent.id);
           const activeCount = agentPrompts.filter(p => p.status === 'active').length;
           const criticalCount = agentPrompts.filter(p => p.impact_level === 'critical').length;
-          const Icon = agent.icon;
+          const agentConfig = NEW_AGENT_CONFIGS.find(a => a.id === agent.id);
+          const Icon = agentConfig?.icon || Bot;
+          const styles = getVariantStyles(agent.variant);
           
           return (
             <Card 
@@ -753,30 +656,30 @@ export default function AdminPromptLibrary() {
               className={cn(
                 "transition-all hover:shadow-lg cursor-pointer border-2",
                 selectedAgent === agent.id && "ring-2 ring-primary",
-                agent.borderColor
+                styles.border
               )}
               onClick={() => setSelectedAgent(selectedAgent === agent.id ? null : agent.id)}
             >
-              <CardHeader className={cn("rounded-t-lg", agent.bgColor)}>
+              <CardHeader className={cn("rounded-t-lg", styles.bg)}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={cn("p-3 rounded-xl", agent.color)}>
-                      <Icon className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                      <CardTitle className={cn("text-xl", agent.textColor)}>{agent.name}</CardTitle>
+                    <div className={cn("p-3 rounded-xl", styles.bg, "border", styles.border)}>
+                      <Icon className={cn("h-6 w-6", styles.text)} />
+                    </div>
+                    <div>
+                      <CardTitle className={cn("text-xl", styles.text)}>{agent.name}</CardTitle>
                       <CardDescription className="text-sm">{agent.label}</CardDescription>
-                        </div>
-                      </div>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
                     {criticalCount > 0 && (
-                      <Badge className="bg-red-500 text-white">{criticalCount} Critico</Badge>
+                      <Badge className="bg-destructive text-destructive-foreground">{criticalCount} Critico</Badge>
                     )}
-                    <Badge variant="outline" className={cn("border-2", agent.borderColor, agent.textColor)}>
+                    <Badge variant="outline" className={cn("border-2", styles.border, styles.text)}>
                       {activeCount}/{agentPrompts.length} Ativos
                     </Badge>
-                        </div>
-                          </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="pt-4">
                 <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>
@@ -786,10 +689,10 @@ export default function AdminPromptLibrary() {
                     <Target className="h-3 w-3 mr-1" />
                     {agent.function}
                   </Badge>
-                        </div>
+                </div>
 
                 {selectedAgent === agent.id && (
-                  <div className="mt-4 pt-4 border-t space-y-3">
+                  <div className="mt-4 pt-4 border-t border-border/50 space-y-3">
                     <h4 className="font-medium text-sm">Prompts deste Agente:</h4>
                     {agentPrompts.map(prompt => (
                       <div 
@@ -803,15 +706,15 @@ export default function AdminPromptLibrary() {
                         <div className="flex items-center gap-3">
                           <CheckCircle2 className={cn(
                             "h-4 w-4",
-                            prompt.status === 'active' ? 'text-green-500' : 'text-gray-400'
+                            prompt.status === 'active' ? 'text-success' : 'text-muted-foreground'
                           )} />
                           <div>
                             <p className="font-medium text-sm">{getCategoryLabel(prompt.category)}</p>
                             <p className="text-xs text-muted-foreground">
                               v{prompt.version} • {getImpactLabel(prompt.impact_level)}
                             </p>
-                      </div>
-                    </div>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2">
                           {getStatusBadge(prompt.status)}
                           <Button variant="ghost" size="sm" onClick={(e) => {
@@ -820,7 +723,7 @@ export default function AdminPromptLibrary() {
                           }}>
                             <Edit3 className="h-4 w-4" />
                           </Button>
-                  </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -833,7 +736,7 @@ export default function AdminPromptLibrary() {
                   }}>
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Prompts
-                        </Button>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={(e) => {
                     e.stopPropagation();
                     setActiveTab('audit');
@@ -841,8 +744,8 @@ export default function AdminPromptLibrary() {
                     <History className="h-4 w-4" />
                   </Button>
                 </div>
-                      </CardContent>
-                    </Card>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
@@ -858,15 +761,16 @@ export default function AdminPromptLibrary() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {COPILOT_CONFIGS.map(copilot => {
           const copilotPrompts = filteredPrompts.filter(p => copilot.categories.includes(p.category));
-          const Icon = copilot.icon;
+          const styles = getVariantStyles(copilot.variant);
+          const Icon = copilot.id === 'copilot_governance' ? Brain : Shield;
           const dependentAgents = AGENT_CONFIGS.filter(a => copilot.dependsOn.includes(a.id));
           
           return (
             <Card key={copilot.id} className="border-2 hover:shadow-lg transition-all">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className={cn("p-3 rounded-xl", copilot.color)}>
-                    <Icon className="h-6 w-6 text-white" />
+                  <div className={cn("p-3 rounded-xl", styles.bg)}>
+                    <Icon className={cn("h-6 w-6", styles.text)} />
                   </div>
                   <div>
                     <CardTitle>{copilot.name}</CardTitle>
@@ -888,9 +792,11 @@ export default function AdminPromptLibrary() {
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Agentes Dependentes</p>
                     <div className="flex flex-wrap gap-2">
                       {dependentAgents.map(agent => {
-                        const AgentIcon = agent.icon;
+                        const agentConfig = NEW_AGENT_CONFIGS.find(a => a.id === agent.id);
+                        const AgentIcon = agentConfig?.icon || Bot;
+                        const agentStyles = getVariantStyles(agent.variant);
                         return (
-                          <Badge key={agent.id} className={cn(agent.bgColor, agent.textColor, "border", agent.borderColor)}>
+                          <Badge key={agent.id} className={cn(agentStyles.bg, agentStyles.text, "border", agentStyles.border)}>
                             <AgentIcon className="h-3 w-3 mr-1" />
                             {agent.name}
                           </Badge>
@@ -910,10 +816,10 @@ export default function AdminPromptLibrary() {
                           className="flex items-center justify-between p-2 rounded bg-muted/50 cursor-pointer hover:bg-muted"
                           onClick={() => handlePromptSelect(prompt.id)}
                         >
-                              <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                             <span className="text-sm font-medium">{getCategoryLabel(prompt.category)}</span>
-                              </div>
+                          </div>
                           <span className="text-xs text-muted-foreground">v{prompt.version}</span>
                         </div>
                       ))}
@@ -940,7 +846,7 @@ export default function AdminPromptLibrary() {
           const Icon = service.icon;
           
           return (
-            <Card key={service.id} className="hover:shadow-md transition-all">
+            <Card key={service.id} className="hover:shadow-md transition-all bg-card/50">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -1031,7 +937,7 @@ export default function AdminPromptLibrary() {
       </div>
 
       {/* Table */}
-      <Card>
+      <Card className="bg-card/50">
         <Table>
           <TableHeader>
             <TableRow>
@@ -1079,39 +985,39 @@ export default function AdminPromptLibrary() {
                   <TableCell className="font-mono text-xs">v{prompt.version}</TableCell>
                   <TableCell>{prompt.owner || '-'}</TableCell>
                   <TableCell className="text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditPrompt(prompt.id);
-                                  }}>
-                                    <Edit3 className="h-4 w-4 mr-2" />
-                                    Editar
-                                  </DropdownMenuItem>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditPrompt(prompt.id);
+                        }}>
+                          <Edit3 className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                           <GitBranch className="h-4 w-4 mr-2" />
                           Versionar
                         </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    Duplicar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                           <Archive className="h-4 w-4 mr-2" />
                           Desativar
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                           <History className="h-4 w-4 mr-2" />
                           Auditar
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               );
@@ -1119,7 +1025,7 @@ export default function AdminPromptLibrary() {
           </TableBody>
         </Table>
       </Card>
-                            </div>
+    </div>
   );
 
   // ============================================
@@ -1128,7 +1034,7 @@ export default function AdminPromptLibrary() {
 
   const renderAuditTab = () => (
     <div className="p-6">
-      <Card>
+      <Card className="bg-card/50">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -1138,13 +1044,13 @@ export default function AdminPromptLibrary() {
               </CardTitle>
               <CardDescription>
                 Auditoria completa de alteracoes em prompts
-                            </CardDescription>
-                            </div>
+              </CardDescription>
+            </div>
             <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
               Exportar Log
             </Button>
-                            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -1182,16 +1088,16 @@ export default function AdminPromptLibrary() {
                         <Button variant="ghost" size="sm">
                           <RefreshCw className="h-4 w-4" />
                         </Button>
-                            </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
-                          </CardContent>
-                        </Card>
-                    </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 
   // ============================================
@@ -1257,7 +1163,7 @@ export default function AdminPromptLibrary() {
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
-                </div>
+            </div>
           </div>
 
           {/* Tab Content */}
