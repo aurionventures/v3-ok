@@ -129,9 +129,6 @@ export const UserManagementTab = () => {
               <strong>Admin:</strong> cliente@empresa.com / 123456
             </p>
             <p className="text-blue-800 dark:text-blue-200">
-              <strong>Membro:</strong> roberto.alves@empresa.com / membro123
-            </p>
-            <p className="text-blue-800 dark:text-blue-200">
               <strong>Usuário:</strong> maria.secretaria@empresa.com / user123
             </p>
           </div>

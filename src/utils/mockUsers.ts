@@ -118,17 +118,6 @@ export const mockOrganizationUsers = [
     createdAt: '2024-01-15T10:00:00Z'
   },
   {
-    id: 'a0000000-0000-0000-0000-000000000010',
-    email: 'roberto.alves@empresa.com',
-    name: 'Roberto Alves',
-    orgRole: 'org_member' as OrganizationUserRole,
-    company_id: 'Empresa Demo',
-    councilMemberships: ['conselho-1', 'comite-1'],
-    status: 'active' as const,
-    lastLogin: '2024-12-03T14:30:00Z',
-    createdAt: '2024-02-20T09:00:00Z'
-  },
-  {
     id: 'a0000000-0000-0000-0000-000000000011',
     email: 'maria.secretaria@empresa.com',
     name: 'Maria Santos',
