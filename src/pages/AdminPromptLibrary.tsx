@@ -168,15 +168,6 @@ const AGENT_CONFIGS = [
     function: 'Processamento de Dados',
     categories: ['agent_j_doc_processor', 'agent_j_governance_extractor'],
     variant: 'primary' as ColorVariant,
-  },
-  { 
-    id: 'agent_k',
-    name: 'Agent K', 
-    label: 'Briefings Executivos',
-    description: 'Gera briefings personalizados para conselheiros',
-    function: 'Comunicacao Executiva',
-    categories: ['agent_k_briefing_generator'],
-    variant: 'accent' as ColorVariant,
   }
 ];
 
@@ -324,7 +315,6 @@ const getCategoryLabel = (category: string) => {
     'agent_i_pdi_generator': 'PDI Generator',
     'agent_j_doc_processor': 'Document Processor',
     'agent_j_governance_extractor': 'Governance Extractor',
-    'agent_k_briefing_generator': 'Briefing Generator',
     'agent_copilot_insights': 'Copilot Insights',
     'pdi_generator': 'PDI Generator',
     'secretariat_search_intent': 'Search Intent',

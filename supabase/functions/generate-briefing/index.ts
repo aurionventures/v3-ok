@@ -1,6 +1,6 @@
 // ============================================================================
 // EDGE FUNCTION: generate-briefing
-// Gera briefings personalizados usando OpenAI API
+// Gera briefings personalizados usando Lovable AI (consolidado do Agent D)
 // ============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";

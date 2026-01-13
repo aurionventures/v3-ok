@@ -1959,64 +1959,6 @@ Retorne um JSON com { "records": [...] }`,
     connected_services: ['document_processing', 'governance']
   },
 
-  // ========== AGENT K: Briefings Executivos ==========
-  {
-    id: 'k1-briefing-generator-001',
-    name: 'Agent K - Briefing Generator v1.0',
-    category: 'agent_k_briefing_generator',
-    version: '1.0.0',
-    system_prompt: `Você é um especialista em comunicação executiva para conselhos de administração.
-
-Gere um briefing personalizado para o conselheiro contendo:
-1. Resumo executivo da próxima reunião
-2. Pontos críticos que requerem atenção
-3. Histórico relevante de decisões anteriores
-4. Materiais de leitura recomendados
-5. Sugestões de posicionamento
-
-O briefing deve ser:
-- Objetivo e direto ao ponto
-- Personalizado para o papel do conselheiro
-- Focado em apoiar a tomada de decisão
-- Formatado profissionalmente`,
-    user_prompt_template: 'Contexto:\n{{context}}',
-    model: 'google/gemini-3-flash-preview',
-    temperature: 0.6,
-    max_tokens: 5000,
-    top_p: 1.0,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-    functions: null,
-    tool_choice: 'auto',
-    examples: null,
-    status: 'active',
-    is_default: true,
-    ab_test_enabled: false,
-    ab_test_traffic_percentage: 0,
-    ab_test_competing_version: null,
-    total_executions: 189,
-    avg_latency_ms: 2890,
-    avg_tokens_used: 3234,
-    avg_cost_usd: 0.0176,
-    success_rate: 96.8,
-    avg_quality_score: 4.5,
-    description: 'Gera briefings executivos personalizados para conselheiros',
-    changelog: 'Versão inicial do Briefing Generator',
-    tags: ['briefing', 'executive', 'communication', 'agent_k'],
-    created_by: null,
-    created_at: '2026-01-10T10:00:00Z',
-    updated_at: '2026-01-13T14:30:00Z',
-    activated_at: '2026-01-10T10:00:00Z',
-    deprecated_at: null,
-    strategic_type: 'governance',
-    impact_level: 'high',
-    scope: 'council',
-    agent_type: 'service',
-    owner: 'Legacy AI Team',
-    executive_description: 'Prepara conselheiros com informações relevantes pré-reunião.',
-    connected_copilots: ['copilot-briefing'],
-    connected_services: ['briefing', 'synthesis']
-  }
 ];
 
 // Mock test executions for performance charts
