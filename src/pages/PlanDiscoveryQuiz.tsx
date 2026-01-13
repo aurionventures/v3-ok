@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
@@ -16,13 +17,17 @@ import {
   Shield,
   Target,
   Sparkles,
-  Loader2
+  Loader2,
+  BarChart3
 } from 'lucide-react';
 import {
   QuizAnswers,
   ContactInfo,
   RevenueRange,
   getRecommendedPlan,
+  getGovMetrixResult,
+  inferQuizAnswersFromGovMetrix,
+  hasGovMetrixData,
   REVENUE_LABELS,
   COUNCIL_LABELS,
   SUCCESSION_LABELS,
@@ -77,6 +82,8 @@ export default function PlanDiscoveryQuiz() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>('faturamento');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [govMetrixScore, setGovMetrixScore] = useState<number | undefined>(undefined);
+  const [hasISCAData, setHasISCAData] = useState(false);
   
   const [answers, setAnswers] = useState<Partial<QuizAnswers>>({});
   const [contact, setContact] = useState<ContactInfo>({
@@ -85,6 +92,36 @@ export default function PlanDiscoveryQuiz() {
     contatoEmail: '',
     contatoWhatsapp: ''
   });
+
+  // Integração com ISCA (GovMetrix) - pré-popular dados se existirem
+  useEffect(() => {
+    const govMetrixResult = getGovMetrixResult();
+    if (govMetrixResult) {
+      setHasISCAData(true);
+      setGovMetrixScore(govMetrixResult.score);
+      
+      // Pré-popular dados de contato
+      setContact(prev => ({
+        ...prev,
+        contatoNome: govMetrixResult.leadData.name || prev.contatoNome,
+        empresaNome: govMetrixResult.leadData.company || prev.empresaNome,
+        contatoEmail: govMetrixResult.leadData.email || prev.contatoEmail,
+        contatoWhatsapp: govMetrixResult.leadData.whatsapp || prev.contatoWhatsapp,
+      }));
+      
+      // Inferir respostas do quiz baseadas nos scores de categoria
+      const inferredAnswers = inferQuizAnswersFromGovMetrix(govMetrixResult);
+      setAnswers(prev => ({
+        ...prev,
+        ...inferredAnswers,
+      }));
+      
+      toast({
+        title: "Dados do diagnóstico carregados",
+        description: `Seu score de maturidade: ${govMetrixResult.score}/100 (${govMetrixResult.stage})`,
+      });
+    }
+  }, [toast]);
   
   const currentStepIndex = STEPS.indexOf(currentStep);
   const progress = ((currentStepIndex) / (STEPS.length - 1)) * 100;
@@ -112,11 +149,11 @@ export default function PlanDiscoveryQuiz() {
     if (currentStep === 'contato') {
       setIsSubmitting(true);
       try {
-        // Calculate recommended plan
+        // Calculate recommended plan (com score de maturidade da ISCA se disponível)
         const fullAnswers = answers as QuizAnswers;
-        const planId = getRecommendedPlan(fullAnswers);
+        const planId = getRecommendedPlan(fullAnswers, govMetrixScore);
         
-        // Save quiz response data
+        // Save quiz response data (incluindo referência à ISCA se veio de lá)
         saveQuizResponse({
           empresaNome: contact.empresaNome,
           contatoNome: contact.contatoNome,
@@ -127,8 +164,10 @@ export default function PlanDiscoveryQuiz() {
           temConselho: answers.temConselho || '',
           temSucessao: answers.temSucessao || '',
           avaliacaoRiscosEsg: answers.avaliacaoRiscosEsg || '',
-          planoRecomendado: planId
-        });
+          planoRecomendado: planId,
+          govMetrixScore: govMetrixScore,
+          fromISCA: hasISCAData
+        } as any);
         
         // Create automatic demo client session
         const mockUser = {
@@ -414,6 +453,26 @@ export default function PlanDiscoveryQuiz() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-xl">
+        {/* Indicador de dados da ISCA carregados */}
+        {hasISCAData && govMetrixScore !== undefined && (
+          <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-emerald-800 dark:text-emerald-200">
+                  Diagnóstico GovMetrix carregado
+                </p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                  Score de maturidade: <strong>{govMetrixScore}/100</strong> - Seus dados foram pré-populados
+                </p>
+              </div>
+              <Badge className="bg-emerald-600 text-white">ISCA</Badge>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-xl font-bold text-primary mb-2">Legacy Governança</h1>

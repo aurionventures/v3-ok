@@ -53,6 +53,12 @@ export interface Organization {
   plan: GovernancePlan;
   enabledModules: ModuleKey[];
   onboardingCompleted: boolean;
+  // Dados de maturidade da ISCA (GovMetrix)
+  maturityScore?: number;
+  maturityStage?: string;
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Labels para exibição

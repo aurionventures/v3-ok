@@ -1,4 +1,4 @@
-// Lógica de recomendação de plano baseada em faturamento e complexidade
+// Lógica de recomendação de plano baseada em faturamento, complexidade e maturidade ISCA
 
 export type RevenueRange = 
   | 'ate_4_8m'
@@ -8,6 +8,8 @@ export type RevenueRange =
   | 'acima_4_8b';
 
 export type PlanId = 'startup' | 'pequena' | 'media' | 'grande' | 'listada';
+
+export type MaturityStage = 'Embrionário' | 'Inicial' | 'Em Desenvolvimento' | 'Estruturado' | 'Avançado';
 
 export interface QuizAnswers {
   faturamentoFaixa: RevenueRange;
@@ -24,6 +26,29 @@ export interface ContactInfo {
   contatoWhatsapp: string;
 }
 
+// Dados da ISCA (GovMetrix Quiz)
+export interface GovMetrixResult {
+  score: number;
+  stage: MaturityStage;
+  categoryScores: Record<string, number>;
+  leadData: {
+    name: string;
+    company: string;
+    email: string;
+    whatsapp: string;
+  };
+  completedAt: string;
+}
+
+// Chaves do localStorage para o funil PLG
+export const PLG_STORAGE_KEYS = {
+  GOVMETRIX_RESULT: 'govmetrix_result',
+  QUIZ_RESULT: 'quiz_result',
+  QUIZ_RESPONSES: 'quiz_responses',
+  CHECKOUT_DATA: 'checkout_data',
+  PAYMENT_COMPLETED: 'payment_completed',
+} as const;
+
 // Mapear faturamento para plano base
 const REVENUE_TO_PLAN: Record<RevenueRange, PlanId> = {
   ate_4_8m: 'startup',
@@ -37,7 +62,7 @@ const REVENUE_TO_PLAN: Record<RevenueRange, PlanId> = {
 const PLAN_ORDER: PlanId[] = ['startup', 'pequena', 'media', 'grande', 'listada'];
 
 // Função principal de recomendação
-export function getRecommendedPlan(answers: QuizAnswers): PlanId {
+export function getRecommendedPlan(answers: QuizAnswers, govMetrixScore?: number): PlanId {
   // Plano base por faturamento
   let basePlan = REVENUE_TO_PLAN[answers.faturamentoFaixa];
   let basePlanIndex = PLAN_ORDER.indexOf(basePlan);
@@ -64,13 +89,63 @@ export function getRecommendedPlan(answers: QuizAnswers): PlanId {
   if (answers.numeroColaboradores === '501_1000' || answers.numeroColaboradores === 'mais_1000') {
     complexityPoints += 1;
   }
-  
-  // Se tem 3+ pontos de complexidade, subir 1 tier (máximo)
-  if (complexityPoints >= 3 && basePlanIndex < PLAN_ORDER.length - 1) {
-    return PLAN_ORDER[basePlanIndex + 1];
+
+  // Considerar score de maturidade da ISCA (GovMetrix)
+  // Score alto (>60) indica governança mais madura = pode precisar de plano mais completo
+  // Score baixo (<40) indica necessidade de estruturação básica
+  if (govMetrixScore !== undefined) {
+    if (govMetrixScore >= 60) {
+      complexityPoints += 1; // Maturidade alta = mais features
+    }
+    if (govMetrixScore >= 80) {
+      complexityPoints += 1; // Maturidade avançada = enterprise
+    }
   }
   
-  return basePlan;
+  // Se tem 3+ pontos de complexidade, subir 1 tier (máximo 2 tiers)
+  const upgradeTiers = Math.min(Math.floor(complexityPoints / 3), 2);
+  const finalIndex = Math.min(basePlanIndex + upgradeTiers, PLAN_ORDER.length - 1);
+  
+  return PLAN_ORDER[finalIndex];
+}
+
+// Obter dados da ISCA do localStorage
+export function getGovMetrixResult(): GovMetrixResult | null {
+  try {
+    const stored = localStorage.getItem(PLG_STORAGE_KEYS.GOVMETRIX_RESULT);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Erro ao recuperar dados GovMetrix:', error);
+  }
+  return null;
+}
+
+// Salvar dados da ISCA no localStorage
+export function saveGovMetrixResult(result: GovMetrixResult): void {
+  try {
+    localStorage.setItem(PLG_STORAGE_KEYS.GOVMETRIX_RESULT, JSON.stringify(result));
+  } catch (error) {
+    console.error('Erro ao salvar dados GovMetrix:', error);
+  }
+}
+
+// Mapear score para respostas do quiz (inferência)
+export function inferQuizAnswersFromGovMetrix(govMetrix: GovMetrixResult): Partial<QuizAnswers> {
+  const categoryScores = govMetrix.categoryScores;
+  
+  return {
+    temConselho: categoryScores['Conselho de administração/consultivo'] >= 60 ? 'sim' : 
+                 categoryScores['Conselho de administração/consultivo'] >= 30 ? 'estruturando' : 'nao',
+    avaliacaoRiscosEsg: categoryScores['Gestão de Riscos'] >= 60 ? 'sim' :
+                        categoryScores['Gestão de Riscos'] >= 30 ? 'parcial' : 'nao',
+  };
+}
+
+// Verificar se lead veio da ISCA
+export function hasGovMetrixData(): boolean {
+  return localStorage.getItem(PLG_STORAGE_KEYS.GOVMETRIX_RESULT) !== null;
 }
 
 // Dados dos planos para exibição

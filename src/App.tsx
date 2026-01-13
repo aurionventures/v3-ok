@@ -144,6 +144,7 @@ const AdminAddons = lazy(() => import("./pages/AdminAddons"));
 const AdminContracts = lazy(() => import("./pages/AdminContracts"));
 const AdminInvoices = lazy(() => import("./pages/AdminInvoices"));
 const AdminSales = lazy(() => import("./pages/AdminSales"));
+const AdminPLGFunnel = lazy(() => import("./pages/AdminPLGFunnel"));
 const AdminPromptLibrary = lazy(() => import("./pages/AdminPromptLibrary"));
 const AdminLLMManagement = lazy(() => import("./pages/AdminLLMManagement"));
 const Companies = lazy(() => import("./pages/Companies"));
@@ -712,6 +713,7 @@ const App = () => (
           <Route path="/admin/contracts" element={<AdminContracts />} />
           <Route path="/admin/invoices" element={<AdminInvoices />} />
           <Route path="/admin/sales" element={<AdminSales />} />
+          <Route path="/admin/plg-funnel" element={<AdminPLGFunnel />} />
           <Route path="/admin/prompt-library" element={<AdminPromptLibrary />} />
           <Route path="/admin/llm-management" element={<AdminLLMManagement />} />
           <Route path="/admin/companies" element={<Companies />} />

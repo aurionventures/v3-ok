@@ -514,184 +514,183 @@ export default function Pricing() {
 
       {/* Modal Calculadora */}
       <Dialog open={calculatorOpen} onOpenChange={setCalculatorOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg sm:max-w-xl p-4 sm:p-6">
           {!calculatorResult ? (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl flex items-center gap-2">
-                  <Calculator className="h-6 w-6 text-primary" />
-                  Descubra Seu Plano e Investimento Ideal
+              <DialogHeader className="pb-2">
+                <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-primary" />
+                  Descubra Seu Plano Ideal
                 </DialogTitle>
-                <DialogDescription>
-                  Responda 7 perguntas rápidas e descubra qual plano é perfeito
-                  para sua empresa (leva 2 minutos).
+                <DialogDescription className="text-xs sm:text-sm">
+                  Responda as perguntas abaixo (leva 2 minutos).
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-6 py-4">
-                {/* Faturamento */}
-                <div className="space-y-2">
-                  <Label htmlFor="faturamento">
-                    Faturamento anual da empresa *
-                  </Label>
-                  <Select
-                    value={calculatorInputs.faturamento}
-                    onValueChange={(value) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        faturamento: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a faixa de faturamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FATURAMENTO_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-3 py-2">
+                {/* Faturamento e Maturidade - Row 1 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="faturamento" className="text-xs sm:text-sm">
+                      Faturamento anual *
+                    </Label>
+                    <Select
+                      value={calculatorInputs.faturamento}
+                      onValueChange={(value) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          faturamento: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FATURAMENTO_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="maturidade" className="text-xs sm:text-sm">
+                      Maturidade da governança *
+                    </Label>
+                    <Select
+                      value={calculatorInputs.maturidade}
+                      onValueChange={(value) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          maturidade: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MATURITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                {/* Número de Empresas */}
-                <div className="space-y-2">
-                  <Label htmlFor="numEmpresas">Número de empresas do grupo *</Label>
-                  <Input
-                    id="numEmpresas"
-                    type="number"
-                    min={1}
-                    max={50}
-                    placeholder="Ex: 1"
-                    value={calculatorInputs.numEmpresas || ''}
-                    onChange={(e) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        numEmpresas: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
+                {/* Campos numéricos em grid compacto */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="numEmpresas" className="text-xs">Empresas *</Label>
+                    <Input
+                      id="numEmpresas"
+                      type="number"
+                      min={1}
+                      max={50}
+                      placeholder="1"
+                      className="h-9"
+                      value={calculatorInputs.numEmpresas || ''}
+                      onChange={(e) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          numEmpresas: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                  </div>
 
-                {/* Número de Conselhos */}
-                <div className="space-y-2">
-                  <Label htmlFor="numConselhos">Número de conselhos</Label>
-                  <Input
-                    id="numConselhos"
-                    type="number"
-                    min={0}
-                    max={20}
-                    placeholder="Ex: 1"
-                    value={calculatorInputs.numConselhos || ''}
-                    onChange={(e) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        numConselhos: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="numConselhos" className="text-xs">Conselhos</Label>
+                    <Input
+                      id="numConselhos"
+                      type="number"
+                      min={0}
+                      max={20}
+                      placeholder="0"
+                      className="h-9"
+                      value={calculatorInputs.numConselhos || ''}
+                      onChange={(e) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          numConselhos: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                  </div>
 
-                {/* Número de Comitês */}
-                <div className="space-y-2">
-                  <Label htmlFor="numComites">Número de comitês</Label>
-                  <Input
-                    id="numComites"
-                    type="number"
-                    min={0}
-                    max={50}
-                    placeholder="Ex: 2"
-                    value={calculatorInputs.numComites || ''}
-                    onChange={(e) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        numComites: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="numComites" className="text-xs">Comitês</Label>
+                    <Input
+                      id="numComites"
+                      type="number"
+                      min={0}
+                      max={50}
+                      placeholder="0"
+                      className="h-9"
+                      value={calculatorInputs.numComites || ''}
+                      onChange={(e) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          numComites: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                  </div>
 
-                {/* Reuniões por ano */}
-                <div className="space-y-2">
-                  <Label htmlFor="reunioesAno">
-                    Reuniões estimadas por ano
-                  </Label>
-                  <Input
-                    id="reunioesAno"
-                    type="number"
-                    min={0}
-                    max={300}
-                    placeholder="Ex: 12"
-                    value={calculatorInputs.reunioesAno || ''}
-                    onChange={(e) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        reunioesAno: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="reunioesAno" className="text-xs">Reuniões/ano</Label>
+                    <Input
+                      id="reunioesAno"
+                      type="number"
+                      min={0}
+                      max={300}
+                      placeholder="12"
+                      className="h-9"
+                      value={calculatorInputs.reunioesAno || ''}
+                      onChange={(e) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          reunioesAno: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                  </div>
 
-                {/* Usuários esperados */}
-                <div className="space-y-2">
-                  <Label htmlFor="numUsuarios">
-                    Usuários esperados (informativo)
-                  </Label>
-                  <Input
-                    id="numUsuarios"
-                    type="number"
-                    min={1}
-                    max={500}
-                    placeholder="Ex: 40"
-                    value={calculatorInputs.numUsuarios || ''}
-                    onChange={(e) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        numUsuarios: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Todos os planos incluem usuários ilimitados.
-                  </p>
-                </div>
-
-                {/* Maturidade */}
-                <div className="space-y-2">
-                  <Label htmlFor="maturidade">
-                    Nível de maturidade da governança *
-                  </Label>
-                  <Select
-                    value={calculatorInputs.maturidade}
-                    onValueChange={(value) =>
-                      setCalculatorInputs((prev) => ({
-                        ...prev,
-                        maturidade: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o nível de maturidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MATURITY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-1 col-span-2 sm:col-span-2">
+                    <Label htmlFor="numUsuarios" className="text-xs">
+                      Usuários esperados
+                      <span className="text-muted-foreground ml-1">(ilimitados)</span>
+                    </Label>
+                    <Input
+                      id="numUsuarios"
+                      type="number"
+                      min={1}
+                      max={500}
+                      placeholder="40"
+                      className="h-9"
+                      value={calculatorInputs.numUsuarios || ''}
+                      onChange={(e) =>
+                        setCalculatorInputs((prev) => ({
+                          ...prev,
+                          numUsuarios: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
+                  </div>
                 </div>
 
                 <Button
                   onClick={handleCalculate}
                   disabled={!canCalculate}
-                  className="w-full bg-accent hover:bg-accent/90 text-primary-foreground"
-                  size="lg"
+                  className="w-full bg-accent hover:bg-accent/90 text-primary-foreground mt-2"
+                  size="default"
                 >
-                  <Sparkles className="h-5 w-5 mr-2" />
+                  <Sparkles className="h-4 w-4 mr-2" />
                   Calcular Plano e Investimento
                 </Button>
               </div>

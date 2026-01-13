@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { saveGovMetrixResult, GovMetrixResult, MaturityStage } from "@/utils/planRecommendation";
+import { usePLGFunnel } from "@/hooks/usePLGFunnel";
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
   ResponsiveContainer, Legend 
@@ -241,6 +244,8 @@ const categoryIcons: Record<string, typeof Users> = {
 };
 
 export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing }: GovMetrixQuizModalProps) {
+  const navigate = useNavigate();
+  const { trackEvent } = usePLGFunnel();
   const [step, setStep] = useState<'quiz' | 'lead' | 'result'>('quiz');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
@@ -260,8 +265,11 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
       setAnswers({});
       setResult(null);
       setLeadData({ name: '', company: '', email: '', whatsapp: '' });
+    } else {
+      // Rastrear início da ISCA quando o modal abre
+      trackEvent('isca_started', { source: 'govmetrix_quiz' });
     }
-  }, [isOpen]);
+  }, [isOpen, trackEvent]);
 
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -353,6 +361,21 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
       const calculatedResult = calculateScore();
       setResult(calculatedResult);
 
+      // Salvar dados da ISCA no localStorage para integração com fluxo PLG
+      const govMetrixData: GovMetrixResult = {
+        score: calculatedResult.score,
+        stage: calculatedResult.stage.label as MaturityStage,
+        categoryScores: calculatedResult.categoryScores,
+        leadData: {
+          name: leadData.name,
+          company: leadData.company,
+          email: leadData.email,
+          whatsapp: leadData.whatsapp,
+        },
+        completedAt: new Date().toISOString(),
+      };
+      saveGovMetrixResult(govMetrixData);
+
       // Save to database (using type assertion as table may be pending migration)
       const { error } = await (supabase as any).from('contacts').insert({
         name: leadData.name,
@@ -390,6 +413,13 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
       }
 
       setStep('result');
+      
+      // Rastrear conclusão da ISCA no funil PLG
+      trackEvent('isca_completed', { 
+        score: calculatedResult.score, 
+        stage: calculatedResult.stage.label 
+      });
+      
       toast.success("Diagnóstico concluído com sucesso!");
     } catch (error) {
       console.error('Error:', error);
@@ -720,20 +750,28 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
                 })}
               </div>
 
-              {/* CTAs */}
+              {/* CTAs - Integração com fluxo PLG */}
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <Button
                   onClick={() => {
-                    onScrollToPricing?.();
                     onClose();
+                    // Navegar para fluxo de contratação com dados pré-populados
+                    navigate('/plan-discovery');
                   }}
                   className="flex-1 bg-accent text-primary hover:bg-accent/90"
                 >
-                  Ver Planos Legacy OS
+                  Encontrar Meu Plano Ideal
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
-                <Button variant="outline" onClick={onClose} className="flex-1">
-                  Fechar
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    onScrollToPricing?.();
+                    onClose();
+                  }} 
+                  className="flex-1"
+                >
+                  Ver Todos os Planos
                 </Button>
               </div>
             </div>

@@ -36,6 +36,7 @@ import {
   CheckCircle,
   ActivitySquare,
   Briefcase,
+  Target,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,7 @@ const ADMIN_MENU_SECTIONS = [
     items: [
       { icon: Building2, href: "/admin/empresas", name: "Empresas" },
       { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
+      { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
       { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
     ]
   },

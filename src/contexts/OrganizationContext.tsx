@@ -2,12 +2,20 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Organization, CompanySize, GovernancePlan, ModuleKey } from "@/types/organization";
 import { getDefaultModules } from "@/utils/moduleMatrix";
 import { useAuth } from "./AuthContext";
+import { getGovMetrixResult, PLG_STORAGE_KEYS } from "@/utils/planRecommendation";
 
 interface QuizResult {
   companySize: CompanySize;
   plan: GovernancePlan;
   companyName?: string;
   timestamp: string;
+}
+
+// Interface para dados de maturidade da ISCA
+interface ISCAMaturityData {
+  score: number;
+  stage: string;
+  categoryScores: Record<string, number>;
 }
 
 interface OrganizationContextType {
@@ -39,17 +47,28 @@ function mapFaturamentoToSize(faturamento: string): CompanySize {
   }
 }
 
-// Map quiz complexity to plan
-function mapQuizToPlan(temConselho: string, temSucessao: string, avaliacaoRiscosEsg: string): GovernancePlan {
+// Map quiz complexity to plan (com suporte a score de maturidade ISCA)
+function mapQuizToPlan(
+  temConselho: string, 
+  temSucessao: string, 
+  avaliacaoRiscosEsg: string,
+  iscaScore?: number
+): GovernancePlan {
   let complexity = 0;
   
   if (temConselho === 'sim') complexity += 1;
   if (temSucessao === 'sim') complexity += 1;
-  if (avaliacaoRiscosEsg === 'recorrente') complexity += 2;
-  else if (avaliacaoRiscosEsg === 'esporadica') complexity += 1;
+  if (avaliacaoRiscosEsg === 'recorrente' || avaliacaoRiscosEsg === 'sim') complexity += 2;
+  else if (avaliacaoRiscosEsg === 'esporadica' || avaliacaoRiscosEsg === 'parcial') complexity += 1;
   
-  if (complexity >= 3) return 'legacy_360';
-  if (complexity >= 2) return 'people_esg';
+  // Considerar score de maturidade da ISCA (GovMetrix)
+  if (iscaScore !== undefined) {
+    if (iscaScore >= 60) complexity += 1; // Maturidade alta
+    if (iscaScore >= 80) complexity += 1; // Maturidade avançada
+  }
+  
+  if (complexity >= 4) return 'legacy_360';
+  if (complexity >= 3) return 'people_esg';
   if (complexity >= 1) return 'governance_plus';
   return 'core';
 }
@@ -127,7 +146,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Inicializar do localStorage, quiz result, ou criar default baseado no user
+  // Inicializar do localStorage, quiz result, ISCA, ou criar default baseado no user
   useEffect(() => {
     const initializeOrg = () => {
       try {
@@ -140,6 +159,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
+        // Verificar se há dados da ISCA (GovMetrix)
+        const govMetrixResult = getGovMetrixResult();
+        const iscaScore = govMetrixResult?.score;
+        
         // Check if there's a quiz result to use
         const quizResultStr = localStorage.getItem(QUIZ_RESULT_KEY);
         if (quizResultStr && user) {
@@ -148,16 +171,46 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
           const plan = mapQuizToPlan(
             quizResult.temConselho,
             quizResult.temSucessao,
-            quizResult.avaliacaoRiscosEsg
+            quizResult.avaliacaoRiscosEsg,
+            iscaScore // Passar score da ISCA para cálculo do plano
           );
+          
+          // Usar dados da ISCA se disponíveis, senão usar quiz result
+          const companyName = govMetrixResult?.leadData?.company || 
+                             quizResult.empresaNome || 
+                             user.company || 
+                             'Minha Empresa';
           
           const newOrg: Organization = {
             id: 'org-' + crypto.randomUUID().slice(0, 8),
-            name: quizResult.empresaNome || user.company || 'Minha Empresa',
+            name: companyName,
             companySize,
             plan,
             enabledModules: getDefaultModules(companySize, plan),
-            onboardingCompleted: false // Not completed - needs to go through activation
+            onboardingCompleted: false, // Not completed - needs to go through activation
+            // Armazenar dados de maturidade para referência
+            maturityScore: iscaScore,
+            maturityStage: govMetrixResult?.stage,
+          };
+          setOrganization(newOrg);
+          setLoading(false);
+          return;
+        }
+        
+        // Se só tem ISCA mas não tem quiz result, criar org baseada na ISCA
+        if (govMetrixResult && user) {
+          const companySize: CompanySize = 'medium'; // Default, será ajustado no quiz
+          const plan = mapQuizToPlan('nao', 'nao', 'nao', iscaScore);
+          
+          const newOrg: Organization = {
+            id: 'org-' + crypto.randomUUID().slice(0, 8),
+            name: govMetrixResult.leadData.company || user.company || 'Minha Empresa',
+            companySize,
+            plan,
+            enabledModules: getDefaultModules(companySize, plan),
+            onboardingCompleted: false,
+            maturityScore: iscaScore,
+            maturityStage: govMetrixResult.stage,
           };
           setOrganization(newOrg);
           setLoading(false);
