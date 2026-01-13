@@ -127,25 +127,4 @@ export const mockOrganizationUsers = [
     lastLogin: '2024-12-02T09:15:00Z',
     createdAt: '2024-03-10T11:00:00Z'
   },
-  {
-    id: 'a0000000-0000-0000-0000-000000000012',
-    email: 'carlos.financeiro@empresa.com',
-    name: 'Carlos Mendes',
-    orgRole: 'org_member' as OrganizationUserRole,
-    company_id: 'Empresa Demo',
-    councilMemberships: ['comite-1', 'comissao-1'],
-    status: 'active' as const,
-    lastLogin: '2024-12-01T16:45:00Z',
-    createdAt: '2024-04-05T14:00:00Z'
-  },
-  {
-    id: 'a0000000-0000-0000-0000-000000000013',
-    email: 'ana.juridico@empresa.com',
-    name: 'Ana Paula Silva',
-    orgRole: 'org_member' as OrganizationUserRole,
-    company_id: 'Empresa Demo',
-    councilMemberships: ['conselho-1', 'comissao-2'],
-    status: 'pending' as const,
-    createdAt: '2024-11-28T10:00:00Z'
-  }
 ];
