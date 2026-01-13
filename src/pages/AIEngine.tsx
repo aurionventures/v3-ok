@@ -5,6 +5,7 @@ import {
   Leaf, Globe, Clock, TrendingUp
 } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
+import { FAQSection, aiEngineFAQs } from "@/components/footer/FAQSection";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -311,6 +312,12 @@ const AIEngine = () => {
           </div>
         </div>
       </section>
+
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Dúvidas sobre o AI Engine"
+        faqs={aiEngineFAQs}
+      />
 
       <MegaFooter />
     </div>

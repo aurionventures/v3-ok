@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { MegaMenuHeader } from '@/components/header/MegaMenuHeader';
 import { MegaFooter } from '@/components/footer';
+import { FAQSection, pricingFAQs } from '@/components/footer/FAQSection';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -467,37 +468,11 @@ export default function Pricing() {
 
 
       {/* FAQ Section */}
-      <section className="py-20 bg-corporate-light">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">
-              Perguntas Frequentes
-            </h2>
-            <p className="text-lg text-white/70 max-w-2xl mx-auto">
-              Tire suas dúvidas sobre nossos planos e preços.
-            </p>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            <Accordion type="single" collapsible className="space-y-4">
-              {PRICING_FAQ.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="border border-border rounded-lg bg-card"
-                >
-                  <AccordionTrigger className="text-left font-medium px-6 py-4 hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed px-6 pb-4">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </div>
-      </section>
+      <FAQSection 
+        title="Perguntas Frequentes"
+        subtitle="Tire suas dúvidas sobre nossos planos e preços"
+        faqs={pricingFAQs}
+      />
 
       {/* CTA Final Section */}
       <section className="py-20 bg-gradient-hero">
