@@ -722,6 +722,8 @@ const App = () => (
           <Route path="/admin/contratos" element={<AdminContracts />} />
           <Route path="/admin/faturas" element={<AdminInvoices />} />
           <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
+          <Route path="/admin/settings" element={<Settings />} />
+          <Route path="/admin/parceiros" element={<AdminPartners />} />
           <Route path="/login-admin" element={<LoginAdmin />} />
           
           {/* Audit & Security */}

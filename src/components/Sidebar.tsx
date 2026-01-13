@@ -499,7 +499,10 @@ const Sidebar = () => {
                         variant="ghost" 
                         size="icon"
                         className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
-                        onClick={logout}
+                        onClick={async () => {
+                          await logout();
+                          navigate('/login');
+                        }}
                       >
                         <LogOut className="h-4 w-4" />
                       </Button>
@@ -536,7 +539,10 @@ const Sidebar = () => {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={logout}
+                      onClick={async () => {
+                        await logout();
+                        navigate('/login');
+                      }}
                       className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                     >
                       <LogOut className="h-4 w-4" />
