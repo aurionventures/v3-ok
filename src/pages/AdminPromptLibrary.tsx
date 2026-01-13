@@ -458,7 +458,7 @@ export default function AdminPromptLibrary() {
               <Brain className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">AI Engine — Governanca de Prompts</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Governança de Prompts</h1>
               <p className="text-slate-300 text-sm mt-1">
                 Gestao estrategica da inteligencia do Legacy OS
               </p>
