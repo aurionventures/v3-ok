@@ -241,7 +241,7 @@ const categoryIcons: Record<string, typeof Users> = {
 };
 
 export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing }: GovMetrixQuizModalProps) {
-  const [step, setStep] = useState<'lead' | 'quiz' | 'result'>('lead');
+  const [step, setStep] = useState<'quiz' | 'lead' | 'result'>('quiz');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
   const [leadData, setLeadData] = useState<LeadData>({ name: '', company: '', email: '', whatsapp: '' });
@@ -255,20 +255,22 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
   useEffect(() => {
     if (!isOpen) {
       // Reset state when modal closes
-      setStep('lead');
+      setStep('quiz');
       setCurrentQuestion(0);
       setAnswers({});
       setResult(null);
+      setLeadData({ name: '', company: '', email: '', whatsapp: '' });
     }
   }, [isOpen]);
 
-  const handleLeadSubmit = (e: React.FormEvent) => {
+  const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!leadData.name || !leadData.email || !leadData.company) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
-    setStep('quiz');
+    // Agora chama handleSubmit para calcular e mostrar resultado
+    await handleSubmit();
   };
 
   const handleAnswerChange = (questionId: number, optionIndex: number, isExclusive: boolean) => {
@@ -404,16 +406,20 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-primary flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-accent" />
-                Diagnóstico GovMetrix®
+                Quase lá! Seus dados para o resultado
               </DialogTitle>
             </DialogHeader>
             
             <div className="space-y-6 py-4">
-              <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
-                <p className="text-sm text-foreground/80">
-                  Em apenas <strong>5 minutos</strong>, avalie a maturidade da governança corporativa 
-                  da sua empresa baseado nos princípios do <strong>Código IBGC</strong>.
-                </p>
+              {/* Indicador de progresso - Quiz concluído */}
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <CheckCircle className="h-6 w-6 text-emerald-500 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-emerald-700 dark:text-emerald-400">Quiz concluído!</p>
+                  <p className="text-sm text-muted-foreground">
+                    Preencha seus dados abaixo para visualizar seu diagnóstico personalizado.
+                  </p>
+                </div>
               </div>
 
               <form onSubmit={handleLeadSubmit} className="space-y-4">
@@ -479,11 +485,29 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full bg-accent text-primary hover:bg-accent/90" size="lg">
-                  Iniciar Diagnóstico
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                <Button 
+                  type="submit" 
+                  className="w-full bg-accent text-primary hover:bg-accent/90" 
+                  size="lg"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      Ver Meu Resultado
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               </form>
+
+              <p className="text-xs text-center text-muted-foreground">
+                Seus dados são protegidos e utilizados apenas para enviar o resultado do diagnóstico.
+              </p>
             </div>
           </>
         )}
@@ -502,6 +526,16 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
             </DialogHeader>
 
             <div className="space-y-6 py-4">
+              {/* Introdução na primeira pergunta */}
+              {currentQuestion === 0 && (
+                <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
+                  <p className="text-sm text-foreground/80">
+                    Em apenas <strong>5 minutos</strong>, avalie a maturidade da governança 
+                    corporativa da sua empresa baseado nos princípios do <strong>Código IBGC</strong>.
+                  </p>
+                </div>
+              )}
+              
               <Progress value={progress} className="h-2" />
               
               <div className="space-y-2">
@@ -564,21 +598,11 @@ export default function GovMetrixQuizModal({ isOpen, onClose, onScrollToPricing 
 
                 {currentQuestion === questions.length - 1 ? (
                   <Button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    onClick={() => setStep('lead')}
                     className="bg-accent text-primary hover:bg-accent/90"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        Finalizar
-                        <CheckCircle className="h-4 w-4 ml-2" />
-                      </>
-                    )}
+                    Ver Resultado
+                    <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 ) : (
                   <Button
