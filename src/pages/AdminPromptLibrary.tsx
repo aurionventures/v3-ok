@@ -1040,7 +1040,7 @@ export default function AdminPromptLibrary() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <History className="h-5 w-5" />
-                Historico de Versoes
+                Histórico de Versões
               </CardTitle>
               <CardDescription>
                 Auditoria completa de alteracoes em prompts
