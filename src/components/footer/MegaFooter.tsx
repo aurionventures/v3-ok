@@ -12,9 +12,10 @@ import {
   Home,
   Layers,
   Shield,
-  Brain
+  Brain,
+  Building,
+  ShieldCheck
 } from "lucide-react";
-import { NewsletterForm } from "./NewsletterForm";
 import { SocialIcons } from "./SocialIcons";
 import legacyLogo from "@/assets/legacy-logo-new.png";
 
@@ -25,7 +26,7 @@ export function MegaFooter() {
       <div className="container mx-auto px-6 py-16 lg:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8">
           
-          {/* COLUNA 1: Logo + Social + Newsletter + Endereço */}
+          {/* COLUNA 1: Logo + Social */}
           <div className="lg:col-span-1 space-y-6">
             <div>
               <img 
@@ -37,22 +38,6 @@ export function MegaFooter() {
             </div>
 
             <SocialIcons />
-
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-2">Newsletter</h4>
-              <p className="text-xs text-slate-400 mb-3">Receba insights sobre governança</p>
-              <NewsletterForm compact />
-            </div>
-
-            {/* Endereço */}
-            <div className="flex gap-3">
-              <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-              <address className="text-xs text-slate-400 leading-relaxed not-italic">
-                <p>Av. Brig. Faria Lima, 1811. ESC 1119</p>
-                <p>Jardim Paulistano, São Paulo - SP</p>
-                <p>CEP: 01452-001</p>
-              </address>
-            </div>
           </div>
 
           {/* COLUNA 2: Comece Agora */}
@@ -116,34 +101,58 @@ export function MegaFooter() {
               <FooterLinkClickable href="/blog" icon={FileText}>
                 Blog
               </FooterLinkClickable>
+              
+              {/* Office - Endereço */}
+              <div className="pt-3">
+                <div className="flex items-start gap-2">
+                  <Building className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <span className="text-[13px] text-slate-400">Office</span>
+                    <address className="text-xs text-slate-500 leading-relaxed not-italic mt-1">
+                      <p>Av. Brig. Faria Lima, 1811</p>
+                      <p>ESC 1119 - Jardim Paulistano</p>
+                      <p>São Paulo - SP, 01452-001</p>
+                    </address>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="border-t border-border/20" />
-
-      {/* Bottom Bar - Copyright & Legal */}
+      {/* Trust Section */}
       <div className="container mx-auto px-6 py-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-          <p>© 2025 - 2026 Legacy OS. Todos os direitos reservados.</p>
-          
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" aria-label="Links legais">
-            <Link to="/politica-privacidade" className="hover:text-accent transition-colors">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+          <div className="flex items-center gap-2 text-white">
+            <ShieldCheck className="h-4 w-4 text-accent" aria-hidden="true" />
+            <span className="text-base font-semibold">Trust</span>
+          </div>
+          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2" aria-label="Links de confiança">
+            <Link to="/politica-privacidade" className="text-[13px] text-slate-400 hover:text-accent transition-colors">
               Política de Privacidade
             </Link>
-            <span className="hidden md:inline text-slate-700" aria-hidden="true">|</span>
-            <Link to="/termos-uso" className="hover:text-accent transition-colors">
+            <span className="text-slate-700" aria-hidden="true">•</span>
+            <Link to="/termos-uso" className="text-[13px] text-slate-400 hover:text-accent transition-colors">
               Termos de Uso
             </Link>
-            <span className="hidden md:inline text-slate-700" aria-hidden="true">|</span>
-            <Link to="/lgpd" className="hover:text-accent transition-colors">
+            <span className="text-slate-700" aria-hidden="true">•</span>
+            <Link to="/lgpd" className="text-[13px] text-slate-400 hover:text-accent transition-colors">
               LGPD
             </Link>
           </nav>
         </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-border/20" />
+
+      {/* Bottom Bar - Copyright */}
+      <div className="container mx-auto px-6 py-6">
+        <p className="text-sm text-slate-500 text-center">
+          © 2025 - 2026 Legacy OS. Todos os direitos reservados.
+        </p>
       </div>
     </footer>
   );
