@@ -379,8 +379,8 @@ const AIEngine = () => {
               </p>
 
               {/* Horizontal Scroll Carousel */}
-              <div className="overflow-x-auto pb-4 -mx-6 px-6">
-                <div className="flex gap-3" style={{ width: 'max-content' }}>
+              <div className="overflow-x-auto pb-4 -mx-4 md:-mx-6 px-4 md:px-6">
+                <div className="flex gap-4" style={{ width: 'max-content' }}>
                   {capabilities.map((cap) => {
                     const isSelected = selectedCapability.id === cap.id;
                     return (
@@ -388,8 +388,8 @@ const AIEngine = () => {
                         key={cap.id}
                         onClick={() => handleCapabilityClick(cap)}
                         className={`
-                          flex items-center gap-3 px-4 py-3 rounded-xl border transition-all whitespace-nowrap
-                          ${isSelected 
+                          flex items-center gap-3 px-4 py-3 rounded-xl border transition-all whitespace-nowrap min-w-[160px]
+                          ${isSelected
                             ? 'border-accent bg-accent/20' 
                             : 'border-white/10 bg-white/5'
                           }
@@ -458,11 +458,11 @@ const AIEngine = () => {
             </Sheet>
 
             {/* CTA */}
-            <div className="text-center mt-12">
-              <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold" asChild>
-                <Link to="/governanca">
-                  Ver como a IA apoia decisões de governança
-                  <ArrowRight className="w-4 h-4 ml-2" />
+            <div className="text-center mt-12 px-4">
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold text-sm md:text-base px-4 md:px-6 h-auto py-3 whitespace-normal" asChild>
+                <Link to="/governanca" className="flex items-center justify-center gap-2">
+                  <span>Ver como a IA apoia decisões de governança</span>
+                  <ArrowRight className="w-4 h-4 flex-shrink-0" />
                 </Link>
               </Button>
             </div>

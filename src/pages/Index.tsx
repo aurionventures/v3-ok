@@ -343,43 +343,43 @@ const Index = () => {
 
       {/* FINAL CTA SECTION */}
       <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 font-heading">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 font-heading">
                 Pronto para Elevar Sua Governança?
               </h2>
-              <p className="text-lg text-white/70 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto">
                 Dê o próximo passo em direção a decisões mais claras e governança mais inteligente.
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-2 gap-6 md:gap-8">
               {/* CTA Buttons */}
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <Button 
                   size="lg" 
-                  className="w-full bg-accent text-primary hover:bg-accent/90 text-lg px-8 py-6 h-auto rounded-lg font-semibold"
+                  className="w-full bg-accent text-primary hover:bg-accent/90 text-base md:text-lg px-6 md:px-8 py-5 md:py-6 h-auto rounded-lg font-semibold"
                   onClick={() => navigate('/contato')}
                 >
-                  <Calendar className="h-5 w-5 mr-2" />
+                  <Calendar className="h-5 w-5 mr-2 flex-shrink-0" />
                   Agendar Demonstração
                 </Button>
                 <Button 
                   size="lg" 
-                  className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20 text-lg px-8 py-6 h-auto rounded-lg font-semibold"
+                  className="w-full bg-white/10 border border-white/20 text-white hover:bg-white/20 text-base md:text-lg px-6 md:px-8 py-5 md:py-6 h-auto rounded-lg font-semibold"
                   onClick={() => navigate('/plataforma')}
                 >
-                  <Eye className="h-5 w-5 mr-2" />
+                  <Eye className="h-5 w-5 mr-2 flex-shrink-0" />
                   Conhecer a Legacy OS
                 </Button>
                 <Button 
                   size="lg" 
-                  className="w-full bg-transparent border-2 border-accent text-accent hover:bg-accent/10 text-lg px-8 py-6 h-auto rounded-lg font-semibold"
+                  className="w-full bg-transparent border-2 border-accent text-accent hover:bg-accent/10 text-base md:text-lg px-6 md:px-8 py-5 md:py-6 h-auto rounded-lg font-semibold"
                   onClick={() => navigate('/standalone-quiz')}
                 >
-                  <Play className="h-5 w-5 mr-2" />
-                  Fazer Diagnóstico de Governança
+                  <Play className="h-5 w-5 mr-2 flex-shrink-0" />
+                  <span>Fazer Diagnóstico de Governança</span>
                 </Button>
               </div>
 
