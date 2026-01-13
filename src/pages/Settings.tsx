@@ -33,6 +33,7 @@ const Settings = () => {
     resetToDefaults
   } = useNotificationPreferences();
   const isOrgAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
+  const isSuperAdmin = user?.role === 'admin';
 
   // Knowledge Base Onboarding Hooks - USANDO DADOS MOCK
   const {
@@ -208,18 +209,18 @@ const Settings = () => {
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
                   </TabsTrigger>
-                  {isOrgAdmin && <TabsTrigger value="atas">
+                  {isOrgAdmin && !isSuperAdmin && <TabsTrigger value="atas">
                       <FileText className="h-4 w-4 mr-2" />
                       Parametrização de ATAs
                     </TabsTrigger>}
-                  <TabsTrigger value="activities">
+                  {!isSuperAdmin && <TabsTrigger value="activities">
                     <ActivitySquare className="h-4 w-4 mr-2" />
                     Log de Atividades
-                  </TabsTrigger>
-                  <TabsTrigger value="knowledge-base">
+                  </TabsTrigger>}
+                  {!isSuperAdmin && <TabsTrigger value="knowledge-base">
                     <BookOpen className="h-4 w-4 mr-2" />
                     Base de Conhecimento
-                  </TabsTrigger>
+                  </TabsTrigger>}
                 </TabsList>
                 
                 {/* ABA GERAL - Consolidada com sub-seções */}
