@@ -8,9 +8,12 @@ import {
   Info,
   Users,
   MapPin,
-  FileText
+  FileText,
+  Home,
+  Layers,
+  Shield,
+  Brain
 } from "lucide-react";
-import { FooterColumn, FooterLinkGroup } from "./FooterColumn";
 import { NewsletterForm } from "./NewsletterForm";
 import { SocialIcons } from "./SocialIcons";
 import legacyLogo from "@/assets/legacy-logo-new.png";
@@ -20,10 +23,10 @@ export function MegaFooter() {
     <footer className="bg-corporate-dark text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-6 py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
           
-          {/* COLUNA 1: Logo + Social + Newsletter */}
-          <div className="space-y-6">
+          {/* COLUNA 1: Logo + Social + Newsletter + Endereço */}
+          <div className="lg:col-span-2 space-y-6">
             <div>
               <img 
                 src={legacyLogo} 
@@ -38,7 +41,7 @@ export function MegaFooter() {
             <div>
               <h4 className="text-sm font-semibold text-white mb-2">Newsletter</h4>
               <p className="text-xs text-slate-400 mb-3">Receba insights sobre governança</p>
-              <NewsletterForm />
+              <NewsletterForm compact />
             </div>
 
             {/* Endereço */}
@@ -50,28 +53,71 @@ export function MegaFooter() {
                 <p>CEP: 01452-001</p>
               </address>
             </div>
-
           </div>
 
-          {/* COLUNA 2: Comece Agora + Planos + Empresa */}
-          <FooterColumn title="Comece Agora">
-            <FooterLinkGroup>
-              <FooterLinkClickable href="/pricing#calculator" icon={Calculator}>Calcular Meu Preço</FooterLinkClickable>
-              <FooterLinkClickable href="/contato" icon={CalendarDays}>Agendar Demonstração</FooterLinkClickable>
-              <FooterLinkClickable href="/contato" icon={MessageSquare}>Falar com Especialista</FooterLinkClickable>
-            </FooterLinkGroup>
+          {/* COLUNA 2: Comece Agora */}
+          <div>
+            <h3 className="text-base font-semibold text-white mb-5">Comece Agora</h3>
+            <div className="space-y-2.5">
+              <FooterLinkClickable href="/pricing#calculator" icon={Calculator}>
+                Calcular Meu Preço
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/contato" icon={CalendarDays}>
+                Agendar Demonstração
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/contato" icon={MessageSquare}>
+                Falar com Especialista
+              </FooterLinkClickable>
+            </div>
 
-            <FooterLinkGroup title="Planos">
-              <FooterLinkClickable href="/pricing" icon={Gem}>Planos & Preços</FooterLinkClickable>
-              <FooterLinkClickable href="/pricing#calculator" icon={SlidersHorizontal}>Calculadora Interativa</FooterLinkClickable>
-            </FooterLinkGroup>
+            {/* Sub-section: Legacy OS */}
+            <h4 className="text-xs font-semibold text-accent uppercase tracking-wider mt-6 mb-3">
+              Legacy OS
+            </h4>
+            <div className="space-y-2.5">
+              <FooterLinkClickable href="/" icon={Home}>
+                Home
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/plataforma" icon={Layers}>
+                Plataforma
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/governanca" icon={Shield}>
+                Governança
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/ai-engine" icon={Brain}>
+                AI Engine
+              </FooterLinkClickable>
+            </div>
+          </div>
 
-            <FooterLinkGroup title="Empresa">
-              <FooterLinkClickable href="/sobre" icon={Info}>Sobre Nós</FooterLinkClickable>
-              <FooterLinkClickable href="/contato" icon={Users}>Contato</FooterLinkClickable>
-              <FooterLinkClickable href="/blog" icon={FileText}>Blog</FooterLinkClickable>
-            </FooterLinkGroup>
-          </FooterColumn>
+          {/* COLUNA 3: Planos */}
+          <div>
+            <h3 className="text-base font-semibold text-accent mb-5">Planos</h3>
+            <div className="space-y-2.5">
+              <FooterLinkClickable href="/pricing" icon={Gem}>
+                Planos & Preços
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/pricing#calculator" icon={SlidersHorizontal}>
+                Calculadora Interativa
+              </FooterLinkClickable>
+            </div>
+          </div>
+
+          {/* COLUNA 4: Empresa */}
+          <div>
+            <h3 className="text-base font-semibold text-accent mb-5">Empresa</h3>
+            <div className="space-y-2.5">
+              <FooterLinkClickable href="/sobre" icon={Info}>
+                Sobre Nós
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/contato" icon={Users}>
+                Contato
+              </FooterLinkClickable>
+              <FooterLinkClickable href="/blog" icon={FileText}>
+                Blog
+              </FooterLinkClickable>
+            </div>
+          </div>
 
         </div>
       </div>
