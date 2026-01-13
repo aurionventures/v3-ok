@@ -100,44 +100,48 @@ export function MemberSidebar({ activeSection, onSectionClick, onLogout }: Membe
       
       <SidebarFooter className="border-t border-sidebar-border p-4">
         {collapsed ? (
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10"
+              onClick={() => navigate('/member-portal/perfil')}
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={onLogout}
-              className="h-12 w-12 bg-[#C9A54E] hover:bg-[#B8944D] text-white"
+              className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10"
             >
-              <LogOut className="h-6 w-6" />
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* User Info */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-lg font-semibold text-white">{user?.name}</p>
-                <p className="text-base text-white/70">Membro</p>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold text-white">{user?.name}</p>
+              <p className="text-base text-white/70">Membro</p>
+            </div>
+            <div className="flex items-center gap-1">
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="text-white/70 hover:text-white hover:bg-white/10"
+                className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10"
                 onClick={() => navigate('/member-portal/perfil')}
               >
                 <Settings className="h-5 w-5" />
               </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={onLogout}
+                className="h-10 w-10 text-white/70 hover:text-white hover:bg-white/10"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
-            
-            {/* Logout */}
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={onLogout}
-              className="w-full text-base h-12 px-5 bg-[#C9A54E] hover:bg-[#B8944D] text-white border-[#C9A54E] hover:border-[#B8944D]"
-            >
-              <LogOut className="h-5 w-5 mr-2" />
-              Sair
-            </Button>
           </div>
         )}
       </SidebarFooter>

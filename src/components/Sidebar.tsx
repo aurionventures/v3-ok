@@ -466,17 +466,16 @@ const Sidebar = () => {
         {/* Footer - User Profile */}
         <div className="border-t border-sidebar-border p-3">
           {open ? (
-            <div className="space-y-3">
-              {/* User Info */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5 min-w-0">
-                  <p className="text-sm font-semibold text-sidebar-foreground truncate">
-                    {user?.name || 'Usuário'}
-                  </p>
-                  <p className="text-xs text-sidebar-foreground/70">
-                    {isAdminRoute ? 'Admin Master' : 'Cliente'}
-                  </p>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-sm font-semibold text-sidebar-foreground truncate">
+                  {user?.name || 'Usuário'}
+                </p>
+                <p className="text-xs text-sidebar-foreground/70">
+                  {isAdminRoute ? 'Admin Master' : 'Cliente'}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -494,18 +493,24 @@ const Sidebar = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
+                        onClick={logout}
+                      >
+                        <LogOut className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Sair</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              
-              {/* Logout */}
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={logout}
-                className="w-full h-9 bg-[#C0A062] hover:bg-[#B8944D] text-white border-[#C0A062] hover:border-[#B8944D]"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
@@ -533,7 +538,7 @@ const Sidebar = () => {
                       variant="ghost" 
                       size="icon"
                       onClick={logout}
-                      className="h-9 w-9 bg-[#C0A062] hover:bg-[#B8944D] text-white"
+                      className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                     >
                       <LogOut className="h-4 w-4" />
                     </Button>

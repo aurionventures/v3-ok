@@ -131,17 +131,16 @@ export function BancaSidebar() {
 
       {/* Footer - User Profile */}
       <div className="border-t border-sidebar-border p-3">
-        <div className="space-y-3">
-          {/* User Info */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 min-w-0">
-              <p className="text-sm font-semibold text-sidebar-foreground truncate">
-                {user?.name || 'Parceiro'}
-              </p>
-              <p className="text-xs text-sidebar-foreground/70">
-                Parceiro
-              </p>
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-sm font-semibold text-sidebar-foreground truncate">
+              {user?.name || 'Parceiro'}
+            </p>
+            <p className="text-xs text-sidebar-foreground/70">
+              Parceiro
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
             <Button 
               variant="ghost" 
               size="icon"
@@ -150,18 +149,15 @@ export function BancaSidebar() {
             >
               <Settings className="h-4 w-4" />
             </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={logout}
+              className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
-          
-          {/* Logout */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={logout}
-            className="w-full h-9 bg-[#C0A062] hover:bg-[#B8944D] text-white border-[#C0A062] hover:border-[#B8944D]"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
         </div>
       </div>
     </div>
