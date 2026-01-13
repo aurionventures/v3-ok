@@ -99,7 +99,7 @@ const Dashboard = () => {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Cockpit Executivo" />
+        <Header title="Desempenho do Conselho" />
         <div 
           className="h-[calc(100vh-3.5rem)] p-3 grid gap-3" 
           style={{ 
