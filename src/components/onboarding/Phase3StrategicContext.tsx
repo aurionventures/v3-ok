@@ -33,6 +33,7 @@ interface Phase3StrategicContextProps {
   onBack?: () => void;
   initialData?: Partial<Phase3FormData>;
   isSaving?: boolean;
+  skipPhaseCompletion?: boolean; // Quando true, não marca a fase como completa no onboarding
 }
 
 const TABS = [
@@ -65,7 +66,7 @@ const defaultFormData: Phase3FormData = {
   sustainabilityGoals: []
 };
 
-export function Phase3StrategicContext({ onComplete, onBack }: Phase3StrategicContextProps) {
+export function Phase3StrategicContext({ onComplete, onBack, skipPhaseCompletion = false }: Phase3StrategicContextProps) {
   const { context, updateContext, isSaving, isLoading } = useStrategicContext();
   const { profile } = useCompanyProfile();
   const { completePhase } = useOnboardingProgress();
@@ -200,11 +201,18 @@ export function Phase3StrategicContext({ onComplete, onBack }: Phase3StrategicCo
 
   const handleComplete = async () => {
     await saveContext();
-    await completePhase(3);
-    toast({
-      title: 'Onboarding Completo!',
-      description: 'Sua base de conhecimento esta pronta.'
-    });
+    if (!skipPhaseCompletion) {
+      await completePhase(3);
+      toast({
+        title: 'Onboarding Completo!',
+        description: 'Sua base de conhecimento esta pronta.'
+      });
+    } else {
+      toast({
+        title: 'Dados salvos!',
+        description: 'Contexto estrategico salvo com sucesso.'
+      });
+    }
     onComplete();
   };
 

@@ -18,11 +18,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Eye, Share2, Search, CheckCircle, Clock, AlertTriangle, Loader2, BarChart3, FileEdit, Plus, FolderPlus, Building2 } from 'lucide-react';
+import { FileText, Download, Eye, Share2, Search, CheckCircle, Clock, AlertTriangle, Loader2, BarChart3, FileEdit, Plus, FolderPlus, Building2, Target } from 'lucide-react';
 import { Label } from "@/components/ui/label";
 import FileUpload from '@/components/FileUpload';
 import { useToast } from "@/components/ui/use-toast";
 import { Phase1BasicSetup } from "@/components/onboarding/Phase1BasicSetup";
+import { Phase3StrategicContext } from "@/components/onboarding/Phase3StrategicContext";
+import { KnowledgeBaseScorePanel } from "@/components/checklist/KnowledgeBaseScorePanel";
 import { useCompanyProfile } from "@/hooks/useOnboardingMock";
 
 // Document categories for upload
@@ -285,6 +287,7 @@ export default function DocumentChecklist() {
   const [correctionsModalOpen, setCorrectionsModalOpen] = useState(false);
   const [selectedIssueDoc, setSelectedIssueDoc] = useState<UploadedDocument | null>(null);
   const [librarySubTab, setLibrarySubTab] = useState('library');
+  const [companyTab, setCompanyTab] = useState('dashboard');
 
   // Get active tab from URL
   const activeTab = searchParams.get('tab') || 'checklist';
@@ -730,22 +733,73 @@ export default function DocumentChecklist() {
                       <div>
                         <CardTitle className="flex items-center gap-2">
                           <Building2 className="h-5 w-5 text-primary" />
-                          Cadastro Geral da Empresa
+                          Base de Conhecimento da Empresa
                         </CardTitle>
                         <p className="text-sm text-muted-foreground mt-2">
-                          Configure os dados básicos da empresa para melhorar a efetividade do AI Engine e evitar duplicação de informações.
-                          Estes dados são compartilhados com a Base de Conhecimento.
+                          Configure o contexto completo da empresa para o AI Engine ter máxima efetividade.
+                          Estes dados são compartilhados com a Base de Conhecimento e evitam duplicação de informações.
                         </p>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    <Phase1BasicSetup 
-                      onComplete={() => {
-                        toast.success("Dados da empresa salvos com sucesso!");
-                      }}
-                      skipPhaseCompletion={true}
-                    />
+                    <Tabs value={companyTab} onValueChange={setCompanyTab} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 mb-6">
+                        <TabsTrigger value="dashboard" className="gap-2">
+                          <BarChart3 className="h-4 w-4" />
+                          Dashboard
+                        </TabsTrigger>
+                        <TabsTrigger value="fase-1" className="gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Dados Básicos
+                        </TabsTrigger>
+                        <TabsTrigger value="fase-3" className="gap-2">
+                          <Target className="h-4 w-4" />
+                          Contexto Estratégico
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="dashboard" className="space-y-4">
+                        <KnowledgeBaseScorePanel 
+                          onNavigateToPhase={(phase) => {
+                            if (phase === 1) setCompanyTab('fase-1');
+                            if (phase === 3) setCompanyTab('fase-3');
+                          }}
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="fase-1" className="space-y-4">
+                        <div className="rounded-lg border bg-card p-4">
+                          <h3 className="text-lg font-semibold mb-2">Fase 1: Dados Básicos da Empresa</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Informações essenciais sobre a empresa: razão social, CNPJ, setor, localização, porte e sistemas utilizados.
+                          </p>
+                          <Phase1BasicSetup 
+                            onComplete={() => {
+                              toast.success("Dados básicos salvos com sucesso!");
+                              setCompanyTab('dashboard'); // Voltar para dashboard após salvar
+                            }}
+                            skipPhaseCompletion={true}
+                          />
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="fase-3" className="space-y-4">
+                        <div className="rounded-lg border bg-card p-4">
+                          <h3 className="text-lg font-semibold mb-2">Fase 3: Contexto Estratégico</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Missão, visão, valores, objetivos estratégicos, stakeholders, análise de mercado e riscos conhecidos.
+                          </p>
+                          <Phase3StrategicContext 
+                            onComplete={() => {
+                              toast.success("Contexto estratégico salvo com sucesso!");
+                              setCompanyTab('dashboard'); // Voltar para dashboard após salvar
+                            }}
+                            skipPhaseCompletion={true}
+                          />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </CardContent>
                 </Card>
               </TabsContent>
