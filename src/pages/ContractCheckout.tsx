@@ -410,19 +410,19 @@ export default function ContractCheckout() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       {/* Header */}
       <header className="border-b bg-white dark:bg-gray-900 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={legacyLogo} alt="Legacy" className="h-8" />
-              <Separator orientation="vertical" className="h-6" />
+            <div className="flex items-center gap-3">
+              <img src={legacyLogo} alt="Legacy" className="h-7" />
+              <Separator orientation="vertical" className="h-5" />
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-primary" />
-                <span className="font-semibold">Checkout</span>
+                <ShoppingCart className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm">Checkout</span>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
+            <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')} className="h-8">
+              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs">Voltar</span>
             </Button>
           </div>
         </div>
@@ -430,7 +430,7 @@ export default function ContractCheckout() {
 
       {/* Progress */}
       <div className="bg-white dark:bg-gray-900 border-b">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -439,18 +439,18 @@ export default function ContractCheckout() {
               
               return (
                 <div key={step.id} className="flex items-center">
-                  <div className={`flex items-center gap-2 ${isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-muted-foreground'}`}>
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                  <div className={`flex items-center gap-1.5 ${isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`h-7 w-7 rounded-full flex items-center justify-center ${
                       isActive ? 'bg-primary text-white' : 
                       isCompleted ? 'bg-green-100 text-green-600' : 
                       'bg-gray-100'
                     }`}>
-                      {isCompleted ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                      {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                     </div>
-                    <span className="text-sm font-medium hidden sm:inline">{step.label}</span>
+                    <span className="text-xs font-medium hidden sm:inline">{step.label}</span>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`w-12 sm:w-24 h-0.5 mx-2 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`} />
+                    <div className={`w-8 sm:w-16 h-0.5 mx-1.5 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`} />
                   )}
                 </div>
               );
@@ -460,48 +460,50 @@ export default function ContractCheckout() {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <main className="container mx-auto px-4 py-6">
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Forms */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             
             {/* Step 1: Dados da Empresa */}
             {currentStep === 'dados' && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Building2 className="h-4 w-4" />
                     Dados de Faturamento
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs mt-1">
                     Informações para emissão de NF e contrato
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Dados da Empresa */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-sm text-muted-foreground">EMPRESA</h4>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="companyName">Razão Social *</Label>
+                <CardContent className="space-y-4">
+                  {/* Dados da Empresa - Grid mais compacto */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">EMPRESA</h4>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="companyName" className="text-xs">Razão Social *</Label>
                         <Input 
                           id="companyName"
                           value={formData.companyName}
                           onChange={(e) => setFormData({...formData, companyName: e.target.value})}
                           placeholder="Empresa Exemplo Ltda"
+                          className="h-9 text-sm"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="tradingName">Nome Fantasia</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="tradingName" className="text-xs">Nome Fantasia</Label>
                         <Input 
                           id="tradingName"
                           value={formData.tradingName}
                           onChange={(e) => setFormData({...formData, tradingName: e.target.value})}
                           placeholder="Nome Fantasia"
+                          className="h-9 text-sm"
                         />
                       </div>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-3">
                       <InputCNPJ
                         id="cnpj"
                         label="CNPJ"
@@ -513,93 +515,95 @@ export default function ContractCheckout() {
                         showCompanyPreview={true}
                         required
                       />
-                      <div className="space-y-2">
-                        <Label htmlFor="stateRegistration">Inscrição Estadual</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="stateRegistration" className="text-xs">Inscrição Estadual</Label>
                         <Input 
                           id="stateRegistration"
                           value={formData.stateRegistration}
                           onChange={(e) => setFormData({...formData, stateRegistration: e.target.value})}
                           placeholder="Isento ou número"
+                          className="h-9 text-sm"
                         />
                       </div>
                     </div>
                   </div>
                   
-                  <Separator />
+                  <Separator className="my-3" />
                   
-                  {/* Endereço */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
+                  {/* Endereço - Grid otimizado */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5" />
                       ENDEREÇO DE FATURAMENTO
                     </h4>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-2 space-y-2">
-                        <Label htmlFor="street">Logradouro *</Label>
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2 space-y-1.5">
+                        <Label htmlFor="street" className="text-xs">Logradouro *</Label>
                         <Input 
                           id="street"
                           value={formData.street}
                           onChange={(e) => setFormData({...formData, street: e.target.value})}
                           placeholder="Av. Paulista"
-                          className={formData.street && formData.street.length >= 3 ? 'bg-muted/50' : ''}
+                          className={`h-9 text-sm ${formData.street && formData.street.length >= 3 ? 'bg-muted/50' : ''}`}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="number">Número *</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="number" className="text-xs">Número *</Label>
                         <Input 
                           id="number"
                           value={formData.number}
                           onChange={(e) => setFormData({...formData, number: e.target.value})}
                           placeholder="1000"
+                          className="h-9 text-sm"
                         />
                       </div>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="complement">Complemento</Label>
+                    <div className="grid sm:grid-cols-4 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="complement" className="text-xs">Complemento</Label>
                         <Input 
                           id="complement"
                           value={formData.complement}
                           onChange={(e) => setFormData({...formData, complement: e.target.value})}
                           placeholder="Sala 101"
-                          className={formData.complement ? 'bg-muted/50' : ''}
+                          className={`h-9 text-sm ${formData.complement ? 'bg-muted/50' : ''}`}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="neighborhood">Bairro *</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="neighborhood" className="text-xs">Bairro *</Label>
                         <Input 
                           id="neighborhood"
                           value={formData.neighborhood}
                           onChange={(e) => setFormData({...formData, neighborhood: e.target.value})}
                           placeholder="Bela Vista"
-                          className={formData.neighborhood && formData.neighborhood.length >= 2 ? 'bg-muted/50' : ''}
+                          className={`h-9 text-sm ${formData.neighborhood && formData.neighborhood.length >= 2 ? 'bg-muted/50' : ''}`}
                         />
                       </div>
-                    </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">Cidade *</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="city" className="text-xs">Cidade *</Label>
                         <Input 
                           id="city"
                           value={formData.city}
                           onChange={(e) => setFormData({...formData, city: e.target.value})}
                           placeholder="São Paulo"
-                          className={formData.city && formData.city.length >= 2 ? 'bg-muted/50' : ''}
+                          className={`h-9 text-sm ${formData.city && formData.city.length >= 2 ? 'bg-muted/50' : ''}`}
                           readOnly={formData.city.length > 0}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">UF *</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="state" className="text-xs">UF *</Label>
                         <Input 
                           id="state"
                           value={formData.state}
                           onChange={(e) => setFormData({...formData, state: e.target.value.toUpperCase()})}
                           placeholder="SP"
                           maxLength={2}
-                          className={formData.state && formData.state.length === 2 ? 'bg-muted/50' : ''}
+                          className={`h-9 text-sm ${formData.state && formData.state.length === 2 ? 'bg-muted/50' : ''}`}
                           readOnly={formData.state.length > 0}
                         />
                       </div>
+                    </div>
+                    <div className="grid sm:grid-cols-3 gap-3">
                       <InputCEP
                         id="zip"
                         label="CEP"
@@ -618,38 +622,40 @@ export default function ContractCheckout() {
                     </div>
                   </div>
                   
-                  <Separator />
+                  <Separator className="my-3" />
                   
-                  {/* Contato Principal */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
-                      <User className="h-4 w-4" />
+                  {/* Contato Principal - Grid otimizado */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                      <User className="h-3.5 w-3.5" />
                       CONTATO PRINCIPAL
                     </h4>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="contactName">Nome Completo *</Label>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="contactName" className="text-xs">Nome Completo *</Label>
                         <Input 
                           id="contactName"
                           value={formData.contactName}
                           onChange={(e) => setFormData({...formData, contactName: e.target.value})}
                           placeholder="João Silva"
+                          className="h-9 text-sm"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="contactRole">Cargo</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="contactRole" className="text-xs">Cargo</Label>
                         <Input 
                           id="contactRole"
                           value={formData.contactRole}
                           onChange={(e) => setFormData({...formData, contactRole: e.target.value})}
                           placeholder="Diretor de Governança"
+                          className="h-9 text-sm"
                         />
                       </div>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="contactEmail" className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="contactEmail" className="flex items-center gap-1.5 text-xs">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                           Email Corporativo *
                         </Label>
                         <div className="relative">
@@ -659,29 +665,29 @@ export default function ContractCheckout() {
                             value={formData.contactEmail}
                             onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
                             placeholder="joao@empresa.com.br"
-                            className={
+                            className={`h-9 text-sm pr-9 ${
                               formData.contactEmail && isValidEmail 
                                 ? 'border-green-500 focus-visible:ring-green-500' 
                                 : formData.contactEmail && !isValidEmail
                                 ? 'border-red-500 focus-visible:ring-red-500'
                                 : ''
-                            }
+                            }`}
                           />
                           {formData.contactEmail && isValidEmail && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                             </div>
                           )}
                           {formData.contactEmail && !isValidEmail && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <AlertCircle className="h-4 w-4 text-red-500" />
+                            <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                              <AlertCircle className="h-3.5 w-3.5 text-red-500" />
                             </div>
                           )}
                         </div>
                         {formData.contactEmail && !isValidEmail && (
-                          <p className="text-sm text-red-500 flex items-center gap-1">
+                          <p className="text-xs text-red-500 flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
-                            Email deve ser corporativo (não pessoal)
+                            Email deve ser corporativo
                           </p>
                         )}
                       </div>
@@ -695,8 +701,8 @@ export default function ContractCheckout() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="justify-end">
-                  <Button onClick={handleNext} disabled={!isStep1Valid}>
+                <CardFooter className="justify-end pt-4">
+                  <Button onClick={handleNext} disabled={!isStep1Valid} size="default">
                     Continuar
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -707,33 +713,33 @@ export default function ContractCheckout() {
             {/* Step 2: Confirmação do Plano */}
             {currentStep === 'plano' && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Sparkles className="h-4 w-4" />
                     Plano Selecionado
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs mt-1">
                     Confirme seu plano e add-ons
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   {/* Plano */}
-                  <div className="p-4 border rounded-lg bg-primary/5">
-                    <div className="flex items-start justify-between">
+                  <div className="p-3 border rounded-lg bg-primary/5">
+                    <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-xl font-bold">{plan.nome}</h3>
-                        <p className="text-muted-foreground">{plan.descricao}</p>
+                        <h3 className="text-lg font-bold">{plan.nome}</h3>
+                        <p className="text-xs text-muted-foreground">{plan.descricao}</p>
                       </div>
-                      <Badge className="text-lg px-3 py-1">
+                      <Badge className="text-sm px-2.5 py-1">
                         {formatCurrency(baseMonthly)}/mês
                       </Badge>
                     </div>
-                    <Separator className="my-4" />
-                    <div className="grid sm:grid-cols-2 gap-2">
+                    <Separator className="my-2" />
+                    <div className="grid sm:grid-cols-2 gap-1.5">
                       {plan.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          <span>{feature}</span>
+                        <div key={i} className="flex items-center gap-1.5 text-xs">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                          <span className="truncate">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -741,20 +747,20 @@ export default function ContractCheckout() {
                   
                   {/* Add-ons */}
                   {selectedAddons.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Add-ons Selecionados</h4>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Add-ons Selecionados</h4>
                       {selectedAddons.map(addon => (
-                        <div key={addon.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <Sparkles className="h-5 w-5 text-primary" />
+                        <div key={addon.id} className="flex items-center justify-between p-2.5 border rounded-lg">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Sparkles className="h-4 w-4 text-primary" />
                             </div>
-                            <div>
-                              <p className="font-medium">{addon.nome}</p>
-                              <p className="text-sm text-muted-foreground">{addon.descricao}</p>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate">{addon.nome}</p>
+                              <p className="text-xs text-muted-foreground truncate">{addon.descricao}</p>
                             </div>
                           </div>
-                          <span className="font-semibold">
+                          <span className="font-semibold text-sm flex-shrink-0 ml-2">
                             +{formatCurrency(addon.precoMensal)}/mês
                           </span>
                         </div>
@@ -778,36 +784,36 @@ export default function ContractCheckout() {
             {/* Step 3: Configuração do Contrato */}
             {currentStep === 'contrato' && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileSignature className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileSignature className="h-4 w-4" />
                     Configuração do Contrato
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs mt-1">
                     Escolha o prazo e ciclo de pagamento
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   {/* Prazo do Contrato */}
-                  <div className="space-y-3">
-                    <Label className="text-base">Prazo do Contrato</Label>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Prazo do Contrato</Label>
                     <RadioGroup 
                       value={String(contractConfig.term)} 
                       onValueChange={(v) => setContractConfig({...contractConfig, term: Number(v) as 12 | 24 | 36})}
-                      className="grid grid-cols-3 gap-4"
+                      className="grid grid-cols-3 gap-3"
                     >
                       {CONTRACT_TERM_OPTIONS.map(option => (
                         <div key={option.value}>
                           <RadioGroupItem value={String(option.value)} id={`term-${option.value}`} className="peer sr-only" />
                           <Label 
                             htmlFor={`term-${option.value}`}
-                            className="flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
+                            className="flex flex-col items-center justify-center p-3 border-2 rounded-lg cursor-pointer hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 transition-colors"
                           >
-                            <Calendar className="h-6 w-6 mb-2" />
-                            <span className="font-bold text-lg">{option.value}</span>
-                            <span className="text-sm text-muted-foreground">meses</span>
+                            <Calendar className="h-5 w-5 mb-1.5" />
+                            <span className="font-bold text-base">{option.value}</span>
+                            <span className="text-xs text-muted-foreground">meses</span>
                             {option.discount > 0 && (
-                              <Badge variant="secondary" className="mt-2 text-green-600">
+                              <Badge variant="secondary" className="mt-1.5 text-xs text-green-600 px-1.5 py-0">
                                 -{option.discount}%
                               </Badge>
                             )}
@@ -817,31 +823,31 @@ export default function ContractCheckout() {
                     </RadioGroup>
                   </div>
                   
-                  <Separator />
+                  <Separator className="my-3" />
                   
                   {/* Ciclo de Pagamento */}
-                  <div className="space-y-3">
-                    <Label className="text-base">Ciclo de Pagamento</Label>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Ciclo de Pagamento</Label>
                     <RadioGroup 
                       value={contractConfig.paymentCycle} 
                       onValueChange={(v) => setContractConfig({...contractConfig, paymentCycle: v as any})}
-                      className="grid grid-cols-2 gap-4"
+                      className="grid grid-cols-2 gap-3"
                     >
                       {PAYMENT_CYCLE_OPTIONS.map(option => (
                         <div key={option.value}>
                           <RadioGroupItem value={option.value} id={`cycle-${option.value}`} className="peer sr-only" />
                           <Label 
                             htmlFor={`cycle-${option.value}`}
-                            className="flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
+                            className="flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 transition-colors"
                           >
                             <div>
-                              <span className="font-medium">{option.label}</span>
-                              <p className="text-sm text-muted-foreground">
+                              <span className="font-medium text-sm">{option.label}</span>
+                              <p className="text-xs text-muted-foreground">
                                 {cycleMonths[option.value]} {cycleMonths[option.value] === 1 ? 'fatura' : 'faturas'}/ano
                               </p>
                             </div>
                             {option.discount && option.discount > 0 && (
-                              <Badge variant="secondary" className="text-green-600">
+                              <Badge variant="secondary" className="text-xs text-green-600 px-1.5 py-0">
                                 -{option.discount}%
                               </Badge>
                             )}
@@ -853,14 +859,14 @@ export default function ContractCheckout() {
                   
                   {/* Resumo de Descontos */}
                   {totalDiscount > 0 && (
-                    <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                        <Percent className="h-5 w-5" />
-                        <span className="font-medium">
+                        <Percent className="h-4 w-4" />
+                        <span className="font-medium text-sm">
                           Desconto total: {totalDiscount}%
                         </span>
                       </div>
-                      <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                         Contrato de {contractConfig.term} meses + pagamento {
                           PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label.toLowerCase()
                         }
@@ -884,67 +890,69 @@ export default function ContractCheckout() {
             {/* Step 4: Forma de Pagamento */}
             {currentStep === 'pagamento' && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Receipt className="h-5 w-5" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Receipt className="h-4 w-4" />
                     Forma de Pagamento
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs mt-1">
                     Escolha como deseja receber as faturas
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   <RadioGroup 
                     value={contractConfig.billingType} 
                     onValueChange={(v) => setContractConfig({...contractConfig, billingType: v as BillingType})}
-                    className="space-y-4"
+                    className="space-y-3"
                   >
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                       <RadioGroupItem value="BOLETO" id="boleto" />
-                      <Label htmlFor="boleto" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <FileText className="h-6 w-6 text-orange-500" />
+                      <Label htmlFor="boleto" className="flex items-center gap-2.5 cursor-pointer flex-1">
+                        <FileText className="h-5 w-5 text-orange-500 flex-shrink-0" />
                         <div>
-                          <p className="font-medium">Boleto Bancário</p>
-                          <p className="text-sm text-muted-foreground">Vencimento em 5 dias úteis</p>
+                          <p className="font-medium text-sm">Boleto Bancário</p>
+                          <p className="text-xs text-muted-foreground">Vencimento em 5 dias úteis</p>
                         </div>
                       </Label>
                     </div>
                     
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                       <RadioGroupItem value="PIX" id="pix" />
-                      <Label htmlFor="pix" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <QrCode className="h-6 w-6 text-green-500" />
+                      <Label htmlFor="pix" className="flex items-center gap-2.5 cursor-pointer flex-1">
+                        <QrCode className="h-5 w-5 text-green-500 flex-shrink-0" />
                         <div>
-                          <p className="font-medium">PIX</p>
-                          <p className="text-sm text-muted-foreground">QR Code ou Copia e Cola</p>
+                          <p className="font-medium text-sm">PIX</p>
+                          <p className="text-xs text-muted-foreground">QR Code ou Copia e Cola</p>
                         </div>
                       </Label>
                     </div>
                   </RadioGroup>
                   
-                  <Separator />
+                  <Separator className="my-3" />
                   
                   {/* Termos */}
-                  <div className="space-y-4">
-                    <div className="flex items-start space-x-3">
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-2.5">
                       <Checkbox 
                         id="terms" 
                         checked={acceptTerms}
                         onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                        className="mt-0.5"
                       />
-                      <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
+                      <Label htmlFor="terms" className="text-xs cursor-pointer leading-relaxed">
                         Li e aceito os <a href="/termos" target="_blank" className="text-primary underline">Termos de Uso</a> e a{' '}
                         <a href="/privacidade" target="_blank" className="text-primary underline">Política de Privacidade</a> da Legacy OS.
                       </Label>
                     </div>
                     
-                    <div className="flex items-start space-x-3">
+                    <div className="flex items-start space-x-2.5">
                       <Checkbox 
                         id="contract" 
                         checked={acceptContract}
                         onCheckedChange={(checked) => setAcceptContract(checked as boolean)}
+                        className="mt-0.5"
                       />
-                      <Label htmlFor="contract" className="text-sm cursor-pointer leading-relaxed">
+                      <Label htmlFor="contract" className="text-xs cursor-pointer leading-relaxed">
                         Concordo com os termos do contrato de prestação de serviços SaaS, 
                         incluindo vigência de {contractConfig.term} meses e fidelidade contratual.
                       </Label>
@@ -1016,88 +1024,91 @@ export default function ContractCheckout() {
                   Resumo do Pedido
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {/* Plano */}
-                <div className="flex justify-between">
-                  <span>{plan.nome}</span>
-                  <span className="font-medium">{formatCurrency(baseMonthly)}/mês</span>
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-sm font-medium">{plan.nome}</span>
+                  <span className="text-sm font-semibold">{formatCurrency(baseMonthly)}/mês</span>
                 </div>
                 
                 {/* Add-ons */}
-                {selectedAddons.map(addon => (
-                  <div key={addon.id} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">+ {addon.nome}</span>
-                    <span>{formatCurrency(addon.precoMensal)}/mês</span>
-                  </div>
-                ))}
-                
-                <Separator />
-                
-                {/* Subtotal */}
-                <div className="flex justify-between">
-                  <span>Subtotal mensal</span>
-                  <span>{formatCurrency(totalMonthly)}</span>
-                </div>
-                
-                {/* Desconto */}
-                {totalDiscount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Desconto ({totalDiscount}%)</span>
-                    <span>-{formatCurrency(totalMonthly - discountedMonthly)}</span>
-                  </div>
+                {selectedAddons.length > 0 && (
+                  <>
+                    {selectedAddons.map(addon => (
+                      <div key={addon.id} className="flex justify-between text-xs py-0.5">
+                        <span className="text-muted-foreground">+ {addon.nome}</span>
+                        <span className="text-xs">{formatCurrency(addon.precoMensal)}/mês</span>
+                      </div>
+                    ))}
+                    <Separator className="my-2" />
+                  </>
                 )}
                 
-                <Separator />
-                
-                {/* Total Mensal */}
-                <div className="flex justify-between font-bold">
-                  <span>Valor mensal</span>
-                  <span className="text-primary">{formatCurrency(discountedMonthly)}</span>
+                {/* Subtotal e Desconto - Compacto */}
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal mensal</span>
+                    <span>{formatCurrency(totalMonthly)}</span>
+                  </div>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Desconto ({totalDiscount}%)</span>
+                      <span>-{formatCurrency(totalMonthly - discountedMonthly)}</span>
+                    </div>
+                  )}
                 </div>
                 
-                {/* Detalhes do Contrato */}
-                <div className="p-3 bg-muted/50 rounded-lg space-y-2 text-sm">
+                <Separator className="my-2" />
+                
+                {/* Total Mensal */}
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-semibold">Valor mensal</span>
+                  <span className="text-base font-bold text-primary">{formatCurrency(discountedMonthly)}</span>
+                </div>
+                
+                {/* Detalhes do Contrato - Compacto */}
+                <div className="p-2.5 bg-muted/50 rounded-lg space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Prazo</span>
-                    <span>{contractConfig.term} meses</span>
+                    <span className="font-medium">{contractConfig.term} meses</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Ciclo</span>
-                    <span>{PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label}</span>
+                    <span className="font-medium">{PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Setup</span>
-                    <span>{formatCurrency(setupFee)}</span>
+                    <span className="font-medium">{formatCurrency(setupFee)}</span>
                   </div>
                 </div>
                 
-                <Separator />
+                <Separator className="my-2" />
                 
                 {/* Valor do Contrato */}
-                <div className="flex justify-between">
-                  <span>Valor total do contrato</span>
-                  <span className="font-bold">{formatCurrency(totalContractValue)}</span>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-xs text-muted-foreground">Valor total do contrato</span>
+                  <span className="text-sm font-bold">{formatCurrency(totalContractValue)}</span>
                 </div>
                 
-                {/* Primeiro Pagamento */}
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                {/* Primeiro Pagamento - Compacto */}
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">1ª Cobrança</p>
+                      <p className="text-sm font-semibold">1ª Cobrança</p>
                       <p className="text-xs text-muted-foreground">Setup + {
                         PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label
                       }</p>
                     </div>
-                    <span className="text-xl font-bold text-primary">
+                    <span className="text-lg font-bold text-primary">
                       {formatCurrency(firstPayment)}
                     </span>
                   </div>
                 </div>
                 
                 {/* Segurança */}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Ambiente seguro com criptografia SSL</span>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
+                  <Shield className="h-3.5 w-3.5" />
+                  <span>Ambiente seguro com SSL</span>
                 </div>
               </CardContent>
             </Card>

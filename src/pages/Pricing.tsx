@@ -8,6 +8,7 @@ import { FAQSection, pricingFAQs } from '@/components/footer/FAQSection';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -190,10 +191,17 @@ export default function Pricing() {
     });
     const roi = calculateROI(planoId);
 
-    // Sugerir add-ons baseado na maturidade
-    const addOnsSugeridos = ADDONS.filter((a) =>
-      ['riscos', 'esg', 'inteligencia'].includes(a.id)
-    );
+    // Sugerir add-ons baseado na maturidade - ordem específica: 1-Desempenho, 2-ESG, 3-Riscos, 4-Inteligência
+    const addonIdsOrdered: Array<'desempenho' | 'esg' | 'riscos' | 'inteligencia'> = ['desempenho', 'esg', 'riscos', 'inteligencia'];
+    const addOnsSugeridos: typeof ADDONS = [];
+    
+    // Garantir ordem específica
+    addonIdsOrdered.forEach(id => {
+      const addon = ADDONS.find(a => a.id === id);
+      if (addon) {
+        addOnsSugeridos.push(addon);
+      }
+    });
 
     setCalculatorResult({
       complexityScore: score,
@@ -697,11 +705,10 @@ export default function Pricing() {
             </>
           ) : (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl flex items-center gap-2">
-                  <Target className="h-6 w-6 text-green-600" />
-                  Seu Plano Ideal:{' '}
-                  {PLANS.find((p) => p.id === calculatorResult.planoId)?.nome}
+              <DialogHeader className="pb-2">
+                <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
+                  <Target className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <span className="truncate">Seu Plano Ideal</span>
                 </DialogTitle>
               </DialogHeader>
 
@@ -729,9 +736,23 @@ export default function Pricing() {
                       </div>
 
                       <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                        <p className="text-xs text-muted-foreground mb-1">
+                        <p className="text-xs text-muted-foreground mb-2">
                           Índice de Complexidade
                         </p>
+                        {/* Barra de Progresso */}
+                        <div className="mb-2">
+                          {/* Máximo teórico: 50 empresas*1 + 20 conselhos*3 + 50 comites*2 + 300 reuniões/10 = 240 */}
+                          {/* Classificação: <=10 Baixa, <=30 Moderada, <=60 Alta, >60 Muito Alta */}
+                          {/* Usamos 100 como referência visual (valores >60 são todos "Muito Alta") */}
+                          <Progress 
+                            value={Math.min((calculatorResult.complexityScore / 100) * 100, 100)} 
+                            className="h-2 mb-1"
+                          />
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">0</span>
+                            <span className="text-muted-foreground">100</span>
+                          </div>
+                        </div>
                         <div className="flex items-baseline gap-2">
                           <span className="text-xl font-bold">
                             {calculatorResult.complexityScore}
@@ -761,36 +782,43 @@ export default function Pricing() {
                       </div>
 
                       {calculatorResult.pricing.mensal ? (
-                        <div className="space-y-3">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-foreground">
-                              {calculatorResult.pricing.mensalFormatted}
-                            </span>
-                            <span className="text-sm text-muted-foreground">/mês</span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">ou</span>
-                            <span className="text-xl font-bold text-foreground">
-                              {calculatorResult.pricing.anualFormatted}
-                            </span>
-                            <span className="text-sm text-muted-foreground">/ano</span>
+                        <div className="space-y-2.5">
+                          {/* Preço Mensal e Anual lado a lado */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground mb-0.5">Mensal</p>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xl font-bold text-foreground">
+                                  {calculatorResult.pricing.mensalFormatted}
+                                </span>
+                                <span className="text-xs text-muted-foreground">/mês</span>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-muted-foreground mb-0.5">Anual</p>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xl font-bold text-foreground">
+                                  {calculatorResult.pricing.anualFormatted}
+                                </span>
+                                <span className="text-xs text-muted-foreground">/ano</span>
+                              </div>
+                            </div>
                           </div>
 
                           {calculatorResult.pricing.economiaFormatted && (
-                            <Badge className="bg-green-600 text-white text-xs">
+                            <Badge className="bg-green-600 text-white text-xs w-full justify-center">
                               {calculatorResult.pricing.economiaFormatted} (2 meses)
                             </Badge>
                           )}
 
                           {/* Setup Fee - Compacto */}
                           {calculatorResult.pricing.setup && calculatorResult.pricing.setup > 0 && (
-                            <div className="mt-3 p-2.5 bg-muted/50 rounded-lg border border-dashed">
+                            <div className="pt-2 border-t border-dashed">
                               <div className="flex items-center justify-between gap-2">
                                 <div className="min-w-0 flex-1">
-                                  <p className="text-xs font-medium">Taxa de Setup (única vez)</p>
+                                  <p className="text-xs font-medium">Taxa de Setup</p>
                                   <p className="text-[10px] text-muted-foreground">
-                                    Onboarding + treinamento
+                                    Única vez
                                   </p>
                                 </div>
                                 <div className="text-right flex-shrink-0">
@@ -802,46 +830,6 @@ export default function Pricing() {
                               </div>
                             </div>
                           )}
-
-                          <div className="pt-3 border-t space-y-1.5">
-                            <p className="text-xs font-medium">Incluso:</p>
-                            <ul className="text-xs text-muted-foreground space-y-1">
-                              <li className="flex items-center gap-1.5">
-                                <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-                                <span className="truncate">
-                                  {PLANS.find(
-                                    (p) => p.id === calculatorResult.planoId
-                                  )?.limites.empresas === 'ilimitado'
-                                    ? 'Empresas ilimitadas'
-                                    : `${PLANS.find((p) => p.id === calculatorResult.planoId)?.limites.empresas} empresas`}
-                                  , usuários ilimitados
-                                </span>
-                              </li>
-                              <li className="flex items-center gap-1.5">
-                                <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-                                <span className="truncate">
-                                  AI Engine{' '}
-                                  {
-                                    PLANS.find(
-                                      (p) => p.id === calculatorResult.planoId
-                                    )?.limites.aiEngine
-                                  }
-                                  , 13 módulos core
-                                </span>
-                              </li>
-                              <li className="flex items-center gap-1.5">
-                                <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-                                <span className="truncate">
-                                  {
-                                    PLANS.find(
-                                      (p) => p.id === calculatorResult.planoId
-                                    )?.limites.addonsInclusos
-                                  }{' '}
-                                  add-ons à sua escolha
-                                </span>
-                              </li>
-                            </ul>
-                          </div>
                         </div>
                       ) : (
                         <div className="text-center py-3">
