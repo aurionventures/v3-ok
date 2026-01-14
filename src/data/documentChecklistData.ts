@@ -108,5 +108,16 @@ export const initialDocumentChecklist: ChecklistCategory[] = [
       { id: "atas-assembleia-antigas", name: "ATAs de Assembleia (últimos 12 meses)", checked: false, hasDocument: false, status: null },
       { id: "atas-comites-antigas", name: "ATAs de Comitês (últimos 12 meses)", checked: false, hasDocument: false, status: null }
     ]
+  },
+  {
+    id: "planejamentos-estrategicos",
+    name: "Planejamentos Estratégicos",
+    icon: Target,
+    color: "text-purple-500",
+    items: [
+      { id: "plan-est-12-meses", name: "Plan Est 12 meses", checked: false, hasDocument: false, status: null },
+      { id: "plan-est-24-meses", name: "Plan Est 24 meses", checked: false, hasDocument: false, status: null },
+      { id: "plan-est-36-meses", name: "Plan Est 36 meses", checked: false, hasDocument: false, status: null }
+    ]
   }
 ];

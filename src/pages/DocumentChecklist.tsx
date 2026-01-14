@@ -446,63 +446,15 @@ export default function DocumentChecklist() {
                 
                 <div className="grid gap-6">
                   {checklist.map((category, categoryIndex) => (
-                    <React.Fragment key={category.id}>
-                      <ChecklistCategoryCard 
-                        category={category} 
-                        categoryIndex={categoryIndex} 
-                        progress={getCategoryProgress(category)} 
-                        onItemCheck={handleItemChecked} 
-                        onStatusChange={handleItemStatusChange} 
-                        onUploadRedirect={handleUploadRedirect} 
-                      />
-                      {/* Seção de Upload: Documentos de Planejamento Estratégico - Aparece após ATAs Antigas */}
-                      {category.id === 'atas-antigas' && (
-                        <Card className="border-purple-200 bg-purple-50/30">
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="flex items-center gap-2">
-                                <Target className="h-5 w-5 text-purple-500" />
-                                Documentos de Planejamento Estratégico
-                              </CardTitle>
-                              <Badge variant="outline" className="text-xs">
-                                {documents.filter(d => d.category === 'Documentos Estratégicos').length} arquivos
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Planejamento Estratégico, Apresentações Institucionais, Planos de Negócios
-                            </p>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <FileUpload
-                              onFileUpload={(files) => handleFileUpload(files, 'Documentos Estratégicos')}
-                              accept=".pdf,.doc,.docx"
-                              maxSize={10}
-                              multiple={true}
-                              label="Selecionar arquivos"
-                            />
-                            <div className="space-y-2">
-                              <p className="text-xs font-medium text-muted-foreground">Exemplos de documentos:</p>
-                              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                                <li>Planejamento Estratégico 2024-2026</li>
-                                <li>Apresentação Institucional</li>
-                                <li>Plano de Negócios</li>
-                                <li>Documento de Visão, Missão e Valores</li>
-                              </ul>
-                            </div>
-                            {documents.filter(d => d.category === 'Documentos Estratégicos').length > 0 && (
-                              <Button variant="ghost" size="sm" className="w-full" onClick={() => {
-                                setSearchParams({ tab: 'biblioteca' });
-                                setSelectedCategory('Documentos Estratégicos');
-                                setLibrarySubTab('library');
-                              }}>
-                                Ver arquivos na Biblioteca ({documents.filter(d => d.category === 'Documentos Estratégicos').length})
-                                <ArrowRight className="h-4 w-4 ml-2" />
-                              </Button>
-                            )}
-                          </CardContent>
-                        </Card>
-                      )}
-                    </React.Fragment>
+                    <ChecklistCategoryCard 
+                      key={category.id}
+                      category={category} 
+                      categoryIndex={categoryIndex} 
+                      progress={getCategoryProgress(category)} 
+                      onItemCheck={handleItemChecked} 
+                      onStatusChange={handleItemStatusChange} 
+                      onUploadRedirect={handleUploadRedirect} 
+                    />
                   ))}
                 </div>
                 

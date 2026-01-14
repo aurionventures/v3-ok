@@ -25,6 +25,7 @@ const iconMap = {
   estrategico: Target,
   financeiro: BarChart3,
   'atas-antigas': Archive,
+  'planejamentos-estrategicos': Target,
   personalizado: FolderPlus
 };
 
@@ -43,19 +44,31 @@ export const useDocumentChecklist = () => {
           return;
         }
         
-        const checklistWithIcons = savedChecklist.map((category) => {
-          // Validação de estrutura básica
-          if (!category || typeof category !== 'object' || !category.id) {
-            console.warn('Invalid category structure:', category);
-            return null;
-          }
-          
-          return {
-            ...category,
-            icon: iconMap[category.id as keyof typeof iconMap] || Building
-          };
-        }).filter(Boolean); // Remove categorias inválidas
-        setChecklist(checklistWithIcons);
+        // Merge saved checklist with initial checklist to ensure new categories are included
+        const savedIds = new Set(savedChecklist.map((c: any) => c.id));
+        const mergedChecklist = [
+          ...savedChecklist.map((category: any) => {
+            // Validação de estrutura básica
+            if (!category || typeof category !== 'object' || !category.id) {
+              console.warn('Invalid category structure:', category);
+              return null;
+            }
+            
+            return {
+              ...category,
+              icon: iconMap[category.id as keyof typeof iconMap] || Building
+            };
+          }).filter(Boolean),
+          // Add new categories from initial checklist that don't exist in saved
+          ...initialDocumentChecklist
+            .filter(cat => !savedIds.has(cat.id))
+            .map(cat => ({
+              ...cat,
+              icon: iconMap[cat.id as keyof typeof iconMap] || Building
+            }))
+        ];
+        
+        setChecklist(mergedChecklist);
       } catch (error) {
         console.error('Error loading checklist from localStorage:', error);
       }
