@@ -58,6 +58,7 @@ export interface MaturityOption {
 
 // Opções de Faturamento
 export const FATURAMENTO_OPTIONS: FaturamentoOption[] = [
+  { value: 'menos-50m', label: '< R$ 50M', peso: 0 },
   { value: '50-300m', label: 'R$ 50M - R$ 300M', peso: 1 },
   { value: '300m-1b', label: 'R$ 300M - R$ 1B', peso: 2 },
   { value: '1b-plus', label: 'R$ 1B+', peso: 3 },
@@ -359,35 +360,43 @@ export const COMPETITORS: Competitor[] = [
 ];
 
 // PRD v3.0 - Matriz de Pricing (Porte × Plano)
-// Novo piso: R$ 2.997/mês | Desconto anual: 2 meses grátis (16,67%)
+// Mínimo: R$ 2.997/mês | Desconto anual: 2 meses grátis (16,67%)
+// Setup SMB e SMB+ = 2 × mensalidade | Outros portes = 1 × mensalidade
 export const PRICING_MATRIX: Record<string, Record<string, { mensal: number; anual: number; setup: number }>> = {
-  // SMB+ (R$ 50M - R$ 300M/ano)
+  // SMB (< R$ 50M/ano) - Setup = 2 × mensalidade
+  smb: {
+    essencial: { mensal: 2997, anual: 29970, setup: 5994 }, // 2 × 2997
+    profissional: { mensal: 4997, anual: 49970, setup: 9994 }, // 2 × 4997
+    business: { mensal: 7997, anual: 79970, setup: 15994 }, // 2 × 7997
+    enterprise: { mensal: 12997, anual: 129970, setup: 25994 }, // 2 × 12997
+  },
+  // SMB+ (R$ 50M - R$ 300M/ano) - Setup = 2 × mensalidade
   smb_plus: {
-    essencial: { mensal: 2997, anual: 29970, setup: 2997 },
-    profissional: { mensal: 5997, anual: 59970, setup: 4497 },
-    business: { mensal: 11997, anual: 119970, setup: 5997 },
-    enterprise: { mensal: 25000, anual: 250000, setup: 9997 },
+    essencial: { mensal: 3997, anual: 39970, setup: 7994 }, // 2 × 3997
+    profissional: { mensal: 5997, anual: 59970, setup: 11994 }, // 2 × 5997
+    business: { mensal: 9997, anual: 99970, setup: 19994 }, // 2 × 9997
+    enterprise: { mensal: 19997, anual: 199970, setup: 39994 }, // 2 × 19997
   },
-  // Mid-Market (R$ 300M - R$ 1B/ano)
+  // Mid-Market (R$ 300M - R$ 1B/ano) - Setup = 1 × mensalidade
   mid_market: {
-    essencial: { mensal: 4997, anual: 49970, setup: 4997 },
-    profissional: { mensal: 9997, anual: 99970, setup: 7497 },
-    business: { mensal: 19997, anual: 199970, setup: 11997 },
-    enterprise: { mensal: 40000, anual: 400000, setup: 19997 },
+    essencial: { mensal: 5997, anual: 59970, setup: 5997 },
+    profissional: { mensal: 8997, anual: 89970, setup: 8997 },
+    business: { mensal: 14997, anual: 149970, setup: 14997 },
+    enterprise: { mensal: 24997, anual: 249970, setup: 24997 },
   },
-  // Large (R$ 1B - R$ 5B/ano)
+  // Large (R$ 1B - R$ 5B/ano) - Setup = 1 × mensalidade
   large: {
-    essencial: { mensal: 7997, anual: 79970, setup: 7997 },
-    profissional: { mensal: 14997, anual: 149970, setup: 11997 },
-    business: { mensal: 29997, anual: 299970, setup: 19997 },
-    enterprise: { mensal: 60000, anual: 600000, setup: 34997 },
+    essencial: { mensal: 9997, anual: 99970, setup: 9997 },
+    profissional: { mensal: 14997, anual: 149970, setup: 14997 },
+    business: { mensal: 24997, anual: 249970, setup: 24997 },
+    enterprise: { mensal: 49997, anual: 499970, setup: 49997 },
   },
-  // Enterprise (R$ 5B+ ou Listada B3)
+  // Enterprise (R$ 5B+ ou Listada B3) - Setup = 1 × mensalidade
   enterprise: {
-    essencial: { mensal: 12997, anual: 129970, setup: 12997 },
-    profissional: { mensal: 24997, anual: 249970, setup: 19997 },
-    business: { mensal: 49997, anual: 499970, setup: 34997 },
-    enterprise: { mensal: 100000, anual: 1000000, setup: 59997 },
+    essencial: { mensal: 14997, anual: 149970, setup: 14997 },
+    profissional: { mensal: 24997, anual: 249970, setup: 24997 },
+    business: { mensal: 49997, anual: 499970, setup: 49997 },
+    enterprise: { mensal: 99997, anual: 999970, setup: 99997 },
   },
 };
 
@@ -548,7 +557,7 @@ export function recommendPlan(
 }
 
 // Revelar preço baseado no plano
-export function revealPricing(planoId: string, porte: string = 'smb_plus'): {
+export function revealPricing(planoId: string, porte: string = 'smb'): {
   mensal: number | null;
   anual: number | null;
   economia: number | null;

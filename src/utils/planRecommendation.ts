@@ -1,6 +1,7 @@
 // Lógica de recomendação de plano baseada em faturamento, complexidade e maturidade ISCA
 
 export type RevenueRange = 
+  | 'menos_50m'
   | 'ate_4_8m'
   | '4_8m_30m'
   | '30m_300m'
@@ -51,6 +52,7 @@ export const PLG_STORAGE_KEYS = {
 
 // Mapear faturamento para plano base
 const REVENUE_TO_PLAN: Record<RevenueRange, PlanId> = {
+  menos_50m: 'startup',
   ate_4_8m: 'startup',
   '4_8m_30m': 'pequena',
   '30m_300m': 'media',
@@ -246,6 +248,7 @@ export const PLAN_DATA: Record<PlanId, {
 
 // Labels para exibição das opções do quiz
 export const REVENUE_LABELS: Record<RevenueRange, string> = {
+  menos_50m: 'Menos de R$ 50M/ano',
   ate_4_8m: 'Até R$ 4,8 milhões/ano',
   '4_8m_30m': 'De R$ 4,8M a R$ 30M/ano',
   '30m_300m': 'De R$ 30M a R$ 300M/ano',

@@ -38,6 +38,7 @@ const QUIZ_RESULT_KEY = 'quiz_result';
 // Map quiz faturamento to company size
 function mapFaturamentoToSize(faturamento: string): CompanySize {
   switch (faturamento) {
+    case 'menos_50m': return 'startup';
     case 'ate_4_8m': return 'startup';
     case '4_8m_30m': return 'small';
     case '30m_300m': return 'medium';

@@ -57,9 +57,12 @@ export function PortesPlanosTab() {
               <div>
                 <div className="font-medium">{size.name}</div>
                 <div className="text-sm text-muted-foreground">{size.description}</div>
-                {size.revenue_min && (
+                {size.revenue_min !== null && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    R$ {(size.revenue_min / 1000000).toFixed(0)}M - {size.revenue_max ? `R$ ${(size.revenue_max / 1000000).toFixed(0)}M` : "∞"}
+                    {size.revenue_min === 0 ? '< R$ ' : 'R$ '}
+                    {size.revenue_min > 0 && `${(size.revenue_min / 1000000).toFixed(0)}M`}
+                    {size.revenue_min === 0 && '50M'}
+                    {size.revenue_max ? ` - R$ ${(size.revenue_max / 1000000).toFixed(0)}M` : " - ∞"}
                   </div>
                 )}
               </div>
