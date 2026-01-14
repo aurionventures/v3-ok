@@ -169,13 +169,14 @@ function PricingTablePDFDocument({
   getPricing 
 }: PricingTablePDFProps) {
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | undefined | null) => {
+    const numPrice = Number(price) || 0;
     return new Intl.NumberFormat("pt-BR", { 
       style: "currency", 
       currency: "BRL", 
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(price);
+    }).format(numPrice);
   };
 
   const getDisplayPrice = (pricing: PlanPricingMatrix, mode: 'mensal' | 'anual' | 'setup') => {

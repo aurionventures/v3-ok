@@ -34,13 +34,14 @@ export function AddonsConfigTab() {
     setIsNew(false);
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | undefined | null) => {
+    const numPrice = Number(price) || 0;
     return new Intl.NumberFormat("pt-BR", { 
       style: "currency", 
       currency: "BRL", 
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(price);
+    }).format(numPrice);
   };
 
   const getCategoryColor = (category: string | null) => {

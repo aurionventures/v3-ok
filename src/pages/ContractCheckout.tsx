@@ -388,8 +388,14 @@ export default function ContractCheckout() {
     }
   };
   
-  const formatCurrency = (value: number) => {
-    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  const formatCurrency = (value: number | undefined | null) => {
+    const numValue = Number(value) || 0;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(numValue);
   };
 
   return (
