@@ -138,6 +138,7 @@ export default function ContractSign() {
       const signatureHash = await generateHash(signatureData);
 
       // NOTE: contracts table doesn't exist yet, updating localStorage
+      const clientIP = await getClientIP();
       const storedContracts = localStorage.getItem('contracts') || '[]';
       const contracts = JSON.parse(storedContracts);
       const updatedContracts = contracts.map((c: any) => 
@@ -146,7 +147,7 @@ export default function ContractSign() {
               ...c,
               status: "pending_counter_signature",
               client_signed_at: new Date().toISOString(),
-              client_signature_ip: await getClientIP(),
+              client_signature_ip: clientIP,
               client_signature_user_agent: navigator.userAgent,
               client_signature_hash: signatureHash,
             }

@@ -539,7 +539,7 @@ export const ATALibrary = () => {
           // MODO CONVERSACIONAL (RAG)
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
             <CardContent className="p-4">
-              <ScrollArea className="h-[400px] mb-4 pr-4">
+              <ScrollArea className="h-[280px] mb-4 pr-4">
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div
