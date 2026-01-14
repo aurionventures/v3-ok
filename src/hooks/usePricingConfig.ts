@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
 // Types
@@ -88,15 +88,15 @@ const INITIAL_PLANS: SubscriptionPlan[] = [
 ];
 
 const INITIAL_ADDONS: AddonCatalog[] = [
-  { id: "1", key: "submeter_projetos", name: "Submeter Projetos", description: "Submeta projetos para deliberação", icon: "FolderUp", monthly_price: 197, annual_price: 1970, category: "governance", target_section: "estruturacao", target_section_label: "ESTRUTURAÇÃO", order_index: 1, is_active: true, is_visible: true },
-  { id: "2", key: "desenvolvimento_pdi", name: "Desenvolvimento e PDI", description: "Planos de desenvolvimento individual", icon: "GraduationCap", monthly_price: 297, annual_price: 2970, category: "people", target_section: "gestao_pessoas", target_section_label: "GESTÃO DE PESSOAS", order_index: 2, is_active: true, is_visible: true },
-  { id: "3", key: "desempenho_conselho", name: "Desempenho do Conselho", description: "Avaliação 360° dos membros", icon: "Target", monthly_price: 347, annual_price: 3470, category: "people", target_section: "gestao_pessoas", target_section_label: "GESTÃO DE PESSOAS", order_index: 3, is_active: true, is_visible: true },
-  { id: "4", key: "riscos", name: "Monitoramento de Riscos", description: "Identifique e gerencie riscos", icon: "AlertTriangle", monthly_price: 397, annual_price: 3970, category: "governance", target_section: "monitoramento", target_section_label: "MONITORAMENTO", order_index: 4, is_active: true, is_visible: true },
-  { id: "5", key: "maturidade_esg", name: "Maturidade ESG", description: "Avalie a maturidade ESG", icon: "Leaf", monthly_price: 347, annual_price: 3470, category: "strategy", target_section: "esg", target_section_label: "ESG", order_index: 5, is_active: true, is_visible: true },
-  { id: "6", key: "inteligencia_mercado", name: "Inteligência de Mercado", description: "Análises de mercado em tempo real", icon: "TrendingUp", monthly_price: 497, annual_price: 4970, category: "intelligence", target_section: "inteligencia", target_section_label: "INTELIGÊNCIA", order_index: 6, is_active: true, is_visible: true },
-  { id: "7", key: "benchmarking_global", name: "Benchmarking Global", description: "Compare com líderes mundiais", icon: "Globe", monthly_price: 597, annual_price: 5970, category: "intelligence", target_section: "inteligencia", target_section_label: "INTELIGÊNCIA", order_index: 7, is_active: true, is_visible: true },
-  { id: "8", key: "agentes_ia", name: "Agentes de IA", description: "Agentes do MOAT Engine", icon: "Bot", monthly_price: 797, annual_price: 7970, category: "strategy", target_section: "inicio", target_section_label: "INÍCIO", order_index: 8, is_active: true, is_visible: true },
-  { id: "9", key: "simulador_cenarios", name: "Simulador de Cenários", description: "Simule cenários estratégicos", icon: "LineChart", monthly_price: 697, annual_price: 6970, category: "strategy", target_section: "estrategico", target_section_label: "ESTRATÉGICO", order_index: 9, is_active: true, is_visible: true },
+  { id: "1", key: "submeter_projetos", name: "Submeter Projetos", description: "Submeta projetos para deliberação", icon: "FolderUp", monthly_price: 997, annual_price: 11964, category: "governance", target_section: "estruturacao", target_section_label: "ESTRUTURAÇÃO", order_index: 1, is_active: true, is_visible: true },
+  { id: "2", key: "desenvolvimento_pdi", name: "Desenvolvimento e PDI", description: "Planos de desenvolvimento individual", icon: "GraduationCap", monthly_price: 997, annual_price: 11964, category: "people", target_section: "gestao_pessoas", target_section_label: "GESTÃO DE PESSOAS", order_index: 2, is_active: true, is_visible: true },
+  { id: "3", key: "desempenho_conselho", name: "Desempenho do Conselho", description: "Avaliação 360° dos membros", icon: "Target", monthly_price: 1497, annual_price: 17964, category: "people", target_section: "gestao_pessoas", target_section_label: "GESTÃO DE PESSOAS", order_index: 3, is_active: true, is_visible: true },
+  { id: "4", key: "riscos", name: "Monitoramento de Riscos", description: "Identifique e gerencie riscos", icon: "AlertTriangle", monthly_price: 997, annual_price: 11964, category: "governance", target_section: "monitoramento", target_section_label: "MONITORAMENTO", order_index: 4, is_active: true, is_visible: true },
+  { id: "5", key: "maturidade_esg", name: "Maturidade ESG", description: "Avalie a maturidade ESG", icon: "Leaf", monthly_price: 2997, annual_price: 35964, category: "strategy", target_section: "esg", target_section_label: "ESG", order_index: 5, is_active: true, is_visible: true },
+  { id: "6", key: "inteligencia_mercado", name: "Inteligência de Mercado", description: "Análises de mercado em tempo real", icon: "TrendingUp", monthly_price: 1497, annual_price: 17964, category: "intelligence", target_section: "inteligencia", target_section_label: "INTELIGÊNCIA", order_index: 6, is_active: true, is_visible: true },
+  { id: "7", key: "benchmarking_global", name: "Benchmarking Global", description: "Compare com líderes mundiais", icon: "Globe", monthly_price: 797, annual_price: 9564, category: "intelligence", target_section: "inteligencia", target_section_label: "INTELIGÊNCIA", order_index: 7, is_active: true, is_visible: true },
+  { id: "8", key: "agentes_ia", name: "Agentes de IA", description: "Agentes do MOAT Engine", icon: "Bot", monthly_price: 1497, annual_price: 17964, category: "strategy", target_section: "inicio", target_section_label: "INÍCIO", order_index: 8, is_active: true, is_visible: true },
+  { id: "9", key: "simulador_cenarios", name: "Simulador de Cenários", description: "Simule cenários estratégicos", icon: "LineChart", monthly_price: 997, annual_price: 11964, category: "strategy", target_section: "estrategico", target_section_label: "ESTRATÉGICO", order_index: 9, is_active: true, is_visible: true },
 ];
 
 const INITIAL_MODULES: Module[] = [
@@ -204,7 +204,44 @@ export function usePricingConfig() {
 
   const [addons, setAddons] = useState<AddonCatalog[]>(() => {
     const saved = localStorage.getItem("pricing_addons");
-    return saved ? JSON.parse(saved) : INITIAL_ADDONS;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Verificar se os dados estão atualizados comparando com INITIAL_ADDONS
+      // Se o número de add-ons mudou ou se algum preço está diferente, usar INITIAL_ADDONS
+      if (parsed.length !== INITIAL_ADDONS.length) {
+        return INITIAL_ADDONS;
+      }
+      // Verificar se algum add-on tem preços diferentes dos iniciais
+      const needsUpdate = INITIAL_ADDONS.some((initialAddon) => {
+        const savedAddon = parsed.find((a: AddonCatalog) => a.key === initialAddon.key);
+        if (!savedAddon) return true;
+        return savedAddon.monthly_price !== initialAddon.monthly_price || 
+               savedAddon.annual_price !== initialAddon.annual_price;
+      });
+      if (needsUpdate) {
+        // Atualizar os preços mantendo outras customizações
+        const updated = parsed.map((savedAddon: AddonCatalog) => {
+          const initialAddon = INITIAL_ADDONS.find(a => a.key === savedAddon.key);
+          if (initialAddon) {
+            return {
+              ...savedAddon,
+              monthly_price: initialAddon.monthly_price,
+              annual_price: initialAddon.annual_price,
+            };
+          }
+          return savedAddon;
+        });
+        // Adicionar novos add-ons que não existem no localStorage
+        INITIAL_ADDONS.forEach((initialAddon) => {
+          if (!updated.find((a: AddonCatalog) => a.key === initialAddon.key)) {
+            updated.push(initialAddon);
+          }
+        });
+        return updated;
+      }
+      return parsed;
+    }
+    return INITIAL_ADDONS;
   });
 
   const [modules, setModules] = useState<Module[]>(() => {
@@ -218,6 +255,44 @@ export function usePricingConfig() {
   const saveToStorage = (key: string, data: unknown) => {
     localStorage.setItem(key, JSON.stringify(data));
   };
+
+  // Sincronizar addons com INITIAL_ADDONS uma vez na montagem
+  useEffect(() => {
+    const saved = localStorage.getItem("pricing_addons");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const needsSync = INITIAL_ADDONS.some((initialAddon) => {
+        const savedAddon = parsed.find((a: AddonCatalog) => a.key === initialAddon.key);
+        if (!savedAddon) return true;
+        return savedAddon.monthly_price !== initialAddon.monthly_price || 
+               savedAddon.annual_price !== initialAddon.annual_price;
+      });
+      
+      if (needsSync) {
+        // Atualizar os preços mantendo outras customizações
+        const updated = parsed.map((savedAddon: AddonCatalog) => {
+          const initialAddon = INITIAL_ADDONS.find(a => a.key === savedAddon.key);
+          if (initialAddon) {
+            return {
+              ...savedAddon,
+              monthly_price: initialAddon.monthly_price,
+              annual_price: initialAddon.annual_price,
+            };
+          }
+          return savedAddon;
+        });
+        // Adicionar novos add-ons que não existem no localStorage
+        INITIAL_ADDONS.forEach((initialAddon) => {
+          if (!updated.find((a: AddonCatalog) => a.key === initialAddon.key)) {
+            updated.push(initialAddon);
+          }
+        });
+        setAddons(updated);
+        saveToStorage("pricing_addons", updated);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executar apenas uma vez na montagem
 
   // Company Size mutations
   const updateCompanySize = (data: Partial<CompanySize> & { id: string }) => {

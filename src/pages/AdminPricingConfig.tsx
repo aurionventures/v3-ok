@@ -10,6 +10,7 @@ import { MatrizPricingTab } from "@/components/admin/pricing/MatrizPricingTab";
 import { ModulosConfigTab } from "@/components/admin/pricing/ModulosConfigTab";
 import { AddonsConfigTab } from "@/components/admin/pricing/AddonsConfigTab";
 import { ComplexidadePesosTab } from "@/components/admin/pricing/ComplexidadePesosTab";
+import { PLGSLGStrategyPDF } from "@/components/admin/pricing/PLGSLGStrategyPDF";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminPricingConfig() {
@@ -51,12 +52,15 @@ export default function AdminPricingConfig() {
                   Gerencie portes, planos, pricing, módulos e add-ons da plataforma
                 </p>
               </div>
-              {isMutating && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                  Salvando...
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                <PLGSLGStrategyPDF />
+                {isMutating && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                    Salvando...
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Tabs */}
