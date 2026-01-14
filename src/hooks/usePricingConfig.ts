@@ -122,54 +122,61 @@ function generatePricingMatrix(): PlanPricingMatrix[] {
   // Mínimo: R$ 2.997/mês | Desconto anual: 2 meses grátis (16,67%)
   // Setup SMB e SMB+ = 2 × mensalidade | Outros portes = 1 × mensalidade
   const prices: Record<string, Record<string, { monthly: number; annual: number; setup: number }>> = {
-    // SMB (< R$ 50M/ano) - Setup = 2 × mensalidade
+    // SMB (< R$ 50M/ano) - Setup = 2 × mensalidade | Anual = Mensal × 12
     smb: { 
-      essencial: { monthly: 2997, annual: 29970, setup: 5994 }, // 2 × 2997
-      profissional: { monthly: 4997, annual: 49970, setup: 9994 }, // 2 × 4997
-      business: { monthly: 7997, annual: 79970, setup: 15994 }, // 2 × 7997
-      enterprise: { monthly: 12997, annual: 129970, setup: 25994 } // 2 × 12997
+      essencial: { monthly: 2997, annual: 35964, setup: 5994 }, // anual = 2997 × 12, setup = 2997 × 2
+      profissional: { monthly: 4997, annual: 59964, setup: 9994 }, // anual = 4997 × 12, setup = 4997 × 2
+      business: { monthly: 7997, annual: 95964, setup: 15994 }, // anual = 7997 × 12, setup = 7997 × 2
+      enterprise: { monthly: 12997, annual: 155964, setup: 25994 } // anual = 12997 × 12, setup = 12997 × 2
     },
-    // SMB+ (R$ 50M - R$ 300M/ano) - Setup = 2 × mensalidade
+    // SMB+ (R$ 50M - R$ 300M/ano) - Setup = 2 × mensalidade | Anual = Mensal × 12
     smb_plus: { 
-      essencial: { monthly: 3997, annual: 39970, setup: 7994 }, // 2 × 3997
-      profissional: { monthly: 5997, annual: 59970, setup: 11994 }, // 2 × 5997
-      business: { monthly: 9997, annual: 99970, setup: 19994 }, // 2 × 9997
-      enterprise: { monthly: 19997, annual: 199970, setup: 39994 } // 2 × 19997
+      essencial: { monthly: 3997, annual: 47964, setup: 7994 }, // anual = 3997 × 12, setup = 3997 × 2
+      profissional: { monthly: 5997, annual: 71964, setup: 11994 }, // anual = 5997 × 12, setup = 5997 × 2
+      business: { monthly: 9997, annual: 119964, setup: 19994 }, // anual = 9997 × 12, setup = 9997 × 2
+      enterprise: { monthly: 19997, annual: 239964, setup: 39994 } // anual = 19997 × 12, setup = 19997 × 2
     },
-    // Mid-Market (R$ 300M - R$ 1B/ano) - Setup = 1 × mensalidade
+    // Mid-Market (R$ 300M - R$ 1B/ano) - Setup = 1 × mensalidade | Anual = Mensal × 12
     mid_market: { 
-      essencial: { monthly: 5997, annual: 59970, setup: 5997 }, 
-      profissional: { monthly: 8997, annual: 89970, setup: 8997 }, 
-      business: { monthly: 14997, annual: 149970, setup: 14997 }, 
-      enterprise: { monthly: 24997, annual: 249970, setup: 24997 } 
+      essencial: { monthly: 5997, annual: 71964, setup: 5997 }, // anual = 5997 × 12, setup = 5997 × 1
+      profissional: { monthly: 8997, annual: 107964, setup: 8997 }, // anual = 8997 × 12, setup = 8997 × 1
+      business: { monthly: 14997, annual: 179964, setup: 14997 }, // anual = 14997 × 12, setup = 14997 × 1
+      enterprise: { monthly: 24997, annual: 299964, setup: 24997 } // anual = 24997 × 12, setup = 24997 × 1
     },
-    // Large (R$ 1B - R$ 5B/ano) - Setup = 1 × mensalidade
+    // Large (R$ 1B - R$ 5B/ano) - Setup = 1 × mensalidade | Anual = Mensal × 12
     large: { 
-      essencial: { monthly: 9997, annual: 99970, setup: 9997 }, 
-      profissional: { monthly: 14997, annual: 149970, setup: 14997 }, 
-      business: { monthly: 24997, annual: 249970, setup: 24997 }, 
-      enterprise: { monthly: 49997, annual: 499970, setup: 49997 } 
+      essencial: { monthly: 9997, annual: 119964, setup: 9997 }, // anual = 9997 × 12, setup = 9997 × 1
+      profissional: { monthly: 14997, annual: 179964, setup: 14997 }, // anual = 14997 × 12, setup = 14997 × 1
+      business: { monthly: 24997, annual: 299964, setup: 24997 }, // anual = 24997 × 12, setup = 24997 × 1
+      enterprise: { monthly: 49997, annual: 599964, setup: 49997 } // anual = 49997 × 12, setup = 49997 × 1
     },
-    // Enterprise (R$ 5B+ ou Listada B3) - Setup = 1 × mensalidade
+    // Enterprise (R$ 5B+ ou Listada B3) - Setup = 1 × mensalidade | Anual = Mensal × 12
     enterprise: { 
-      essencial: { monthly: 14997, annual: 149970, setup: 14997 }, 
-      profissional: { monthly: 24997, annual: 249970, setup: 24997 }, 
-      business: { monthly: 49997, annual: 499970, setup: 49997 }, 
-      enterprise: { monthly: 99997, annual: 999970, setup: 99997 } 
+      essencial: { monthly: 14997, annual: 179964, setup: 14997 }, // anual = 14997 × 12, setup = 14997 × 1
+      profissional: { monthly: 24997, annual: 299964, setup: 24997 }, // anual = 24997 × 12, setup = 24997 × 1
+      business: { monthly: 49997, annual: 599964, setup: 49997 }, // anual = 49997 × 12, setup = 49997 × 1
+      enterprise: { monthly: 99997, annual: 1199964, setup: 99997 } // anual = 99997 × 12, setup = 99997 × 1
     },
   };
 
   let id = 1;
   INITIAL_SIZES.forEach((size) => {
     INITIAL_PLANS.forEach((plan) => {
-      const price = prices[size.key]?.[plan.key] || { monthly: 2997, annual: 29970, setup: 2997 };
+      const price = prices[size.key]?.[plan.key] || { monthly: 2997, annual: 35964, setup: 5994 };
+      const isSMB = size.key === 'smb' || size.key === 'smb_plus';
+      
+      // Garantir que anual = mensal × 12 e setup = mensal × 2 (SMB) ou mensal × 1 (outros)
+      const monthly = price.monthly;
+      const annual = monthly * 12; // Anual sempre = Mensal × 12
+      const setup = isSMB ? monthly * 2 : monthly; // Setup = Mensal × 2 para SMB/SMB+, senão = Mensal
+      
       matrix.push({
         id: String(id++),
         company_size_id: size.id,
         plan_id: plan.id,
-        monthly_price: price.monthly,
-        annual_price: price.annual,
-        setup_fee: price.setup,
+        monthly_price: monthly,
+        annual_price: annual,
+        setup_fee: setup,
         is_active: true,
         is_recommended: plan.key === "profissional" && (size.key === "smb_plus" || size.key === "mid_market"),
       });
