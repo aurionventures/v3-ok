@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
 import { usePricingConfig, CompanySize, SubscriptionPlan, PlanPricingMatrix, AddonCatalog, Module } from '@/hooks/usePricingConfig';
 import { calculateComplexityScore, getComplexityLevel, PRICING_MATRIX } from '@/data/pricingData';
 import { FileDown } from 'lucide-react';
@@ -223,6 +223,14 @@ function PLGSLGStrategyPDFDocument({
     <Document>
       {/* Página 1: Capa e Visão Geral */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Image 
+            src="/src/assets/legacy-logo.png" 
+            style={styles.logo}
+          />
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Estratégia PLG/SLG Legacy OS</Text>
           <Text style={styles.subtitle}>Crescimento Orientado a Produto / Crescimento Orientado a Vendas</Text>
@@ -240,7 +248,7 @@ function PLGSLGStrategyPDFDocument({
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Portes de Empresa e Planos de Assinatura</Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Matriz Completa de Pricing (Mensal, Anual, Setup)</Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Sistema de Scoring de Complexidade</Text>
-          <Text style={{ fontSize: 9, marginBottom: 4 }}>• Módulos Core e Add-ons Disponíveis</Text>
+          <Text style={{ fontSize: 9, marginBottom: 4 }}>• Módulos Principais e Complementos Disponíveis</Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Lógica de Recomendação de Planos</Text>
         </View>
 
@@ -259,17 +267,17 @@ function PLGSLGStrategyPDFDocument({
             <Text style={styles.summaryValue}>{pricingMatrix.length}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Módulos Core:</Text>
+            <Text style={styles.summaryLabel}>Módulos Principais:</Text>
             <Text style={styles.summaryValue}>{modules.filter(m => !m.is_addon).length}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Add-ons Disponíveis:</Text>
+            <Text style={styles.summaryLabel}>Complementos Disponíveis:</Text>
             <Text style={styles.summaryValue}>{addons.length}</Text>
           </View>
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -291,12 +299,12 @@ function PLGSLGStrategyPDFDocument({
               <View key={size.id} style={styles.tableRow}>
                 <Text style={[styles.tableCell, styles.tableCellFirst]}>{size.name}</Text>
                 <Text style={styles.tableCell}>{size.description || '-'}</Text>
-                <Text style={styles.tableCell}>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>
                   {size.revenue_min === 0 ? '< R$ 50M' : 
                    size.revenue_min ? `R$ ${(size.revenue_min / 1000000).toFixed(0)}M` : ''}
                   {size.revenue_max ? ` - R$ ${(size.revenue_max / 1000000).toFixed(0)}M` : size.revenue_min ? ' - ∞' : ''}
                 </Text>
-                <Text style={styles.tableCell}>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>
                   {size.employee_min || '-'}
                   {size.employee_max ? ` - ${size.employee_max}` : size.employee_min ? ' - ∞' : ''}
                 </Text>
@@ -313,22 +321,22 @@ function PLGSLGStrategyPDFDocument({
               <Text style={styles.tableCell}>Descrição</Text>
               <Text style={styles.tableCell}>Max Empresas</Text>
               <Text style={styles.tableCell}>Max Conselhos</Text>
-              <Text style={styles.tableCell}>Add-ons Incluídos</Text>
+              <Text style={styles.tableCell}>Complementos Incluídos</Text>
             </View>
             {subscriptionPlans.map((plan) => (
               <View key={plan.id} style={styles.tableRow}>
                 <Text style={[styles.tableCell, styles.tableCellFirst]}>{plan.name}</Text>
                 <Text style={styles.tableCell}>{plan.description || '-'}</Text>
-                <Text style={styles.tableCell}>{plan.max_companies || 'Ilimitado'}</Text>
-                <Text style={styles.tableCell}>{plan.max_councils || 'Ilimitado'}</Text>
-                <Text style={styles.tableCell}>{plan.included_addons || 0}</Text>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>{plan.max_companies || 'Ilimitado'}</Text>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>{plan.max_councils || 'Ilimitado'}</Text>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>{plan.included_addons || 0}</Text>
               </View>
             ))}
           </View>
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -368,7 +376,7 @@ function PLGSLGStrategyPDFDocument({
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -440,7 +448,7 @@ function PLGSLGStrategyPDFDocument({
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -454,7 +462,7 @@ function PLGSLGStrategyPDFDocument({
           <Text style={styles.sectionTitle}>Fórmula de Cálculo</Text>
           <View style={styles.formulaBox}>
             <Text style={styles.formulaText}>
-              Complexity Score = (Empresas × 1) + (Conselhos × 3) + (Comitês × 2) + (Reuniões ÷ 10)
+              Pontuação de Complexidade = (Empresas × 1) + (Conselhos × 3) + (Comitês × 2) + (Reuniões ÷ 10)
             </Text>
           </View>
         </View>
@@ -470,33 +478,33 @@ function PLGSLGStrategyPDFDocument({
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>Empresas</Text>
-              <Text style={styles.tableCell}>×1</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>×1</Text>
               <Text style={styles.tableCell}>Cada empresa no grupo adiciona 1 ponto</Text>
-              <Text style={[styles.tableCell, { color: '#10b981' }]}>Baixo</Text>
+              <Text style={[styles.tableCell, { color: '#10b981', textAlign: 'center' }]}>Baixo</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>Conselhos</Text>
-              <Text style={styles.tableCell}>×3</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>×3</Text>
               <Text style={styles.tableCell}>Cada conselho de administração adiciona 3 pontos</Text>
-              <Text style={[styles.tableCell, { color: '#f97316' }]}>Alto</Text>
+              <Text style={[styles.tableCell, { color: '#f97316', textAlign: 'center' }]}>Alto</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>Comitês</Text>
-              <Text style={styles.tableCell}>×2</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>×2</Text>
               <Text style={styles.tableCell}>Cada comitê formal adiciona 2 pontos</Text>
-              <Text style={[styles.tableCell, { color: '#f59e0b' }]}>Médio</Text>
+              <Text style={[styles.tableCell, { color: '#f59e0b', textAlign: 'center' }]}>Médio</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>Reuniões/Ano</Text>
-              <Text style={styles.tableCell}>÷10</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>÷10</Text>
               <Text style={styles.tableCell}>Volume anual de reuniões dividido por 10</Text>
-              <Text style={[styles.tableCell, { color: '#3b82f6' }]}>Variável</Text>
+              <Text style={[styles.tableCell, { color: '#3b82f6', textAlign: 'center' }]}>Variável</Text>
             </View>
           </View>
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -507,10 +515,10 @@ function PLGSLGStrategyPDFDocument({
         </View>
 
         <View style={styles.section} wrap={false}>
-          <Text style={styles.sectionTitle}>Thresholds de Score para Recomendação</Text>
+          <Text style={styles.sectionTitle}>Limiares de Score para Recomendação</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, styles.tableCellFirst]}>Score</Text>
+              <Text style={[styles.tableCell, styles.tableCellFirst]}>Pontuação</Text>
               <Text style={styles.tableCell}>Nível</Text>
               <Text style={styles.tableCell}>Plano Recomendado</Text>
               <Text style={styles.tableCell}>Exemplo (SMB)</Text>
@@ -519,25 +527,25 @@ function PLGSLGStrategyPDFDocument({
               <Text style={[styles.tableCell, styles.tableCellFirst]}>≤ 10</Text>
               <Text style={[styles.tableCell, { color: '#10b981' }]}>Baixa</Text>
               <Text style={styles.tableCell}>Essencial</Text>
-              <Text style={styles.tableCell}>R$ 2.997,00/mês</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 2.997,00/mês</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>11 - 20</Text>
               <Text style={[styles.tableCell, { color: '#f59e0b' }]}>Moderada</Text>
               <Text style={styles.tableCell}>Profissional</Text>
-              <Text style={styles.tableCell}>R$ 4.997,00/mês</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 4.997,00/mês</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>21 - 40</Text>
               <Text style={[styles.tableCell, { color: '#f97316' }]}>Alta</Text>
               <Text style={styles.tableCell}>Business</Text>
-              <Text style={styles.tableCell}>R$ 7.997,00/mês</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 7.997,00/mês</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>&gt; 40</Text>
               <Text style={[styles.tableCell, { color: '#ef4444' }]}>Muito Alta</Text>
               <Text style={styles.tableCell}>Enterprise</Text>
-              <Text style={styles.tableCell}>R$ 12.997,00/mês</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 12.997,00/mês</Text>
             </View>
           </View>
         </View>
@@ -551,7 +559,7 @@ function PLGSLGStrategyPDFDocument({
               <Text style={styles.tableCell}>Conselhos</Text>
               <Text style={styles.tableCell}>Comitês</Text>
               <Text style={styles.tableCell}>Reuniões</Text>
-              <Text style={styles.tableCell}>Score</Text>
+              <Text style={styles.tableCell}>Pontuação</Text>
               <Text style={styles.tableCell}>Nível</Text>
             </View>
             {exemplos.map((exemplo) => {
@@ -559,15 +567,17 @@ function PLGSLGStrategyPDFDocument({
               return (
                 <View key={exemplo.nome} style={styles.tableRow}>
                   <Text style={[styles.tableCell, styles.tableCellFirst]}>{exemplo.nome}</Text>
-                  <Text style={styles.tableCell}>{exemplo.empresas}</Text>
-                  <Text style={styles.tableCell}>{exemplo.conselhos}</Text>
-                  <Text style={styles.tableCell}>{exemplo.comites}</Text>
-                  <Text style={styles.tableCell}>{exemplo.reunioes}</Text>
-                  <Text style={styles.tableCell}>{score}</Text>
-                  <Text style={[styles.tableCell, { color: 
-                    level.level === 'Baixa' ? '#10b981' :
-                    level.level === 'Moderada' ? '#f59e0b' :
-                    level.level === 'Alta' ? '#f97316' : '#ef4444'
+                  <Text style={[styles.tableCell, { textAlign: 'center' }]}>{exemplo.empresas}</Text>
+                  <Text style={[styles.tableCell, { textAlign: 'center' }]}>{exemplo.conselhos}</Text>
+                  <Text style={[styles.tableCell, { textAlign: 'center' }]}>{exemplo.comites}</Text>
+                  <Text style={[styles.tableCell, { textAlign: 'center' }]}>{exemplo.reunioes}</Text>
+                  <Text style={[styles.tableCell, { textAlign: 'center' }]}>{score}</Text>
+                  <Text style={[styles.tableCell, { 
+                    color: 
+                      level.level === 'Baixa' ? '#10b981' :
+                      level.level === 'Moderada' ? '#f59e0b' :
+                      level.level === 'Alta' ? '#f97316' : '#ef4444',
+                    textAlign: 'center'
                   }]}>{level.level}</Text>
                 </View>
               );
@@ -576,18 +586,18 @@ function PLGSLGStrategyPDFDocument({
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
       {/* Página 7: Módulos e Add-ons */}
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.title}>Módulos e Add-ons</Text>
+          <Text style={styles.title}>Módulos e Complementos</Text>
         </View>
 
         <View style={styles.section} wrap={false}>
-          <Text style={styles.sectionTitle}>Módulos Core ({modules.filter(m => !m.is_addon).length})</Text>
+          <Text style={styles.sectionTitle}>Módulos Principais ({modules.filter(m => !m.is_addon).length})</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>Módulo</Text>
@@ -598,17 +608,17 @@ function PLGSLGStrategyPDFDocument({
               <View key={module.id} style={styles.tableRow}>
                 <Text style={[styles.tableCell, styles.tableCellFirst]}>{module.name}</Text>
                 <Text style={styles.tableCell}>{module.description || '-'}</Text>
-                <Text style={styles.tableCell}>{module.section_label || module.section || '-'}</Text>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>{module.section_label || module.section || '-'}</Text>
               </View>
             ))}
           </View>
         </View>
 
         <View style={styles.section} wrap={false}>
-          <Text style={styles.sectionTitle}>Add-ons Disponíveis ({addons.length})</Text>
+          <Text style={styles.sectionTitle}>Complementos Disponíveis ({addons.length})</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, styles.tableCellFirst]}>Add-on</Text>
+              <Text style={[styles.tableCell, styles.tableCellFirst]}>Complemento</Text>
               <Text style={styles.tableCell}>Descrição</Text>
               <Text style={styles.tableCell}>Mensal</Text>
               <Text style={styles.tableCell}>Anual</Text>
@@ -618,20 +628,20 @@ function PLGSLGStrategyPDFDocument({
               <View key={addon.id} style={styles.tableRow}>
                 <Text style={[styles.tableCell, styles.tableCellFirst]}>{addon.name}</Text>
                 <Text style={styles.tableCell}>{addon.description || '-'}</Text>
-                <Text style={[styles.tableCell, { color: '#059669' }]}>
+                <Text style={[styles.tableCell, { color: '#059669', textAlign: 'center' }]}>
                   {formatPricePDF(addon.monthly_price)}
                 </Text>
-                <Text style={[styles.tableCell, { color: '#059669' }]}>
+                <Text style={[styles.tableCell, { color: '#059669', textAlign: 'center' }]}>
                   {formatPricePDF(addon.annual_price)}
                 </Text>
-                <Text style={styles.tableCell}>{addon.category || '-'}</Text>
+                <Text style={[styles.tableCell, { textAlign: 'center' }]}>{addon.category || '-'}</Text>
               </View>
             ))}
           </View>
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -648,7 +658,7 @@ function PLGSLGStrategyPDFDocument({
           </Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Calculadora de Complexidade interativa</Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Quiz de Descoberta de Planos</Text>
-          <Text style={{ fontSize: 9, marginBottom: 4 }}>• Recomendação automática baseada em score</Text>
+          <Text style={{ fontSize: 9, marginBottom: 4 }}>• Recomendação automática baseada em pontuação</Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Teste gratuito e integração guiada</Text>
           <Text style={{ fontSize: 9, marginBottom: 4 }}>• Autoatendimento de ativação</Text>
         </View>
@@ -680,17 +690,17 @@ function PLGSLGStrategyPDFDocument({
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>2. Recomendação</Text>
-              <Text style={styles.tableCell}>Score de Complexidade</Text>
+              <Text style={styles.tableCell}>Pontuação de Complexidade</Text>
               <Text style={styles.tableCell}>Precisão da recomendação</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>3. Ativação</Text>
-              <Text style={styles.tableCell}>Checkout / Contrato</Text>
+              <Text style={styles.tableCell}>Finalização de Compra / Contrato</Text>
               <Text style={styles.tableCell}>Taxa de conversão</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>4. Expansão</Text>
-              <Text style={styles.tableCell}>Add-ons / Upgrade</Text>
+              <Text style={styles.tableCell}>Complementos / Atualização</Text>
               <Text style={styles.tableCell}>Receita recorrente</Text>
             </View>
           </View>
@@ -708,12 +718,12 @@ function PLGSLGStrategyPDFDocument({
             • <strong>Flexibilidade:</strong> Planos escaláveis conforme crescimento
           </Text>
           <Text style={{ fontSize: 9, marginBottom: 4, lineHeight: 1.5 }}>
-            • <strong>Valor:</strong> ROI claro e mensurável para cada plano
+            • <strong>Valor:</strong> Retorno sobre Investimento (ROI) claro e mensurável para cada plano
           </Text>
         </View>
 
         <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-          `Página ${pageNumber} de ${totalPages}`
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
     </Document>
