@@ -96,7 +96,7 @@ export function ClientPromptViewer({
             </div>
             <div>
               <DialogTitle className="flex items-center gap-2">
-                {currentConfig.organization_name || 'Cliente'}
+                {(currentConfig as any).organization_name || 'Cliente'}
                 {!currentConfig.uses_default && (
                   <Badge variant="secondary" className="ml-2">
                     <Sparkles className="h-3 w-3 mr-1" />

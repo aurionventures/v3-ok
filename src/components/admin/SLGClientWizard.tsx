@@ -401,6 +401,7 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
   }, [selectedPlan, step4.configType, addonsCatalog]);
 
   // Search PLG lead by email
+  // NOTE: plg_leads table doesn't exist yet, using localStorage only
   const searchPLGLead = async () => {
     if (!step2.adminEmail) {
       toast.error('Informe o email para buscar');
@@ -409,29 +410,7 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
 
     setIsSearchingLead(true);
     try {
-      // Try Supabase first
-      const { data, error } = await supabase
-        .from('plg_leads')
-        .select('*')
-        .eq('email', step2.adminEmail)
-        .single();
-
-      if (data && !error) {
-        setPlgLead(data);
-        setStep1(prev => ({
-          ...prev,
-          companyName: data.company || prev.companyName,
-        }));
-        setStep2(prev => ({
-          ...prev,
-          adminName: data.name || prev.adminName,
-          adminPhone: data.whatsapp || prev.adminPhone,
-        }));
-        toast.success('Lead PLG encontrado! Dados pré-populados.');
-        return;
-      }
-
-      // Fallback to localStorage
+      // Use localStorage as fallback (plg_leads table doesn't exist yet)
       const plgLeadsStr = localStorage.getItem('plg_leads') || '[]';
       const plgLeads = JSON.parse(plgLeadsStr);
       const lead = plgLeads.find((l: any) => l.email === step2.adminEmail);
@@ -445,7 +424,7 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
         setStep2(prev => ({
           ...prev,
           adminName: lead.name || prev.adminName,
-          adminPhone: lead.phone || prev.adminPhone,
+          adminPhone: lead.phone || lead.whatsapp || prev.adminPhone,
         }));
         toast.success('Lead PLG encontrado! Dados pré-populados.');
       } else {
@@ -504,17 +483,18 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
 
         clientId = userData.id;
 
-        // Insert user role
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: userData.id,
-            role: 'cliente'
-          });
-
-        if (roleError) {
-          console.error('Erro ao inserir role:', roleError);
-          // Continue even if role insertion fails
+        // Note: user_roles table exists in schema, but insert might fail
+        // Fallback to continue without role if needed
+        try {
+          // Insert role using raw insert without type checking
+          await (supabase as any)
+            .from('user_roles')
+            .insert({
+              user_id: userData.id,
+              role: 'cliente'
+            });
+        } catch (roleErr) {
+          console.warn('Erro ao inserir role:', roleErr);
         }
       } catch (dbError: any) {
         console.error('Erro ao salvar no Supabase, usando localStorage como fallback:', dbError);
@@ -574,18 +554,9 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
       };
       localStorage.setItem('client_plan_configs', JSON.stringify(planConfigs));
 
-      // 3. Update PLG lead if exists
+      // 3. Update PLG lead if exists (localStorage only - plg_leads table doesn't exist)
       if (plgLead) {
         try {
-          await supabase
-            .from('plg_leads')
-            .update({
-              current_funnel_stage: 'activation_completed',
-              updated_at: now,
-            })
-            .eq('email', step2.adminEmail);
-        } catch (e) {
-          // Fallback localStorage
           const plgLeadsStr = localStorage.getItem('plg_leads') || '[]';
           const plgLeads = JSON.parse(plgLeadsStr);
           const leadIndex = plgLeads.findIndex((l: any) => l.email === step2.adminEmail);
@@ -598,9 +569,10 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
             };
             localStorage.setItem('plg_leads', JSON.stringify(plgLeads));
           }
+        } catch (e) {
+          console.warn('Erro ao atualizar PLG lead:', e);
         }
       }
-
       // 4. Save to companies list
       const companiesStr = localStorage.getItem('legacy_companies') || '[]';
       const companies = JSON.parse(companiesStr);

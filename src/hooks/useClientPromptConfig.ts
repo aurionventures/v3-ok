@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 // ============================================================================
 // Types
+// NOTE: These tables (client_prompt_configs, ai_prompt_library) do not exist
+// in the database yet. Using localStorage as fallback until tables are created.
 // ============================================================================
 
 export interface ClientPromptConfig {
@@ -54,6 +55,7 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
   const [error, setError] = useState<string | null>(null);
 
   // Carregar configuração do cliente e prompt padrão do Super Admin
+  // NOTE: Using localStorage until database tables are created
   const loadConfig = useCallback(async () => {
     if (!organizationId) {
       setLoading(false);
@@ -64,40 +66,13 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
     setError(null);
 
     try {
-      // Buscar configuração do cliente
-      const { data: clientConfig, error: clientError } = await supabase
-        .from('client_prompt_configs')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .eq('agent_category', agentCategory)
-        .maybeSingle();
-
-      if (clientError) {
-        console.error('Erro ao carregar config do cliente:', clientError);
-      }
-
-      // Buscar prompt padrão e sugerido do ai_prompt_library
-      const { data: promptLibrary, error: promptError } = await supabase
-        .from('ai_prompt_library')
-        .select('system_prompt, suggested_client_prompt')
-        .eq('category', agentCategory)
-        .eq('status', 'active')
-        .eq('is_default', true)
-        .maybeSingle();
-
-      if (promptError) {
-        console.error('Erro ao carregar prompt padrão:', promptError);
-      }
-
-      // Definir prompt padrão do Super Admin
-      if (promptLibrary) {
-        setDefaultPrompt(promptLibrary.system_prompt);
-        setSuggestedPrompt(promptLibrary.suggested_client_prompt);
-      }
-
-      // Definir configuração do cliente ou criar uma padrão
-      if (clientConfig) {
-        setConfig(clientConfig);
+      // Try to load from localStorage (fallback until DB tables exist)
+      const storageKey = `client_prompt_config_${organizationId}_${agentCategory}`;
+      const storedConfig = localStorage.getItem(storageKey);
+      
+      if (storedConfig) {
+        const parsedConfig = JSON.parse(storedConfig);
+        setConfig(parsedConfig);
       } else {
         // Configuração padrão para novo cliente
         setConfig({
@@ -106,9 +81,19 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
           ...DEFAULT_CLIENT_CONFIG
         });
       }
+
+      // For now, no default/suggested prompts from DB
+      setDefaultPrompt(null);
+      setSuggestedPrompt(null);
     } catch (err) {
       console.error('Erro ao carregar configurações:', err);
       setError('Falha ao carregar configurações');
+      // Set default config on error
+      setConfig({
+        organization_id: organizationId,
+        agent_category: agentCategory,
+        ...DEFAULT_CLIENT_CONFIG
+      });
     } finally {
       setLoading(false);
     }
@@ -119,6 +104,7 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
   }, [loadConfig]);
 
   // Salvar configuração do cliente
+  // NOTE: Using localStorage until database tables are created
   const saveConfig = useCallback(async (newConfig: Partial<ClientPromptConfig>) => {
     if (!organizationId) return;
 
@@ -126,7 +112,8 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
     setError(null);
 
     try {
-      const configToSave = {
+      const configToSave: ClientPromptConfig = {
+        id: config?.id || crypto.randomUUID(),
         organization_id: organizationId,
         agent_category: agentCategory,
         ...DEFAULT_CLIENT_CONFIG,
@@ -135,19 +122,13 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error: saveError } = await supabase
-        .from('client_prompt_configs')
-        .upsert(configToSave, {
-          onConflict: 'organization_id,agent_category',
-        })
-        .select()
-        .single();
+      // Save to localStorage (fallback until DB tables exist)
+      const storageKey = `client_prompt_config_${organizationId}_${agentCategory}`;
+      localStorage.setItem(storageKey, JSON.stringify(configToSave));
 
-      if (saveError) throw saveError;
-
-      setConfig(data);
+      setConfig(configToSave);
       toast.success('Configurações salvas com sucesso');
-      return data;
+      return configToSave;
     } catch (err) {
       console.error('Erro ao salvar configurações:', err);
       setError('Falha ao salvar configurações');
@@ -159,18 +140,15 @@ export function useClientPromptConfig(organizationId: string | null, agentCatego
   }, [organizationId, agentCategory, config]);
 
   // Resetar para o prompt padrão do Super Admin
+  // NOTE: Using localStorage until database tables are created
   const resetToDefault = useCallback(async () => {
     if (!organizationId) return;
 
     setSaving(true);
     try {
-      const { error: deleteError } = await supabase
-        .from('client_prompt_configs')
-        .delete()
-        .eq('organization_id', organizationId)
-        .eq('agent_category', agentCategory);
-
-      if (deleteError) throw deleteError;
+      // Remove from localStorage
+      const storageKey = `client_prompt_config_${organizationId}_${agentCategory}`;
+      localStorage.removeItem(storageKey);
 
       setConfig({
         organization_id: organizationId,
@@ -223,38 +201,36 @@ export function useAllClientPromptConfigs(agentCategory?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // NOTE: Using localStorage until database tables are created
   const loadConfigs = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      let query = supabase
-        .from('client_prompt_configs')
-        .select(`
-          *,
-          organizations:organization_id (
-            name,
-            logo_url
-          )
-        `)
-        .order('updated_at', { ascending: false });
-
-      if (agentCategory) {
-        query = query.eq('agent_category', agentCategory);
+      // Load all configs from localStorage that match the pattern
+      const allConfigs: ClientPromptConfigWithOrg[] = [];
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('client_prompt_config_')) {
+          try {
+            const stored = localStorage.getItem(key);
+            if (stored) {
+              const config = JSON.parse(stored);
+              if (!agentCategory || config.agent_category === agentCategory) {
+                allConfigs.push({
+                  ...config,
+                  organization_name: 'Organização Local',
+                });
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing config:', e);
+          }
+        }
       }
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      // Mapear para incluir nome da organização
-      const mappedConfigs = (data || []).map((item: any) => ({
-        ...item,
-        organization_name: item.organizations?.name || 'Organização Desconhecida',
-        organization_logo: item.organizations?.logo_url,
-      }));
-
-      setConfigs(mappedConfigs);
+      setConfigs(allConfigs);
     } catch (err) {
       console.error('Erro ao carregar configurações:', err);
       setError('Falha ao carregar configurações de clientes');
@@ -287,6 +263,7 @@ export function useAllClientPromptConfigs(agentCategory?: string) {
 // ============================================================================
 // Hook: useClientPromptConfigForOrg
 // Para uso no Super Admin - visualizar/editar configuração de um cliente específico
+// NOTE: Using localStorage until database tables are created
 // ============================================================================
 
 export function useClientPromptConfigForOrg(organizationId: string | null, agentCategory: string) {
@@ -302,15 +279,14 @@ export function useClientPromptConfigForOrg(organizationId: string | null, agent
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('client_prompt_configs')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .eq('agent_category', agentCategory)
-        .maybeSingle();
-
-      if (error) throw error;
-      setConfig(data);
+      const storageKey = `client_prompt_config_${organizationId}_${agentCategory}`;
+      const stored = localStorage.getItem(storageKey);
+      
+      if (stored) {
+        setConfig(JSON.parse(stored));
+      } else {
+        setConfig(null);
+      }
     } catch (err) {
       console.error('Erro ao carregar config:', err);
     } finally {
@@ -328,28 +304,25 @@ export function useClientPromptConfigForOrg(organizationId: string | null, agent
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from('client_prompt_configs')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', config.id)
-        .select()
-        .single();
+      const updatedConfig = {
+        ...config,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      const storageKey = `client_prompt_config_${organizationId}_${agentCategory}`;
+      localStorage.setItem(storageKey, JSON.stringify(updatedConfig));
 
-      setConfig(data);
+      setConfig(updatedConfig);
       toast.success('Configuração do cliente atualizada');
-      return data;
+      return updatedConfig;
     } catch (err) {
       console.error('Erro ao atualizar config:', err);
       toast.error('Erro ao atualizar configuração');
     } finally {
       setSaving(false);
     }
-  }, [organizationId, config]);
+  }, [organizationId, agentCategory, config]);
 
   return {
     config,

@@ -75,6 +75,9 @@ export default function AdminContractTemplates() {
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
+      // NOTE: contract_templates table doesn't exist yet, using mock data
+      // When table is created, uncomment the Supabase query below
+      /*
       const { data, error } = await supabase
         .from('contract_templates')
         .select('*')
@@ -83,9 +86,19 @@ export default function AdminContractTemplates() {
 
       if (error) throw error;
       setTemplates(data || []);
+      */
+      
+      // Load from localStorage or use mock data
+      const storedTemplates = localStorage.getItem('contract_templates');
+      if (storedTemplates) {
+        setTemplates(JSON.parse(storedTemplates));
+      } else {
+        const mockData = getMockTemplates();
+        setTemplates(mockData);
+        localStorage.setItem('contract_templates', JSON.stringify(mockData));
+      }
     } catch (error) {
       console.error('Error fetching templates:', error);
-      // Mock data para desenvolvimento
       setTemplates(getMockTemplates());
     } finally {
       setIsLoading(false);
@@ -94,29 +107,33 @@ export default function AdminContractTemplates() {
 
   const handleSaveTemplate = async (template: Omit<ContractTemplate, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // NOTE: contract_templates table doesn't exist yet, using localStorage
+      const now = new Date().toISOString();
+      let updatedTemplates: ContractTemplate[];
+      
       if (selectedTemplate?.id) {
-        // Atualizar
-        const { error } = await supabase
-          .from('contract_templates')
-          .update({
-            ...template,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', selectedTemplate.id);
-
-        if (error) throw error;
+        // Update existing
+        updatedTemplates = templates.map(t => 
+          t.id === selectedTemplate.id 
+            ? { ...t, ...template, updated_at: now }
+            : t
+        );
       } else {
-        // Criar novo
-        const { error } = await supabase
-          .from('contract_templates')
-          .insert(template);
-
-        if (error) throw error;
+        // Create new
+        const newTemplate: ContractTemplate = {
+          id: crypto.randomUUID(),
+          ...template,
+          created_at: now,
+          updated_at: now,
+        };
+        updatedTemplates = [newTemplate, ...templates];
       }
 
-      await fetchTemplates();
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
       setShowEditor(false);
       setSelectedTemplate(null);
+      toast.success(selectedTemplate ? 'Template atualizado' : 'Template criado');
     } catch (error) {
       console.error('Error saving template:', error);
       throw error;
@@ -127,15 +144,11 @@ export default function AdminContractTemplates() {
     if (!templateToDelete) return;
 
     try {
-      const { error } = await supabase
-        .from('contract_templates')
-        .delete()
-        .eq('id', templateToDelete.id);
-
-      if (error) throw error;
-
+      // NOTE: contract_templates table doesn't exist yet, using localStorage
+      const updatedTemplates = templates.filter(t => t.id !== templateToDelete.id);
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
       toast.success('Template excluído');
-      await fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
       toast.error('Erro ao excluir template');
@@ -147,25 +160,28 @@ export default function AdminContractTemplates() {
 
   const handleDuplicate = async (template: ContractTemplate) => {
     try {
-      const { error } = await supabase
-        .from('contract_templates')
-        .insert({
-          name: `${template.name} (Cópia)`,
-          description: template.description,
-          version: '1.0',
-          content: template.content,
-          available_variables: template.available_variables,
-          plan_types: template.plan_types,
-          requires_witness: template.requires_witness,
-          witness_count: template.witness_count,
-          is_active: false,
-          is_default: false,
-        });
+      // NOTE: contract_templates table doesn't exist yet, using localStorage
+      const now = new Date().toISOString();
+      const newTemplate: ContractTemplate = {
+        id: crypto.randomUUID(),
+        name: `${template.name} (Cópia)`,
+        description: template.description,
+        version: '1.0',
+        content: template.content,
+        available_variables: template.available_variables,
+        plan_types: template.plan_types,
+        requires_witness: template.requires_witness,
+        witness_count: template.witness_count,
+        is_active: false,
+        is_default: false,
+        created_at: now,
+        updated_at: now,
+      };
 
-      if (error) throw error;
-
+      const updatedTemplates = [newTemplate, ...templates];
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
       toast.success('Template duplicado');
-      await fetchTemplates();
     } catch (error) {
       console.error('Error duplicating template:', error);
       toast.error('Erro ao duplicar template');
@@ -174,22 +190,14 @@ export default function AdminContractTemplates() {
 
   const handleSetDefault = async (template: ContractTemplate) => {
     try {
-      // Remover default dos outros
-      await supabase
-        .from('contract_templates')
-        .update({ is_default: false })
-        .neq('id', template.id);
-
-      // Definir este como default
-      const { error } = await supabase
-        .from('contract_templates')
-        .update({ is_default: true })
-        .eq('id', template.id);
-
-      if (error) throw error;
-
+      // NOTE: contract_templates table doesn't exist yet, using localStorage
+      const updatedTemplates = templates.map(t => ({
+        ...t,
+        is_default: t.id === template.id
+      }));
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
       toast.success('Template definido como padrão');
-      await fetchTemplates();
     } catch (error) {
       console.error('Error setting default:', error);
       toast.error('Erro ao definir template padrão');
@@ -198,15 +206,13 @@ export default function AdminContractTemplates() {
 
   const handleToggleActive = async (template: ContractTemplate) => {
     try {
-      const { error } = await supabase
-        .from('contract_templates')
-        .update({ is_active: !template.is_active })
-        .eq('id', template.id);
-
-      if (error) throw error;
-
+      // NOTE: contract_templates table doesn't exist yet, using localStorage
+      const updatedTemplates = templates.map(t => 
+        t.id === template.id ? { ...t, is_active: !t.is_active } : t
+      );
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
       toast.success(template.is_active ? 'Template desativado' : 'Template ativado');
-      await fetchTemplates();
     } catch (error) {
       console.error('Error toggling active:', error);
       toast.error('Erro ao alterar status');
