@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare, BookOpen, Building2, Target, LayoutDashboard } from "lucide-react";
+import { Settings as SettingsIcon, Save, Shield, Bell, Users, FileText, Globe, Calendar, Mail, Smartphone, MessageSquare, ListTodo, Clock, AlertTriangle, ActivitySquare } from "lucide-react";
 import { UserManagementTab } from "@/components/settings/UserManagementTab";
 import { AIParameterizationTab } from "@/components/settings/AIParameterizationTab";
 import ActivitiesLogTab from "@/components/settings/ActivitiesLogTab";
-import { KnowledgeBaseWidget } from "@/components/dashboard/KnowledgeBaseWidget";
-import { useMockOnboarding, useMockCompanyProfile, useMockStrategicContext, useMockDocumentLibrary, useMockOnboardingProgress } from "@/hooks/useMockOnboarding";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,14 +16,10 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
-import { Phase1BasicSetup, Phase2DocumentUpload, Phase3StrategicContext, OnboardingDashboard } from '@/components/onboarding';
-import type { Phase1FormData, Phase3FormData, DocumentCategory } from '@/types/onboarding';
-import { useNavigate } from 'react-router-dom';
 const Settings = () => {
   const {
     user
   } = useAuth();
-  const navigate = useNavigate();
   const {
     preferences,
     loading,
@@ -34,37 +28,6 @@ const Settings = () => {
   } = useNotificationPreferences();
   const isOrgAdmin = user?.orgRole === 'org_admin' || !user?.orgRole;
   const isSuperAdmin = user?.role === 'admin';
-
-  // Knowledge Base Onboarding Hooks - USANDO DADOS MOCK
-  const {
-    profile,
-    saveProfile,
-    isSaving: isSavingProfile,
-    initialFormData: phase1FormData
-  } = useMockCompanyProfile();
-  const {
-    context,
-    saveContext,
-    isSaving: isSavingContext,
-    initialFormData: phase3FormData
-  } = useMockStrategicContext();
-  const {
-    documents,
-    uploadDocument,
-    deleteDocument,
-    isUploading
-  } = useMockDocumentLibrary();
-  const {
-    progress,
-    score,
-    getNextSteps,
-    updatePhase,
-    completeOnboarding,
-    isReadyForUse
-  } = useMockOnboardingProgress();
-
-  // Knowledge Base active phase tab
-  const [kbActiveTab, setKbActiveTab] = useState<'dashboard' | 'phase-1' | 'phase-2' | 'phase-3'>('dashboard');
 
   // Local state for notification preferences
   const [formData, setFormData] = useState({
@@ -138,55 +101,6 @@ const Settings = () => {
   const handleSaveNotifications = () => {
     updatePreferences(formData);
   };
-
-  // Knowledge Base handlers
-  const navigateToPhase = (phase: 1 | 2 | 3) => {
-    setKbActiveTab(`phase-${phase}` as 'phase-1' | 'phase-2' | 'phase-3');
-  };
-  const handlePhase1Complete = async (data: Phase1FormData) => {
-    await saveProfile(data);
-    await updatePhase({
-      phase: 1,
-      completed: true
-    });
-    navigateToPhase(2);
-  };
-  const handleDocumentUpload = async (file: File, category: DocumentCategory, title: string) => {
-    await uploadDocument({
-      file,
-      category,
-      title
-    });
-  };
-  const handlePhase2Complete = async () => {
-    await updatePhase({
-      phase: 2,
-      completed: true
-    });
-    navigateToPhase(3);
-  };
-  const handlePhase3Complete = async (data: Phase3FormData) => {
-    await saveContext(data);
-    await updatePhase({
-      phase: 3,
-      completed: true
-    });
-    setKbActiveTab('dashboard');
-  };
-  const handleLaunchMOAT = async () => {
-    await completeOnboarding();
-    navigate('/copiloto-governanca');
-  };
-
-  // Usar dados mock diretamente para Phase 1
-  const getPhase1InitialData = (): Partial<Phase1FormData> | undefined => {
-    return phase1FormData;
-  };
-
-  // Usar dados mock diretamente para Phase 3
-  const getPhase3InitialData = (): Partial<Phase3FormData> | undefined => {
-    return phase3FormData;
-  };
   return <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -216,10 +130,6 @@ const Settings = () => {
                   {!isSuperAdmin && <TabsTrigger value="activities">
                     <ActivitySquare className="h-4 w-4 mr-2" />
                     Log de Atividades
-                  </TabsTrigger>}
-                  {!isSuperAdmin && <TabsTrigger value="knowledge-base">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Base de Conhecimento
                   </TabsTrigger>}
                 </TabsList>
                 
@@ -508,59 +418,6 @@ const Settings = () => {
                 {/* ABA LOG DE ATIVIDADES */}
                 <TabsContent value="activities">
                   <ActivitiesLogTab />
-                </TabsContent>
-
-                {/* ABA BASE DE CONHECIMENTO */}
-                <TabsContent value="knowledge-base">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium">Configuração da Base de Conhecimento</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Configure o contexto da empresa para o AI Engine ter máxima efetividade
-                      </p>
-                    </div>
-                    <KnowledgeBaseWidget progress={progress} score={score} isCompact={false} />
-                    
-                    <Separator />
-                    
-                    {/* Inline Onboarding Phases */}
-                    <Tabs value={kbActiveTab} onValueChange={v => setKbActiveTab(v as typeof kbActiveTab)}>
-                      <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="dashboard" className="gap-2">
-                          <LayoutDashboard className="h-4 w-4" />
-                          Dashboard
-                        </TabsTrigger>
-                        <TabsTrigger value="phase-1" className="gap-2">
-                          <Building2 className="h-4 w-4" />
-                          Fase 1
-                        </TabsTrigger>
-                        <TabsTrigger value="phase-2" className="gap-2">
-                          <FileText className="h-4 w-4" />
-                          Fase 2
-                        </TabsTrigger>
-                        <TabsTrigger value="phase-3" className="gap-2">
-                          <Target className="h-4 w-4" />
-                          Fase 3
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="dashboard" className="mt-4">
-                        <OnboardingDashboard progress={progress} score={score} nextSteps={getNextSteps()} onNavigateToPhase={navigateToPhase} onLaunchMOAT={handleLaunchMOAT} isReadyForUse={isReadyForUse} />
-                      </TabsContent>
-
-                      <TabsContent value="phase-1" className="mt-4">
-                        <Phase1BasicSetup initialData={getPhase1InitialData()} onComplete={handlePhase1Complete} onBack={() => setKbActiveTab('dashboard')} isSaving={isSavingProfile} />
-                      </TabsContent>
-
-                      <TabsContent value="phase-2" className="mt-4">
-                        <Phase2DocumentUpload documents={documents || []} onUpload={handleDocumentUpload} onDelete={deleteDocument} onComplete={handlePhase2Complete} onBack={() => navigateToPhase(1)} isUploading={isUploading} />
-                      </TabsContent>
-
-                      <TabsContent value="phase-3" className="mt-4">
-                        <Phase3StrategicContext initialData={getPhase3InitialData()} onComplete={handlePhase3Complete} onBack={() => navigateToPhase(2)} isSaving={isSavingContext} />
-                      </TabsContent>
-                    </Tabs>
-                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>

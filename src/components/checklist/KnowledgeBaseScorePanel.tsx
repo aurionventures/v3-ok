@@ -77,35 +77,33 @@ export function KnowledgeBaseScorePanel({
           : "border-primary/20"
       )}>
         <CardContent className="p-4">
-          <div className="flex items-center gap-4">
-            <ScoreCircle score={overallScore} size="md" />
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Knowledge Base</span>
-                {isReady && (
-                  <Badge className="bg-green-500 text-white text-xs">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    AI Ready
-                  </Badge>
-                )}
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <PhaseProgress 
-                  label="Fase 1" 
-                  score={phaseScores.phase1} 
-                  completed={progress?.phase_1_basic_setup || false}
-                />
-                <PhaseProgress 
-                  label="Fase 2" 
-                  score={phaseScores.phase2} 
-                  completed={progress?.phase_2_document_upload || false}
-                />
-                <PhaseProgress 
-                  label="Fase 3" 
-                  score={phaseScores.phase3} 
-                  completed={progress?.phase_3_strategic_context || false}
-                />
-              </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold">Knowledge Base</span>
+              {isReady && (
+                <Badge className="bg-green-500 text-white text-xs">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  AI Ready
+                </Badge>
+              )}
+            </div>
+            <Progress value={overallScore} className="h-2" />
+            <div className="grid grid-cols-3 gap-2">
+              <PhaseProgress 
+                label="Fase 1" 
+                score={phaseScores.phase1} 
+                completed={progress?.phase_1_basic_setup || false}
+              />
+              <PhaseProgress 
+                label="Fase 2" 
+                score={phaseScores.phase2} 
+                completed={progress?.phase_2_document_upload || false}
+              />
+              <PhaseProgress 
+                label="Fase 3" 
+                score={phaseScores.phase3} 
+                completed={progress?.phase_3_strategic_context || false}
+              />
             </div>
           </div>
         </CardContent>
@@ -142,67 +140,65 @@ export function KnowledgeBaseScorePanel({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-6">
-            <ScoreCircle score={overallScore} size="lg" />
-            <div className="flex-1 space-y-4">
-              <div>
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className={cn("text-4xl font-bold", scoreColor)}>
-                    {overallScore}
-                  </span>
-                  <span className="text-xl text-muted-foreground">/100</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Status: <span className={cn("font-semibold", scoreColor)}>{scoreLabel}</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Quanto maior o score, melhores serão os outputs do AI Engine
-                </p>
+          <div className="space-y-4">
+            <div>
+              <Progress value={overallScore} className="h-3 mb-3" />
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className={cn("text-4xl font-bold", scoreColor)}>
+                  {overallScore}
+                </span>
+                <span className="text-xl text-muted-foreground">/100</span>
               </div>
-
-              {/* Progress Bars for Phases */}
-              <div className="grid grid-cols-3 gap-3">
-                <PhaseCard
-                  phase={1}
-                  title="Fase 1"
-                  subtitle="Setup Básico"
-                  score={phaseScores.phase1}
-                  completed={progress?.phase_1_basic_setup || false}
-                  icon={Building2}
-                  onNavigate={onNavigateToPhase}
-                />
-                <PhaseCard
-                  phase={2}
-                  title="Fase 2"
-                  subtitle="Documentos"
-                  score={phaseScores.phase2}
-                  completed={progress?.phase_2_document_upload || false}
-                  icon={FileText}
-                  onNavigate={onNavigateToPhase}
-                  description={`${documents.length} documentos`}
-                />
-                <PhaseCard
-                  phase={3}
-                  title="Fase 3"
-                  subtitle="Contexto Estratégico"
-                  score={phaseScores.phase3}
-                  completed={progress?.phase_3_strategic_context || false}
-                  icon={Target}
-                  onNavigate={onNavigateToPhase}
-                />
-              </div>
-
-              {/* Activate Button */}
-              {isReady && onActivateAI && (
-                <Button 
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  onClick={onActivateAI}
-                >
-                  <Zap className="mr-2 h-4 w-4" />
-                  Ativar AI Engine
-                </Button>
-              )}
+              <p className="text-sm text-muted-foreground">
+                Status: <span className={cn("font-semibold", scoreColor)}>{scoreLabel}</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Quanto maior o score, melhores serão os outputs do AI Engine
+              </p>
             </div>
+
+            {/* Progress Bars for Phases */}
+            <div className="grid grid-cols-3 gap-3">
+              <PhaseCard
+                phase={1}
+                title="Fase 1"
+                subtitle="Setup Básico"
+                score={phaseScores.phase1}
+                completed={progress?.phase_1_basic_setup || false}
+                icon={Building2}
+                onNavigate={onNavigateToPhase}
+              />
+              <PhaseCard
+                phase={2}
+                title="Fase 2"
+                subtitle="Documentos"
+                score={phaseScores.phase2}
+                completed={progress?.phase_2_document_upload || false}
+                icon={FileText}
+                onNavigate={onNavigateToPhase}
+                description={`${documents.length} documentos`}
+              />
+              <PhaseCard
+                phase={3}
+                title="Fase 3"
+                subtitle="Contexto Estratégico"
+                score={phaseScores.phase3}
+                completed={progress?.phase_3_strategic_context || false}
+                icon={Target}
+                onNavigate={onNavigateToPhase}
+              />
+            </div>
+
+            {/* Activate Button */}
+            {isReady && onActivateAI && (
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700"
+                onClick={onActivateAI}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                Ativar AI Engine
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -283,58 +279,6 @@ export function KnowledgeBaseScorePanel({
   );
 }
 
-// Score Circle Component
-function ScoreCircle({ score, size = "md" }: { score: number; size?: "sm" | "md" | "lg" }) {
-  const sizeMap = {
-    sm: { container: 16, radius: 6, stroke: 2 },
-    md: { container: 20, radius: 8, stroke: 3 },
-    lg: { container: 32, radius: 14, stroke: 4 }
-  };
-
-  const { container, radius, stroke } = sizeMap[size];
-  const circumference = 2 * Math.PI * radius;
-  // Garantir que o score não ultrapasse 100 e calcular corretamente o offset
-  const normalizedScore = Math.min(100, Math.max(0, score));
-  const strokeDashoffset = circumference - (normalizedScore / 100) * circumference;
-  const scoreColor = getScoreColor(normalizedScore);
-
-  return (
-    <div className="relative flex items-center justify-center">
-      <svg className={cn("transform -rotate-90", size === "lg" ? "w-32 h-32" : size === "md" ? "w-20 h-20" : "w-16 h-16")}>
-        <circle
-          cx={container}
-          cy={container}
-          r={radius}
-          stroke="currentColor"
-          strokeWidth={stroke}
-          fill="none"
-          className="text-muted"
-        />
-        <circle
-          cx={container}
-          cy={container}
-          r={radius}
-          stroke="currentColor"
-          strokeWidth={stroke}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          className={cn('transition-all duration-1000', scoreColor)}
-        />
-      </svg>
-      <div className="absolute text-center">
-        <span className={cn('font-bold', size === "lg" ? "text-3xl" : size === "md" ? "text-xl" : "text-lg", scoreColor)}>
-          {normalizedScore}
-        </span>
-        {size === "lg" && (
-          <p className="text-xs text-muted-foreground mt-1">{getScoreLabel(normalizedScore)}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // Phase Progress Component
 function PhaseProgress({ 
   label, 
@@ -384,16 +328,16 @@ function PhaseCard({
   return (
     <div 
       className={cn(
-        "p-3 rounded-lg border transition-all cursor-pointer",
+        "p-3 rounded-lg border transition-all cursor-pointer h-full flex flex-col",
         completed ? "border-green-200 bg-green-50/50" : "border-slate-200 bg-slate-50/50",
         onNavigate && "hover:shadow-md"
       )}
       onClick={() => onNavigate?.(phase)}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between mb-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className={cn(
-            "p-1.5 rounded-md",
+            "p-1.5 rounded-md flex-shrink-0",
             completed ? "bg-green-100" : "bg-slate-100"
           )}>
             <Icon className={cn(
@@ -401,30 +345,32 @@ function PhaseCard({
               completed ? "text-green-600" : "text-slate-500"
             )} />
           </div>
-          <div>
-            <p className="text-xs font-semibold">{title}</p>
-            <p className="text-[10px] text-muted-foreground">{subtitle}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold leading-tight">{title}</p>
+            <p className="text-[10px] text-muted-foreground leading-tight">{subtitle}</p>
           </div>
         </div>
         {completed && (
-          <Badge variant="default" className="bg-green-600 text-[10px] px-1.5 py-0">
+          <Badge variant="default" className="bg-green-600 text-[10px] px-1.5 py-0 flex-shrink-0 ml-2">
             <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
             Completo
           </Badge>
         )}
       </div>
       {description && (
-        <p className="text-[10px] text-muted-foreground mb-2">{description}</p>
+        <p className="text-[10px] text-muted-foreground mb-2 flex-shrink-0">{description}</p>
       )}
-      <Progress value={score} className="h-1.5 mb-1" />
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-muted-foreground">{score}%</span>
-        {onNavigate && (
-          <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2">
-            {completed ? 'Revisar' : 'Continuar'}
-            <ArrowRight className="h-3 w-3 ml-1" />
-          </Button>
-        )}
+      <div className="mt-auto space-y-1">
+        <Progress value={score} className="h-1.5" />
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground">{score}%</span>
+          {onNavigate && (
+            <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2">
+              {completed ? 'Revisar' : 'Continuar'}
+              <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
