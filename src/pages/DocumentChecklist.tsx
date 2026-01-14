@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Eye, Share2, Search, CheckCircle, Clock, AlertTriangle, Loader2, BarChart3, FileEdit, Plus, FolderPlus, Building2, Target } from 'lucide-react';
+import { FileText, Download, Eye, Share2, Search, CheckCircle, Clock, AlertTriangle, Loader2, BarChart3, FileEdit, Plus, FolderPlus, Building2, Target, ArrowRight, TrendingUp, Archive } from 'lucide-react';
 import { Label } from "@/components/ui/label";
 import FileUpload from '@/components/FileUpload';
 import { useToast } from "@/components/ui/use-toast";
