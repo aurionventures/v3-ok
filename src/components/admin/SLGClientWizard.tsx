@@ -481,29 +481,65 @@ export function SLGClientWizard({ isOpen, onClose, onSuccess }: SLGClientWizardP
   const handleCreateClient = async () => {
     setIsSubmitting(true);
     try {
-      const clientId = crypto.randomUUID();
       const now = new Date().toISOString();
+      let clientId: string;
 
-      // 1. Save client
-      const demoClientsStr = localStorage.getItem('demo_clients') || '[]';
-      const demoClients = JSON.parse(demoClientsStr);
-      
-      const newClient = {
-        id: clientId,
-        name: step2.adminName,
-        email: step2.adminEmail,
-        company: step1.companyName,
-        sector: step1.sector,
-        phone: step2.adminPhone,
-        cnpj: step1.cnpj,
-        role: step2.adminRole,
-        client_type: step1.clientType,
-        partner_id: step1.partnerId,
-        origin: plgLead ? 'plg' : 'comercial',
-        created_at: now
-      };
-      demoClients.push(newClient);
-      localStorage.setItem('demo_clients', JSON.stringify(demoClients));
+      // 1. Save client to Supabase (users table)
+      try {
+        const { data: userData, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            name: step2.adminName,
+            email: step2.adminEmail,
+            company: step1.companyName,
+            sector: step1.sector,
+            phone: step2.adminPhone,
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        clientId = userData.id;
+
+        // Insert user role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userData.id,
+            role: 'cliente'
+          });
+
+        if (roleError) {
+          console.error('Erro ao inserir role:', roleError);
+          // Continue even if role insertion fails
+        }
+      } catch (dbError: any) {
+        console.error('Erro ao salvar no Supabase, usando localStorage como fallback:', dbError);
+        // Fallback to localStorage if Supabase fails
+        clientId = crypto.randomUUID();
+        const demoClientsStr = localStorage.getItem('demo_clients') || '[]';
+        const demoClients = JSON.parse(demoClientsStr);
+        
+        const newClient = {
+          id: clientId,
+          name: step2.adminName,
+          email: step2.adminEmail,
+          company: step1.companyName,
+          sector: step1.sector,
+          phone: step2.adminPhone,
+          cnpj: step1.cnpj,
+          role: step2.adminRole,
+          client_type: step1.clientType,
+          partner_id: step1.partnerId,
+          origin: plgLead ? 'plg' : 'comercial',
+          created_at: now
+        };
+        demoClients.push(newClient);
+        localStorage.setItem('demo_clients', JSON.stringify(demoClients));
+      }
 
       // 2. Save plan configuration
       const planConfigsStr = localStorage.getItem('client_plan_configs') || '{}';

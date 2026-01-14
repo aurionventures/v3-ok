@@ -14,14 +14,12 @@ import {
   ChevronRight,
   BarChart3,
   Brain,
-  Calendar,
-  Vote
+  Calendar
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BriefingPreview } from "@/components/member/BriefingPreview";
 import { CopilotChat } from "@/components/member/CopilotChat";
-import { VirtualAgendasTab } from "@/components/member/VirtualAgendasTab";
 import { useMemberBriefing, useUpcomingMeetings } from "@/hooks/useMockCopilot";
 
 // Mock data for dashboard counts
@@ -163,10 +161,6 @@ const MemberDashboard = () => {
               <FileText className="h-4 w-4" />
               Meu Briefing
             </TabsTrigger>
-            <TabsTrigger value="virtual" className="gap-2">
-              <Vote className="h-4 w-4" />
-              Pautas Virtuais
-            </TabsTrigger>
             <TabsTrigger value="copilot" className="gap-2">
               <Brain className="h-4 w-4" />
               Copiloto IA
@@ -235,11 +229,6 @@ const MemberDashboard = () => {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          {/* Virtual Agendas Tab */}
-          <TabsContent value="virtual" className="m-0">
-            <VirtualAgendasTab />
           </TabsContent>
 
           {/* Copilot Tab */}

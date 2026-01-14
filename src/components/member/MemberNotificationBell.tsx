@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, FileCheck, FileSignature, Calendar, Clock, FileText, Mail, Check } from "lucide-react";
+import { Bell, FileCheck, FileSignature, Calendar, Clock, FileText, Mail, Check, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -16,7 +16,8 @@ type NotificationType =
   | 'REUNIAO_PROXIMA'
   | 'TAREFA_PRAZO'
   | 'MATERIAIS_DISPONIVEIS'
-  | 'CONVOCACAO';
+  | 'CONVOCACAO'
+  | 'ALERTA';
 
 interface MemberNotification {
   id: string;
@@ -70,6 +71,15 @@ const mockNotifications: MemberNotification[] = [
     message: 'Você foi convocado para reunião extraordinária do Comitê de Auditoria.',
     timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
     read: true
+  },
+  {
+    id: '6',
+    type: 'ALERTA',
+    title: 'Alerta de Prazo',
+    message: 'Uma pauta virtual requer sua atenção urgente antes do prazo de 20/01/2026.',
+    timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+    read: false,
+    urgent: true
   }
 ];
 
@@ -87,6 +97,8 @@ const getNotificationIcon = (type: NotificationType) => {
       return FileText;
     case 'CONVOCACAO':
       return Mail;
+    case 'ALERTA':
+      return AlertTriangle;
     default:
       return Bell;
   }
@@ -105,6 +117,8 @@ const getNotificationColor = (type: NotificationType, urgent?: boolean) => {
       return 'text-orange-500';
     case 'MATERIAIS_DISPONIVEIS':
       return 'text-emerald-500';
+    case 'ALERTA':
+      return 'text-red-500';
     default:
       return 'text-muted-foreground';
   }

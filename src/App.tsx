@@ -157,6 +157,7 @@ const MemberDashboard = lazy(() => import("./pages/member/MemberDashboard"));
 const MemberMaturidade = lazy(() => import("./pages/member/MemberMaturidade"));
 const MemberRiscos = lazy(() => import("./pages/member/MemberRiscos"));
 const MemberReunioes = lazy(() => import("./pages/member/MemberReunioes"));
+const MemberVirtualAgendas = lazy(() => import("./pages/member/MemberVirtualAgendas"));
 const MemberATAs = lazy(() => import("./pages/member/MemberATAs"));
 const MemberPendencias = lazy(() => import("./pages/member/MemberPendencias"));
 const MemberOrgaos = lazy(() => import("./pages/member/MemberOrgaos"));
@@ -262,6 +263,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <MemberReunioes />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/member-portal/pautas-virtuais" 
+            element={
+              <ProtectedRoute>
+                <MemberVirtualAgendas />
               </ProtectedRoute>
             } 
           />

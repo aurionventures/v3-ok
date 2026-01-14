@@ -10,6 +10,9 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InputCNPJ, InputCEP, InputPhone } from '@/components/ui/input-masked';
+import { isCorporateEmail } from '@/data/signupData';
+import { isValidPhone, isValidCEP, isValidCNPJ } from '@/utils/masks';
 import { 
   Building2, 
   QrCode, 
@@ -33,12 +36,15 @@ import {
   MapPin,
   CreditCard,
   Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { PLANS, ADDONS, revealPricing, PRICING_MATRIX } from '@/data/pricingData';
 import { CONTRACT_TERM_OPTIONS, PAYMENT_CYCLE_OPTIONS, ClientBilling } from '@/types/billing';
 import { asaasService } from '@/services/asaasService';
 import legacyLogo from "@/assets/legacy-logo-new.png";
 import { toast } from 'sonner';
+import type { CompanyData } from '@/hooks/useCNPJ';
+import type { AddressData } from '@/hooks/useCEP';
 
 type Step = 'dados' | 'plano' | 'contrato' | 'pagamento' | 'confirmacao';
 type BillingType = 'BOLETO' | 'PIX';
@@ -123,17 +129,54 @@ export default function ContractCheckout() {
   const setupFee = pricing.setup || 0;
   const firstPayment = setupFee + paymentValue;
   
-  // Validações
+  // Handlers para auto-preenchimento
+  const handleCNPJLoaded = (company: CompanyData) => {
+    setFormData(prev => ({
+      ...prev,
+      companyName: company.razaoSocial || prev.companyName,
+      tradingName: company.nomeFantasia || prev.tradingName,
+      cnpj: company.cnpj,
+      // Preencher endereço se disponível
+      street: company.endereco?.logradouro || prev.street,
+      number: company.endereco?.numero || prev.number,
+      complement: company.endereco?.complemento || prev.complement,
+      neighborhood: company.endereco?.bairro || prev.neighborhood,
+      city: company.endereco?.cidade || prev.city,
+      state: company.endereco?.uf || prev.state,
+      zip: company.endereco?.cep || prev.zip,
+    }));
+    toast.success('Dados da empresa carregados automaticamente');
+  };
+
+  const handleCEPLoaded = (address: AddressData) => {
+    setFormData(prev => ({
+      ...prev,
+      street: address.street || prev.street,
+      complement: address.complement || prev.complement,
+      neighborhood: address.neighborhood || prev.neighborhood,
+      city: address.city || prev.city,
+      state: address.state || prev.state,
+      zip: address.cep,
+    }));
+    toast.success('Endereço preenchido automaticamente');
+  };
+
+  // Validações melhoradas
+  const isValidEmail = formData.contactEmail ? isCorporateEmail(formData.contactEmail) : false;
+  const isValidPhoneNumber = formData.contactPhone ? isValidPhone(formData.contactPhone) : false;
+  const isValidCNPJNumber = formData.cnpj ? isValidCNPJ(formData.cnpj) : false;
+  const isValidCEPNumber = formData.zip ? isValidCEP(formData.zip) : false;
+  
   const isStep1Valid = 
     formData.companyName.length >= 3 &&
-    formData.cnpj.length >= 14 &&
+    isValidCNPJNumber &&
     formData.street.length >= 3 &&
     formData.city.length >= 2 &&
     formData.state.length === 2 &&
-    formData.zip.length >= 8 &&
+    isValidCEPNumber &&
     formData.contactName.length >= 3 &&
-    formData.contactEmail.includes('@') &&
-    formData.contactPhone.length >= 10;
+    isValidEmail &&
+    isValidPhoneNumber;
   
   const steps: { id: Step; label: string; icon: React.ComponentType<any> }[] = [
     { id: 'dados', label: 'Dados', icon: Building2 },
@@ -339,15 +382,17 @@ export default function ContractCheckout() {
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cnpj">CNPJ *</Label>
-                        <Input 
-                          id="cnpj"
-                          value={formData.cnpj}
-                          onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
-                          placeholder="00.000.000/0000-00"
-                        />
-                      </div>
+                      <InputCNPJ
+                        id="cnpj"
+                        label="CNPJ"
+                        value={formData.cnpj}
+                        onChange={(value) => setFormData({...formData, cnpj: value})}
+                        onCompanyLoaded={handleCNPJLoaded}
+                        autoFetch={true}
+                        showSearchButton={true}
+                        showCompanyPreview={true}
+                        required
+                      />
                       <div className="space-y-2">
                         <Label htmlFor="stateRegistration">Inscrição Estadual</Label>
                         <Input 
@@ -376,6 +421,7 @@ export default function ContractCheckout() {
                           value={formData.street}
                           onChange={(e) => setFormData({...formData, street: e.target.value})}
                           placeholder="Av. Paulista"
+                          className={formData.street && formData.street.length >= 3 ? 'bg-muted/50' : ''}
                         />
                       </div>
                       <div className="space-y-2">
@@ -396,6 +442,7 @@ export default function ContractCheckout() {
                           value={formData.complement}
                           onChange={(e) => setFormData({...formData, complement: e.target.value})}
                           placeholder="Sala 101"
+                          className={formData.complement ? 'bg-muted/50' : ''}
                         />
                       </div>
                       <div className="space-y-2">
@@ -405,6 +452,7 @@ export default function ContractCheckout() {
                           value={formData.neighborhood}
                           onChange={(e) => setFormData({...formData, neighborhood: e.target.value})}
                           placeholder="Bela Vista"
+                          className={formData.neighborhood && formData.neighborhood.length >= 2 ? 'bg-muted/50' : ''}
                         />
                       </div>
                     </div>
@@ -416,6 +464,8 @@ export default function ContractCheckout() {
                           value={formData.city}
                           onChange={(e) => setFormData({...formData, city: e.target.value})}
                           placeholder="São Paulo"
+                          className={formData.city && formData.city.length >= 2 ? 'bg-muted/50' : ''}
+                          readOnly={formData.city.length > 0}
                         />
                       </div>
                       <div className="space-y-2">
@@ -426,17 +476,25 @@ export default function ContractCheckout() {
                           onChange={(e) => setFormData({...formData, state: e.target.value.toUpperCase()})}
                           placeholder="SP"
                           maxLength={2}
+                          className={formData.state && formData.state.length === 2 ? 'bg-muted/50' : ''}
+                          readOnly={formData.state.length > 0}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="zip">CEP *</Label>
-                        <Input 
-                          id="zip"
-                          value={formData.zip}
-                          onChange={(e) => setFormData({...formData, zip: e.target.value})}
-                          placeholder="01310-100"
-                        />
-                      </div>
+                      <InputCEP
+                        id="zip"
+                        label="CEP"
+                        value={formData.zip}
+                        onChange={(value, address) => {
+                          setFormData({...formData, zip: value});
+                          if (address) {
+                            handleCEPLoaded(address);
+                          }
+                        }}
+                        onAddressLoaded={handleCEPLoaded}
+                        autoFetch={true}
+                        showSearchButton={true}
+                        required
+                      />
                     </div>
                   </div>
                   
@@ -470,24 +528,50 @@ export default function ContractCheckout() {
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="contactEmail">Email Corporativo *</Label>
-                        <Input 
-                          id="contactEmail"
-                          type="email"
-                          value={formData.contactEmail}
-                          onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-                          placeholder="joao@empresa.com.br"
-                        />
+                        <Label htmlFor="contactEmail" className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          Email Corporativo *
+                        </Label>
+                        <div className="relative">
+                          <Input 
+                            id="contactEmail"
+                            type="email"
+                            value={formData.contactEmail}
+                            onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
+                            placeholder="joao@empresa.com.br"
+                            className={
+                              formData.contactEmail && isValidEmail 
+                                ? 'border-green-500 focus-visible:ring-green-500' 
+                                : formData.contactEmail && !isValidEmail
+                                ? 'border-red-500 focus-visible:ring-red-500'
+                                : ''
+                            }
+                          />
+                          {formData.contactEmail && isValidEmail && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            </div>
+                          )}
+                          {formData.contactEmail && !isValidEmail && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <AlertCircle className="h-4 w-4 text-red-500" />
+                            </div>
+                          )}
+                        </div>
+                        {formData.contactEmail && !isValidEmail && (
+                          <p className="text-sm text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            Email deve ser corporativo (não pessoal)
+                          </p>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="contactPhone">Telefone *</Label>
-                        <Input 
-                          id="contactPhone"
-                          value={formData.contactPhone}
-                          onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-                          placeholder="(11) 99999-9999"
-                        />
-                      </div>
+                      <InputPhone
+                        id="contactPhone"
+                        label="Telefone"
+                        value={formData.contactPhone}
+                        onChange={(value) => setFormData({...formData, contactPhone: value})}
+                        required
+                      />
                     </div>
                   </div>
                 </CardContent>

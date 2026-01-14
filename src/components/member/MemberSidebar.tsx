@@ -8,7 +8,8 @@ import {
   BarChart3,
   Shield,
   Award,
-  Settings
+  Settings,
+  Vote
 } from "lucide-react";
 import memberLogo from "@/assets/member-logo-white.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +38,7 @@ const menuItems = [
   { id: 'maturidade', icon: BarChart3, label: 'Maturidade', path: '/member-portal/maturidade' },
   { id: 'riscos', icon: Shield, label: 'Riscos', path: '/member-portal/riscos' },
   { id: 'reunioes', icon: CalendarDays, label: 'Próximas Reuniões', path: '/member-portal/reunioes' },
+  { id: 'pautas-virtuais', icon: Vote, label: 'Pautas Virtuais', path: '/member-portal/pautas-virtuais' },
   { id: 'atas', icon: FileText, label: 'ATAs Pendentes', path: '/member-portal/atas' },
   { id: 'pendencias', icon: AlertTriangle, label: 'Tarefas Pendentes', path: '/member-portal/pendencias' },
   { id: 'desempenho', icon: Award, label: 'Meu Desempenho', path: '/member-portal/desempenho' },
