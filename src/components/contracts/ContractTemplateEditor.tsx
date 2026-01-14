@@ -113,110 +113,276 @@ const PREVIEW_VALUES: Record<string, string> = {
   cidade_assinatura: 'São Paulo - SP',
 };
 
-// Modelo padrão de contrato
-const DEFAULT_CONTRACT_CONTENT = `<div style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto;">
-  <h1 style="text-align: center; font-size: 18px; margin-bottom: 10px; color: #1e3a5f;">
-    CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE SOFTWARE COMO SERVIÇO (SaaS)
-  </h1>
-  <h2 style="text-align: center; font-size: 14px; margin-bottom: 30px; color: #666;">
-    PLATAFORMA LEGACY OS
-  </h2>
-  
-  <p style="text-align: center; margin-bottom: 30px;">
-    <strong>Contrato nº {{contrato_numero}}</strong>
-  </p>
+// Modelo padrão de contrato - Completo e Profissional
+const DEFAULT_CONTRACT_CONTENT = `<div style="font-family: 'Times New Roman', Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.7; color: #222;">
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">PARTES</h3>
-  
-  <p><strong>CONTRATADA:</strong> LEGACY GOVERNANÇA LTDA., pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 00.000.000/0001-00, com sede na cidade de São Paulo, Estado de São Paulo, neste ato representada na forma de seu Contrato Social, doravante denominada simplesmente "LEGACY".</p>
-  
-  <p><strong>CONTRATANTE:</strong> {{cliente_nome}}, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº {{cliente_cnpj}}, com sede em {{cliente_endereco}}, neste ato representada por {{signatario_nome}}, {{signatario_cargo}}, portador(a) do CPF nº {{signatario_cpf}}, doravante denominada simplesmente "CONTRATANTE".</p>
+  <!-- CABEÇALHO -->
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #1a365d;">
+      CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE SOFTWARE COMO SERVIÇO (SaaS)
+    </h1>
+    <h2 style="font-size: 14px; font-weight: normal; margin-bottom: 20px; color: #4a5568;">
+      PLATAFORMA LEGACY OS - GOVERNANÇA CORPORATIVA
+    </h2>
+    <p style="font-size: 13px;">
+      <strong>Contrato nº {{contrato_numero}}</strong>
+    </p>
+  </div>
 
+  <!-- PARTES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">PARTES</h3>
+  
+  <p><strong>CONTRATADA:</strong> LEGACY GOVERNANÇA LTDA., pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 00.000.000/0001-00, com sede na cidade de São Paulo, Estado de São Paulo, neste ato representada na forma de seu Contrato Social, doravante denominada simplesmente <strong>"LEGACY"</strong>.</p>
+  
+  <p><strong>CONTRATANTE:</strong> <strong>{{cliente_nome}}</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº <strong>{{cliente_cnpj}}</strong>, com sede em <strong>{{cliente_endereco}}</strong>, neste ato representada por <strong>{{signatario_nome}}</strong>, <strong>{{signatario_cargo}}</strong>, portador(a) do CPF nº <strong>{{signatario_cpf}}</strong>, doravante denominada simplesmente <strong>"CONTRATANTE"</strong>.</p>
+  
   <p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Prestação de Serviços de Software como Serviço (SaaS), que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.</p>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 1ª - DO OBJETO</h3>
+  <!-- CLÁUSULA 1 - DO OBJETO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 1ª - DO OBJETO</h3>
   
-  <p>1.1. O presente contrato tem por objeto a prestação de serviços de acesso e uso da plataforma de governança corporativa "LEGACY OS", na modalidade Software como Serviço (SaaS), conforme plano contratado.</p>
+  <p>1.1. O presente contrato tem por objeto a prestação de serviços de acesso e uso da plataforma de governança corporativa <strong>"LEGACY OS"</strong>, na modalidade Software como Serviço (SaaS), conforme plano contratado.</p>
   
   <p>1.2. <strong>Plano Contratado:</strong> {{plano_nome}}</p>
   
   <p>1.3. <strong>Módulos Inclusos:</strong> {{modulos_inclusos}}</p>
   
-  <p>1.4. <strong>Add-ons Contratados:</strong> {{addons}}</p>
+  <p>1.4. <strong>Add-ons Contratados:</strong> {{addons_inclusos}}</p>
+  
+  <p>1.5. A plataforma LEGACY OS oferece funcionalidades para gestão de governança corporativa, incluindo, mas não se limitando a: gestão de reuniões, atas, documentos, compliance, riscos, ESG, e inteligência de mercado, conforme especificações do plano contratado.</p>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 2ª - DO PRAZO</h3>
+  <!-- CLÁUSULA 2 - DO PRAZO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 2ª - DO PRAZO</h3>
   
-  <p>2.1. O presente contrato terá vigência de {{duracao_meses}} ({{duracao_extenso}}) meses, com início em {{data_inicio}} e término em {{data_fim}}.</p>
+  <p>2.1. O presente contrato terá vigência de <strong>{{duracao_meses}} ({{duracao_extenso}}) meses</strong>, com início em <strong>{{data_inicio}}</strong> e término em <strong>{{data_fim}}</strong>.</p>
   
-  <p>2.2. Findo o prazo de vigência, o contrato será automaticamente renovado por igual período, salvo manifestação contrária de qualquer das partes, com antecedência mínima de 30 (trinta) dias.</p>
+  <p>2.2. O contrato será renovado automaticamente por períodos iguais e sucessivos, salvo manifestação contrária de qualquer das partes, por escrito, com antecedência mínima de 30 (trinta) dias do término da vigência ou de qualquer período de renovação.</p>
+  
+  <p>2.3. Na renovação, os valores poderão ser reajustados conforme índice IGPM/FGV ou outro índice que venha a substituí-lo, acumulado nos últimos 12 meses.</p>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 3ª - DO PREÇO E FORMA DE PAGAMENTO</h3>
+  <!-- CLÁUSULA 3 - DO VALOR E PAGAMENTO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 3ª - DO VALOR E FORMA DE PAGAMENTO</h3>
   
-  <p>3.1. Pela prestação dos serviços objeto deste contrato, a CONTRATANTE pagará à LEGACY o valor mensal de <strong>R$ {{valor_mensal}}</strong> ({{valor_mensal_extenso}}).</p>
+  <p>3.1. Pelo acesso e uso da plataforma, o CONTRATANTE pagará à LEGACY o valor de <strong>{{plano_valor}}</strong> ({{plano_valor_extenso}}), conforme periodicidade abaixo:</p>
   
-  <p>3.2. O valor total do contrato para o período de vigência é de <strong>R$ {{valor_total}}</strong> ({{valor_total_extenso}}).</p>
+  <p>3.2. <strong>Forma de Pagamento:</strong> {{forma_pagamento}}</p>
   
-  <p>3.3. O pagamento será realizado mensalmente, até o dia 10 (dez) de cada mês, mediante boleto bancário ou PIX, conforme preferência indicada pela CONTRATANTE.</p>
+  <p>3.3. Os pagamentos deverão ser efetuados até o dia <strong>{{dia_vencimento}}</strong> de cada período, mediante boleto bancário, transferência bancária (PIX/TED) ou cartão de crédito.</p>
   
-  <p>3.4. Em caso de atraso no pagamento, incidirão multa de 2% (dois por cento) sobre o valor devido, acrescida de juros de mora de 1% (um por cento) ao mês.</p>
+  <p>3.4. O atraso no pagamento implicará em:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Multa de 2% (dois por cento) sobre o valor em atraso;</li>
+    <li>b) Juros de mora de 1% (um por cento) ao mês;</li>
+    <li>c) Correção monetária pelo IGPM/FGV;</li>
+    <li>d) Suspensão do acesso após 15 (quinze) dias de inadimplência.</li>
+  </ul>
+  
+  <p>3.5. Todos os valores são expressos em Reais (R$) e não incluem tributos que porventura venham a incidir sobre os serviços, os quais serão de responsabilidade do CONTRATANTE.</p>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 4ª - DAS OBRIGAÇÕES DA LEGACY</h3>
+  <!-- CLÁUSULA 4 - OBRIGAÇÕES DA LEGACY -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 4ª - DAS OBRIGAÇÕES DA LEGACY</h3>
   
-  <p>4.1. Disponibilizar acesso à plataforma LEGACY OS conforme plano contratado;</p>
-  <p>4.2. Garantir disponibilidade mínima de 99,5% (noventa e nove vírgula cinco por cento) mensal;</p>
-  <p>4.3. Prestar suporte técnico via chat, email e telefone em horário comercial;</p>
-  <p>4.4. Manter backup diário dos dados da CONTRATANTE;</p>
-  <p>4.5. Implementar e manter medidas de segurança adequadas à proteção dos dados.</p>
+  <p>4.1. A LEGACY se obriga a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Disponibilizar acesso à plataforma LEGACY OS conforme especificações do plano contratado;</li>
+    <li>b) Manter a plataforma em funcionamento 24 horas por dia, 7 dias por semana, respeitando os níveis de serviço estabelecidos;</li>
+    <li>c) Realizar manutenções preventivas e corretivas necessárias ao bom funcionamento;</li>
+    <li>d) Comunicar previamente, quando possível, sobre manutenções programadas;</li>
+    <li>e) Garantir a segurança e integridade dos dados armazenados na plataforma;</li>
+    <li>f) Realizar backups diários dos dados;</li>
+    <li>g) Fornecer suporte técnico conforme nível de serviço contratado;</li>
+    <li>h) Disponibilizar atualizações e melhorias da plataforma sem custo adicional;</li>
+    <li>i) Manter canal de atendimento para dúvidas e suporte.</li>
+  </ul>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 5ª - DAS OBRIGAÇÕES DA CONTRATANTE</h3>
+  <!-- CLÁUSULA 5 - OBRIGAÇÕES DO CONTRATANTE -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 5ª - DAS OBRIGAÇÕES DO CONTRATANTE</h3>
   
-  <p>5.1. Efetuar os pagamentos nas datas acordadas;</p>
-  <p>5.2. Utilizar a plataforma de acordo com as políticas de uso aceitável;</p>
-  <p>5.3. Manter atualizados seus dados cadastrais;</p>
-  <p>5.4. Não compartilhar credenciais de acesso com terceiros;</p>
-  <p>5.5. Zelar pela confidencialidade das informações acessadas.</p>
+  <p>5.1. O CONTRATANTE se obriga a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Efetuar os pagamentos nas datas acordadas;</li>
+    <li>b) Utilizar a plataforma de acordo com a legislação vigente e boas práticas;</li>
+    <li>c) Não compartilhar credenciais de acesso com terceiros não autorizados;</li>
+    <li>d) Manter atualizados seus dados cadastrais;</li>
+    <li>e) Não realizar engenharia reversa, descompilar ou tentar acessar o código-fonte;</li>
+    <li>f) Não utilizar a plataforma para armazenar conteúdo ilícito;</li>
+    <li>g) Responsabilizar-se pela veracidade das informações inseridas;</li>
+    <li>h) Comunicar imediatamente qualquer suspeita de violação de segurança;</li>
+    <li>i) Respeitar os limites de usuários e recursos do plano contratado.</li>
+  </ul>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 6ª - DA PROTEÇÃO DE DADOS (LGPD)</h3>
+  <!-- CLÁUSULA 6 - SLA -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 6ª - NÍVEL DE SERVIÇO (SLA)</h3>
   
-  <p>6.1. As partes se comprometem a cumprir a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
-  <p>6.2. A LEGACY atua como operadora dos dados pessoais inseridos pela CONTRATANTE na plataforma.</p>
-  <p>6.3. Os dados serão tratados exclusivamente para as finalidades previstas neste contrato.</p>
+  <p>6.1. A LEGACY garante disponibilidade mínima de <strong>99,5%</strong> (noventa e nove vírgula cinco por cento) da plataforma, calculada mensalmente, excluindo-se:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Manutenções programadas comunicadas com 48h de antecedência;</li>
+    <li>b) Eventos de força maior ou caso fortuito;</li>
+    <li>c) Falhas decorrentes de terceiros (provedores de internet, DNS, etc.);</li>
+    <li>d) Uso indevido por parte do CONTRATANTE.</li>
+  </ul>
+  
+  <p>6.2. <strong>Tempo de Resposta do Suporte:</strong></p>
+  <table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px;">
+    <tr style="background: #f7fafc;">
+      <th style="border: 1px solid #e2e8f0; padding: 8px; text-align: left;">Severidade</th>
+      <th style="border: 1px solid #e2e8f0; padding: 8px; text-align: left;">Descrição</th>
+      <th style="border: 1px solid #e2e8f0; padding: 8px; text-align: left;">Tempo de Resposta</th>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;"><strong>Crítica</strong></td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Sistema indisponível</td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Até 2 horas</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;"><strong>Alta</strong></td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Funcionalidade crítica comprometida</td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Até 4 horas</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;"><strong>Média</strong></td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Funcionalidade comprometida com alternativa</td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Até 24 horas</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;"><strong>Baixa</strong></td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Dúvidas e melhorias</td>
+      <td style="border: 1px solid #e2e8f0; padding: 8px;">Até 48 horas</td>
+    </tr>
+  </table>
+  
+  <p>6.3. Em caso de descumprimento do SLA de disponibilidade, o CONTRATANTE terá direito a crédito proporcional ao tempo de indisponibilidade, limitado a 30% do valor mensal.</p>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 7ª - DA RESCISÃO</h3>
+  <!-- CLÁUSULA 7 - CONFIDENCIALIDADE E LGPD -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 7ª - CONFIDENCIALIDADE E PROTEÇÃO DE DADOS (LGPD)</h3>
   
-  <p>7.1. O presente contrato poderá ser rescindido:</p>
-  <p style="margin-left: 20px;">a) Por acordo entre as partes;</p>
-  <p style="margin-left: 20px;">b) Por inadimplemento de qualquer cláusula, mediante notificação prévia de 15 dias;</p>
-  <p style="margin-left: 20px;">c) Por solicitação de qualquer das partes, com aviso prévio de 30 dias.</p>
+  <p>7.1. As partes se comprometem a manter sigilo sobre todas as informações confidenciais a que tiverem acesso em razão deste contrato.</p>
   
-  <p>7.2. Em caso de rescisão antecipada pela CONTRATANTE, será devido o valor proporcional ao período utilizado.</p>
+  <p>7.2. A LEGACY atuará como <strong>Operadora de Dados</strong> nos termos da Lei nº 13.709/2018 (LGPD), comprometendo-se a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Tratar os dados pessoais apenas conforme instruções do CONTRATANTE;</li>
+    <li>b) Implementar medidas técnicas e organizacionais adequadas de segurança;</li>
+    <li>c) Não compartilhar dados com terceiros sem autorização expressa;</li>
+    <li>d) Auxiliar o CONTRATANTE no atendimento de solicitações de titulares;</li>
+    <li>e) Notificar imediatamente sobre qualquer incidente de segurança;</li>
+    <li>f) Ao término do contrato, excluir ou devolver os dados, conforme solicitação.</li>
+  </ul>
+  
+  <p>7.3. O CONTRATANTE, como <strong>Controlador de Dados</strong>, é responsável por:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Obter consentimento ou base legal para tratamento de dados inseridos na plataforma;</li>
+    <li>b) Informar aos titulares sobre o uso da plataforma LEGACY OS;</li>
+    <li>c) Garantir a licitude dos dados inseridos na plataforma.</li>
+  </ul>
+  
+  <p>7.4. Os dados são armazenados em servidores seguros localizados no Brasil, em conformidade com as normas de segurança da informação (ISO 27001).</p>
 
-  <h3 style="color: #1e3a5f; border-bottom: 2px solid #c0a062; padding-bottom: 5px;">CLÁUSULA 8ª - DAS DISPOSIÇÕES GERAIS</h3>
+  <!-- CLÁUSULA 8 - PROPRIEDADE INTELECTUAL -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 8ª - PROPRIEDADE INTELECTUAL</h3>
   
-  <p>8.1. Este contrato é celebrado eletronicamente, com validade jurídica nos termos da Lei nº 14.063/2020.</p>
-  <p>8.2. A assinatura eletrônica deste contrato equivale à assinatura manuscrita para todos os fins legais.</p>
-  <p>8.3. Fica eleito o foro da Comarca de São Paulo/SP para dirimir quaisquer controvérsias.</p>
+  <p>8.1. A plataforma LEGACY OS, incluindo seu código-fonte, design, funcionalidades, documentação e marca, são de propriedade exclusiva da LEGACY, protegidos pela legislação de propriedade intelectual.</p>
+  
+  <p>8.2. Este contrato não transfere ao CONTRATANTE qualquer direito de propriedade sobre a plataforma, concedendo apenas licença de uso não exclusiva, intransferível e revogável.</p>
+  
+  <p>8.3. Os dados inseridos pelo CONTRATANTE na plataforma permanecem de sua propriedade exclusiva.</p>
 
-  <div style="margin-top: 50px; text-align: center;">
-    <p>São Paulo, {{data_contrato}}</p>
-  </div>
+  <!-- CLÁUSULA 9 - RESCISÃO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 9ª - RESCISÃO</h3>
   
-  <div style="margin-top: 60px; display: flex; justify-content: space-between;">
-    <div style="width: 45%; text-align: center;">
-      <div style="border-top: 1px solid #000; padding-top: 10px;">
-        <strong>LEGACY GOVERNANÇA LTDA.</strong><br/>
-        CNPJ: 00.000.000/0001-00
+  <p>9.1. O presente contrato poderá ser rescindido:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Por acordo mútuo entre as partes;</li>
+    <li>b) Por inadimplemento de qualquer obrigação contratual, após notificação e prazo de 15 dias para regularização;</li>
+    <li>c) Por solicitação do CONTRATANTE, mediante aviso prévio de 30 dias;</li>
+    <li>d) Pela falência, recuperação judicial ou dissolução de qualquer das partes.</li>
+  </ul>
+  
+  <p>9.2. Em caso de rescisão antecipada pelo CONTRATANTE sem justa causa, será devida multa equivalente a 20% do valor restante do contrato.</p>
+  
+  <p>9.3. Após a rescisão, o CONTRATANTE terá prazo de 30 (trinta) dias para exportar seus dados. Após este prazo, os dados serão excluídos permanentemente.</p>
+
+  <!-- CLÁUSULA 10 - LIMITAÇÃO DE RESPONSABILIDADE -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 10ª - LIMITAÇÃO DE RESPONSABILIDADE</h3>
+  
+  <p>10.1. A responsabilidade total da LEGACY por quaisquer danos decorrentes deste contrato está limitada ao valor total pago pelo CONTRATANTE nos últimos 12 (doze) meses.</p>
+  
+  <p>10.2. A LEGACY não será responsável por:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Danos indiretos, lucros cessantes ou perda de oportunidades;</li>
+    <li>b) Decisões tomadas com base nas informações da plataforma;</li>
+    <li>c) Conteúdo inserido pelo CONTRATANTE;</li>
+    <li>d) Falhas decorrentes de terceiros ou força maior.</li>
+  </ul>
+
+  <!-- CLÁUSULA 11 - DISPOSIÇÕES GERAIS -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 11ª - DISPOSIÇÕES GERAIS</h3>
+  
+  <p>11.1. Este contrato representa o acordo integral entre as partes, substituindo quaisquer negociações ou acordos anteriores.</p>
+  
+  <p>11.2. A tolerância de uma parte quanto ao descumprimento de qualquer cláusula não constituirá renúncia ou novação.</p>
+  
+  <p>11.3. Qualquer alteração deste contrato somente será válida se formalizada por escrito e assinada por ambas as partes.</p>
+  
+  <p>11.4. Este contrato obriga as partes e seus sucessores a qualquer título.</p>
+  
+  <p>11.5. Este contrato é celebrado eletronicamente, com validade jurídica nos termos da Medida Provisória nº 2.200-2/2001 e Lei nº 14.063/2020, possuindo a mesma força probante de documento assinado de forma manuscrita.</p>
+  
+  <p>11.6. As comunicações entre as partes serão realizadas preferencialmente por e-mail, considerando-se válidas quando enviadas para:</p>
+  <ul style="margin-left: 20px;">
+    <li>LEGACY: contratos@legacyos.com.br</li>
+    <li>CONTRATANTE: {{cliente_email}}</li>
+  </ul>
+
+  <!-- CLÁUSULA 12 - FORO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 12ª - FORO</h3>
+  
+  <p>12.1. Fica eleito o foro da Comarca de São Paulo, Estado de São Paulo, para dirimir quaisquer questões oriundas do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.</p>
+
+  <!-- ASSINATURAS -->
+  <div style="margin-top: 50px;">
+    <p>E, por estarem assim justos e acordados, as partes assinam o presente instrumento eletronicamente, declarando que leram e concordam com todas as cláusulas e condições.</p>
+    
+    <p style="text-align: center; margin-top: 30px;">
+      <strong>{{cidade_assinatura}}, {{data_contrato}}</strong>
+    </p>
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 60px;">
+      <div style="width: 45%; text-align: center;">
+        <div style="border-top: 1px solid #333; padding-top: 10px;">
+          <strong>LEGACY GOVERNANÇA LTDA.</strong><br/>
+          <span style="font-size: 12px;">CNPJ: 00.000.000/0001-00</span><br/>
+          <span style="font-size: 11px; color: #666;">CONTRATADA</span>
+        </div>
+      </div>
+      <div style="width: 45%; text-align: center;">
+        <div style="border-top: 1px solid #333; padding-top: 10px;">
+          <strong>{{cliente_nome}}</strong><br/>
+          <span style="font-size: 12px;">CNPJ: {{cliente_cnpj}}</span><br/>
+          <span style="font-size: 12px;">{{signatario_nome}} - {{signatario_cargo}}</span><br/>
+          <span style="font-size: 11px; color: #666;">CONTRATANTE</span>
+        </div>
       </div>
     </div>
-    <div style="width: 45%; text-align: center;">
-      <div style="border-top: 1px solid #000; padding-top: 10px;">
-        <strong>{{cliente_nome}}</strong><br/>
-        CNPJ: {{cliente_cnpj}}<br/>
-        {{signatario_nome}}<br/>
-        {{signatario_cargo}}
+    
+    <div style="margin-top: 60px;">
+      <p><strong>TESTEMUNHAS:</strong></p>
+      <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+        <div style="width: 45%;">
+          <div style="border-top: 1px solid #333; padding-top: 10px;">
+            <p style="margin: 5px 0;">Nome: _______________________________</p>
+            <p style="margin: 5px 0;">CPF: _______________________________</p>
+          </div>
+        </div>
+        <div style="width: 45%;">
+          <div style="border-top: 1px solid #333; padding-top: 10px;">
+            <p style="margin: 5px 0;">Nome: _______________________________</p>
+            <p style="margin: 5px 0;">CPF: _______________________________</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
 </div>`;
 
 export default function ContractTemplateEditor({
