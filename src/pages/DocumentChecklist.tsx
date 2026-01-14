@@ -28,7 +28,7 @@ import { KnowledgeBaseScorePanel } from "@/components/checklist/KnowledgeBaseSco
 import { useCompanyProfile } from "@/hooks/useOnboardingMock";
 
 // Document categories for upload
-const documentCategories = ['Estatuto Social', 'Atas de Assembleia', 'Políticas Corporativas', 'Contratos Sociais', 'Acordo de Acionistas', 'Código de Conduta', 'Política de Compliance', 'Política de Riscos', 'Regimento Interno', 'Outros Documentos', 'Documentos Personalizados'];
+const documentCategories = ['Estatuto Social', 'Atas de Assembleia', 'Políticas Corporativas', 'Contratos Sociais', 'Acordo de Acionistas', 'Código de Conduta', 'Política de Compliance', 'Política de Riscos', 'Regimento Interno', 'Documentos Estratégicos', 'ATAs Antigas', 'Outros Documentos', 'Documentos Personalizados'];
 
 // Document status helpers
 const getStatusIcon = (status: string) => {
@@ -723,6 +723,97 @@ export default function DocumentChecklist() {
                     </div>
                   </TabsContent>
                 </Tabs>
+
+                {/* Seção de Upload: Documentos Estratégicos + ATAs Antigas */}
+                <div className="grid md:grid-cols-2 gap-6 mt-6">
+                  {/* Documentos Estratégicos */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-primary" />
+                          Documentos Estratégicos
+                        </CardTitle>
+                        <Badge variant="outline" className="text-xs">
+                          {documents.filter(d => d.category === 'Documentos Estratégicos').length} arquivos
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Planejamento Estratégico, Apresentações Institucionais
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FileUpload
+                        onFileUpload={(files) => handleFileUpload(files, 'Documentos Estratégicos')}
+                        accept=".pdf,.doc,.docx"
+                        maxSize={10}
+                        multiple={true}
+                        label="Selecionar arquivos"
+                      />
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Exemplos:</p>
+                        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                          <li>Planejamento Estratégico 2024-2026</li>
+                          <li>Apresentação Institucional</li>
+                          <li>Plano de Negócios</li>
+                        </ul>
+                      </div>
+                      {documents.filter(d => d.category === 'Documentos Estratégicos').length > 0 && (
+                        <Button variant="ghost" size="sm" className="w-full" onClick={() => {
+                          setSelectedCategory('Documentos Estratégicos');
+                          setLibrarySubTab('library');
+                        }}>
+                          Ver arquivos ({documents.filter(d => d.category === 'Documentos Estratégicos').length})
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* ATAs Antigas */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Archive className="h-5 w-5 text-amber-500" />
+                          ATAs Antigas
+                        </CardTitle>
+                        <Badge variant="outline" className="text-xs">
+                          {documents.filter(d => d.category === 'ATAs Antigas').length} arquivos
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        ATAs de reuniões dos últimos 12 meses (se disponível)
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FileUpload
+                        onFileUpload={(files) => handleFileUpload(files, 'ATAs Antigas')}
+                        accept=".pdf,.doc,.docx"
+                        maxSize={10}
+                        multiple={true}
+                        label="Selecionar arquivos"
+                      />
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Exemplos:</p>
+                        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                          <li>ATAs de Conselho 2025</li>
+                          <li>ATAs de Assembleia 2025</li>
+                          <li>ATAs de Comitês</li>
+                        </ul>
+                      </div>
+                      {documents.filter(d => d.category === 'ATAs Antigas').length > 0 && (
+                        <Button variant="ghost" size="sm" className="w-full" onClick={() => {
+                          setSelectedCategory('ATAs Antigas');
+                          setLibrarySubTab('library');
+                        }}>
+                          Ver arquivos ({documents.filter(d => d.category === 'ATAs Antigas').length})
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               {/* Cadastro da Empresa Tab */}

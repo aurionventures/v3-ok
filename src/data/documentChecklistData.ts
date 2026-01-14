@@ -4,7 +4,9 @@ import {
   Users,
   AlertCircle,
   AlertTriangle,
-  BarChart3
+  BarChart3,
+  FileText,
+  Archive
 } from "lucide-react";
 import { ChecklistCategory } from "@/types/documentChecklist";
 
@@ -81,6 +83,17 @@ export const initialDocumentChecklist: ChecklistCategory[] = [
       { id: "demonstracoes-financeiras", name: "Demonstrações Financeiras Auditadas", checked: false, hasDocument: false, status: null },
       { id: "parecer-auditor", name: "Parecer do Auditor Independente", checked: false, hasDocument: false, status: null },
       { id: "relatorio-anual", name: "Relatório Anual / Sustentabilidade", checked: false, hasDocument: false, status: null }
+    ]
+  },
+  {
+    id: "atas-antigas",
+    name: "ATAs Antigas",
+    icon: Archive,
+    color: "text-amber-500",
+    items: [
+      { id: "atas-conselho-antigas", name: "ATAs de Conselho (últimos 12 meses)", checked: false, hasDocument: false, status: null },
+      { id: "atas-assembleia-antigas", name: "ATAs de Assembleia (últimos 12 meses)", checked: false, hasDocument: false, status: null },
+      { id: "atas-comites-antigas", name: "ATAs de Comitês (últimos 12 meses)", checked: false, hasDocument: false, status: null }
     ]
   }
 ];

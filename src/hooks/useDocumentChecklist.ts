@@ -8,7 +8,8 @@ import {
   AlertCircle,
   AlertTriangle,
   BarChart3,
-  FolderPlus
+  FolderPlus,
+  Archive
 } from "lucide-react";
 
 const STORAGE_KEY = 'document-checklist';
@@ -21,6 +22,7 @@ const iconMap = {
   compliance: AlertCircle,
   riscos: AlertTriangle,
   financeiro: BarChart3,
+  'atas-antigas': Archive,
   personalizado: FolderPlus
 };
 
