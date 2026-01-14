@@ -1,10 +1,11 @@
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { LazyRouteWrapper } from "@/components/LazyRouteWrapper";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -195,50 +196,50 @@ const App = () => (
         <BrowserRouter>
           <div className="min-h-screen">
             <main>
-              <Suspense fallback={<PageSkeleton variant="dashboard" />}>
+              <ErrorBoundary>
                 <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/privacidade" element={<PoliticaPrivacidade />} />
-          <Route path="/termos" element={<TermosUso />} />
-          <Route path="/lgpd" element={<LGPD />} />
-          <Route path="/sobre" element={<SobreNos />} />
-          <Route path="/como-funciona" element={<ComoFunciona />} />
-          <Route path="/plataforma" element={<Plataforma />} />
-          <Route path="/governanca" element={<Governanca />} />
-          <Route path="/ai-engine" element={<AIEngine />} />
-          <Route path="/contato" element={<Contato />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogArticle />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/contract/sign/:token" element={<ContractSign />} />
-          <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
-          <Route path="/invite/accept" element={<AcceptInvite />} />
-          <Route path="/empresas" element={<EmpresasLanding />} />
-          <Route path="/parceiros" element={<ParceirosLanding />} />
-          <Route path="/investors" element={<Investors />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/diagnostic-quiz" element={<StandaloneQuiz />} />
-          <Route path="/standalone-quiz" element={<StandaloneQuiz />} />
-          <Route path="/plan-discovery" element={<PlanDiscoveryQuiz />} />
-          <Route path="/plan-result" element={<PlanResult />} />
-          <Route path="/checkout" element={<StripeCheckout />} />
-          <Route path="/checkout-legacy" element={<Checkout />} />
-          <Route path="/checkout-contrato" element={<ContractCheckout />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/payment-confirmed" element={<PaymentConfirmed />} />
-          <Route path="/email-confirmation" element={<EmailConfirmation />} />
-          <Route path="/demo-login" element={<DemoLogin />} />
-          <Route path="/initial-setup" element={<InitialSetup />} />
-          <Route path="/guest-access/:token" element={<GuestAccess />} />
-          <Route path="/task-access/:token" element={<TaskAccess />} />
-          <Route path="/ata-approval/:token" element={<ATAApproval />} />
+          <Route path="/" element={<LazyRouteWrapper><Index /></LazyRouteWrapper>} />
+          <Route path="/pricing" element={<LazyRouteWrapper><Pricing /></LazyRouteWrapper>} />
+          <Route path="/privacidade" element={<LazyRouteWrapper><PoliticaPrivacidade /></LazyRouteWrapper>} />
+          <Route path="/termos" element={<LazyRouteWrapper><TermosUso /></LazyRouteWrapper>} />
+          <Route path="/lgpd" element={<LazyRouteWrapper><LGPD /></LazyRouteWrapper>} />
+          <Route path="/sobre" element={<LazyRouteWrapper><SobreNos /></LazyRouteWrapper>} />
+          <Route path="/como-funciona" element={<LazyRouteWrapper><ComoFunciona /></LazyRouteWrapper>} />
+          <Route path="/plataforma" element={<LazyRouteWrapper><Plataforma /></LazyRouteWrapper>} />
+          <Route path="/governanca" element={<LazyRouteWrapper><Governanca /></LazyRouteWrapper>} />
+          <Route path="/ai-engine" element={<LazyRouteWrapper><AIEngine /></LazyRouteWrapper>} />
+          <Route path="/contato" element={<LazyRouteWrapper><Contato /></LazyRouteWrapper>} />
+          <Route path="/blog" element={<LazyRouteWrapper><Blog /></LazyRouteWrapper>} />
+          <Route path="/blog/:slug" element={<LazyRouteWrapper><BlogArticle /></LazyRouteWrapper>} />
+          <Route path="/signup" element={<LazyRouteWrapper><Signup /></LazyRouteWrapper>} />
+          <Route path="/contract/sign/:token" element={<LazyRouteWrapper><ContractSign /></LazyRouteWrapper>} />
+          <Route path="/onboarding-wizard" element={<LazyRouteWrapper><OnboardingWizard /></LazyRouteWrapper>} />
+          <Route path="/invite/accept" element={<LazyRouteWrapper><AcceptInvite /></LazyRouteWrapper>} />
+          <Route path="/empresas" element={<LazyRouteWrapper><EmpresasLanding /></LazyRouteWrapper>} />
+          <Route path="/parceiros" element={<LazyRouteWrapper><ParceirosLanding /></LazyRouteWrapper>} />
+          <Route path="/investors" element={<LazyRouteWrapper><Investors /></LazyRouteWrapper>} />
+          <Route path="/login" element={<LazyRouteWrapper><Login /></LazyRouteWrapper>} />
+          <Route path="/diagnostic-quiz" element={<LazyRouteWrapper><StandaloneQuiz /></LazyRouteWrapper>} />
+          <Route path="/standalone-quiz" element={<LazyRouteWrapper><StandaloneQuiz /></LazyRouteWrapper>} />
+          <Route path="/plan-discovery" element={<LazyRouteWrapper><PlanDiscoveryQuiz /></LazyRouteWrapper>} />
+          <Route path="/plan-result" element={<LazyRouteWrapper><PlanResult /></LazyRouteWrapper>} />
+          <Route path="/checkout" element={<LazyRouteWrapper><StripeCheckout /></LazyRouteWrapper>} />
+          <Route path="/checkout-legacy" element={<LazyRouteWrapper><Checkout /></LazyRouteWrapper>} />
+          <Route path="/checkout-contrato" element={<LazyRouteWrapper><ContractCheckout /></LazyRouteWrapper>} />
+          <Route path="/payment" element={<LazyRouteWrapper><Payment /></LazyRouteWrapper>} />
+          <Route path="/payment-confirmed" element={<LazyRouteWrapper><PaymentConfirmed /></LazyRouteWrapper>} />
+          <Route path="/email-confirmation" element={<LazyRouteWrapper><EmailConfirmation /></LazyRouteWrapper>} />
+          <Route path="/demo-login" element={<LazyRouteWrapper><DemoLogin /></LazyRouteWrapper>} />
+          <Route path="/initial-setup" element={<LazyRouteWrapper><InitialSetup /></LazyRouteWrapper>} />
+          <Route path="/guest-access/:token" element={<LazyRouteWrapper><GuestAccess /></LazyRouteWrapper>} />
+          <Route path="/task-access/:token" element={<LazyRouteWrapper><TaskAccess /></LazyRouteWrapper>} />
+          <Route path="/ata-approval/:token" element={<LazyRouteWrapper><ATAApproval /></LazyRouteWrapper>} />
           <Route 
             path="/member-portal" 
             element={
               <ProtectedRoute>
-                <MemberDashboard />
+                <LazyRouteWrapper><MemberDashboard /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -246,7 +247,7 @@ const App = () => (
             path="/member-portal/maturidade" 
             element={
               <ProtectedRoute>
-                <MemberMaturidade />
+                <LazyRouteWrapper><MemberMaturidade /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -314,9 +315,9 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
-          <Route path="/generate-company-token" element={<GenerateCompanyToken />} />
-          <Route path="/generate-admin-token" element={<GenerateAdminToken />} />
-          <Route path="/generate-partner-token" element={<GeneratePartnerToken />} />
+          <Route path="/generate-company-token" element={<LazyRouteWrapper><GenerateCompanyToken /></LazyRouteWrapper>} />
+          <Route path="/generate-admin-token" element={<LazyRouteWrapper><GenerateAdminToken /></LazyRouteWrapper>} />
+          <Route path="/generate-partner-token" element={<LazyRouteWrapper><GeneratePartnerToken /></LazyRouteWrapper>} />
           
           {/* Plan Activation (semi-protected - after quiz, before full access) */}
           <Route 
@@ -333,7 +334,7 @@ const App = () => (
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <LazyRouteWrapper><Dashboard /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -341,7 +342,7 @@ const App = () => (
             path="/shareholder-structure" 
             element={
               <ProtectedRoute >
-                <ShareholderStructure />
+                <LazyRouteWrapper><ShareholderStructure /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -349,7 +350,7 @@ const App = () => (
             path="/people-development" 
             element={
               <ProtectedRoute >
-                <PeopleDevelopment />
+                <LazyRouteWrapper><PeopleDevelopment /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -357,7 +358,7 @@ const App = () => (
             path="/people-management" 
             element={
               <ProtectedRoute >
-                <PeopleManagement />
+                <LazyRouteWrapper><PeopleManagement /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -365,7 +366,7 @@ const App = () => (
             path="/subsystems" 
             element={
               <ProtectedRoute >
-                <Subsystems />
+                <LazyRouteWrapper><Subsystems /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -377,7 +378,7 @@ const App = () => (
             path="/annual-agenda" 
             element={
               <ProtectedRoute >
-                <AnnualAgenda />
+                <LazyRouteWrapper><AnnualAgenda /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -394,7 +395,7 @@ const App = () => (
             path="/secretariat" 
             element={
               <ProtectedRoute >
-                <SecretariatPanel />
+                <LazyRouteWrapper><SecretariatPanel /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -402,7 +403,7 @@ const App = () => (
             path="/ata-pending" 
             element={
               <ProtectedRoute >
-                <ATAPendingManagement />
+                <LazyRouteWrapper><ATAPendingManagement /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -410,7 +411,7 @@ const App = () => (
             path="/submit-projects" 
             element={
               <ProtectedRoute >
-                <SubmitProjects />
+                <LazyRouteWrapper><SubmitProjects /></LazyRouteWrapper>
               </ProtectedRoute>
             }
           />
@@ -422,7 +423,7 @@ const App = () => (
             path="/succession" 
             element={
               <ProtectedRoute >
-                <Succession />
+                <LazyRouteWrapper><Succession /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -434,7 +435,7 @@ const App = () => (
             path="/maturity" 
             element={
               <ProtectedRoute >
-                <Maturity />
+                <LazyRouteWrapper><Maturity /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -442,7 +443,7 @@ const App = () => (
             path="/home" 
             element={
               <ProtectedRoute >
-                <Index />
+                <LazyRouteWrapper><Index /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -450,7 +451,7 @@ const App = () => (
             path="/maturity-quiz" 
             element={
               <ProtectedRoute >
-                <MaturityQuiz />
+                <LazyRouteWrapper><MaturityQuiz /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -458,7 +459,7 @@ const App = () => (
             path="/esg" 
             element={
               <ProtectedRoute >
-                <ESG />
+                <LazyRouteWrapper><ESG /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -466,7 +467,7 @@ const App = () => (
             path="/governance-risk-management" 
             element={
               <ProtectedRoute >
-                <GovernanceRiskManagement />
+                <LazyRouteWrapper><GovernanceRiskManagement /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -474,7 +475,7 @@ const App = () => (
             path="/market-intelligence" 
             element={
               <ProtectedRoute >
-                <MarketIntelligence />
+                <LazyRouteWrapper><MarketIntelligence /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -482,7 +483,7 @@ const App = () => (
             path="/cap-table"
             element={
               <ProtectedRoute >
-                <CapTable />
+                <LazyRouteWrapper><CapTable /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -490,7 +491,7 @@ const App = () => (
             path="/settings" 
             element={
               <ProtectedRoute >
-                <Settings />
+                <LazyRouteWrapper><Settings /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -498,7 +499,7 @@ const App = () => (
             path="/configuracoes/notificacoes" 
             element={
               <ProtectedRoute >
-                <NotificationSettings />
+                <LazyRouteWrapper><NotificationSettings /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -506,7 +507,7 @@ const App = () => (
             path="/notifications-center" 
             element={
               <ProtectedRoute >
-                <NotificationsCenter />
+                <LazyRouteWrapper><NotificationsCenter /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -518,7 +519,7 @@ const App = () => (
             path="/monitoring" 
             element={
               <ProtectedRoute >
-                <Monitoring />
+                <LazyRouteWrapper><Monitoring /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -526,7 +527,7 @@ const App = () => (
             path="/alerts" 
             element={
               <ProtectedRoute >
-                <Alerts />
+                <LazyRouteWrapper><Alerts /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -538,7 +539,7 @@ const App = () => (
             path="/benchmarking" 
             element={
               <ProtectedRoute >
-                <Benchmarking />
+                <LazyRouteWrapper><Benchmarking /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -546,7 +547,7 @@ const App = () => (
             path="/insights" 
             element={
               <ProtectedRoute >
-                <Insights />
+                <LazyRouteWrapper><Insights /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -554,7 +555,7 @@ const App = () => (
             path="/simulador-cenarios" 
             element={
               <ProtectedRoute >
-                <SimuladorCenarios />
+                <LazyRouteWrapper><SimuladorCenarios /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -562,7 +563,7 @@ const App = () => (
             path="/reunioes" 
             element={
               <ProtectedRoute >
-                <Reunioes />
+                <LazyRouteWrapper><Reunioes /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -570,7 +571,7 @@ const App = () => (
             path="/reuniao/:id" 
             element={
               <ProtectedRoute >
-                <ReuniaoDetalhes />
+                <LazyRouteWrapper><ReuniaoDetalhes /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -578,7 +579,7 @@ const App = () => (
             path="/onboarding" 
             element={
               <ProtectedRoute >
-                <Onboarding />
+                <LazyRouteWrapper><Onboarding /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -586,7 +587,7 @@ const App = () => (
             path="/document-checklist" 
             element={
               <ProtectedRoute >
-                <DocumentChecklist />
+                <LazyRouteWrapper><DocumentChecklist /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -594,7 +595,7 @@ const App = () => (
             path="/interviews" 
             element={
               <ProtectedRoute >
-                <Interviews />
+                <LazyRouteWrapper><Interviews /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -602,7 +603,7 @@ const App = () => (
             path="/initial-report" 
             element={
               <ProtectedRoute >
-                <InitialReport />
+                <LazyRouteWrapper><InitialReport /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -610,7 +611,7 @@ const App = () => (
             path="/governance-history" 
             element={
               <ProtectedRoute >
-                <GovernanceHistory />
+                <LazyRouteWrapper><GovernanceHistory /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -618,7 +619,7 @@ const App = () => (
             path="/esg-history" 
             element={
               <ProtectedRoute >
-                <ESGHistory />
+                <LazyRouteWrapper><ESGHistory /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -626,7 +627,7 @@ const App = () => (
             path="/dados-esg" 
             element={
               <ProtectedRoute >
-                <DadosESG />
+                <LazyRouteWrapper><DadosESG /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -634,7 +635,7 @@ const App = () => (
             path="/people-governance" 
             element={
               <ProtectedRoute >
-                <PeopleGovernance />
+                <LazyRouteWrapper><PeopleGovernance /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -642,7 +643,7 @@ const App = () => (
             path="/heirs" 
             element={
               <ProtectedRoute >
-                <Heirs />
+                <LazyRouteWrapper><Heirs /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -650,7 +651,7 @@ const App = () => (
             path="/key-positions" 
             element={
               <ProtectedRoute >
-                <KeyPositions />
+                <LazyRouteWrapper><KeyPositions /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -658,7 +659,7 @@ const App = () => (
             path="/board-members" 
             element={
               <ProtectedRoute >
-                <BoardMembers />
+                <LazyRouteWrapper><BoardMembers /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -666,7 +667,7 @@ const App = () => (
             path="/board-performance" 
             element={
               <ProtectedRoute >
-                <BoardPerformance />
+                <LazyRouteWrapper><BoardPerformance /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -674,7 +675,7 @@ const App = () => (
             path="/knowledge-base" 
             element={
               <ProtectedRoute >
-                <KnowledgeBase />
+                <LazyRouteWrapper><KnowledgeBase /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -684,7 +685,7 @@ const App = () => (
             path="/copilot" 
             element={
               <ProtectedRoute >
-                <GovernanceCopilot />
+                <LazyRouteWrapper><GovernanceCopilot /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -692,7 +693,7 @@ const App = () => (
             path="/copiloto-governanca" 
             element={
               <ProtectedRoute >
-                <GovernanceCopilot />
+                <LazyRouteWrapper><GovernanceCopilot /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -700,7 +701,7 @@ const App = () => (
             path="/ai-agents" 
             element={
               <ProtectedRoute >
-                <AIAgents />
+                <LazyRouteWrapper><AIAgents /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -708,47 +709,47 @@ const App = () => (
             path="/ai-config" 
             element={
               <ProtectedRoute >
-                <AIConfig />
+                <LazyRouteWrapper><AIConfig /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
           
           {/* Admin Routes */}
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/finances" element={<AdminFinances />} />
-          <Route path="/admin/agent-config" element={<AdminAgentConfig />} />
-          <Route path="/admin/plans-comparison" element={<AdminPlansComparison />} />
-          <Route path="/admin/pricing-config" element={<AdminPricingConfig />} />
-          <Route path="/admin/plan-configurator" element={<AdminPlanConfigurator />} />
-          <Route path="/admin/client-management" element={<AdminClientManagement />} />
-          <Route path="/admin/partners" element={<AdminPartners />} />
-          <Route path="/admin/addons" element={<AdminAddons />} />
-          <Route path="/admin/contracts" element={<AdminContracts />} />
-          <Route path="/admin/contract-templates" element={<AdminContractTemplates />} />
-          <Route path="/admin/invoices" element={<AdminInvoices />} />
-          <Route path="/admin/sales" element={<AdminSales />} />
-          <Route path="/admin/plg-funnel" element={<AdminPLGFunnel />} />
-          <Route path="/admin/slg-pipeline" element={<AdminSLGPipeline />} />
-          <Route path="/admin/prompt-library" element={<AdminPromptLibrary />} />
-          <Route path="/admin/llm-management" element={<AdminLLMManagement />} />
-          <Route path="/admin/companies" element={<Companies />} />
+          <Route path="/admin" element={<LazyRouteWrapper><Admin /></LazyRouteWrapper>} />
+          <Route path="/admin/finances" element={<LazyRouteWrapper><AdminFinances /></LazyRouteWrapper>} />
+          <Route path="/admin/agent-config" element={<LazyRouteWrapper><AdminAgentConfig /></LazyRouteWrapper>} />
+          <Route path="/admin/plans-comparison" element={<LazyRouteWrapper><AdminPlansComparison /></LazyRouteWrapper>} />
+          <Route path="/admin/pricing-config" element={<LazyRouteWrapper><AdminPricingConfig /></LazyRouteWrapper>} />
+          <Route path="/admin/plan-configurator" element={<LazyRouteWrapper><AdminPlanConfigurator /></LazyRouteWrapper>} />
+          <Route path="/admin/client-management" element={<LazyRouteWrapper><AdminClientManagement /></LazyRouteWrapper>} />
+          <Route path="/admin/partners" element={<LazyRouteWrapper><AdminPartners /></LazyRouteWrapper>} />
+          <Route path="/admin/addons" element={<LazyRouteWrapper><AdminAddons /></LazyRouteWrapper>} />
+          <Route path="/admin/contracts" element={<LazyRouteWrapper><AdminContracts /></LazyRouteWrapper>} />
+          <Route path="/admin/contract-templates" element={<LazyRouteWrapper><AdminContractTemplates /></LazyRouteWrapper>} />
+          <Route path="/admin/invoices" element={<LazyRouteWrapper><AdminInvoices /></LazyRouteWrapper>} />
+          <Route path="/admin/sales" element={<LazyRouteWrapper><AdminSales /></LazyRouteWrapper>} />
+          <Route path="/admin/plg-funnel" element={<LazyRouteWrapper><AdminPLGFunnel /></LazyRouteWrapper>} />
+          <Route path="/admin/slg-pipeline" element={<LazyRouteWrapper><AdminSLGPipeline /></LazyRouteWrapper>} />
+          <Route path="/admin/prompt-library" element={<LazyRouteWrapper><AdminPromptLibrary /></LazyRouteWrapper>} />
+          <Route path="/admin/llm-management" element={<LazyRouteWrapper><AdminLLMManagement /></LazyRouteWrapper>} />
+          <Route path="/admin/companies" element={<LazyRouteWrapper><Companies /></LazyRouteWrapper>} />
           {/* Portuguese route aliases for admin sidebar */}
-          <Route path="/admin/empresas" element={<Companies />} />
-          <Route path="/admin/vendas" element={<AdminSales />} />
-          <Route path="/admin/planos" element={<AdminPricingConfig />} />
-          <Route path="/admin/contratos" element={<AdminContracts />} />
-          <Route path="/admin/faturas" element={<AdminInvoices />} />
-          <Route path="/admin/prompts" element={<AdminPromptLibrary />} />
-          <Route path="/admin/settings" element={<Settings />} />
-          <Route path="/admin/parceiros" element={<AdminPartners />} />
-          <Route path="/login-admin" element={<LoginAdmin />} />
+          <Route path="/admin/empresas" element={<LazyRouteWrapper><Companies /></LazyRouteWrapper>} />
+          <Route path="/admin/vendas" element={<LazyRouteWrapper><AdminSales /></LazyRouteWrapper>} />
+          <Route path="/admin/planos" element={<LazyRouteWrapper><AdminPricingConfig /></LazyRouteWrapper>} />
+          <Route path="/admin/contratos" element={<LazyRouteWrapper><AdminContracts /></LazyRouteWrapper>} />
+          <Route path="/admin/faturas" element={<LazyRouteWrapper><AdminInvoices /></LazyRouteWrapper>} />
+          <Route path="/admin/prompts" element={<LazyRouteWrapper><AdminPromptLibrary /></LazyRouteWrapper>} />
+          <Route path="/admin/settings" element={<LazyRouteWrapper><Settings /></LazyRouteWrapper>} />
+          <Route path="/admin/parceiros" element={<LazyRouteWrapper><AdminPartners /></LazyRouteWrapper>} />
+          <Route path="/login-admin" element={<LazyRouteWrapper><LoginAdmin /></LazyRouteWrapper>} />
           
           {/* Audit & Security */}
           <Route 
             path="/audit-logs" 
             element={
               <ProtectedRoute >
-                <AuditLogs />
+                <LazyRouteWrapper><AuditLogs /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -756,7 +757,7 @@ const App = () => (
             path="/security-dashboard" 
             element={
               <ProtectedRoute >
-                <SecurityDashboard />
+                <LazyRouteWrapper><SecurityDashboard /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />
@@ -824,9 +825,9 @@ const App = () => (
           />
           
           {/* 404 */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<LazyRouteWrapper><NotFound /></LazyRouteWrapper>} />
                 </Routes>
-              </Suspense>
+              </ErrorBoundary>
             </main>
           </div>
         </BrowserRouter>
