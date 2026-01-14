@@ -1,22 +1,22 @@
-import { Brain, Bot, Cog, ArrowRight, Network } from 'lucide-react';
+import { Bot, Cog, ArrowRight, Network } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AGENT_CONFIGS, getVariantStyles } from './config';
 import { cn } from '@/lib/utils';
 
 interface GovernanceMapCardProps {
-  copilotsCount?: number;
   agentsCount?: number;
   servicesCount?: number;
   className?: string;
 }
 
 export function GovernanceMapCard({
-  copilotsCount = 2,
-  agentsCount = 4,
+  agentsCount,
   servicesCount = 5,
   className,
 }: GovernanceMapCardProps) {
+  const actualAgentsCount = agentsCount ?? AGENT_CONFIGS.length;
+  
   return (
     <Card className={cn("bg-white border-2 border-slate-200 shadow-sm", className)}>
       <CardHeader className="pb-3">
@@ -29,20 +29,7 @@ export function GovernanceMapCard({
       </CardHeader>
       <CardContent>
         {/* Architecture Flow */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          {/* Copilots */}
-          <div className="flex-1 text-center">
-            <div className="inline-flex items-center justify-center p-4 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 shadow-lg mb-2">
-              <Brain className="h-6 w-6 text-white" />
-            </div>
-            <p className="text-sm font-semibold text-foreground">Copilotos</p>
-            <Badge className="mt-1 bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-100">
-              {copilotsCount}
-            </Badge>
-          </div>
-
-          <ArrowRight className="h-5 w-5 text-slate-400 flex-shrink-0" />
-
+        <div className="flex items-center justify-center gap-6 mb-6">
           {/* Agents */}
           <div className="flex-1 text-center">
             <div className="inline-flex items-center justify-center p-4 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg mb-2">
@@ -50,7 +37,7 @@ export function GovernanceMapCard({
             </div>
             <p className="text-sm font-semibold text-foreground">Agentes</p>
             <Badge className="mt-1 bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-100">
-              {agentsCount}
+              {actualAgentsCount}
             </Badge>
           </div>
 
@@ -73,7 +60,7 @@ export function GovernanceMapCard({
           <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-3">
             Agentes Ativos
           </p>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-5 gap-3">
             {AGENT_CONFIGS.map((agent) => {
               const styles = getVariantStyles(agent.variant);
               const Icon = agent.icon;

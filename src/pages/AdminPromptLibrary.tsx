@@ -493,34 +493,10 @@ export default function AdminPromptLibrary() {
   // ============================================
 
   const renderStrategicHeader = () => (
-    <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="bg-background border-b">
       <div className="px-6 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm">
-              <Brain className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Governança de Prompts</h1>
-              <p className="text-slate-300 text-sm mt-1">
-                Gestao estrategica da inteligencia do Legacy OS
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar Auditoria
-            </Button>
-            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleCreateNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Prompt
-            </Button>
-          </div>
-        </div>
-
         {/* KPI Cards - Using new componentized cards */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <KPICard 
             title="Total Prompts" 
             value={stats.total} 
@@ -541,15 +517,9 @@ export default function AdminPromptLibrary() {
           />
           <KPICard 
             title="Agentes" 
-            value={4} 
+            value={AGENT_CONFIGS.length} 
             icon={Bot} 
             variant="accent" 
-          />
-          <KPICard 
-            title="Copilotos" 
-            value={2} 
-            icon={Brain} 
-            variant="info" 
           />
         </div>
       </div>
@@ -584,8 +554,7 @@ export default function AdminPromptLibrary() {
       <div className="p-6 space-y-6">
         {/* Governance Map */}
         <GovernanceMapCard 
-          copilotsCount={2}
-          agentsCount={4}
+          agentsCount={AGENT_CONFIGS.length}
           servicesCount={SERVICE_CONFIGS.length}
         />
 
@@ -1080,45 +1049,45 @@ export default function AdminPromptLibrary() {
           <div className="border-b bg-card">
             <div className="px-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="h-12 bg-transparent gap-2 p-0">
+                <TabsList className="h-12 bg-transparent gap-1 p-0 border-0">
                   <TabsTrigger 
                     value="overview" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
                   >
                     <LayoutDashboard className="h-4 w-4 mr-2" />
                     Visao Geral
                   </TabsTrigger>
                   <TabsTrigger 
                     value="agents" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
                   >
                     <Bot className="h-4 w-4 mr-2" />
                     Agentes de IA
                   </TabsTrigger>
                   <TabsTrigger 
                     value="services" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
                   >
                     <Settings2 className="h-4 w-4 mr-2" />
                     Servicos
                   </TabsTrigger>
                   <TabsTrigger 
                     value="library" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
                   >
                     <Code className="h-4 w-4 mr-2" />
                     Biblioteca de Prompts
                   </TabsTrigger>
                   <TabsTrigger 
                     value="clients" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
                   >
                     <Building2 className="h-4 w-4 mr-2" />
                     Prompts por Cliente
                   </TabsTrigger>
                   <TabsTrigger 
                     value="audit" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary px-4"
+                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
                   >
                     <History className="h-4 w-4 mr-2" />
                     Auditoria
