@@ -3,12 +3,13 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Save, RotateCcw, Building2, CreditCard, Grid3X3, Package, Puzzle } from "lucide-react";
+import { Save, RotateCcw, Building2, CreditCard, Grid3X3, Package, Puzzle, Calculator } from "lucide-react";
 import { usePricingConfig } from "@/hooks/usePricingConfig";
 import { PortesPlanosTab } from "@/components/admin/pricing/PortesPlanosTab";
 import { MatrizPricingTab } from "@/components/admin/pricing/MatrizPricingTab";
 import { ModulosConfigTab } from "@/components/admin/pricing/ModulosConfigTab";
 import { AddonsConfigTab } from "@/components/admin/pricing/AddonsConfigTab";
+import { ComplexidadePesosTab } from "@/components/admin/pricing/ComplexidadePesosTab";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminPricingConfig() {
@@ -60,7 +61,7 @@ export default function AdminPricingConfig() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+              <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
                 <TabsTrigger value="portes-planos" className="gap-2">
                   <Building2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Portes & Planos</span>
@@ -68,6 +69,10 @@ export default function AdminPricingConfig() {
                 <TabsTrigger value="matriz-pricing" className="gap-2">
                   <Grid3X3 className="h-4 w-4" />
                   <span className="hidden sm:inline">Matriz Pricing</span>
+                </TabsTrigger>
+                <TabsTrigger value="complexidade" className="gap-2">
+                  <Calculator className="h-4 w-4" />
+                  <span className="hidden sm:inline">Complexidade</span>
                 </TabsTrigger>
                 <TabsTrigger value="modulos" className="gap-2">
                   <Package className="h-4 w-4" />
@@ -85,6 +90,10 @@ export default function AdminPricingConfig() {
 
               <TabsContent value="matriz-pricing" className="space-y-6">
                 <MatrizPricingTab />
+              </TabsContent>
+
+              <TabsContent value="complexidade" className="space-y-6">
+                <ComplexidadePesosTab />
               </TabsContent>
 
               <TabsContent value="modulos" className="space-y-6">

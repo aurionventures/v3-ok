@@ -545,9 +545,12 @@ export function recommendPlan(
   }
 
   // Faturamento normal - baseado no complexity score
-  if (complexityScore <= 5) {
+  // Ajustado para alinhar com níveis de complexidade:
+  // - Baixa (≤10) → Essencial ou Profissional
+  // - Moderada (11-30) → Profissional ou Business
+  if (complexityScore <= 10) {
     return 'essencial';
-  } else if (complexityScore <= 15) {
+  } else if (complexityScore <= 20) {
     return 'profissional';
   } else if (complexityScore <= 40) {
     return 'business';
