@@ -18,7 +18,6 @@ import {
   Building2,
   FileText,
   Target,
-  TrendingUp,
   ArrowRight,
   Lightbulb
 } from 'lucide-react';
@@ -294,8 +293,10 @@ function ScoreCircle({ score, size = "md" }: { score: number; size?: "sm" | "md"
 
   const { container, radius, stroke } = sizeMap[size];
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
-  const scoreColor = getScoreColor(score);
+  // Garantir que o score não ultrapasse 100 e calcular corretamente o offset
+  const normalizedScore = Math.min(100, Math.max(0, score));
+  const strokeDashoffset = circumference - (normalizedScore / 100) * circumference;
+  const scoreColor = getScoreColor(normalizedScore);
 
   return (
     <div className="relative flex items-center justify-center">
@@ -324,10 +325,10 @@ function ScoreCircle({ score, size = "md" }: { score: number; size?: "sm" | "md"
       </svg>
       <div className="absolute text-center">
         <span className={cn('font-bold', size === "lg" ? "text-3xl" : size === "md" ? "text-xl" : "text-lg", scoreColor)}>
-          {score}
+          {normalizedScore}
         </span>
         {size === "lg" && (
-          <p className="text-xs text-muted-foreground mt-1">{getScoreLabel(score)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{getScoreLabel(normalizedScore)}</p>
         )}
       </div>
     </div>

@@ -6,7 +6,8 @@ import {
   AlertTriangle,
   BarChart3,
   FileText,
-  Archive
+  Archive,
+  Target
 } from "lucide-react";
 import { ChecklistCategory } from "@/types/documentChecklist";
 
@@ -72,6 +73,18 @@ export const initialDocumentChecklist: ChecklistCategory[] = [
       { id: "politica-riscos", name: "Política de Riscos e Controles Internos", checked: false, hasDocument: false, status: null },
       { id: "relatorios-compliance", name: "Relatórios de Compliance e Monitoramento", checked: false, hasDocument: false, status: null },
       { id: "conselho-fiscal", name: "Conselho Fiscal (Atas e Regimento)", checked: false, hasDocument: false, status: null }
+    ]
+  },
+  {
+    id: "estrategico",
+    name: "Documentos Estratégicos",
+    icon: Target,
+    color: "text-purple-500",
+    items: [
+      { id: "planejamento-estrategico", name: "Planejamento Estratégico", checked: false, hasDocument: false, status: null },
+      { id: "apresentacao-institucional", name: "Apresentação Institucional", checked: false, hasDocument: false, status: null },
+      { id: "plano-negocios", name: "Plano de Negócios", checked: false, hasDocument: false, status: null },
+      { id: "visao-missao-valores", name: "Documento de Visão, Missão e Valores", checked: false, hasDocument: false, status: null }
     ]
   },
   {

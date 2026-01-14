@@ -445,9 +445,66 @@ export default function DocumentChecklist() {
                 </Card>
                 
                 <div className="grid gap-6">
-                  {checklist.map((category, categoryIndex) => <ChecklistCategoryCard key={category.id} category={category} categoryIndex={categoryIndex} progress={getCategoryProgress(category)} onItemCheck={handleItemChecked} onStatusChange={handleItemStatusChange} onUploadRedirect={handleUploadRedirect} />)}
+                  {checklist.map((category, categoryIndex) => (
+                    <React.Fragment key={category.id}>
+                      <ChecklistCategoryCard 
+                        category={category} 
+                        categoryIndex={categoryIndex} 
+                        progress={getCategoryProgress(category)} 
+                        onItemCheck={handleItemChecked} 
+                        onStatusChange={handleItemStatusChange} 
+                        onUploadRedirect={handleUploadRedirect} 
+                      />
+                      {/* Seção de Upload: Documentos de Planejamento Estratégico - Aparece após ATAs Antigas */}
+                      {category.id === 'atas-antigas' && (
+                        <Card className="border-purple-200 bg-purple-50/30">
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="flex items-center gap-2">
+                                <Target className="h-5 w-5 text-purple-500" />
+                                Documentos de Planejamento Estratégico
+                              </CardTitle>
+                              <Badge variant="outline" className="text-xs">
+                                {documents.filter(d => d.category === 'Documentos Estratégicos').length} arquivos
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Planejamento Estratégico, Apresentações Institucionais, Planos de Negócios
+                            </p>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <FileUpload
+                              onFileUpload={(files) => handleFileUpload(files, 'Documentos Estratégicos')}
+                              accept=".pdf,.doc,.docx"
+                              maxSize={10}
+                              multiple={true}
+                              label="Selecionar arquivos"
+                            />
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-muted-foreground">Exemplos de documentos:</p>
+                              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                                <li>Planejamento Estratégico 2024-2026</li>
+                                <li>Apresentação Institucional</li>
+                                <li>Plano de Negócios</li>
+                                <li>Documento de Visão, Missão e Valores</li>
+                              </ul>
+                            </div>
+                            {documents.filter(d => d.category === 'Documentos Estratégicos').length > 0 && (
+                              <Button variant="ghost" size="sm" className="w-full" onClick={() => {
+                                setSearchParams({ tab: 'biblioteca' });
+                                setSelectedCategory('Documentos Estratégicos');
+                                setLibrarySubTab('library');
+                              }}>
+                                Ver arquivos na Biblioteca ({documents.filter(d => d.category === 'Documentos Estratégicos').length})
+                                <ArrowRight className="h-4 w-4 ml-2" />
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+                    </React.Fragment>
+                  ))}
                 </div>
-
                 
               </TabsContent>
 
@@ -723,97 +780,6 @@ export default function DocumentChecklist() {
                     </div>
                   </TabsContent>
                 </Tabs>
-
-                {/* Seção de Upload: Documentos Estratégicos + ATAs Antigas */}
-                <div className="grid md:grid-cols-2 gap-6 mt-6">
-                  {/* Documentos Estratégicos */}
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          <TrendingUp className="h-5 w-5 text-primary" />
-                          Documentos Estratégicos
-                        </CardTitle>
-                        <Badge variant="outline" className="text-xs">
-                          {documents.filter(d => d.category === 'Documentos Estratégicos').length} arquivos
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Planejamento Estratégico, Apresentações Institucionais
-                      </p>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <FileUpload
-                        onFileUpload={(files) => handleFileUpload(files, 'Documentos Estratégicos')}
-                        accept=".pdf,.doc,.docx"
-                        maxSize={10}
-                        multiple={true}
-                        label="Selecionar arquivos"
-                      />
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Exemplos:</p>
-                        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                          <li>Planejamento Estratégico 2024-2026</li>
-                          <li>Apresentação Institucional</li>
-                          <li>Plano de Negócios</li>
-                        </ul>
-                      </div>
-                      {documents.filter(d => d.category === 'Documentos Estratégicos').length > 0 && (
-                        <Button variant="ghost" size="sm" className="w-full" onClick={() => {
-                          setSelectedCategory('Documentos Estratégicos');
-                          setLibrarySubTab('library');
-                        }}>
-                          Ver arquivos ({documents.filter(d => d.category === 'Documentos Estratégicos').length})
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* ATAs Antigas */}
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          <Archive className="h-5 w-5 text-amber-500" />
-                          ATAs Antigas
-                        </CardTitle>
-                        <Badge variant="outline" className="text-xs">
-                          {documents.filter(d => d.category === 'ATAs Antigas').length} arquivos
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        ATAs de reuniões dos últimos 12 meses (se disponível)
-                      </p>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <FileUpload
-                        onFileUpload={(files) => handleFileUpload(files, 'ATAs Antigas')}
-                        accept=".pdf,.doc,.docx"
-                        maxSize={10}
-                        multiple={true}
-                        label="Selecionar arquivos"
-                      />
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground">Exemplos:</p>
-                        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                          <li>ATAs de Conselho 2025</li>
-                          <li>ATAs de Assembleia 2025</li>
-                          <li>ATAs de Comitês</li>
-                        </ul>
-                      </div>
-                      {documents.filter(d => d.category === 'ATAs Antigas').length > 0 && (
-                        <Button variant="ghost" size="sm" className="w-full" onClick={() => {
-                          setSelectedCategory('ATAs Antigas');
-                          setLibrarySubTab('library');
-                        }}>
-                          Ver arquivos ({documents.filter(d => d.category === 'ATAs Antigas').length})
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
               </TabsContent>
 
               {/* Cadastro da Empresa Tab */}
