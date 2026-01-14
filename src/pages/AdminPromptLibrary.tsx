@@ -1049,46 +1049,28 @@ export default function AdminPromptLibrary() {
           <div className="border-b bg-card">
             <div className="px-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="h-12 bg-transparent gap-1 p-0 border-0">
-                  <TabsTrigger 
-                    value="overview" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
-                  >
+                <TabsList className="h-12">
+                  <TabsTrigger value="overview" className="data-[state=active]:bg-primary/10">
                     <LayoutDashboard className="h-4 w-4 mr-2" />
                     Visao Geral
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="agents" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
-                  >
+                  <TabsTrigger value="agents" className="data-[state=active]:bg-primary/10">
                     <Bot className="h-4 w-4 mr-2" />
                     Agentes de IA
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="services" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
-                  >
+                  <TabsTrigger value="services" className="data-[state=active]:bg-primary/10">
                     <Settings2 className="h-4 w-4 mr-2" />
                     Servicos
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="library" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
-                  >
+                  <TabsTrigger value="library" className="data-[state=active]:bg-primary/10">
                     <Code className="h-4 w-4 mr-2" />
                     Biblioteca de Prompts
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="clients" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
-                  >
+                  <TabsTrigger value="clients" className="data-[state=active]:bg-primary/10">
                     <Building2 className="h-4 w-4 mr-2" />
                     Prompts por Cliente
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="audit" 
-                    className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary px-4 border-b-2 border-transparent rounded-none hover:border-primary/50 transition-colors"
-                  >
+                  <TabsTrigger value="audit" className="data-[state=active]:bg-primary/10">
                     <History className="h-4 w-4 mr-2" />
                     Auditoria
                   </TabsTrigger>

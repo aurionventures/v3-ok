@@ -18,10 +18,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Download, Eye, Share2, Search, CheckCircle, Clock, AlertTriangle, Loader2, BarChart3, FileEdit, Plus, FolderPlus } from 'lucide-react';
+import { FileText, Download, Eye, Share2, Search, CheckCircle, Clock, AlertTriangle, Loader2, BarChart3, FileEdit, Plus, FolderPlus, Building2 } from 'lucide-react';
 import { Label } from "@/components/ui/label";
 import FileUpload from '@/components/FileUpload';
 import { useToast } from "@/components/ui/use-toast";
+import { Phase1BasicSetup } from "@/components/onboarding/Phase1BasicSetup";
+import { useCompanyProfile } from "@/hooks/useOnboardingMock";
 
 // Document categories for upload
 const documentCategories = ['Estatuto Social', 'Atas de Assembleia', 'Políticas Corporativas', 'Contratos Sociais', 'Acordo de Acionistas', 'Código de Conduta', 'Política de Compliance', 'Política de Riscos', 'Regimento Interno', 'Outros Documentos', 'Documentos Personalizados'];
@@ -415,6 +417,10 @@ export default function DocumentChecklist() {
               <TabsList className="mb-4">
                 <TabsTrigger value="checklist">Checklist</TabsTrigger>
                 <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
+                <TabsTrigger value="cadastro-empresa" className="gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Cadastro da Empresa
+                </TabsTrigger>
               </TabsList>
 
               {/* Checklist Tab */}
@@ -714,6 +720,34 @@ export default function DocumentChecklist() {
                     </div>
                   </TabsContent>
                 </Tabs>
+              </TabsContent>
+
+              {/* Cadastro da Empresa Tab */}
+              <TabsContent value="cadastro-empresa" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Building2 className="h-5 w-5 text-primary" />
+                          Cadastro Geral da Empresa
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Configure os dados básicos da empresa para melhorar a efetividade do AI Engine e evitar duplicação de informações.
+                          Estes dados são compartilhados com a Base de Conhecimento.
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <Phase1BasicSetup 
+                      onComplete={() => {
+                        toast.success("Dados da empresa salvos com sucesso!");
+                      }}
+                      skipPhaseCompletion={true}
+                    />
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>

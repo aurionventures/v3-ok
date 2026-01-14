@@ -45,6 +45,7 @@ interface Phase1BasicSetupProps {
   onBack?: () => void;
   initialData?: Partial<Phase1FormData>;
   isSaving?: boolean;
+  skipPhaseCompletion?: boolean; // Quando true, não marca a fase como completa no onboarding
 }
 
 const SECTIONS = [
@@ -93,7 +94,7 @@ const defaultFormData: Phase1FormData = {
   complianceFrameworks: []
 };
 
-export function Phase1BasicSetup({ onComplete, onBack }: Phase1BasicSetupProps) {
+export function Phase1BasicSetup({ onComplete, onBack, skipPhaseCompletion = false }: Phase1BasicSetupProps) {
   const { profile, updateProfile, isSaving, isLoading } = useCompanyProfile();
   const { completePhase } = useOnboardingProgress();
   const { toast } = useToast();
@@ -154,11 +155,18 @@ export function Phase1BasicSetup({ onComplete, onBack }: Phase1BasicSetupProps) 
     } else {
       // Save and complete
       await saveProfile();
-      await completePhase(1);
-      toast({
-        title: 'Fase 1 concluida!',
-        description: 'Informacoes basicas salvas com sucesso.'
-      });
+      if (!skipPhaseCompletion) {
+        await completePhase(1);
+        toast({
+          title: 'Fase 1 concluida!',
+          description: 'Informacoes basicas salvas com sucesso.'
+        });
+      } else {
+        toast({
+          title: 'Dados salvos!',
+          description: 'Informacoes basicas salvas com sucesso.'
+        });
+      }
       onComplete();
     }
   };
