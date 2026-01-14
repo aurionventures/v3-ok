@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 import { usePricingConfig, CompanySize, SubscriptionPlan, PlanPricingMatrix, AddonCatalog, Module } from '@/hooks/usePricingConfig';
 import { calculateComplexityScore, getComplexityLevel, PRICING_MATRIX } from '@/data/pricingData';
 import { FileDown } from 'lucide-react';
@@ -165,6 +165,103 @@ const styles = StyleSheet.create({
     fontSize: 7,
     fontWeight: 'bold',
   },
+  flowPage: {
+    padding: 30,
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+  },
+  flowTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  flowColumns: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  flowColumn: {
+    width: '48%',
+    paddingHorizontal: 5,
+  },
+  flowColumnTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+    padding: 8,
+    borderRadius: 6,
+  },
+  flowColumnPLG: {
+    backgroundColor: '#dcfce7',
+    color: '#166534',
+  },
+  flowColumnSLG: {
+    backgroundColor: '#fed7aa',
+    color: '#9a3412',
+  },
+  flowStep: {
+    marginBottom: 8,
+    padding: 8,
+    borderRadius: 4,
+    border: '1 solid',
+  },
+  flowStepPLG: {
+    backgroundColor: '#dcfce7',
+    borderColor: '#22c55e',
+  },
+  flowStepSLG: {
+    backgroundColor: '#fed7aa',
+    borderColor: '#f97316',
+  },
+  flowStepCommon: {
+    backgroundColor: '#dbeafe',
+    borderColor: '#3b82f6',
+  },
+  flowStepTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  flowStepSubtitle: {
+    fontSize: 7,
+    color: '#475569',
+    lineHeight: 1.3,
+  },
+  flowArrow: {
+    fontSize: 10,
+    color: '#64748b',
+    textAlign: 'center',
+    marginVertical: 4,
+    fontWeight: 'bold',
+  },
+  flowConversion: {
+    fontSize: 8,
+    color: '#059669',
+    textAlign: 'center',
+    marginVertical: 3,
+    fontWeight: 'bold',
+  },
+  flowConvergence: {
+    marginTop: 25,
+    padding: 15,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    border: '2 solid #3b82f6',
+  },
+  flowConvergenceTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1e40af',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  flowCommonSteps: {
+    flexDirection: 'column',
+  },
 });
 
 interface PLGSLGStrategyPDFDocumentProps {
@@ -225,10 +322,9 @@ function PLGSLGStrategyPDFDocument({
       <Page size="A4" style={styles.page}>
         {/* Logo no canto superior esquerdo */}
         <View style={{ position: 'absolute', top: 20, left: 30 }}>
-          <Image 
-            src="/src/assets/legacy-logo.png" 
-            style={styles.logo}
-          />
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
         </View>
 
         <View style={styles.header}>
@@ -283,6 +379,13 @@ function PLGSLGStrategyPDFDocument({
 
       {/* Página 2: Portes e Planos */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Portes de Empresa</Text>
         </View>
@@ -342,6 +445,13 @@ function PLGSLGStrategyPDFDocument({
 
       {/* Página 3: Matriz de Pricing - Mensal */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Matriz de Pricing - Preços Mensais</Text>
         </View>
@@ -382,6 +492,13 @@ function PLGSLGStrategyPDFDocument({
 
       {/* Página 4: Matriz de Pricing - Anual e Setup */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Matriz de Pricing - Preços Anuais</Text>
         </View>
@@ -454,6 +571,13 @@ function PLGSLGStrategyPDFDocument({
 
       {/* Página 5: Complexidade e Pesos */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Sistema de Complexidade</Text>
         </View>
@@ -510,6 +634,13 @@ function PLGSLGStrategyPDFDocument({
 
       {/* Página 6: Níveis de Complexidade e Thresholds */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Níveis de Complexidade e Recomendações</Text>
         </View>
@@ -592,6 +723,13 @@ function PLGSLGStrategyPDFDocument({
 
       {/* Página 7: Módulos e Add-ons */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Módulos e Complementos</Text>
         </View>
@@ -645,8 +783,153 @@ function PLGSLGStrategyPDFDocument({
         )} fixed />
       </Page>
 
-      {/* Página 8: Estratégia PLG/SLG */}
+      {/* Página 8: Fluxograma PLG/SLG */}
+      <Page size="A4" style={styles.flowPage} wrap={false}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
+        <View style={{ marginTop: 40 }}>
+          <Text style={styles.flowTitle}>Fluxograma de Conversão PLG/SLG</Text>
+        </View>
+
+        {/* Colunas PLG e SLG */}
+        <View style={styles.flowColumns}>
+          {/* Coluna PLG */}
+          <View style={styles.flowColumn}>
+            <Text style={[styles.flowColumnTitle, styles.flowColumnPLG]}>
+              Product-Led Growth (PLG)
+            </Text>
+
+            {/* ISCA - Quiz GovMetrix */}
+            <View style={[styles.flowStep, styles.flowStepPLG]}>
+              <Text style={styles.flowStepTitle}>ISCA</Text>
+              <Text style={styles.flowStepSubtitle}>Quiz GovMetrix</Text>
+              <Text style={styles.flowStepSubtitle}>(Diagnóstico Gratuito)</Text>
+            </View>
+            <Text style={styles.flowConversion}>↓ 63% conversão</Text>
+
+            {/* Descoberta - Quiz Perfil */}
+            <View style={[styles.flowStep, styles.flowStepPLG]}>
+              <Text style={styles.flowStepTitle}>Descoberta</Text>
+              <Text style={styles.flowStepSubtitle}>Quiz Perfil da Empresa</Text>
+            </View>
+            <Text style={styles.flowConversion}>↓ 70% conversão</Text>
+
+            {/* Checkout Automático */}
+            <View style={[styles.flowStep, styles.flowStepPLG]}>
+              <Text style={styles.flowStepTitle}>Checkout</Text>
+              <Text style={styles.flowStepSubtitle}>Plano Recomendado Automático</Text>
+            </View>
+            <Text style={styles.flowConversion}>↓ 84% conversão</Text>
+
+            {/* Pagamento */}
+            <View style={[styles.flowStep, styles.flowStepPLG]}>
+              <Text style={styles.flowStepTitle}>Pagamento</Text>
+              <Text style={styles.flowStepSubtitle}>PIX / Cartão / Boleto</Text>
+            </View>
+            <Text style={styles.flowConversion}>↓ 96% conversão</Text>
+          </View>
+
+          {/* Coluna SLG */}
+          <View style={styles.flowColumn}>
+            <Text style={[styles.flowColumnTitle, styles.flowColumnSLG]}>
+              Sales-Led Growth (SLG)
+            </Text>
+
+            {/* ISCA - CRM Lead */}
+            <View style={[styles.flowStep, styles.flowStepSLG]}>
+              <Text style={styles.flowStepTitle}>ISCA</Text>
+              <Text style={styles.flowStepSubtitle}>CRM Lead no Funil de Vendas</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Contato Humano */}
+            <View style={[styles.flowStep, styles.flowStepSLG]}>
+              <Text style={styles.flowStepTitle}>Contato Humano</Text>
+              <Text style={styles.flowStepSubtitle}>Time Comercial / Parceiro</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Proposta Customizada */}
+            <View style={[styles.flowStep, styles.flowStepSLG]}>
+              <Text style={styles.flowStepTitle}>Proposta</Text>
+              <Text style={styles.flowStepSubtitle}>Plano Customizado</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Negociação */}
+            <View style={[styles.flowStep, styles.flowStepSLG]}>
+              <Text style={styles.flowStepTitle}>Negociação</Text>
+              <Text style={styles.flowStepSubtitle}>Condições Especiais</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Checkout Assistido */}
+            <View style={[styles.flowStep, styles.flowStepSLG]}>
+              <Text style={styles.flowStepTitle}>Checkout Assistido</Text>
+              <Text style={styles.flowStepSubtitle}>Vendedor Acompanha</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Convergência - Caminho Comum */}
+        <View style={styles.flowConvergence} wrap={false}>
+          <Text style={styles.flowConvergenceTitle}>Caminho Comum Pós-Conversão</Text>
+          
+          <View style={styles.flowCommonSteps}>
+            {/* Ativação */}
+            <View style={[styles.flowStep, styles.flowStepCommon]}>
+              <Text style={styles.flowStepTitle}>Ativação</Text>
+              <Text style={styles.flowStepSubtitle}>Conta Criada Automaticamente</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Onboarding */}
+            <View style={[styles.flowStep, styles.flowStepCommon]}>
+              <Text style={styles.flowStepTitle}>Onboarding</Text>
+              <Text style={styles.flowStepSubtitle}>Knowledge Base - Fase 1, Fase 2, Fase 3</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* IA Engine */}
+            <View style={[styles.flowStep, styles.flowStepCommon]}>
+              <Text style={styles.flowStepTitle}>IA Engine</Text>
+              <Text style={styles.flowStepSubtitle}>IA Contextualizada</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Dashboard */}
+            <View style={[styles.flowStep, styles.flowStepCommon]}>
+              <Text style={styles.flowStepTitle}>Dashboard</Text>
+              <Text style={styles.flowStepSubtitle}>Uso da Plataforma</Text>
+            </View>
+            <Text style={styles.flowArrow}>↓</Text>
+
+            {/* Métricas */}
+            <View style={[styles.flowStep, styles.flowStepCommon]}>
+              <Text style={styles.flowStepTitle}>Métricas de Acompanhamento</Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
+          `©2026 - Confidencial Legacy OS | Página ${pageNumber} de ${totalPages}`
+        )} fixed />
+      </Page>
+
+      {/* Página 9: Estratégia PLG/SLG */}
       <Page size="A4" style={styles.page}>
+        {/* Logo no canto superior esquerdo */}
+        <View style={{ position: 'absolute', top: 20, left: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>
+            Legacy <Text style={{ color: '#2563eb' }}>OS</Text>
+          </Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Estratégia PLG/SLG</Text>
         </View>
