@@ -121,6 +121,9 @@ export default function SLGLeadsDashboard() {
   const fetchLeads = async () => {
     setIsLoading(true);
     try {
+      // NOTE: plg_leads table doesn't exist yet, using mock data
+      // When table is created, uncomment the Supabase query below
+      /*
       const { data, error } = await supabase
         .from('plg_leads')
         .select('*')
@@ -129,9 +132,12 @@ export default function SLGLeadsDashboard() {
 
       if (error) throw error;
       setLeads((data as SLGLead[]) || []);
+      */
+      
+      // Use mock data for development
+      setLeads(getMockSLGLeads());
     } catch (error) {
       console.error('Error fetching SLG leads:', error);
-      // Mock data para desenvolvimento
       setLeads(getMockSLGLeads());
     } finally {
       setIsLoading(false);
@@ -140,16 +146,7 @@ export default function SLGLeadsDashboard() {
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('plg_leads')
-        .update({ 
-          sales_status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', leadId);
-
-      if (error) throw error;
-
+      // NOTE: plg_leads table doesn't exist yet, updating locally only
       setLeads(prev => prev.map(lead =>
         lead.id === leadId ? { ...lead, sales_status: newStatus } : lead
       ));
@@ -164,16 +161,7 @@ export default function SLGLeadsDashboard() {
     if (!selectedLead) return;
     
     try {
-      const { error } = await supabase
-        .from('plg_leads')
-        .update({ 
-          sales_notes: notes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedLead.id);
-
-      if (error) throw error;
-
+      // NOTE: plg_leads table doesn't exist yet, updating locally only
       setLeads(prev => prev.map(lead =>
         lead.id === selectedLead.id ? { ...lead, sales_notes: notes } : lead
       ));

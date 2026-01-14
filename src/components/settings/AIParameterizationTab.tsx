@@ -78,7 +78,7 @@ export const AIParameterizationTab: React.FC = () => {
     suggestedPrompt, 
     loading: loadingClientConfig 
   } = useClientPromptConfig(
-    user?.user_metadata?.organization_id || null, 
+    (user as any)?.user_metadata?.organization_id || null, 
     'agent_g_ata_generator'
   );
   
