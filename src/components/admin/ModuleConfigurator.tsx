@@ -43,7 +43,6 @@ const ALL_MODULES_GROUPED: {
       { key: "structure", label: "Estrutura Societária", isAddon: false },
       { key: "cap_table", label: "Cap Table", isAddon: false },
       { key: "gov_maturity", label: "Maturidade de Governança", isAddon: false },
-      { key: "legacy_rituals", label: "Legado e Rituais", isAddon: false },
     ],
   },
   {

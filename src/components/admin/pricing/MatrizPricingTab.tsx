@@ -23,7 +23,12 @@ export function MatrizPricingTab() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 }).format(price);
+    return new Intl.NumberFormat("pt-BR", { 
+      style: "currency", 
+      currency: "BRL", 
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(price);
   };
 
   const getDisplayPrice = (pricing: PlanPricingMatrix) => {
@@ -258,21 +263,19 @@ export function MatrizPricingTab() {
                     </span>
                   </p>
                 </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Marcar como "Mais Popular"</Label>
+                  <Switch checked={editingPricing.is_recommended} onCheckedChange={(checked) => setEditingPricing({ ...editingPricing, is_recommended: checked })} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label>Ativo</Label>
+                  <Switch checked={editingPricing.is_active} onCheckedChange={(checked) => setEditingPricing({ ...editingPricing, is_active: checked })} />
+                </div>
               </div>
             );
           })()}
-
-              <div className="flex items-center justify-between">
-                <Label>Marcar como "Mais Popular"</Label>
-                <Switch checked={editingPricing.is_recommended} onCheckedChange={(checked) => setEditingPricing({ ...editingPricing, is_recommended: checked })} />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label>Ativo</Label>
-                <Switch checked={editingPricing.is_active} onCheckedChange={(checked) => setEditingPricing({ ...editingPricing, is_active: checked })} />
-              </div>
-            </div>
-          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingPricing(null)}>Cancelar</Button>
             <Button onClick={handleSave}>Salvar</Button>

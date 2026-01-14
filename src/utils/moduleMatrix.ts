@@ -81,7 +81,7 @@ export const CORE_BASE_MODULES: ModuleKey[] = [
   // INÍCIO
   'dashboard', 'settings',
   // PARAMETRIZAÇÃO
-  'structure', 'cap_table', 'gov_maturity', 'legacy_rituals',
+  'structure', 'cap_table', 'gov_maturity',
   // PREPARAÇÃO
   'checklist', 'interviews', 'analysis_actions',
   // ESTRUTURAÇÃO

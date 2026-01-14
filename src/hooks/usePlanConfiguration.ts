@@ -56,7 +56,7 @@ const DEFAULT_ADDONS: AddonPrice[] = [
 ];
 
 const CORE_MODULES = [
-  'dashboard', 'settings', 'structure', 'cap_table', 'gov_maturity', 'legacy_rituals',
+  'dashboard', 'settings', 'structure', 'cap_table', 'gov_maturity',
   'checklist', 'interviews', 'analysis_actions', 'gov_config', 'annual_agenda', 
   'secretariat', 'councils', 'activities'
 ];
