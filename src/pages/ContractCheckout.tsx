@@ -43,6 +43,7 @@ import { CONTRACT_TERM_OPTIONS, PAYMENT_CYCLE_OPTIONS, ClientBilling } from '@/t
 import { asaasService } from '@/services/asaasService';
 import legacyLogo from "@/assets/legacy-logo-new.png";
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { CompanyData } from '@/hooks/useCNPJ';
 import type { AddressData } from '@/hooks/useCEP';
 
@@ -214,9 +215,53 @@ export default function ContractCheckout() {
     setIsProcessing(true);
     
     try {
-      // Montar dados do cliente
+      // 1. Salvar cliente no Supabase (tabela users)
+      let userId: string;
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', formData.contactEmail)
+        .single();
+
+      if (existingUser) {
+        userId = existingUser.id;
+        // Atualizar dados do usuário existente
+        await supabase
+          .from('users')
+          .update({
+            name: formData.contactName,
+            company: formData.companyName,
+            phone: formData.contactPhone,
+          })
+          .eq('id', userId);
+      } else {
+        // Criar novo usuário
+        const { data: newUser, error: userError } = await supabase
+          .from('users')
+          .insert({
+            name: formData.contactName,
+            email: formData.contactEmail,
+            company: formData.companyName,
+            phone: formData.contactPhone,
+          })
+          .select()
+          .single();
+
+        if (userError) throw userError;
+        userId = newUser.id;
+
+        // Inserir role de cliente
+        await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            role: 'cliente'
+          });
+      }
+
+      // 2. Processar checkout (localStorage - manter para compatibilidade)
       const clientData: ClientBilling = {
-        id: `client_${Date.now()}`,
+        id: userId,
         company_name: formData.companyName,
         trading_name: formData.tradingName || undefined,
         cnpj: formData.cnpj,
@@ -248,7 +293,6 @@ export default function ContractCheckout() {
         updated_at: new Date().toISOString(),
       };
       
-      // Processar checkout
       const result = await asaasService.checkout.processCheckout({
         client: clientData,
         planId: plan.id,
@@ -261,22 +305,98 @@ export default function ContractCheckout() {
         paymentCycle: contractConfig.paymentCycle,
         billingType: contractConfig.billingType,
       });
-      
-      // Salvar resultado para próxima página
+
+      // 3. Criar contrato no Supabase
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + contractConfig.term);
+
+      // Buscar template padrão
+      const { data: defaultTemplate } = await supabase
+        .from('contract_templates')
+        .select('id, content')
+        .eq('is_default', true)
+        .eq('is_active', true)
+        .single();
+
+      // Gerar conteúdo do contrato (placeholder - será substituído pelo template)
+      let contractContent = defaultTemplate?.content || '<p>Contrato de Prestação de Serviços SaaS</p>';
+      contractContent = contractContent
+        .replace(/\{\{cliente_nome\}\}/g, formData.companyName)
+        .replace(/\{\{cliente_cnpj\}\}/g, formData.cnpj)
+        .replace(/\{\{plano_nome\}\}/g, plan.nome)
+        .replace(/\{\{valor_mensal\}\}/g, discountedMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+        .replace(/\{\{duracao_meses\}\}/g, contractConfig.term.toString());
+
+      const { data: newContract, error: contractError } = await supabase
+        .from('contracts')
+        .insert({
+          template_id: defaultTemplate?.id || null,
+          client_name: formData.companyName,
+          client_document: formData.cnpj.replace(/\D/g, ''),
+          client_email: formData.contactEmail,
+          client_phone: formData.contactPhone,
+          client_address: `${formData.street}, ${formData.number}${formData.complement ? ` - ${formData.complement}` : ''}, ${formData.neighborhood} - ${formData.city}/${formData.state} - CEP: ${formData.zip}`,
+          signatory_name: formData.contactName,
+          signatory_role: formData.contactRole || 'Representante Legal',
+          signatory_email: formData.contactEmail,
+          plan_type: plan.id,
+          plan_name: plan.nome,
+          addons: selectedAddons.map(a => a.id),
+          monthly_value: discountedMonthly,
+          total_value: totalContractValue,
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          duration_months: contractConfig.term,
+          content_html: contractContent,
+          status: 'pending_signature',
+        })
+        .select()
+        .single();
+
+      if (contractError) {
+        console.error('Erro ao criar contrato:', contractError);
+        throw contractError;
+      }
+
+      // 4. Enviar e-mail com contrato via Edge Function
+      try {
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-contract-email', {
+          body: {
+            contract_id: newContract.id,
+            email_type: 'signature_request',
+          },
+        });
+
+        if (emailError) {
+          console.error('Erro ao enviar e-mail:', emailError);
+          // Não interrompe o fluxo se o e-mail falhar
+          toast.warning('Contrato criado, mas e-mail não foi enviado. Entre em contato com o suporte.');
+        } else {
+          toast.success('Contrato gerado e e-mail enviado com sucesso!');
+        }
+      } catch (emailErr) {
+        console.error('Erro ao enviar e-mail:', emailErr);
+        // Não interrompe o fluxo
+      }
+
+      // 5. Salvar resultado para próxima página
       localStorage.setItem('checkout_result', JSON.stringify({
         ...result,
         planName: plan.nome,
         totalMonthly: discountedMonthly,
         totalContractValue,
         firstPayment,
+        contractId: newContract.id,
+        contractNumber: newContract.contract_number,
       }));
       
-      toast.success('Contrato gerado com sucesso!');
+      toast.success(`Cliente "${formData.companyName}" cadastrado com sucesso!`);
       setCurrentStep('confirmacao');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no checkout:', error);
-      toast.error('Erro ao processar. Tente novamente.');
+      toast.error(error.message || 'Erro ao processar. Tente novamente.');
     } finally {
       setIsProcessing(false);
     }
