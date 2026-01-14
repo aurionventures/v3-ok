@@ -124,6 +124,9 @@ export default function AdminContracts() {
   const fetchContracts = async () => {
     setIsLoading(true);
     try {
+      // NOTE: contracts table doesn't exist yet, using mock data
+      // When table is created, uncomment the Supabase query below
+      /*
       const { data, error } = await supabase
         .from("contracts")
         .select("*")
@@ -133,9 +136,14 @@ export default function AdminContracts() {
       
       setContracts(data || []);
       calculateMetrics(data || []);
+      */
+      
+      // Use mock data for development
+      const mockData = getMockContracts();
+      setContracts(mockData);
+      calculateMetrics(mockData);
     } catch (error) {
       console.error("Error fetching contracts:", error);
-      // Mock data
       const mockData = getMockContracts();
       setContracts(mockData);
       calculateMetrics(mockData);
@@ -204,15 +212,17 @@ export default function AdminContracts() {
 
   const handleCounterSign = async (contract: Contract) => {
     try {
-      const { error } = await supabase
-        .from("contracts")
-        .update({
-          status: 'active',
-          counter_signed_at: new Date().toISOString(),
-        })
-        .eq("id", contract.id);
-
-      if (error) throw error;
+      // NOTE: contracts table doesn't exist yet, updating locally
+      setContracts(prev => prev.map(c => 
+        c.id === contract.id 
+          ? { ...c, status: 'active', counter_signed_at: new Date().toISOString() }
+          : c
+      ));
+      calculateMetrics(contracts.map(c => 
+        c.id === contract.id 
+          ? { ...c, status: 'active', counter_signed_at: new Date().toISOString() }
+          : c
+      ));
 
       toast.success("Contrato ativado com sucesso!");
 
