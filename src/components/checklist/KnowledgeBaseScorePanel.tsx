@@ -158,7 +158,7 @@ export function KnowledgeBaseScorePanel({
             </div>
 
             {/* Progress Bars for Phases */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 items-stretch">
               <PhaseCard
                 phase={1}
                 title="Fase 1"

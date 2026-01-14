@@ -514,7 +514,7 @@ export default function Pricing() {
 
       {/* Modal Calculadora */}
       <Dialog open={calculatorOpen} onOpenChange={setCalculatorOpen}>
-        <DialogContent className="max-w-lg sm:max-w-xl p-4 sm:p-6">
+        <DialogContent className="max-w-4xl sm:max-w-5xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
           {!calculatorResult ? (
             <>
               <DialogHeader className="pb-2">
@@ -705,196 +705,204 @@ export default function Pricing() {
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-6 py-4">
-                {/* Plano Recomendado */}
-                <Card className="border-2 border-accent bg-accent/5">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center">
-                        <Crown className="h-6 w-6 text-accent" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold">
-                          {
-                            PLANS.find((p) => p.id === calculatorResult.planoId)
-                              ?.nome
-                          }
-                        </h3>
-                        <Badge variant="secondary">
-                          Ideal para sua empresa
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="bg-muted/50 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Índice de Complexidade
-                      </p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold">
-                          {calculatorResult.complexityScore}
-                        </span>
-                        <span
-                          className={`text-sm font-medium ${calculatorResult.complexityLevel.color}`}
-                        >
-                          Complexidade {calculatorResult.complexityLevel.level}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground">
-                      {calculatorResult.justificativa}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                {/* Preço Revelado */}
-                <Card className="border-2 border-green-500/30 bg-green-50/50">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <TrendingUp className="h-5 w-5 text-green-600" />
-                      <h4 className="font-semibold text-green-800">
-                        SEU INVESTIMENTO
-                      </h4>
-                    </div>
-
-                    {calculatorResult.pricing.mensal ? (
-                      <div className="space-y-4">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-bold text-foreground">
-                            {calculatorResult.pricing.mensalFormatted}
-                          </span>
-                          <span className="text-muted-foreground">/mês</span>
+              <div className="space-y-4 py-2">
+                {/* Layout em 2 colunas para desktop */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Coluna Esquerda: Plano Recomendado */}
+                  <Card className="border-2 border-accent bg-accent/5">
+                    <CardContent className="pt-4 pb-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Crown className="h-5 w-5 text-accent" />
                         </div>
-
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">ou</span>
-                          <span className="text-2xl font-bold text-foreground">
-                            {calculatorResult.pricing.anualFormatted}
-                          </span>
-                          <span className="text-muted-foreground">/ano</span>
-                        </div>
-
-                        {calculatorResult.pricing.economiaFormatted && (
-                          <Badge className="bg-green-600 text-white">
-                            {calculatorResult.pricing.economiaFormatted} (2 meses)
+                        <div className="min-w-0">
+                          <h3 className="text-lg font-bold truncate">
+                            {
+                              PLANS.find((p) => p.id === calculatorResult.planoId)
+                                ?.nome
+                            }
+                          </h3>
+                          <Badge variant="secondary" className="text-xs">
+                            Ideal para sua empresa
                           </Badge>
-                        )}
+                        </div>
+                      </div>
 
-                        {/* Setup Fee - PRD v3.0 */}
-                        {calculatorResult.pricing.setup && calculatorResult.pricing.setup > 0 && (
-                          <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-dashed">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium">Taxa de Setup (única vez)</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Onboarding personalizado + treinamento
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-lg font-bold">{calculatorResult.pricing.setupFormatted}</span>
-                                <p className="text-xs text-green-600">
-                                  50% OFF no anual à vista
-                                </p>
+                      <div className="bg-muted/50 rounded-lg p-3 mb-3">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Índice de Complexidade
+                        </p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold">
+                            {calculatorResult.complexityScore}
+                          </span>
+                          <span
+                            className={`text-xs font-medium ${calculatorResult.complexityLevel.color}`}
+                          >
+                            Complexidade {calculatorResult.complexityLevel.level}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground line-clamp-3">
+                        {calculatorResult.justificativa}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Coluna Direita: Preço Revelado */}
+                  <Card className="border-2 border-green-500/30 bg-green-50/50">
+                    <CardContent className="pt-4 pb-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <h4 className="font-semibold text-green-800 text-sm">
+                          SEU INVESTIMENTO
+                        </h4>
+                      </div>
+
+                      {calculatorResult.pricing.mensal ? (
+                        <div className="space-y-3">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-foreground">
+                              {calculatorResult.pricing.mensalFormatted}
+                            </span>
+                            <span className="text-sm text-muted-foreground">/mês</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">ou</span>
+                            <span className="text-xl font-bold text-foreground">
+                              {calculatorResult.pricing.anualFormatted}
+                            </span>
+                            <span className="text-sm text-muted-foreground">/ano</span>
+                          </div>
+
+                          {calculatorResult.pricing.economiaFormatted && (
+                            <Badge className="bg-green-600 text-white text-xs">
+                              {calculatorResult.pricing.economiaFormatted} (2 meses)
+                            </Badge>
+                          )}
+
+                          {/* Setup Fee - Compacto */}
+                          {calculatorResult.pricing.setup && calculatorResult.pricing.setup > 0 && (
+                            <div className="mt-3 p-2.5 bg-muted/50 rounded-lg border border-dashed">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-medium">Taxa de Setup (única vez)</p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    Onboarding + treinamento
+                                  </p>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <span className="text-base font-bold">{calculatorResult.pricing.setupFormatted}</span>
+                                  <p className="text-[10px] text-green-600">
+                                    50% OFF anual
+                                  </p>
+                                </div>
                               </div>
                             </div>
+                          )}
+
+                          <div className="pt-3 border-t space-y-1.5">
+                            <p className="text-xs font-medium">Incluso:</p>
+                            <ul className="text-xs text-muted-foreground space-y-1">
+                              <li className="flex items-center gap-1.5">
+                                <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
+                                <span className="truncate">
+                                  {PLANS.find(
+                                    (p) => p.id === calculatorResult.planoId
+                                  )?.limites.empresas === 'ilimitado'
+                                    ? 'Empresas ilimitadas'
+                                    : `${PLANS.find((p) => p.id === calculatorResult.planoId)?.limites.empresas} empresas`}
+                                  , usuários ilimitados
+                                </span>
+                              </li>
+                              <li className="flex items-center gap-1.5">
+                                <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
+                                <span className="truncate">
+                                  AI Engine{' '}
+                                  {
+                                    PLANS.find(
+                                      (p) => p.id === calculatorResult.planoId
+                                    )?.limites.aiEngine
+                                  }
+                                  , 13 módulos core
+                                </span>
+                              </li>
+                              <li className="flex items-center gap-1.5">
+                                <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
+                                <span className="truncate">
+                                  {
+                                    PLANS.find(
+                                      (p) => p.id === calculatorResult.planoId
+                                    )?.limites.addonsInclusos
+                                  }{' '}
+                                  add-ons à sua escolha
+                                </span>
+                              </li>
+                            </ul>
                           </div>
-                        )}
-
-                        <div className="pt-4 border-t space-y-2">
-                          <p className="text-sm font-medium">Incluso:</p>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            <li className="flex items-center gap-2">
-                              <Check className="h-4 w-4 text-green-600" />
-                              {PLANS.find(
-                                (p) => p.id === calculatorResult.planoId
-                              )?.limites.empresas === 'ilimitado'
-                                ? 'Empresas ilimitadas'
-                                : `${PLANS.find((p) => p.id === calculatorResult.planoId)?.limites.empresas} empresas`}
-                              , usuários ilimitados
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <Check className="h-4 w-4 text-green-600" />
-                              AI Engine{' '}
-                              {
-                                PLANS.find(
-                                  (p) => p.id === calculatorResult.planoId
-                                )?.limites.aiEngine
-                              }
-                              , 13 módulos core
-                            </li>
-                            <li className="flex items-center gap-2">
-                              <Check className="h-4 w-4 text-green-600" />
-                              {
-                                PLANS.find(
-                                  (p) => p.id === calculatorResult.planoId
-                                )?.limites.addonsInclusos
-                              }{' '}
-                              add-ons à sua escolha
-                            </li>
-                          </ul>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-lg font-medium text-foreground mb-2">
-                          Pricing Personalizado
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Entre em contato para uma proposta sob medida para sua
-                          corporação.
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      ) : (
+                        <div className="text-center py-3">
+                          <p className="text-sm font-medium text-foreground mb-1">
+                            Pricing Personalizado
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Entre em contato para uma proposta sob medida.
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
 
-                {/* Add-ons Sugeridos com Preços e Seleção */}
+                {/* Add-ons Sugeridos - Grid compacto */}
                 <div>
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Crown className="h-4 w-4 text-accent" />
+                  <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                    <Crown className="h-3.5 w-3.5 text-accent" />
                     Add-ons Sugeridos
                   </h4>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <p className="text-xs text-muted-foreground mb-2">
                     Selecione os add-ons para adicionar ao seu plano:
                   </p>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {calculatorResult.addOnsSugeridos.map((addon) => {
                       const isSelected = selectedAddons.includes(addon.id);
                       return (
                         <div
                           key={addon.id}
                           onClick={() => toggleAddon(addon.id)}
-                          className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                          className={`flex items-center justify-between p-2.5 border rounded-lg cursor-pointer transition-all ${
                             isSelected
                               ? 'border-accent bg-accent/5 ring-1 ring-accent'
                               : 'hover:border-accent/50'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
                             <div
-                              className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                              className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                                 isSelected
                                   ? 'bg-accent border-accent'
                                   : 'border-muted-foreground/30'
                               }`}
                             >
                               {isSelected && (
-                                <Check className="h-3 w-3 text-white" />
+                                <Check className="h-2.5 w-2.5 text-white" />
                               )}
                             </div>
-                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                            <div className="w-6 h-6 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
                               {renderAddonIcon(addon.icone)}
                             </div>
-                            <span className="font-medium text-sm">
+                            <span className="font-medium text-xs truncate">
                               {addon.nome}
                             </span>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-sm">
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <p className="font-semibold text-xs whitespace-nowrap">
                               R$ {addon.precoMensal.toLocaleString('pt-BR')}/mês
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[10px] text-muted-foreground whitespace-nowrap">
                               R$ {addon.precoAnual.toLocaleString('pt-BR')}/ano
                             </p>
                           </div>
@@ -903,26 +911,26 @@ export default function Pricing() {
                     })}
                   </div>
 
-                  {/* Total com Add-ons */}
+                  {/* Total com Add-ons - Compacto */}
                   {selectedAddons.length > 0 && calculateTotalWithAddons && (
-                    <div className="mt-4 p-4 bg-accent/10 rounded-lg border border-accent/30">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium">
+                    <div className="mt-3 p-3 bg-accent/10 rounded-lg border border-accent/30">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-medium">
                           Plano + {selectedAddons.length} add-on
                           {selectedAddons.length > 1 ? 's' : ''}:
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-accent">
+                        <span className="text-xl font-bold text-accent">
                           {calculateTotalWithAddons.mensalFormatted}
                         </span>
-                        <span className="text-muted-foreground">/mês</span>
+                        <span className="text-xs text-muted-foreground">/mês</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-lg font-semibold">
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-base font-semibold">
                           {calculateTotalWithAddons.anualFormatted}
                         </span>
-                        <span className="text-muted-foreground text-sm">
+                        <span className="text-xs text-muted-foreground">
                           /ano
                         </span>
                       </div>
@@ -930,33 +938,31 @@ export default function Pricing() {
                   )}
                 </div>
 
-                {/* CTAs */}
-                <div className="flex flex-col gap-3">
+                {/* CTAs - Compacto */}
+                <div className="flex flex-col gap-2 pt-2">
                   <Button
                     onClick={handleContractCheckout}
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    size="lg"
+                    size="default"
                   >
-                    <FileText className="h-5 w-5 mr-2" />
+                    <FileText className="h-4 w-4 mr-2" />
                     Contratar com Boleto/PIX
                   </Button>
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
                       onClick={handleStartTrial}
                       variant="outline"
-                      className="flex-1"
-                      size="lg"
+                      size="default"
                     >
-                      <CreditCard className="h-5 w-5 mr-2" />
+                      <CreditCard className="h-4 w-4 mr-2" />
                       Pagar com Cartão
                     </Button>
                     <Button
                       onClick={handleContactSpecialist}
                       variant="outline"
-                      className="flex-1"
-                      size="lg"
+                      size="default"
                     >
-                      <MessageCircle className="h-5 w-5 mr-2" />
+                      <MessageCircle className="h-4 w-4 mr-2" />
                       Falar com Especialista
                     </Button>
                   </div>
@@ -968,9 +974,10 @@ export default function Pricing() {
                     setCalculatorResult(null);
                     setSelectedAddons([]);
                   }}
-                  className="w-full"
+                  className="w-full text-xs"
+                  size="sm"
                 >
-                  <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+                  <ArrowRight className="h-3 w-3 mr-2 rotate-180" />
                   Refazer cálculo
                 </Button>
               </div>
