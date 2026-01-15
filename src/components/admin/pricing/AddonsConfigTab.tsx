@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Puzzle } from "lucide-react";
+import { Plus, Pencil, Trash2, Puzzle, Sparkles, CheckCircle2 } from "lucide-react";
 
 const CATEGORIES = [
   { value: "governance", label: "Governança" },
@@ -19,7 +19,9 @@ const CATEGORIES = [
 ];
 
 export function AddonsConfigTab() {
-  const { addons, updateAddon, createAddon, deleteAddon } = usePricingConfig();
+  const { addons, updateAddon, createAddon, deleteAddon, suggestedAddons, updateSuggestedAddons } = usePricingConfig();
+  const [isEditingSuggested, setIsEditingSuggested] = useState(false);
+  const [tempSuggestedAddons, setTempSuggestedAddons] = useState<string[]>([]);
   const [editingAddon, setEditingAddon] = useState<AddonCatalog | null>(null);
   const [isNew, setIsNew] = useState(false);
 
@@ -54,18 +56,169 @@ export function AddonsConfigTab() {
     }
   };
 
+  const handleSaveSuggested = () => {
+    updateSuggestedAddons({
+      enabled: tempSuggestedAddons,
+      updated_at: new Date().toISOString(),
+    });
+    setIsEditingSuggested(false);
+  };
+
+  const toggleSuggestedAddon = (addonKey: string) => {
+    setTempSuggestedAddons((prev) => {
+      if (prev.includes(addonKey)) {
+        // Remover se já está selecionado (mas manter mínimo de 1)
+        if (prev.length > 1) {
+          return prev.filter((k) => k !== addonKey);
+        }
+        return prev;
+      } else {
+        // Adicionar (máximo de 3)
+        if (prev.length < 3) {
+          return [...prev, addonKey];
+        }
+        return prev;
+      }
+    });
+  };
+
+  const startEditingSuggested = () => {
+    setTempSuggestedAddons([...suggestedAddons.enabled]);
+    setIsEditingSuggested(true);
+  };
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <Puzzle className="h-5 w-5" />
-          Add-ons Premium ({addons.length})
-        </CardTitle>
-        <Button onClick={() => { setEditingAddon({ id: "", key: "", name: "", description: "", icon: "Package", monthly_price: 0, annual_price: 0, category: "governance", target_section: "", target_section_label: "", order_index: addons.length + 1, is_active: true, is_visible: true }); setIsNew(true); }}>
-          <Plus className="h-4 w-4 mr-1" /> Novo Add-on
-        </Button>
-      </CardHeader>
-      <CardContent>
+    <div className="space-y-6">
+      {/* Configuração de Add-ons Sugeridos */}
+      <Card className="border-2 border-blue-500/20 bg-blue-50/50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg">Add-ons Sugeridos Padrão</CardTitle>
+            </div>
+            {!isEditingSuggested && (
+              <Button variant="outline" size="sm" onClick={startEditingSuggested}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Configure quais add-ons serão sugeridos automaticamente na calculadora de planos (máximo 3)
+          </p>
+        </CardHeader>
+        <CardContent>
+          {!isEditingSuggested ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  {suggestedAddons.enabled.length} add-on{suggestedAddons.enabled.length > 1 ? 's' : ''} configurado{suggestedAddons.enabled.length > 1 ? 's' : ''}
+                </Badge>
+                {suggestedAddons.updated_at && (
+                  <span className="text-xs text-muted-foreground">
+                    Atualizado em {new Date(suggestedAddons.updated_at).toLocaleDateString('pt-BR')}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {suggestedAddons.enabled.map((addonKey, index) => {
+                  const addon = addons.find((a) => a.key === addonKey);
+                  if (!addon) return null;
+                  return (
+                    <div
+                      key={addonKey}
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                    >
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{addon.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{formatPrice(addon.monthly_price)}/mês</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-3">
+                Selecione até 3 add-ons para serem sugeridos automaticamente na calculadora:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {addons
+                  .filter((a) => a.is_active && a.is_visible)
+                  .map((addon) => {
+                    const isSelected = tempSuggestedAddons.includes(addon.key);
+                    const isDisabled = !isSelected && tempSuggestedAddons.length >= 3;
+                    return (
+                      <div
+                        key={addon.id}
+                        onClick={() => !isDisabled && toggleSuggestedAddon(addon.key)}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/20'
+                            : isDisabled
+                            ? 'border-muted bg-muted/30 cursor-not-allowed opacity-50'
+                            : 'border-muted bg-card hover:border-blue-300 hover:bg-blue-50/50'
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                            isSelected
+                              ? 'bg-blue-600 border-blue-600'
+                              : 'border-muted-foreground/30'
+                          }`}
+                        >
+                          {isSelected && <CheckCircle2 className="h-4 w-4 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{addon.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {formatPrice(addon.monthly_price)}/mês
+                          </p>
+                        </div>
+                        {tempSuggestedAddons.includes(addon.key) && (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">
+                            #{tempSuggestedAddons.indexOf(addon.key) + 1}
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t">
+                <div className="text-sm text-muted-foreground">
+                  {tempSuggestedAddons.length} de 3 selecionados
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setIsEditingSuggested(false)}>
+                    Cancelar
+                  </Button>
+                  <Button size="sm" onClick={handleSaveSuggested} disabled={tempSuggestedAddons.length === 0}>
+                    Salvar Configuração
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Lista de Add-ons */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Puzzle className="h-5 w-5" />
+            Add-ons Premium ({addons.length})
+          </CardTitle>
+          <Button onClick={() => { setEditingAddon({ id: "", key: "", name: "", description: "", icon: "Package", monthly_price: 0, annual_price: 0, category: "governance", target_section: "", target_section_label: "", order_index: addons.length + 1, is_active: true, is_visible: true }); setIsNew(true); }}>
+            <Plus className="h-4 w-4 mr-1" /> Novo Add-on
+          </Button>
+        </CardHeader>
+        <CardContent>
         <div className="grid gap-4">
           {addons.map((addon) => (
             <div key={addon.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors">

@@ -71,6 +71,12 @@ export interface Module {
   is_active: boolean;
 }
 
+// Configuração de Add-ons Sugeridos Padrão (pode ser editada no admin)
+export interface SuggestedAddonsConfig {
+  enabled: string[]; // Array de keys dos add-ons sugeridos em ordem
+  updated_at?: string;
+}
+
 // Initial mock data
 const INITIAL_SIZES: CompanySize[] = [
   { id: "1", key: "smb", name: "SMB", description: "Empresas < R$ 50M/ano", revenue_min: 0, revenue_max: 50000000, employee_min: 1, employee_max: 50, order_index: 0, is_active: true },
@@ -113,6 +119,12 @@ const INITIAL_MODULES: Module[] = [
   { id: "12", key: "secretariado", name: "Secretariado", description: "Painel secretariado", icon: "Briefcase", section: "estruturacao", section_label: "ESTRUTURAÇÃO", path: "/secretariat", is_core: true, is_addon: false, order_index: 11, is_active: true },
   { id: "13", key: "conselhos", name: "Conselhos", description: "Reuniões e deliberações", icon: "Users", section: "estruturacao", section_label: "ESTRUTURAÇÃO", path: "/reunioes", is_core: true, is_addon: false, order_index: 12, is_active: true },
 ];
+
+// Configuração padrão de add-ons sugeridos
+const DEFAULT_SUGGESTED_ADDONS: SuggestedAddonsConfig = {
+  enabled: ['maturidade_esg', 'desempenho_conselho', 'inteligencia_mercado'], // ESG, Desempenho, Inteligência
+  updated_at: new Date().toISOString(),
+};
 
 // Generate initial pricing matrix - PRD v3.0 (Novo Mínimo R$ 2.997/mês)
 function generatePricingMatrix(): PlanPricingMatrix[] {
@@ -247,6 +259,23 @@ export function usePricingConfig() {
   const [modules, setModules] = useState<Module[]>(() => {
     const saved = localStorage.getItem("pricing_modules");
     return saved ? JSON.parse(saved) : INITIAL_MODULES;
+  });
+
+  // Configuração de add-ons sugeridos padrão
+  const [suggestedAddons, setSuggestedAddons] = useState<SuggestedAddonsConfig>(() => {
+    const saved = localStorage.getItem("pricing_suggested_addons");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Garantir que sempre temos pelo menos os 3 padrões
+        if (parsed.enabled && Array.isArray(parsed.enabled) && parsed.enabled.length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar suggested addons:', e);
+      }
+    }
+    return DEFAULT_SUGGESTED_ADDONS;
   });
 
   const [isMutating, setIsMutating] = useState(false);
@@ -401,6 +430,19 @@ export function usePricingConfig() {
     setIsMutating(false);
   };
 
+  // Suggested Addons mutations
+  const updateSuggestedAddons = (data: SuggestedAddonsConfig) => {
+    setIsMutating(true);
+    const updated = {
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    setSuggestedAddons(updated);
+    saveToStorage("pricing_suggested_addons", updated);
+    toast({ title: "Add-ons sugeridos atualizados com sucesso" });
+    setIsMutating(false);
+  };
+
   // Helper
   const getPricing = (sizeId: string, planId: string): PlanPricingMatrix | undefined => {
     return pricingMatrix.find((p) => p.company_size_id === sizeId && p.plan_id === planId);
@@ -412,6 +454,7 @@ export function usePricingConfig() {
     pricingMatrix,
     addons,
     modules,
+    suggestedAddons,
     isLoading: false,
     isMutating,
     updateCompanySize,
@@ -425,6 +468,7 @@ export function usePricingConfig() {
     createAddon,
     deleteAddon,
     updateModule,
+    updateSuggestedAddons,
     getPricing,
   };
 }

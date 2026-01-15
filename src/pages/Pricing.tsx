@@ -30,6 +30,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import {
   Calculator,
   Check,
@@ -77,6 +78,68 @@ import {
   getCalculatorWhatsAppMessage,
 } from '@/data/pricingData';
 
+// Componente de Visualização Circular da Complexidade
+function ComplexityCircle({ 
+  score, 
+  level 
+}: { 
+  score: number; 
+  level: ReturnType<typeof getComplexityLevel>;
+}) {
+  // Normalizar score: mínimo visual de 10, máximo de 100
+  // Se score < 10, mostra como 10% do círculo, mas mantém o valor real exibido
+  const normalizedScore = Math.max(score, 10);
+  const displayScore = score; // Valor real para exibição
+  
+  const circumference = 2 * Math.PI * 40; // raio 40
+  const strokeDashoffset = circumference - ((normalizedScore / 100) * circumference);
+  
+  const getScoreColor = () => {
+    if (level.level === 'Baixa') return 'text-green-600';
+    if (level.level === 'Moderada') return 'text-yellow-600';
+    if (level.level === 'Alta') return 'text-orange-600';
+    return 'text-red-600';
+  };
+  
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg className="w-24 h-24 transform -rotate-90 sm:w-28 sm:h-28">
+        {/* Círculo de fundo */}
+        <circle
+          cx="50"
+          cy="50"
+          r="40"
+          stroke="currentColor"
+          strokeWidth="8"
+          fill="none"
+          className="text-muted/30"
+        />
+        {/* Círculo de progresso */}
+        <circle
+          cx="50"
+          cy="50"
+          r="40"
+          stroke="currentColor"
+          strokeWidth="8"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          className={cn('transition-all duration-1000', getScoreColor())}
+        />
+      </svg>
+      <div className="absolute text-center">
+        <span className={cn('text-2xl sm:text-3xl font-bold block leading-none', getScoreColor())}>
+          {displayScore.toFixed(1)}
+        </span>
+        <span className={cn('text-[9px] sm:text-[10px] font-medium mt-0.5 block', getScoreColor())}>
+          {level.level}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // Mapeamento de ícones para add-ons
 const ADDON_ICONS: Record<string, React.ElementType> = {
   ClipboardList,
@@ -114,7 +177,7 @@ interface CalculatorResult {
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const { addons: addonsFromConfig } = usePricingConfig();
+  const { addons: addonsFromConfig, suggestedAddons } = usePricingConfig();
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [calculatorResult, setCalculatorResult] = useState<CalculatorResult | null>(null);
   const [calculatorInputs, setCalculatorInputs] = useState<CalculatorInputs>({
@@ -235,23 +298,15 @@ export default function Pricing() {
     });
     const roi = calculateROI(planoId);
 
-    // Sugerir add-ons baseado na maturidade - ordem específica: 1-Desempenho, 2-ESG, 3-Riscos, 4-Inteligência
+    // Sugerir add-ons usando configuração do admin (sempre 3: ESG, Desempenho, Inteligência)
     // Usar dados de usePricingConfig ao invés de valores fixos
-    const addonKeysOrdered: Array<'desempenho_conselho' | 'maturidade_esg' | 'riscos' | 'inteligencia_mercado'> = 
-      ['desempenho_conselho', 'maturidade_esg', 'riscos', 'inteligencia_mercado'];
     const addOnsSugeridos: typeof ADDONS = [];
     
+    // Usar configuração de suggested addons (padrão: ESG, Desempenho, Inteligência)
+    const addonKeysToSuggest = suggestedAddons.enabled || ['maturidade_esg', 'desempenho_conselho', 'inteligencia_mercado'];
+    
     // Garantir ordem específica usando dados de usePricingConfig
-    addonKeysOrdered.forEach(key => {
-      const addonFromConfig = addonsFromConfig.find(a => a.key === key && a.is_active && a.is_visible);
-      if (addonFromConfig) {
-        const convertedAddon = convertAddonFromConfig(addonFromConfig);
-        if (convertedAddon) {
-          addOnsSugeridos.push(convertedAddon);
-        }
-      }
-    });
-    addonKeysOrdered.forEach(key => {
+    addonKeysToSuggest.forEach(key => {
       const addonFromConfig = addonsFromConfig.find(a => a.key === key && a.is_active && a.is_visible);
       if (addonFromConfig) {
         const convertedAddon = convertAddonFromConfig(addonFromConfig);
@@ -794,32 +849,47 @@ export default function Pricing() {
                       </div>
 
                       <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                        <p className="text-xs text-muted-foreground mb-2">
+                        <p className="text-xs text-muted-foreground mb-3 text-center font-medium">
                           Índice de Complexidade
                         </p>
-                        {/* Barra de Progresso */}
-                        <div className="mb-2">
-                          {/* Máximo teórico: 50 empresas*1 + 20 conselhos*3 + 50 comites*2 + 300 reuniões/10 = 240 */}
-                          {/* Classificação: <=10 Baixa, <=30 Moderada, <=60 Alta, >60 Muito Alta */}
-                          {/* Usamos 100 como referência visual (valores >60 são todos "Muito Alta") */}
-                          <Progress 
-                            value={Math.min((calculatorResult.complexityScore / 100) * 100, 100)} 
-                            className="h-2 mb-1"
+                        
+                        {/* Visualização Circular da Complexidade */}
+                        <div className="flex flex-col items-center gap-3 mb-2">
+                          {/* Círculo Progressivo */}
+                          <ComplexityCircle 
+                            score={calculatorResult.complexityScore}
+                            level={calculatorResult.complexityLevel}
                           />
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">0</span>
-                            <span className="text-muted-foreground">100</span>
+                          
+                          {/* Barra de Progresso com Marcadores */}
+                          <div className="w-full">
+                            <div className="relative">
+                              {/* Normalizar: mínimo 10% visualmente, mas manter escala 0-100 */}
+                              <Progress 
+                                value={Math.min(Math.max((Math.max(calculatorResult.complexityScore, 10) / 100) * 100, 10), 100)} 
+                                className="h-3 mb-2"
+                              />
+                              {/* Marcadores de Níveis */}
+                              <div className="relative -mt-3 flex justify-between px-1">
+                                <div className="flex flex-col items-center">
+                                  <div className="w-1 h-1 rounded-full bg-green-600"></div>
+                                  <span className="text-[8px] text-muted-foreground mt-0.5">Baixa</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <div className="w-1 h-1 rounded-full bg-yellow-600"></div>
+                                  <span className="text-[8px] text-muted-foreground mt-0.5">Moderada</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <div className="w-1 h-1 rounded-full bg-orange-600"></div>
+                                  <span className="text-[8px] text-muted-foreground mt-0.5">Alta</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <div className="w-1 h-1 rounded-full bg-red-600"></div>
+                                  <span className="text-[8px] text-muted-foreground mt-0.5">Muito Alta</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-bold">
-                            {calculatorResult.complexityScore}
-                          </span>
-                          <span
-                            className={`text-xs font-medium ${calculatorResult.complexityLevel.color}`}
-                          >
-                            Complexidade {calculatorResult.complexityLevel.level}
-                          </span>
                         </div>
                       </div>
 
