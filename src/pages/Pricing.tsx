@@ -865,12 +865,14 @@ export default function Pricing() {
                           <div className="w-full">
                             <div className="relative">
                               {/* Normalizar: mínimo 10% visualmente, mas manter escala 0-100 */}
-                              <Progress 
-                                value={Math.min(Math.max((Math.max(calculatorResult.complexityScore, 10) / 100) * 100, 10), 100)} 
-                                className="h-3 mb-2"
-                              />
+                              <div className="border border-border rounded-full overflow-hidden mb-2">
+                                <Progress 
+                                  value={Math.min(Math.max((Math.max(calculatorResult.complexityScore, 10) / 100) * 100, 10), 100)} 
+                                  className="h-3"
+                                />
+                              </div>
                               {/* Marcadores de Níveis */}
-                              <div className="relative -mt-3 flex justify-between px-1">
+                              <div className="relative flex justify-between px-1 mt-1">
                                 <div className="flex flex-col items-center">
                                   <div className="w-1 h-1 rounded-full bg-green-600"></div>
                                   <span className="text-[8px] text-muted-foreground mt-0.5">Baixa</span>
