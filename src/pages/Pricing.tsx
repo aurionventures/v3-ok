@@ -58,6 +58,7 @@ import {
   CreditCard,
 } from 'lucide-react';
 import legacyLogo from '@/assets/legacy-logo-new.png';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
 
 import {
   PLANS,
@@ -113,6 +114,7 @@ interface CalculatorResult {
 
 export default function Pricing() {
   const navigate = useNavigate();
+  const { addons: addonsFromConfig } = usePricingConfig();
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [calculatorResult, setCalculatorResult] = useState<CalculatorResult | null>(null);
   const [calculatorInputs, setCalculatorInputs] = useState<CalculatorInputs>({
@@ -128,6 +130,31 @@ export default function Pricing() {
   // Estado para add-ons selecionados
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
 
+  // Mapear add-ons de usePricingConfig para formato usado no componente
+  // Mapeamento: key do usePricingConfig -> id do pricingData
+  const addonKeyToIdMap: Record<string, string> = {
+    'desempenho_conselho': 'desempenho',
+    'maturidade_esg': 'esg',
+    'riscos': 'riscos',
+    'inteligencia_mercado': 'inteligencia',
+  };
+
+  // Função para converter add-on de usePricingConfig para formato ADDONS
+  const convertAddonFromConfig = (addon: typeof addonsFromConfig[0]): typeof ADDONS[0] | null => {
+    const addonId = addonKeyToIdMap[addon.key];
+    if (!addonId) return null;
+
+    const baseAddon = ADDONS.find(a => a.id === addonId);
+    if (!baseAddon) return null;
+
+    // Retornar add-on com preços atualizados de usePricingConfig
+    return {
+      ...baseAddon,
+      precoMensal: addon.monthly_price,
+      precoAnual: addon.annual_price,
+    };
+  };
+
   // Toggle seleção de add-on
   const toggleAddon = (addonId: string) => {
     setSelectedAddons((prev) =>
@@ -137,16 +164,28 @@ export default function Pricing() {
     );
   };
 
-  // Calcular total com add-ons
+  // Calcular total com add-ons usando dados de usePricingConfig
   const calculateTotalWithAddons = useMemo(() => {
     if (!calculatorResult?.pricing.mensal) return null;
 
     const addonsMensal = selectedAddons.reduce((sum, addonId) => {
+      // Buscar primeiro no formato convertido (se estiver nos sugeridos)
+      const suggestedAddon = calculatorResult.addOnsSugeridos.find((a) => a.id === addonId);
+      if (suggestedAddon) {
+        return sum + (suggestedAddon.precoMensal || 0);
+      }
+      // Fallback para ADDONS original
       const addon = ADDONS.find((a) => a.id === addonId);
       return sum + (addon?.precoMensal || 0);
     }, 0);
 
     const addonsAnual = selectedAddons.reduce((sum, addonId) => {
+      // Buscar primeiro no formato convertido (se estiver nos sugeridos)
+      const suggestedAddon = calculatorResult.addOnsSugeridos.find((a) => a.id === addonId);
+      if (suggestedAddon) {
+        return sum + (suggestedAddon.precoAnual || 0);
+      }
+      // Fallback para ADDONS original
       const addon = ADDONS.find((a) => a.id === addonId);
       return sum + (addon?.precoAnual || 0);
     }, 0);
@@ -179,7 +218,12 @@ export default function Pricing() {
       reunioesAno: calculatorInputs.reunioesAno,
     });
 
-    const planoId = recommendPlan(score, calculatorInputs.faturamento);
+    const planoId = recommendPlan(
+      score, 
+      calculatorInputs.faturamento,
+      calculatorInputs.numComites,
+      calculatorInputs.numUsuarios
+    );
     const pricing = revealPricing(planoId);
     const complexityLevel = getComplexityLevel(score);
     const justificativa = generateJustification({
@@ -192,14 +236,28 @@ export default function Pricing() {
     const roi = calculateROI(planoId);
 
     // Sugerir add-ons baseado na maturidade - ordem específica: 1-Desempenho, 2-ESG, 3-Riscos, 4-Inteligência
-    const addonIdsOrdered: Array<'desempenho' | 'esg' | 'riscos' | 'inteligencia'> = ['desempenho', 'esg', 'riscos', 'inteligencia'];
+    // Usar dados de usePricingConfig ao invés de valores fixos
+    const addonKeysOrdered: Array<'desempenho_conselho' | 'maturidade_esg' | 'riscos' | 'inteligencia_mercado'> = 
+      ['desempenho_conselho', 'maturidade_esg', 'riscos', 'inteligencia_mercado'];
     const addOnsSugeridos: typeof ADDONS = [];
     
-    // Garantir ordem específica
-    addonIdsOrdered.forEach(id => {
-      const addon = ADDONS.find(a => a.id === id);
-      if (addon) {
-        addOnsSugeridos.push(addon);
+    // Garantir ordem específica usando dados de usePricingConfig
+    addonKeysOrdered.forEach(key => {
+      const addonFromConfig = addonsFromConfig.find(a => a.key === key && a.is_active && a.is_visible);
+      if (addonFromConfig) {
+        const convertedAddon = convertAddonFromConfig(addonFromConfig);
+        if (convertedAddon) {
+          addOnsSugeridos.push(convertedAddon);
+        }
+      }
+    });
+    addonKeysOrdered.forEach(key => {
+      const addonFromConfig = addonsFromConfig.find(a => a.key === key && a.is_active && a.is_visible);
+      if (addonFromConfig) {
+        const convertedAddon = convertAddonFromConfig(addonFromConfig);
+        if (convertedAddon) {
+          addOnsSugeridos.push(convertedAddon);
+        }
       }
     });
 
@@ -713,11 +771,11 @@ export default function Pricing() {
               </DialogHeader>
 
               <div className="space-y-4 py-2">
-                {/* Layout em 2 colunas para desktop */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Layout em 2 colunas para desktop, 1 coluna para mobile */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
                   {/* Coluna Esquerda: Plano Recomendado */}
                   <Card className="border-2 border-accent bg-accent/5">
-                    <CardContent className="pt-4 pb-4">
+                    <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                           <Crown className="h-5 w-5 text-accent" />
@@ -773,7 +831,7 @@ export default function Pricing() {
 
                   {/* Coluna Direita: Preço Revelado */}
                   <Card className="border-2 border-green-500/30 bg-green-50/50">
-                    <CardContent className="pt-4 pb-4">
+                    <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4">
                       <div className="flex items-center gap-2 mb-3">
                         <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
                         <h4 className="font-semibold text-green-800 text-sm">
@@ -783,8 +841,8 @@ export default function Pricing() {
 
                       {calculatorResult.pricing.mensal ? (
                         <div className="space-y-2.5">
-                          {/* Preço Mensal e Anual lado a lado */}
-                          <div className="grid grid-cols-2 gap-3">
+                          {/* Preço Mensal e Anual lado a lado - Responsivo */}
+                          <div className="grid grid-cols-2 gap-2 sm:gap-3">
                             <div>
                               <p className="text-[10px] text-muted-foreground mb-0.5">Mensal</p>
                               <div className="flex items-baseline gap-1">
@@ -854,7 +912,7 @@ export default function Pricing() {
                   <p className="text-xs text-muted-foreground mb-2">
                     Selecione os add-ons para adicionar ao seu plano:
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {calculatorResult.addOnsSugeridos.map((addon) => {
                       const isSelected = selectedAddons.includes(addon.id);
                       return (

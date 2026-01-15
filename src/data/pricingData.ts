@@ -523,9 +523,12 @@ export function getComplexityLevel(score: number): {
 }
 
 // Lógica de recomendação de plano
+// Considera: complexity score, faturamento, número de comitês e usuários
 export function recommendPlan(
   complexityScore: number,
-  faturamento: string
+  faturamento: string,
+  numComites?: number,
+  numUsuarios?: number
 ): string {
   // Empresas listadas sempre Enterprise
   if (faturamento === 'listada') {
@@ -544,19 +547,42 @@ export function recommendPlan(
     return 'enterprise';
   }
 
-  // Faturamento normal - baseado no complexity score
-  // Ajustado para alinhar com níveis de complexidade:
-  // - Baixa (≤10) → Essencial ou Profissional
-  // - Moderada (11-30) → Profissional ou Business
-  if (complexityScore <= 10) {
-    return 'essencial';
-  } else if (complexityScore <= 20) {
-    return 'profissional';
-  } else if (complexityScore <= 40) {
-    return 'business';
-  } else {
-    return 'enterprise';
+  // Regras específicas para startups e PMEs:
+  // 1 conselho, mínimo 12 reuniões, até 10 usuários = Essencial (R$ 2.997)
+  // 1 conselho + 1 comitê, mais de 10 usuários = Essencial SMB+ (R$ 3.997) ou Profissional SMB (R$ 4.997)
+  
+  // Se tem comitês ou muitos usuários, considerar upgrade
+  let planAdjustment = 0;
+  
+  // Comitês aumentam complexidade
+  if (numComites && numComites >= 1) {
+    planAdjustment += 1; // Upgrade de 1 tier se tem comitê
   }
+  
+  // Muitos usuários (>10) também indicam maior necessidade
+  if (numUsuarios && numUsuarios > 10) {
+    planAdjustment += 1; // Upgrade de 1 tier se tem mais de 10 usuários
+  }
+
+  // Baseado no complexity score
+  let basePlan: string;
+  if (complexityScore <= 10) {
+    basePlan = 'essencial';
+  } else if (complexityScore <= 20) {
+    basePlan = 'profissional';
+  } else if (complexityScore <= 40) {
+    basePlan = 'business';
+  } else {
+    basePlan = 'enterprise';
+  }
+
+  // Aplicar ajustes baseados em comitês e usuários
+  // Mas limitar upgrades para não pular muito
+  const planOrder = ['essencial', 'profissional', 'business', 'enterprise'];
+  const currentIndex = planOrder.indexOf(basePlan);
+  const adjustedIndex = Math.min(currentIndex + planAdjustment, planOrder.length - 1);
+  
+  return planOrder[adjustedIndex];
 }
 
 // Revelar preço baseado no plano
