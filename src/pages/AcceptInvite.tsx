@@ -112,8 +112,17 @@ export default function AcceptInvite() {
       setSuccess(true);
       toast.success('Convite aceito com sucesso!');
 
+      // Marcar que o usuário acabou de criar senha (primeiro acesso)
+      localStorage.setItem('just_created_password', 'true');
+
       setTimeout(() => {
-        navigate('/dashboard');
+        // Redirecionar para login primeiro (fluxo PLG)
+        navigate('/login-cliente', { 
+          state: { 
+            email: invite.email,
+            fromPasswordCreation: true 
+          } 
+        });
       }, 2000);
     } catch (error) {
       console.error('Erro ao aceitar convite:', error);

@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { DashboardAICopilot } from "@/components/dashboard/DashboardAICopilot";
+import { GuidedTour } from "@/components/onboarding/GuidedTour";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllMeetingActions } from "@/hooks/useAllMeetingActions";
 import { getCurrentMaturityAssessment, convertStoredDataToRadarData } from "@/utils/maturityStorage";
@@ -23,8 +24,24 @@ const riskSummary = calculateRiskStats(governanceRisks);
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { actions, loading: loadingActions } = useAllMeetingActions();
+  const [showTour, setShowTour] = useState(false);
+
+  // Verificar se deve mostrar o tour guiado
+  useEffect(() => {
+    const shouldShowTour = location.state?.showTour || false;
+    const hasCompletedTour = localStorage.getItem('guided_tour_completed');
+    const hasSkippedTour = localStorage.getItem('guided_tour_skipped');
+    
+    // Mostrar tour se veio do login e nunca foi completado/pulado
+    if (shouldShowTour && !hasCompletedTour && !hasSkippedTour) {
+      setShowTour(true);
+      // Limpar o state da navegação para não mostrar novamente ao recarregar
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   // Load latest assessments
   const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
@@ -96,8 +113,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <Sidebar />
+    <>
+      {showTour && (
+        <GuidedTour
+          onComplete={() => setShowTour(false)}
+          onSkip={() => setShowTour(false)}
+        />
+      )}
+      <div className="flex h-screen bg-background overflow-hidden">
+        <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Desempenho do Conselho" />
         <div 
@@ -402,6 +426,7 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

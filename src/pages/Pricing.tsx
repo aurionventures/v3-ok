@@ -237,7 +237,18 @@ export default function Pricing() {
       if (suggestedAddon) {
         return sum + (suggestedAddon.precoMensal || 0);
       }
-      // Fallback para ADDONS original
+      // Buscar no configurador de planos (usePricingConfig)
+      const baseAddon = ADDONS.find((a) => a.id === addonId);
+      if (baseAddon) {
+        const addonFromConfig = addonsFromConfig.find((a) => {
+          const mappedId = addonKeyToIdMap[a.key];
+          return mappedId === addonId;
+        });
+        if (addonFromConfig) {
+          return sum + (addonFromConfig.monthly_price || 0);
+        }
+      }
+      // Fallback para ADDONS original (apenas se não encontrar no configurador)
       const addon = ADDONS.find((a) => a.id === addonId);
       return sum + (addon?.precoMensal || 0);
     }, 0);
@@ -248,7 +259,18 @@ export default function Pricing() {
       if (suggestedAddon) {
         return sum + (suggestedAddon.precoAnual || 0);
       }
-      // Fallback para ADDONS original
+      // Buscar no configurador de planos (usePricingConfig)
+      const baseAddon = ADDONS.find((a) => a.id === addonId);
+      if (baseAddon) {
+        const addonFromConfig = addonsFromConfig.find((a) => {
+          const mappedId = addonKeyToIdMap[a.key];
+          return mappedId === addonId;
+        });
+        if (addonFromConfig) {
+          return sum + (addonFromConfig.annual_price || 0);
+        }
+      }
+      // Fallback para ADDONS original (apenas se não encontrar no configurador)
       const addon = ADDONS.find((a) => a.id === addonId);
       return sum + (addon?.precoAnual || 0);
     }, 0);
@@ -261,7 +283,7 @@ export default function Pricing() {
       addonsMensal,
       addonsAnual,
     };
-  }, [calculatorResult, selectedAddons]);
+  }, [calculatorResult, selectedAddons, addonsFromConfig]);
 
   // Validação dos inputs da calculadora
   const canCalculate = useMemo(() => {
@@ -913,8 +935,8 @@ export default function Pricing() {
 
                       {calculatorResult.pricing.mensal ? (
                         <div className="space-y-2.5">
-                          {/* Preço Mensal e Anual lado a lado - Responsivo */}
-                          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          {/* Preço Mensal e Anual - Anual alinhado à direita */}
+                          <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="text-[10px] text-muted-foreground mb-0.5">Mensal</p>
                               <div className="flex items-baseline gap-1">
@@ -924,9 +946,9 @@ export default function Pricing() {
                                 <span className="text-xs text-muted-foreground">/mês</span>
                               </div>
                             </div>
-                            <div>
+                            <div className="text-right">
                               <p className="text-[10px] text-muted-foreground mb-0.5">Anual</p>
-                              <div className="flex items-baseline gap-1">
+                              <div className="flex items-baseline gap-1 justify-end">
                                 <span className="text-xl font-bold text-foreground">
                                   {calculatorResult.pricing.anualFormatted}
                                 </span>

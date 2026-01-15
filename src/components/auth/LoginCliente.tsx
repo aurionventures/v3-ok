@@ -49,6 +49,19 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
           return;
         }
         
+        // Verificar se é primeiro acesso após criar senha (fluxo PLG)
+        const hasCompletedTour = localStorage.getItem('guided_tour_completed');
+        const hasSkippedTour = localStorage.getItem('guided_tour_skipped');
+        const fromPasswordCreation = location.state?.fromPasswordCreation || false;
+        const justCreatedPassword = localStorage.getItem('just_created_password') === 'true';
+        
+        // Se acabou de criar senha, limpar flag e mostrar tour
+        const isFirstAccess = !hasCompletedTour && !hasSkippedTour && (fromPasswordCreation || justCreatedPassword);
+        
+        if (justCreatedPassword) {
+          localStorage.removeItem('just_created_password');
+        }
+        
         // Check if onboarding is completed for admins/users
         const storedOrg = localStorage.getItem('organization');
         const quizResult = localStorage.getItem('quiz_result');
@@ -60,10 +73,12 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
           if (!org.onboardingCompleted) {
             navigate('/plan-activation');
           } else {
-            navigate('/dashboard');
+            // Se for primeiro acesso após criar senha, mostrar tour
+            navigate('/dashboard', { state: { showTour: isFirstAccess } });
           }
         } else {
-          navigate('/dashboard');
+          // Se for primeiro acesso após criar senha, mostrar tour
+          navigate('/dashboard', { state: { showTour: isFirstAccess } });
         }
       } else {
         toast({ title: "Erro de Login", description: "Email ou senha incorretos.", variant: "destructive" });

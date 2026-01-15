@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Building2, Check, X, Save, Sparkles, Crown
+  Building2, Check, X, Sparkles, Crown
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
@@ -223,11 +223,6 @@ export function AdminPlanManager() {
                   ))}
                 </div>
               </div>
-
-              <Button onClick={handleSave} className="w-full" size="lg">
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Configuração
-              </Button>
             </CardContent>
           </Card>
 
