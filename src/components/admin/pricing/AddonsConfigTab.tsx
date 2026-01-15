@@ -249,7 +249,8 @@ export function AddonsConfigTab() {
             </div>
           ))}
         </div>
-      </CardContent>
+        </CardContent>
+      </Card>
 
       {/* Modal Editar Add-on */}
       <Dialog open={!!editingAddon} onOpenChange={() => setEditingAddon(null)}>
@@ -303,6 +304,6 @@ export function AddonsConfigTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

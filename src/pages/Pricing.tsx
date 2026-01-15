@@ -519,7 +519,7 @@ export default function Pricing() {
                       </tr>
                     </thead>
                     <tbody>
-                      {['Core', 'AI Engine', 'Add-ons', 'Limites', 'Suporte', 'Segurança'].map(
+                      {['Core', 'Add-ons', 'Limites', 'Suporte', 'Segurança'].map(
                         (categoria) => (
                           <React.Fragment key={categoria}>
                             {/* Categoria Header */}

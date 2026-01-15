@@ -184,22 +184,6 @@ export const COMPARISON_FEATURES = [
   { categoria: 'Core', nome: 'Tarefas e Pendências', essencial: true, profissional: true, business: true, enterprise: true },
   { categoria: 'Core', nome: 'Portal do Membro', essencial: true, profissional: true, business: true, enterprise: true },
   
-  // AI Engine - 14 Funcionalidades de IA (ordem alfabética, todos inclusos em todos os planos)
-  { categoria: 'AI Engine', nome: 'Agentes Especializados', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Análise de Documentos', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Análise de Sentimento', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Briefings Personalizados', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Busca Inteligente (Semântica)', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Classificação Automática', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Extração de Entidades', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Geração de ATAs', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Geração de PDI', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Identificação de GAPs', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Insights Preditivos', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Inteligência de Mercado', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'OCR e Extração de Dados', essencial: true, profissional: true, business: true, enterprise: true },
-  { categoria: 'AI Engine', nome: 'Sugestões de Pauta', essencial: true, profissional: true, business: true, enterprise: true },
-  
   // Add-ons (disponibilidade por plano) - 7 módulos premium
   { categoria: 'Add-ons', nome: 'Riscos Avançados', essencial: 'Comprar', profissional: true, business: true, enterprise: true },
   { categoria: 'Add-ons', nome: 'Desempenho Conselho', essencial: 'Comprar', profissional: true, business: true, enterprise: true },
