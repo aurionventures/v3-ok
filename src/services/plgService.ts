@@ -109,12 +109,19 @@ export interface TrackEventResult {
 
 export async function trackPLGEvent(params: TrackEventParams): Promise<TrackEventResult> {
   try {
+    // Capturar token de afiliado do localStorage se disponível
+    const affiliateToken = localStorage.getItem('plg_affiliate_token');
+    const eventDataWithAffiliate = {
+      ...params.eventData,
+      ...(affiliateToken && { affiliate_token: affiliateToken }),
+    };
+
     const { data, error } = await supabase.functions.invoke('plg-track-event', {
       body: {
         event_type: params.eventType,
         lead_email: params.leadEmail,
         lead_data: params.leadData,
-        event_data: params.eventData,
+        event_data: eventDataWithAffiliate,
         session_id: params.sessionId || generateSessionId(),
         page_url: window.location.href,
         page_title: document.title,

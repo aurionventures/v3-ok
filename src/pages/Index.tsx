@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { 
   Play, ArrowRight, CheckCircle, Brain, Eye, 
   Target, TrendingUp, Shield, Zap, Users,
@@ -18,6 +18,7 @@ import GovMetrixQuizModal from "@/components/governanca-corporativa/GovMetrixQui
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -25,6 +26,20 @@ const Index = () => {
     organization: "",
     phone: "",
   });
+
+  // Capturar token de afiliado da URL (?ref=aff_XXXXX)
+  useEffect(() => {
+    const affiliateToken = searchParams.get('ref');
+    if (affiliateToken && affiliateToken.startsWith('aff_')) {
+      // Salvar token no localStorage para ser usado pelo funil PLG
+      localStorage.setItem('plg_affiliate_token', affiliateToken);
+      // Limpar parâmetro da URL para manter a URL limpa
+      if (window.history.replaceState) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, [searchParams]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();

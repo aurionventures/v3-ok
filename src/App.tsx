@@ -143,6 +143,7 @@ const AdminPricingConfig = lazy(() => import("./pages/AdminPricingConfig"));
 const AdminPlanConfigurator = lazy(() => import("./pages/AdminPlanConfigurator"));
 const AdminClientManagement = lazy(() => import("./pages/AdminClientManagement"));
 const AdminPartners = lazy(() => import("./pages/AdminPartners"));
+const AdminPartnerCommissions = lazy(() => import("./pages/AdminPartnerCommissions"));
 const AdminAddons = lazy(() => import("./pages/AdminAddons"));
 const AdminContracts = lazy(() => import("./pages/AdminContracts"));
 const AdminContractTemplates = lazy(() => import("./pages/AdminContractTemplates"));
@@ -748,6 +749,7 @@ const App = () => (
           <Route path="/admin/prompts" element={<LazyRouteWrapper><AdminPromptLibrary /></LazyRouteWrapper>} />
           <Route path="/admin/settings" element={<LazyRouteWrapper><Settings /></LazyRouteWrapper>} />
           <Route path="/admin/parceiros" element={<LazyRouteWrapper><AdminPartners /></LazyRouteWrapper>} />
+          <Route path="/admin/parceiros/comissoes" element={<LazyRouteWrapper><AdminPartnerCommissions /></LazyRouteWrapper>} />
           <Route path="/login-admin" element={<LazyRouteWrapper><LoginAdmin /></LazyRouteWrapper>} />
           
           {/* Audit & Security */}

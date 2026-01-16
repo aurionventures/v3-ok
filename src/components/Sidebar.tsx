@@ -114,8 +114,8 @@ const ADMIN_MENU_SECTIONS = [
       { icon: Building2, href: "/admin/empresas", name: "Empresas" },
       { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
       { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
-      { icon: Zap, href: "/admin/slg-pipeline", name: "Pipeline SLG" },
       { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
+      { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões Parceiros" },
     ]
   },
   {
@@ -234,8 +234,19 @@ const Sidebar = () => {
           {/* Section Items */}
           {section.items.map(item => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || 
-              (item.href !== "/admin" && pathname.startsWith(item.href));
+            // Verificar se é exatamente igual ou se começa com o href + "/"
+            // Mas não marcar se for um subcaminho de outro item da mesma seção
+            let isActive = pathname === item.href;
+            
+            if (!isActive && item.href !== "/admin" && pathname.startsWith(item.href)) {
+              // Verificar se não é um subcaminho de outro item na mesma seção
+              const hasLongerMatch = section.items.some(otherItem => 
+                otherItem.href !== item.href && 
+                pathname.startsWith(otherItem.href) &&
+                otherItem.href.length > item.href.length
+              );
+              isActive = !hasLongerMatch;
+            }
             
             return (
               <TooltipProvider key={item.href} delayDuration={0}>

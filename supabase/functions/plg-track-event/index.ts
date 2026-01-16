@@ -83,6 +83,23 @@ serve(async (req) => {
     }
 
     let leadId: string | null = null;
+    let partnerId: string | null = null;
+
+    // Buscar partner_id baseado no affiliate_token se disponível
+    if (event_data.affiliate_token) {
+      const { data: partnerSettings, error: partnerError } = await supabase
+        .from("partner_settings")
+        .select("user_id")
+        .eq("affiliate_token", event_data.affiliate_token)
+        .single();
+      
+      if (partnerSettings && !partnerError) {
+        partnerId = partnerSettings.user_id;
+        console.log(`Affiliate token ${event_data.affiliate_token} matched to partner ${partnerId}`);
+      } else if (partnerError) {
+        console.error("Erro ao buscar parceiro pelo token:", partnerError);
+      }
+    }
 
     // Buscar ou criar lead se temos email
     if (lead_email) {
@@ -115,6 +132,14 @@ serve(async (req) => {
         
         if (stageTransitions.includes(event_type)) {
           const updateData: Record<string, any> = { funnel_stage: event_type };
+          
+          // Adicionar partner_id se disponível
+          if (partnerId) {
+            updateData.partner_id = partnerId;
+          }
+          if (event_data.affiliate_token) {
+            updateData.affiliate_token = event_data.affiliate_token;
+          }
           
           // Adicionar dados específicos baseados no evento
           if (event_type === 'isca_completed' && event_data.govmetrix) {
@@ -172,19 +197,29 @@ serve(async (req) => {
         }
       } else if (lead_data?.name && lead_data?.company) {
         // Criar novo lead
+        const insertData: Record<string, any> = {
+          email: lead_email,
+          name: lead_data.name,
+          company: lead_data.company,
+          phone: lead_data.phone,
+          funnel_stage: event_type,
+          source: event_data.source || 'organic',
+          utm_source: event_data.utm_source,
+          utm_medium: event_data.utm_medium,
+          utm_campaign: event_data.utm_campaign,
+        };
+
+        // Adicionar partner_id e affiliate_token se disponíveis
+        if (partnerId) {
+          insertData.partner_id = partnerId;
+        }
+        if (event_data.affiliate_token) {
+          insertData.affiliate_token = event_data.affiliate_token;
+        }
+
         const { data: newLead, error: createError } = await supabase
           .from("plg_leads")
-          .insert({
-            email: lead_email,
-            name: lead_data.name,
-            company: lead_data.company,
-            phone: lead_data.phone,
-            funnel_stage: event_type,
-            source: event_data.source || 'organic',
-            utm_source: event_data.utm_source,
-            utm_medium: event_data.utm_medium,
-            utm_campaign: event_data.utm_campaign,
-          })
+          .insert(insertData)
           .select("id")
           .single();
         

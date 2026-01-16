@@ -12,7 +12,11 @@ export interface PartnerSettings {
   primary_color: string;
   secondary_color: string;
   custom_domain: string | null;
-  commission: number;
+  commission: number; // Comissão padrão (para compatibilidade)
+  commission_service: number | null; // Comissão sobre serviços/one-time (%)
+  commission_recurring: number | null; // Comissão sobre recorrência (%)
+  recurring_commission_months: number | null; // Meses de mensalidade para cálculo de comissão
+  affiliate_token: string | null;
   status: 'pending' | 'active' | 'suspended';
   created_at: string;
   updated_at: string;
@@ -38,7 +42,10 @@ export interface PartnerFormData {
   primaryColor: string;
   secondaryColor: string;
   customDomain: string;
-  commission: number;
+  commission: number; // Compatibilidade com campo antigo
+  commissionService: number; // Comissão sobre serviços (%)
+  commissionRecurring: number; // Comissão sobre recorrência (%)
+  recurringCommissionMonths: number; // Meses de mensalidade para comissão
 }
 
 export function usePartners() {
@@ -111,6 +118,10 @@ export function usePartners() {
           secondary_color: '#1E40AF',
           custom_domain: null,
           commission: 15,
+          commission_service: null,
+          commission_recurring: null,
+          recurring_commission_months: null,
+          affiliate_token: null,
           status: 'pending' as const,
           created_at: user.created_at || new Date().toISOString(),
           updated_at: user.updated_at || new Date().toISOString(),
@@ -154,7 +165,8 @@ export function usePartners() {
 
       // 3. Tentar criar settings (se tabela existir)
       try {
-        await supabase
+        // Gerar token de afiliado (a função do banco vai gerar automaticamente)
+        const { data: settingsData, error: settingsError } = await supabase
           .from('partner_settings' as any)
           .insert({
             user_id: newUser.id,
@@ -166,8 +178,22 @@ export function usePartners() {
             secondary_color: formData.secondaryColor,
             custom_domain: formData.customDomain || null,
             commission: formData.commission,
+            commission_service: formData.commissionService || null,
+            commission_recurring: formData.commissionRecurring || null,
+            recurring_commission_months: formData.recurringCommissionMonths || 12,
             status: 'active',
-          });
+          })
+          .select('affiliate_token')
+          .single();
+
+        // Se o token não foi gerado automaticamente, gerar manualmente
+        if (settingsData && !settingsData.affiliate_token) {
+          const token = `aff_${Math.random().toString(36).substring(2, 14).toUpperCase()}`;
+          await supabase
+            .from('partner_settings' as any)
+            .update({ affiliate_token: token })
+            .eq('user_id', newUser.id);
+        }
       } catch {
         console.log('Could not create partner_settings, table may not exist');
       }
@@ -206,6 +232,9 @@ export function usePartners() {
             primary_color: settings.primary_color || '#3B82F6',
             secondary_color: settings.secondary_color || '#1E40AF',
             commission: settings.commission || 15,
+            commission_service: settings.commission_service || null,
+            commission_recurring: settings.commission_recurring || null,
+            recurring_commission_months: settings.recurring_commission_months || 12,
             status: settings.status || 'active',
             ...settings,
           });

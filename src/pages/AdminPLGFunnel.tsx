@@ -14,10 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { usePartners } from '@/hooks/usePartners';
 import { 
   BarChart3, TrendingUp, TrendingDown, Users, Target, 
   ArrowRight, RefreshCw, Download, Filter, Clock,
-  Zap, CheckCircle, XCircle, AlertTriangle
+  Zap, CheckCircle, XCircle, AlertTriangle, Handshake
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -38,14 +39,16 @@ const FUNNEL_COLORS = [
 ];
 
 export default function AdminPLGFunnel() {
+  const { partners } = usePartners();
   const [metrics, setMetrics] = useState<PLGMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'24h' | '7d' | '30d' | '90d'>('7d');
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedPartner, setSelectedPartner] = useState<string>('all');
 
   useEffect(() => {
     loadMetrics();
-  }, [period]);
+  }, [period, selectedPartner]);
 
   const loadMetrics = async () => {
     setLoading(true);
@@ -115,7 +118,28 @@ export default function AdminPLGFunnel() {
                 Acompanhe a jornada do lead: ISCA → Descoberta → Contratação → Ativação
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Select value={selectedPartner} onValueChange={setSelectedPartner}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Todos os parceiros" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Todos os parceiros
+                    </div>
+                  </SelectItem>
+                  {partners.map(partner => (
+                    <SelectItem key={partner.id} value={partner.id}>
+                      <div className="flex items-center gap-2">
+                        <Handshake className="h-4 w-4" />
+                        {partner.settings?.company_name || partner.company || partner.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
