@@ -143,7 +143,8 @@ export default function ContractCheckout() {
   // Calcular valores
   const termDiscount = CONTRACT_TERM_OPTIONS.find(t => t.value === contractConfig.term)?.discount || 0;
   const cycleDiscount = PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.discount || 0;
-  const totalDiscount = termDiscount + cycleDiscount;
+  const pixDiscount = contractConfig.billingType === 'PIX' ? 5 : 0; // 5% de desconto para PIX
+  const totalDiscount = termDiscount + cycleDiscount + pixDiscount;
   
   const baseMonthly = pricing.mensal || 0;
   const addonsMonthly = selectedAddons.reduce((sum, a) => sum + a.precoMensal, 0);
@@ -871,17 +872,25 @@ export default function ContractCheckout() {
                   {/* Resumo de Descontos */}
                   {totalDiscount > 0 && (
                     <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-2">
                         <Percent className="h-4 w-4" />
                         <span className="font-medium text-sm">
                           Desconto total: {totalDiscount}%
                         </span>
                       </div>
-                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                        Contrato de {contractConfig.term} meses + pagamento {
-                          PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label.toLowerCase()
-                        }
-                      </p>
+                      <div className="space-y-1 text-xs text-green-600 dark:text-green-400">
+                        {termDiscount > 0 && (
+                          <p>• {termDiscount}% por contrato de {contractConfig.term} meses</p>
+                        )}
+                        {cycleDiscount > 0 && (
+                          <p>• {cycleDiscount}% por pagamento {
+                            PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label.toLowerCase()
+                          }</p>
+                        )}
+                        {pixDiscount > 0 && (
+                          <p>• {pixDiscount}% por pagamento via PIX</p>
+                        )}
+                      </div>
                     </div>
                   )}
                   

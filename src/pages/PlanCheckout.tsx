@@ -48,7 +48,8 @@ export default function PlanCheckout() {
   // Calcular valores
   const termDiscount = CONTRACT_TERM_OPTIONS.find(t => t.value === contractTerm)?.discount || 0;
   const cycleDiscount = PAYMENT_CYCLE_OPTIONS.find(c => c.value === paymentCycle)?.discount || 0;
-  const totalDiscount = termDiscount + cycleDiscount;
+  const pixDiscount = paymentMethod === 'PIX' ? 5 : 0; // 5% de desconto para PIX
+  const totalDiscount = termDiscount + cycleDiscount + pixDiscount;
 
   const baseMonthly = pricing.mensal || 0;
   const addonsMonthly = addons.reduce((sum, a) => sum + a.precoMensal, 0);
@@ -240,16 +241,16 @@ export default function PlanCheckout() {
                   </div>
 
                   {/* Resumo de Valores */}
-                  {termDiscount > 0 && (
+                  {totalDiscount > 0 && (
                     <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
                       <CardContent className="pt-4">
                         <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-3">
                           <Percent className="h-4 w-4" />
                           <span className="font-medium text-sm">
-                            Desconto aplicado: {termDiscount}%
+                            Desconto aplicado: {totalDiscount}%
                           </span>
                         </div>
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-2 text-sm mb-3">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Valor mensal original</span>
                             <span className="line-through">{formatCurrency(totalMonthly)}</span>
@@ -258,6 +259,14 @@ export default function PlanCheckout() {
                             <span>Valor mensal com desconto</span>
                             <span className="text-green-600">{formatCurrency(discountedMonthly)}</span>
                           </div>
+                        </div>
+                        <div className="space-y-1 text-xs text-green-600 dark:text-green-400 border-t border-green-200 dark:border-green-800 pt-2">
+                          {termDiscount > 0 && (
+                            <p>• {termDiscount}% por contrato de {contractTerm} meses</p>
+                          )}
+                          {pixDiscount > 0 && (
+                            <p>• {pixDiscount}% por pagamento via PIX</p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
