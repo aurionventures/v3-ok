@@ -76,6 +76,8 @@ import {
   calculateROI,
   getWhatsAppUrl,
   getCalculatorWhatsAppMessage,
+  calculatePlanPrice,
+  mapFaturamentoToPorte,
 } from '@/data/pricingData';
 
 // Componente de Visualização Circular da Complexidade
@@ -303,19 +305,45 @@ export default function Pricing() {
       reunioesAno: calculatorInputs.reunioesAno,
     });
 
+    // Usar valores padrão se não informados
+    const numConselhos = calculatorInputs.numConselhos || 1;
+    const reunioesAno = calculatorInputs.reunioesAno || 12;
+    const numUsuarios = calculatorInputs.numUsuarios || 10;
+    const maturidade = calculatorInputs.maturidade || 'basico';
+
+    // Calcular preço usando nova lógica
+    const calculatedPrice = calculatePlanPrice(
+      calculatorInputs.faturamento,
+      maturidade,
+      numConselhos,
+      calculatorInputs.numComites || 0,
+      reunioesAno,
+      numUsuarios
+    );
+
+    // Determinar plano baseado no preço calculado
     const planoId = recommendPlan(
       score, 
       calculatorInputs.faturamento,
       calculatorInputs.numComites,
-      calculatorInputs.numUsuarios
+      numUsuarios,
+      maturidade,
+      numConselhos,
+      reunioesAno
     );
-    const pricing = revealPricing(planoId);
+
+    // Mapear faturamento para porte
+    const porte = mapFaturamentoToPorte(calculatorInputs.faturamento);
+    
+    // Revelar pricing com preço calculado
+    const pricing = revealPricing(planoId, porte, calculatedPrice);
+    
     const complexityLevel = getComplexityLevel(score);
     const justificativa = generateJustification({
       numEmpresas: calculatorInputs.numEmpresas,
-      numConselhos: calculatorInputs.numConselhos,
-      numComites: calculatorInputs.numComites,
-      reunioesAno: calculatorInputs.reunioesAno,
+      numConselhos: numConselhos,
+      numComites: calculatorInputs.numComites || 0,
+      reunioesAno: reunioesAno,
       planoId,
     });
     const roi = calculateROI(planoId);

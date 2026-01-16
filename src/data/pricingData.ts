@@ -506,14 +506,158 @@ export function getComplexityLevel(score: number): {
   }
 }
 
-// Lógica de recomendação de plano
-// Considera: complexity score, faturamento, número de comitês e usuários
+// Valores mínimos por faturamento e estrutura informal (1 conselho, 12 reuniões, até 10 usuários)
+const MINIMUM_PRICES: Record<string, number> = {
+  'menos-50m': 3997,      // < R$ 50M + informal = R$ 3.997
+  '50-300m': 5997,        // R$ 50M - R$ 300M + informal = R$ 5.997
+  '300m-1b': 7997,        // R$ 300M - R$ 1B + informal = R$ 7.997
+  '1b-plus': 8997,        // > R$ 1B + informal = R$ 8.997
+  'listada': 14997,       // Listada + informal = R$ 14.997
+};
+
+// Multiplicadores para aumentos proporcionais
+const COMPLEXITY_MULTIPLIERS = {
+  conselho: 0.15,         // Cada conselho adicional = +15% do valor base
+  comite: 0.10,          // Cada comitê adicional = +10% do valor base
+  reuniao: 0.001,        // Cada reunião adicional acima de 12 = +0.1% do valor base
+  usuario: 0.005,        // Cada usuário adicional acima de 10 = +0.5% do valor base
+};
+
+/**
+ * Calcula o preço do plano baseado em faturamento, maturidade e complexidade
+ * @param faturamento - Faixa de faturamento
+ * @param maturidade - Nível de maturidade (estrutura informal = 'basico')
+ * @param numConselhos - Número de conselhos
+ * @param numComites - Número de comitês
+ * @param reunioesAno - Número de reuniões por ano
+ * @param numUsuarios - Número de usuários
+ * @returns Preço mensal calculado
+ */
+export function calculatePlanPrice(
+  faturamento: string,
+  maturidade: string,
+  numConselhos: number = 1,
+  numComites: number = 0,
+  reunioesAno: number = 12,
+  numUsuarios: number = 10
+): number {
+  // Obter valor mínimo baseado no faturamento
+  const basePrice = MINIMUM_PRICES[faturamento] || MINIMUM_PRICES['menos-50m'];
+  
+  // Se não for estrutura informal, aplicar multiplicador de maturidade
+  let maturityMultiplier = 1.0;
+  if (maturidade === 'intermediario') {
+    maturityMultiplier = 1.2; // +20% para intermediário
+  } else if (maturidade === 'avancado') {
+    maturityMultiplier = 1.4; // +40% para avançado
+  } else if (maturidade === 'world-class') {
+    maturityMultiplier = 1.6; // +60% para world-class
+  }
+  
+  let adjustedPrice = basePrice * maturityMultiplier;
+  
+  // Calcular aumentos proporcionais
+  // Conselhos: acima de 1 conselho
+  if (numConselhos > 1) {
+    const conselhosAdicionais = numConselhos - 1;
+    adjustedPrice += basePrice * COMPLEXITY_MULTIPLIERS.conselho * conselhosAdicionais;
+  }
+  
+  // Comitês: cada comitê adicional
+  if (numComites > 0) {
+    adjustedPrice += basePrice * COMPLEXITY_MULTIPLIERS.comite * numComites;
+  }
+  
+  // Reuniões: acima de 12 reuniões/ano
+  if (reunioesAno > 12) {
+    const reunioesAdicionais = reunioesAno - 12;
+    adjustedPrice += basePrice * COMPLEXITY_MULTIPLIERS.reuniao * reunioesAdicionais;
+  }
+  
+  // Usuários: acima de 10 usuários
+  if (numUsuarios > 10) {
+    const usuariosAdicionais = numUsuarios - 10;
+    adjustedPrice += basePrice * COMPLEXITY_MULTIPLIERS.usuario * usuariosAdicionais;
+  }
+  
+  // Arredondar para múltiplo de 1 (sem centavos)
+  return Math.round(adjustedPrice);
+}
+
+/**
+ * Determina o plano baseado no preço calculado
+ * @param calculatedPrice - Preço mensal calculado
+ * @param faturamento - Faixa de faturamento
+ * @returns ID do plano recomendado
+ */
+export function determinePlanFromPrice(
+  calculatedPrice: number,
+  faturamento: string
+): string {
+  // Obter valores mínimos de cada plano para o porte
+  const porteKey = mapFaturamentoToPorte(faturamento);
+  const planos = PRICING_MATRIX[porteKey] || PRICING_MATRIX.smb;
+  
+  // Encontrar o plano mais adequado baseado no preço calculado
+  // Se o preço calculado for menor que o Essencial, retornar Essencial
+  if (calculatedPrice <= planos.essencial.mensal) {
+    return 'essencial';
+  }
+  
+  // Se o preço calculado for menor que o Profissional, retornar Profissional
+  if (calculatedPrice <= planos.profissional.mensal) {
+    return 'profissional';
+  }
+  
+  // Se o preço calculado for menor que o Business, retornar Business
+  if (calculatedPrice <= planos.business.mensal) {
+    return 'business';
+  }
+  
+  // Caso contrário, Enterprise
+  return 'enterprise';
+}
+
+/**
+ * Mapeia faturamento para chave de porte na matriz de pricing
+ */
+export function mapFaturamentoToPorte(faturamento: string): string {
+  const mapping: Record<string, string> = {
+    'menos-50m': 'smb',
+    '50-300m': 'smb_plus',
+    '300m-1b': 'mid_market',
+    '1b-plus': 'large',
+    'listada': 'enterprise',
+  };
+  return mapping[faturamento] || 'smb';
+}
+
+// Lógica de recomendação de plano (refatorada)
+// Considera: faturamento, maturidade, número de conselhos, comitês, reuniões e usuários
 export function recommendPlan(
   complexityScore: number,
   faturamento: string,
   numComites?: number,
-  numUsuarios?: number
+  numUsuarios?: number,
+  maturidade?: string,
+  numConselhos?: number,
+  reunioesAno?: number
 ): string {
+  // Se temos todos os parâmetros necessários, usar cálculo de preço
+  if (maturidade && numConselhos !== undefined && reunioesAno !== undefined) {
+    const calculatedPrice = calculatePlanPrice(
+      faturamento,
+      maturidade,
+      numConselhos,
+      numComites || 0,
+      reunioesAno,
+      numUsuarios || 10
+    );
+    
+    return determinePlanFromPrice(calculatedPrice, faturamento);
+  }
+  
+  // Fallback para lógica antiga se não tiver todos os parâmetros
   // Empresas listadas sempre Enterprise
   if (faturamento === 'listada') {
     return 'enterprise';
@@ -531,46 +675,25 @@ export function recommendPlan(
     return 'enterprise';
   }
 
-  // Regras específicas para startups e PMEs:
-  // 1 conselho, mínimo 12 reuniões, até 10 usuários = Essencial (R$ 3.997)
-  // 1 conselho + 1 comitê, mais de 10 usuários = Essencial SMB+ (R$ 4.997) ou Profissional SMB (R$ 5.997)
-  
-  // Se tem comitês ou muitos usuários, considerar upgrade
-  let planAdjustment = 0;
-  
-  // Comitês aumentam complexidade
-  if (numComites && numComites >= 1) {
-    planAdjustment += 1; // Upgrade de 1 tier se tem comitê
-  }
-  
-  // Muitos usuários (>10) também indicam maior necessidade
-  if (numUsuarios && numUsuarios > 10) {
-    planAdjustment += 1; // Upgrade de 1 tier se tem mais de 10 usuários
-  }
-
   // Baseado no complexity score
-  let basePlan: string;
   if (complexityScore <= 10) {
-    basePlan = 'essencial';
+    return 'essencial';
   } else if (complexityScore <= 20) {
-    basePlan = 'profissional';
+    return 'profissional';
   } else if (complexityScore <= 40) {
-    basePlan = 'business';
+    return 'business';
   } else {
-    basePlan = 'enterprise';
+    return 'enterprise';
   }
-
-  // Aplicar ajustes baseados em comitês e usuários
-  // Mas limitar upgrades para não pular muito
-  const planOrder = ['essencial', 'profissional', 'business', 'enterprise'];
-  const currentIndex = planOrder.indexOf(basePlan);
-  const adjustedIndex = Math.min(currentIndex + planAdjustment, planOrder.length - 1);
-  
-  return planOrder[adjustedIndex];
 }
 
 // Revelar preço baseado no plano
-export function revealPricing(planoId: string, porte: string = 'smb'): {
+// Agora suporta cálculo dinâmico ou uso da matriz estática
+export function revealPricing(
+  planoId: string, 
+  porte: string = 'smb',
+  calculatedPrice?: number
+): {
   mensal: number | null;
   anual: number | null;
   economia: number | null;
@@ -585,46 +708,65 @@ export function revealPricing(planoId: string, porte: string = 'smb'): {
     trial: number;
   };
 } {
-  // Tentar pegar da matriz completa primeiro
-  const matrixPricing = PRICING_MATRIX[porte]?.[planoId];
+  // Se temos um preço calculado dinamicamente, usar ele
+  let mensalPrice: number;
   
-  // Fallback para tabela simplificada
-  const simplePricing = PRICING_TABLE[planoId as keyof typeof PRICING_TABLE];
-  
-  const pricing = matrixPricing || simplePricing;
-
-  if (!pricing || !pricing.mensal) {
-    return {
-      mensal: null,
-      anual: null,
-      economia: null,
-      setup: null,
-      mensalFormatted: 'Sob consulta',
-      anualFormatted: 'Sob consulta',
-      economiaFormatted: '',
-      setupFormatted: 'Sob consulta',
-      setupDescontos: { anualVista: 0, referral: 0, trial: 0 },
-    };
+  if (calculatedPrice !== undefined) {
+    mensalPrice = calculatedPrice;
+  } else {
+    // Tentar pegar da matriz completa primeiro
+    const matrixPricing = PRICING_MATRIX[porte]?.[planoId];
+    
+    // Fallback para tabela simplificada
+    const simplePricing = PRICING_TABLE[planoId as keyof typeof PRICING_TABLE];
+    
+    const pricing = matrixPricing || simplePricing;
+    
+    if (!pricing || !pricing.mensal) {
+      return {
+        mensal: null,
+        anual: null,
+        economia: null,
+        setup: null,
+        mensalFormatted: 'Sob consulta',
+        anualFormatted: 'Sob consulta',
+        economiaFormatted: '',
+        setupFormatted: 'Sob consulta',
+        setupDescontos: { anualVista: 0, referral: 0, trial: 0 },
+      };
+    }
+    
+    mensalPrice = pricing.mensal;
   }
 
-  const economia = pricing.mensal * 12 - pricing.anual;
-  const setup = pricing.setup || 0;
+  // Calcular valores anuais e setup baseados no preço mensal
+  // Anual = mensal × 12 (sem desconto, pois já está aplicado na matriz)
+  // Setup = 2× mensal para SMB/SMB+, 1× mensal para outros
+  const isSMB = porte === 'smb' || porte === 'smb_plus';
+  const setupMultiplier = isSMB ? 2 : 1;
+  
+  const anualPrice = mensalPrice * 12;
+  const setupPrice = mensalPrice * setupMultiplier;
+  
+  // Economia anual = diferença entre pagamento mensal × 12 e anual (se houver desconto)
+  // Como não há desconto explícito, economia = 0 ou pode ser calculada como 2 meses
+  const economia = mensalPrice * 2; // 2 meses de economia no plano anual
 
   return {
-    mensal: pricing.mensal,
-    anual: pricing.anual,
+    mensal: mensalPrice,
+    anual: anualPrice,
     economia: economia,
-    setup: setup,
-    mensalFormatted: `R$ ${pricing.mensal.toLocaleString('pt-BR')}`,
-    anualFormatted: `R$ ${pricing.anual?.toLocaleString('pt-BR')}`,
+    setup: setupPrice,
+    mensalFormatted: `R$ ${mensalPrice.toLocaleString('pt-BR')}`,
+    anualFormatted: `R$ ${anualPrice.toLocaleString('pt-BR')}`,
     economiaFormatted: economia > 0
       ? `Economize R$ ${economia.toLocaleString('pt-BR')}`
       : '',
-    setupFormatted: `R$ ${setup.toLocaleString('pt-BR')}`,
+    setupFormatted: `R$ ${setupPrice.toLocaleString('pt-BR')}`,
     setupDescontos: {
-      anualVista: Math.round(setup * (1 - SETUP_DISCOUNTS.annual_upfront)),
-      referral: Math.round(setup * (1 - SETUP_DISCOUNTS.referral)),
-      trial: Math.round(setup * (1 - SETUP_DISCOUNTS.trial_conversion)),
+      anualVista: Math.round(setupPrice * (1 - SETUP_DISCOUNTS.annual_upfront)),
+      referral: Math.round(setupPrice * (1 - SETUP_DISCOUNTS.referral)),
+      trial: Math.round(setupPrice * (1 - SETUP_DISCOUNTS.trial_conversion)),
     },
   };
 }
