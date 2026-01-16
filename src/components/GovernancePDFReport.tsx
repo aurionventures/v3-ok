@@ -301,7 +301,7 @@ const IGBCPDFDocument: React.FC<IGBCPDFReportProps> = ({ assessment }) => {
         {/* Footer Página 1 */}
         <Text 
           style={styles.footer}
-          render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages} - Relatório de Maturidade em Governança gerado automaticamente pela Legacy Governance - 29/09/2025`}
+          render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages} - Relatório de Maturidade em Governança gerado automaticamente pela Legacy OS - ${new Date().toLocaleDateString('pt-BR')}`}
           fixed
         />
       </Page>
@@ -352,7 +352,7 @@ const IGBCPDFDocument: React.FC<IGBCPDFReportProps> = ({ assessment }) => {
         {/* Footer Página 2 */}
         <Text 
           style={styles.footer}
-          render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages} - Relatório de Maturidade em Governança gerado automaticamente pela Legacy Governance - 29/09/2025`}
+          render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages} - Relatório de Maturidade em Governança gerado automaticamente pela Legacy OS - ${new Date().toLocaleDateString('pt-BR')}`}
           fixed
         />
       </Page>

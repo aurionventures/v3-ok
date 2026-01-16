@@ -9,9 +9,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
   },
   header: {
-    marginBottom: 20,
+    marginBottom: 25,
     borderBottom: '2 solid #2563eb',
-    paddingBottom: 10,
+    paddingBottom: 12,
   },
   title: {
     fontSize: 24,
@@ -30,13 +30,14 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   section: {
-    marginBottom: 25,
+    marginBottom: 20,
+    marginTop: 10,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#1e293b',
-    marginBottom: 15,
+    marginBottom: 12,
     backgroundColor: '#f1f5f9',
     padding: 8,
     borderRadius: 4,
@@ -45,19 +46,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: '#334155',
-    marginBottom: 10,
-    marginTop: 15,
+    marginBottom: 8,
+    marginTop: 12,
   },
   table: {
     display: 'flex',
     flexDirection: 'column',
-    marginBottom: 20,
+    marginBottom: 15,
+    marginTop: 10,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottom: '1 solid #e2e8f0',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 5,
+    minHeight: 30,
   },
   tableHeader: {
     backgroundColor: '#1e293b',
@@ -89,6 +92,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 15,
     marginBottom: 15,
+    marginTop: 10,
   },
   formulaText: {
     fontSize: 11,
@@ -96,12 +100,26 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     marginBottom: 5,
   },
+  formulaTextDark: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    color: '#f1f5f9',
+    marginBottom: 6,
+    lineHeight: 1.4,
+  },
+  formulaTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 12,
+  },
   exampleBox: {
     backgroundColor: '#f0fdf4',
     border: '1 solid #86efac',
     borderRadius: 6,
     padding: 12,
     marginBottom: 15,
+    marginTop: 10,
   },
   exampleTitle: {
     fontSize: 11,
@@ -114,12 +132,14 @@ const styles = StyleSheet.create({
     color: '#166534',
     marginBottom: 4,
     fontFamily: 'Courier',
+    lineHeight: 1.3,
   },
   bulletPoint: {
     fontSize: 9,
     color: '#475569',
-    marginBottom: 5,
+    marginBottom: 6,
     paddingLeft: 10,
+    lineHeight: 1.4,
   },
   footer: {
     position: 'absolute',
@@ -136,19 +156,26 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 10,
     marginBottom: 15,
+    marginTop: 10,
   },
   noteText: {
     fontSize: 9,
     color: '#92400e',
+    lineHeight: 1.4,
   },
   codeBlock: {
     backgroundColor: '#1e293b',
-    color: '#f1f5f9',
-    padding: 10,
+    padding: 15,
     borderRadius: 4,
-    fontFamily: 'Courier',
-    fontSize: 8,
+    marginTop: 10,
     marginBottom: 10,
+  },
+  codeBlockText: {
+    fontFamily: 'Courier',
+    fontSize: 10,
+    color: '#f1f5f9',
+    lineHeight: 1.5,
+    marginBottom: 4,
   },
 });
 
@@ -192,14 +219,14 @@ function PricingLogicPDFDocument() {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <Text style={styles.title}>Lógica de Pricing</Text>
-          <Text style={styles.subtitle}>Legacy Governance Platform</Text>
+          <Text style={styles.subtitle}>Legacy OS</Text>
           <Text style={styles.date}>Documentação Completa - {currentDate}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 Visão Geral</Text>
+          <Text style={styles.sectionTitle}>1. Visão Geral</Text>
           <Text style={styles.bulletPoint}>
-            O sistema de pricing da Legacy Governance Platform utiliza um modelo dinâmico baseado em múltiplos fatores que refletem a complexidade real da estrutura de governança corporativa de cada empresa.
+            O sistema de pricing da Legacy OS utiliza um modelo dinâmico baseado em múltiplos fatores que refletem a complexidade real da estrutura de governança corporativa de cada empresa.
           </Text>
           <Text style={styles.bulletPoint}>
             O cálculo considera: Faturamento anual, Nível de maturidade da governança, e Complexidade estrutural (conselhos, comitês, reuniões, usuários).
@@ -210,7 +237,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🎯 Estrutura Base</Text>
+          <Text style={styles.sectionTitle}>2. Estrutura Base</Text>
           <Text style={styles.bulletPoint}>
             A estrutura base considera uma configuração mínima de governança:
           </Text>
@@ -235,7 +262,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💰 Valores Mínimos</Text>
+          <Text style={styles.sectionTitle}>Valores Mínimos</Text>
           <Text style={styles.bulletPoint}>
             Os valores mínimos são aplicados para empresas com estrutura básica (1 conselho, 12 reuniões, até 10 usuários):
           </Text>
@@ -256,7 +283,7 @@ function PricingLogicPDFDocument() {
 
         <View style={styles.noteBox}>
           <Text style={styles.noteText}>
-            ⚠️ IMPORTANTE: Os valores mínimos são aplicados sobre a estrutura base. Qualquer complexidade adicional gera aumentos proporcionais.
+            IMPORTANTE: Os valores mínimos são aplicados sobre a estrutura base. Qualquer complexidade adicional gera aumentos proporcionais.
           </Text>
         </View>
 
@@ -272,7 +299,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 Níveis de Maturidade</Text>
+          <Text style={styles.sectionTitle}>Níveis de Maturidade</Text>
           <Text style={styles.bulletPoint}>
             O nível de maturidade da governança corporativa impacta o preço através de multiplicadores aplicados sobre o valor base:
           </Text>
@@ -314,7 +341,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📈 Multiplicadores de Complexidade</Text>
+          <Text style={styles.sectionTitle}>Multiplicadores de Complexidade</Text>
           <Text style={styles.bulletPoint}>
             Além do multiplicador de maturidade, aumentos proporcionais são aplicados sobre o valor base (não sobre o valor já ajustado):
           </Text>
@@ -337,7 +364,7 @@ function PricingLogicPDFDocument() {
 
         <View style={styles.noteBox}>
           <Text style={styles.noteText}>
-            ⚠️ IMPORTANTE: Os aumentos são calculados sobre o valor base, não sobre o valor já ajustado pela maturidade. Os aumentos são aditivos (somados ao valor final).
+            IMPORTANTE: Os aumentos são calculados sobre o valor base, não sobre o valor já ajustado pela maturidade. Os aumentos são aditivos (somados ao valor final).
           </Text>
         </View>
 
@@ -353,7 +380,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🧮 Passo a Passo</Text>
+          <Text style={styles.sectionTitle}>Passo a Passo</Text>
           <Text style={styles.bulletPoint}>1. Obter valor base (MINIMUM_PRICES[faturamento])</Text>
           <Text style={styles.bulletPoint}>2. Aplicar multiplicador de maturidade: Preço Ajustado = Valor Base × Multiplicador Maturidade</Text>
           <Text style={styles.bulletPoint}>3. Calcular aumentos proporcionais (sobre valor base):</Text>
@@ -366,21 +393,21 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.formulaBox}>
-          <Text style={styles.sectionTitle}>Fórmula Completa</Text>
+          <Text style={styles.formulaTitle}>Fórmula Completa</Text>
           <View style={styles.codeBlock}>
-            <Text style={styles.formulaText}>
+            <Text style={styles.codeBlockText}>
               Preço Final = (Valor Base × Multiplicador Maturidade)
             </Text>
-            <Text style={styles.formulaText}>
+            <Text style={styles.codeBlockText}>
               {'            '}+ (Valor Base × 0.15 × max(0, numConselhos - 1))
             </Text>
-            <Text style={styles.formulaText}>
+            <Text style={styles.codeBlockText}>
               {'            '}+ (Valor Base × 0.10 × numComites)
             </Text>
-            <Text style={styles.formulaText}>
+            <Text style={styles.codeBlockText}>
               {'            '}+ (Valor Base × 0.001 × max(0, reunioesAno - 12))
             </Text>
-            <Text style={styles.formulaText}>
+            <Text style={styles.codeBlockText}>
               {'            '}+ (Valor Base × 0.005 × max(0, numUsuarios - 10))
             </Text>
           </View>
@@ -409,8 +436,9 @@ function PricingLogicPDFDocument() {
             <Text style={styles.exampleText}>Preço Final: R$ 3.997,00</Text>
           </View>
 
-          <Text style={styles.subsectionTitle}>Exemplo 2: Empresa Média - Estrutura Intermediária</Text>
-          <View style={styles.exampleBox}>
+          <View style={{ marginTop: 15 }}>
+            <Text style={styles.subsectionTitle}>Exemplo 2: Empresa Média - Estrutura Intermediária</Text>
+            <View style={styles.exampleBox}>
             <Text style={styles.exampleText}>Dados: Faturamento R$ 50M-300M, Maturidade: Intermediário</Text>
             <Text style={styles.exampleText}>Conselhos: 2, Comitês: 2, Reuniões: 24/ano, Usuários: 15</Text>
             <Text style={styles.exampleText}>Valor Base: R$ 5.997,00</Text>
@@ -423,6 +451,7 @@ function PricingLogicPDFDocument() {
             <Text style={styles.exampleText}>Total Aumentos: R$ 2.320,84</Text>
             <Text style={styles.exampleText}>Preço Final: R$ 7.196,40 + R$ 2.320,84 = R$ 9.517,24</Text>
             <Text style={styles.exampleText}>Arredondado: R$ 9.517,00</Text>
+            </View>
           </View>
         </View>
 
@@ -454,8 +483,9 @@ function PricingLogicPDFDocument() {
             <Text style={styles.exampleText}>Arredondado: R$ 18.481,00</Text>
           </View>
 
-          <Text style={styles.subsectionTitle}>Exemplo 4: Empresa Listada - Estrutura World-Class</Text>
-          <View style={styles.exampleBox}>
+          <View style={{ marginTop: 15 }}>
+            <Text style={styles.subsectionTitle}>Exemplo 4: Empresa Listada - Estrutura World-Class</Text>
+            <View style={styles.exampleBox}>
             <Text style={styles.exampleText}>Dados: Faturamento Listada (B3), Maturidade: World-Class</Text>
             <Text style={styles.exampleText}>Conselhos: 4, Comitês: 8, Reuniões: 60/ano, Usuários: 50</Text>
             <Text style={styles.exampleText}>Valor Base: R$ 14.997,00</Text>
@@ -468,6 +498,7 @@ function PricingLogicPDFDocument() {
             <Text style={styles.exampleText}>Total Aumentos: R$ 22.465,51</Text>
             <Text style={styles.exampleText}>Preço Final: R$ 23.995,20 + R$ 22.465,51 = R$ 46.460,71</Text>
             <Text style={styles.exampleText}>Arredondado: R$ 46.461,00</Text>
+            </View>
           </View>
         </View>
 
@@ -483,7 +514,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📌 Regras Importantes</Text>
+          <Text style={styles.sectionTitle}>Regras Importantes</Text>
 
           <Text style={styles.subsectionTitle}>1. Valores Padrão</Text>
           <Text style={styles.bulletPoint}>Se algum valor não for informado, o sistema assume:</Text>
@@ -507,7 +538,7 @@ function PricingLogicPDFDocument() {
 
         <View style={styles.noteBox}>
           <Text style={styles.noteText}>
-            💡 O sistema é totalmente transparente - todos os cálculos são baseados em fórmulas claras e documentadas.
+            O sistema é totalmente transparente - todos os cálculos são baseados em fórmulas claras e documentadas.
           </Text>
         </View>
 
@@ -523,7 +554,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🔄 Processo Completo</Text>
+          <Text style={styles.sectionTitle}>Processo Completo</Text>
 
           <Text style={styles.subsectionTitle}>1. Coleta de Dados</Text>
           <Text style={styles.bulletPoint}>O sistema coleta os seguintes dados do usuário:</Text>
@@ -561,7 +592,7 @@ function PricingLogicPDFDocument() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📌 Características do Sistema</Text>
+          <Text style={styles.sectionTitle}>Características do Sistema</Text>
 
           <Text style={styles.subsectionTitle}>Transparência</Text>
           <Text style={styles.bulletPoint}>O sistema é totalmente transparente - todos os cálculos são baseados em fórmulas claras e documentadas.</Text>
@@ -580,7 +611,7 @@ function PricingLogicPDFDocument() {
           <Text style={styles.sectionTitle}>Informações do Documento</Text>
           <Text style={styles.bulletPoint}>Versão: 1.0</Text>
           <Text style={styles.bulletPoint}>Última Atualização: Dezembro 2024</Text>
-          <Text style={styles.bulletPoint}>Autor: Legacy Governance Platform Team</Text>
+          <Text style={styles.bulletPoint}>Autor: Legacy OS Team</Text>
           <Text style={styles.bulletPoint}>Documento gerado em: {currentDate}</Text>
         </View>
 

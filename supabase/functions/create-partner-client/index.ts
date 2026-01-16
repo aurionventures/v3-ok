@@ -210,11 +210,11 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: "Legacy <no-reply@legacy.rogermedke.com>",
         to: email,
-        subject: `Convite para ${companyName} - Legacy Governance`,
+        subject: `Convite para ${companyName} - Legacy OS`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #059669;">Bem-vindo à Legacy!</h2>
-            <p>Olá! Você foi convidado por <strong>${partnerData.name}</strong> para acessar a plataforma Legacy Governance.</p>
+            <p>Olá! Você foi convidado por <strong>${partnerData.name}</strong> para acessar a Legacy OS.</p>
             
             <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #059669;">
               <h3 style="color: #059669; margin-top: 0;">Dados do Convite:</h3>

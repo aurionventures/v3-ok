@@ -60,11 +60,42 @@ export default function StripeCheckout() {
   // Parâmetros da URL
   const planSlug = searchParams.get('plan') || 'profissional';
   const priceFromUrl = searchParams.get('price');
+  const calculatedPriceFromUrl = searchParams.get('calculatedPrice');
   const addonsFromUrl = searchParams.get('addons')?.split(',') || [];
+
+  // Recuperar preço calculado do localStorage se não vier na URL
+  const [calculatedPrice, setCalculatedPrice] = useState<number | undefined>(undefined);
+  
+  useEffect(() => {
+    // Se não veio na URL, tentar recuperar do localStorage
+    if (!calculatedPriceFromUrl) {
+      try {
+        const calculatorResult = localStorage.getItem('calculator_result');
+        if (calculatorResult) {
+          const data = JSON.parse(calculatorResult);
+          // O pricing já contém o preço mensal calculado
+          if (data.pricing?.mensal) {
+            setCalculatedPrice(data.pricing.mensal);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao recuperar preço calculado:', error);
+      }
+    } else {
+      // Se veio na URL, usar diretamente
+      const price = parseFloat(calculatedPriceFromUrl);
+      if (!isNaN(price)) {
+        setCalculatedPrice(price);
+      }
+    }
+  }, [calculatedPriceFromUrl]);
 
   // Dados do plano
   const plan = PLANS.find((p) => p.id === planSlug) || PLANS[1];
-  const pricing = revealPricing(planSlug);
+  // Usar preço calculado se disponível, caso contrário usar matriz estática
+  // Se não temos calculatedPrice mas temos priceFromUrl (anual), converter para mensal
+  const monthlyPrice = calculatedPrice || (priceFromUrl ? parseFloat(priceFromUrl) / 12 : undefined);
+  const pricing = revealPricing(planSlug, 'smb', monthlyPrice);
   const selectedAddons = ADDONS.filter((a) => addonsFromUrl.includes(a.id));
 
   // Estado do formulário

@@ -417,12 +417,19 @@ export default function Pricing() {
 
     // Calcular preço total com add-ons
     const totalAnual = calculateTotalWithAddons?.anual || calculatorResult.pricing.anual || 0;
+    // Preço mensal calculado (importante para manter consistência)
+    const calculatedMonthlyPrice = calculatorResult.pricing.mensal;
 
     const params = new URLSearchParams({
       plan: calculatorResult.planoId,
       price: totalAnual.toString(),
       source: 'calculator',
     });
+
+    // Adicionar preço mensal calculado para garantir consistência no checkout
+    if (calculatedMonthlyPrice) {
+      params.set('calculatedPrice', calculatedMonthlyPrice.toString());
+    }
 
     // Adicionar add-ons selecionados se houver
     if (selectedAddons.length > 0) {
@@ -437,11 +444,21 @@ export default function Pricing() {
   const handleContractCheckout = () => {
     if (!calculatorResult) return;
 
+    // Mapear faturamento para porte (igual ao cálculo)
+    const porte = mapFaturamentoToPorte(calculatorInputs.faturamento);
+    // Preço mensal calculado (importante para manter consistência)
+    const calculatedMonthlyPrice = calculatorResult.pricing.mensal;
+
     const params = new URLSearchParams({
       plan: calculatorResult.planoId,
-      porte: calculatorInputs.faturamento,
+      porte: porte,
       source: 'calculator',
     });
+
+    // Adicionar preço mensal calculado para garantir consistência no checkout
+    if (calculatedMonthlyPrice) {
+      params.set('calculatedPrice', calculatedMonthlyPrice.toString());
+    }
 
     // Adicionar add-ons selecionados se houver
     if (selectedAddons.length > 0) {
@@ -730,7 +747,7 @@ export default function Pricing() {
                         }))
                       }
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger className="h-9 border-2 border-border hover:border-primary/50 focus:border-primary transition-colors">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
@@ -756,7 +773,7 @@ export default function Pricing() {
                         }))
                       }
                     >
-                      <SelectTrigger className="h-9">
+                      <SelectTrigger className="h-9 border-2 border-border hover:border-primary/50 focus:border-primary transition-colors">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
@@ -780,7 +797,7 @@ export default function Pricing() {
                       min={1}
                       max={50}
                       required
-                      className="h-9"
+                      className="h-9 border-2 border-border hover:border-primary/50 focus-visible:border-primary transition-colors"
                       value={calculatorInputs.numEmpresas || ''}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -799,7 +816,7 @@ export default function Pricing() {
                       type="number"
                       min={0}
                       max={20}
-                      className="h-9"
+                      className="h-9 border-2 border-border hover:border-primary/50 focus-visible:border-primary transition-colors"
                       value={calculatorInputs.numConselhos || ''}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -818,7 +835,7 @@ export default function Pricing() {
                       type="number"
                       min={0}
                       max={50}
-                      className="h-9"
+                      className="h-9 border-2 border-border hover:border-primary/50 focus-visible:border-primary transition-colors"
                       value={calculatorInputs.numComites || ''}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -837,7 +854,7 @@ export default function Pricing() {
                       type="number"
                       min={0}
                       max={300}
-                      className="h-9"
+                      className="h-9 border-2 border-border hover:border-primary/50 focus-visible:border-primary transition-colors"
                       value={calculatorInputs.reunioesAno || ''}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -859,7 +876,7 @@ export default function Pricing() {
                       type="number"
                       min={1}
                       max={500}
-                      className="h-9"
+                      className="h-9 border-2 border-border hover:border-primary/50 focus-visible:border-primary transition-colors"
                       value={calculatorInputs.numUsuarios || ''}
                       onChange={(e) => {
                         const value = e.target.value;

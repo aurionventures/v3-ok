@@ -6,15 +6,15 @@ import { toast } from "@/hooks/use-toast";
 const PlatformDocumentation = () => {
   const generateDocumentation = () => {
     const documentation = `
-# PLATAFORMA LEGACY - DOCUMENTAÇÃO COMPLETA
+# LEGACY OS - DOCUMENTAÇÃO COMPLETA
 # Versão: 2.0 | Data: ${new Date().toLocaleDateString('pt-BR')}
 # Governança Corporativa e Gestão Sucessória Empresarial
 
 ================================================================================
-VISÃO GERAL DA PLATAFORMA
+VISÃO GERAL DA LEGACY OS
 ================================================================================
 
-A Legacy é uma plataforma digital completa para governança corporativa e gestão 
+A Legacy OS é um sistema operacional completo para governança corporativa e gestão 
 sucessória empresarial. Desenvolvida especificamente para atender 
 as complexidades únicas das empresas de controle concentrado, oferece ferramentas 
 integradas para avaliação de maturidade, gestão de riscos, ESG, estruturação 
@@ -25,7 +25,7 @@ inovadora, promovendo a continuidade, profissionalização e sustentabilidade
 do legado organizacional.
 
 ================================================================================
-MÓDULOS PRINCIPAIS DA PLATAFORMA
+MÓDULOS PRINCIPAIS DA LEGACY OS
 ================================================================================
 
 1. DASHBOARD EXECUTIVO
@@ -348,7 +348,7 @@ INOVAÇÕES EM DESENVOLVIMENTO
 CONTATO E INFORMAÇÕES
 ================================================================================
 
-Para mais informações sobre a Plataforma Legacy:
+Para mais informações sobre a Legacy OS:
 
 Website: www.legacygovernance.com.br
 Email: contato@legacygovernance.com.br
@@ -373,7 +373,7 @@ ANEXOS E RECURSOS ADICIONAIS
 - Termos de uso
 
 ================================================================================
-© 2025 Legacy Governance Platform - Todos os direitos reservados
+© 2025 Legacy OS - Todos os direitos reservados
 Documento confidencial destinado exclusivamente para prospects e clientes
 ================================================================================
     `.trim();
@@ -393,14 +393,14 @@ Documento confidencial destinado exclusivamente para prospects e clientes
 
     toast({
       title: "Documentação baixada com sucesso",
-      description: "A documentação completa da plataforma foi baixada em formato TXT",
+      description: "A documentação completa da Legacy OS foi baixada em formato TXT",
     });
   };
 
   return (
     <Button onClick={handleDownload} className="w-full">
       <Download className="h-4 w-4 mr-2" />
-      Baixar Documentação da Plataforma (TXT)
+      Baixar Documentação da Legacy OS (TXT)
     </Button>
   );
 };

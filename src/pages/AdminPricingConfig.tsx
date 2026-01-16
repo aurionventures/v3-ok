@@ -75,10 +75,6 @@ export default function AdminPricingConfig() {
                   <Grid3X3 className="h-4 w-4" />
                   <span className="hidden sm:inline">Matriz Pricing</span>
                 </TabsTrigger>
-                <TabsTrigger value="complexidade" className="gap-2">
-                  <Calculator className="h-4 w-4" />
-                  <span className="hidden sm:inline">Complexidade</span>
-                </TabsTrigger>
                 <TabsTrigger value="modulos" className="gap-2">
                   <Package className="h-4 w-4" />
                   <span className="hidden sm:inline">Módulos</span>
@@ -91,6 +87,10 @@ export default function AdminPricingConfig() {
                   <FileText className="h-4 w-4" />
                   <span className="hidden sm:inline">Lógica Pricing</span>
                 </TabsTrigger>
+                <TabsTrigger value="complexidade" className="gap-2">
+                  <Calculator className="h-4 w-4" />
+                  <span className="hidden sm:inline">Complexidade</span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="portes-planos" className="space-y-6">
@@ -99,10 +99,6 @@ export default function AdminPricingConfig() {
 
               <TabsContent value="matriz-pricing" className="space-y-6">
                 <MatrizPricingTab />
-              </TabsContent>
-
-              <TabsContent value="complexidade" className="space-y-6">
-                <ComplexidadePesosTab />
               </TabsContent>
 
               <TabsContent value="modulos" className="space-y-6">
@@ -115,6 +111,10 @@ export default function AdminPricingConfig() {
 
               <TabsContent value="logica-pricing" className="space-y-6">
                 <PricingLogicTab />
+              </TabsContent>
+
+              <TabsContent value="complexidade" className="space-y-6">
+                <ComplexidadePesosTab />
               </TabsContent>
             </Tabs>
           </div>

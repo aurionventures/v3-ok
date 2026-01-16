@@ -14,7 +14,7 @@ export function PricingLogicTab() {
                 Lógica de Pricing - Documentação Completa
               </CardTitle>
               <CardDescription className="mt-2">
-                Documentação completa da lógica de cálculo de preços da plataforma Legacy Governance
+                Documentação completa da lógica de cálculo de preços da Legacy OS
               </CardDescription>
             </div>
             <PricingLogicPDF />
@@ -29,7 +29,7 @@ export function PricingLogicTab() {
                 Visão Geral
               </h3>
               <p className="text-sm text-muted-foreground">
-                O sistema de pricing da Legacy Governance Platform utiliza um modelo dinâmico baseado em múltiplos fatores que refletem a complexidade real da estrutura de governança corporativa de cada empresa.
+                O sistema de pricing da Legacy OS utiliza um modelo dinâmico baseado em múltiplos fatores que refletem a complexidade real da estrutura de governança corporativa de cada empresa.
               </p>
             </div>
 

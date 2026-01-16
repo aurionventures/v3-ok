@@ -58,14 +58,43 @@ export default function ContractCheckout() {
   const planSlug = searchParams.get('plan') || 'profissional';
   const porteParam = searchParams.get('porte') || 'smb_plus';
   const addonsFromUrl = searchParams.get('addons')?.split(',').filter(Boolean) || [];
+  const calculatedPriceFromUrl = searchParams.get('calculatedPrice');
   
   // Estado
   const [currentStep, setCurrentStep] = useState<Step>('dados');
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // Recuperar preço calculado do localStorage se não vier na URL
+  const [calculatedPrice, setCalculatedPrice] = useState<number | undefined>(undefined);
+  
+  useEffect(() => {
+    // Se não veio na URL, tentar recuperar do localStorage
+    if (!calculatedPriceFromUrl) {
+      try {
+        const calculatorResult = localStorage.getItem('calculator_result');
+        if (calculatorResult) {
+          const data = JSON.parse(calculatorResult);
+          // O pricing já contém o preço mensal calculado
+          if (data.pricing?.mensal) {
+            setCalculatedPrice(data.pricing.mensal);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao recuperar preço calculado:', error);
+      }
+    } else {
+      // Se veio na URL, usar diretamente
+      const price = parseFloat(calculatedPriceFromUrl);
+      if (!isNaN(price)) {
+        setCalculatedPrice(price);
+      }
+    }
+  }, [calculatedPriceFromUrl]);
+  
   // Dados do plano
   const plan = PLANS.find((p) => p.id === planSlug) || PLANS[1];
-  const pricing = revealPricing(planSlug, porteParam);
+  // Usar preço calculado se disponível, caso contrário usar matriz estática
+  const pricing = revealPricing(planSlug, porteParam, calculatedPrice);
   const selectedAddons = ADDONS.filter((a) => addonsFromUrl.includes(a.id));
   
   // Formulário de dados
