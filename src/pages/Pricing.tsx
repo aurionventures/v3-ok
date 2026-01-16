@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -191,6 +191,22 @@ export default function Pricing() {
     numUsuarios: 0,
     maturidade: '',
   });
+
+  // Resetar inputs quando o modal abrir
+  useEffect(() => {
+    if (calculatorOpen && !calculatorResult) {
+      setCalculatorInputs({
+        faturamento: '',
+        numEmpresas: 0,
+        numConselhos: 0,
+        numComites: 0,
+        reunioesAno: 0,
+        numUsuarios: 0,
+        maturidade: '',
+      });
+      setSelectedAddons([]);
+    }
+  }, [calculatorOpen, calculatorResult]);
 
   // Estado para add-ons selecionados
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -763,15 +779,16 @@ export default function Pricing() {
                       type="number"
                       min={1}
                       max={50}
-                      placeholder="1"
+                      required
                       className="h-9"
                       value={calculatorInputs.numEmpresas || ''}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value;
                         setCalculatorInputs((prev) => ({
                           ...prev,
-                          numEmpresas: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                          numEmpresas: value === '' ? 0 : parseInt(value) || 0,
+                        }));
+                      }}
                     />
                   </div>
 
@@ -782,15 +799,15 @@ export default function Pricing() {
                       type="number"
                       min={0}
                       max={20}
-                      placeholder="0"
                       className="h-9"
                       value={calculatorInputs.numConselhos || ''}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value;
                         setCalculatorInputs((prev) => ({
                           ...prev,
-                          numConselhos: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                          numConselhos: value === '' ? 0 : parseInt(value) || 0,
+                        }));
+                      }}
                     />
                   </div>
 
@@ -801,15 +818,15 @@ export default function Pricing() {
                       type="number"
                       min={0}
                       max={50}
-                      placeholder="0"
                       className="h-9"
                       value={calculatorInputs.numComites || ''}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value;
                         setCalculatorInputs((prev) => ({
                           ...prev,
-                          numComites: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                          numComites: value === '' ? 0 : parseInt(value) || 0,
+                        }));
+                      }}
                     />
                   </div>
 
@@ -820,15 +837,15 @@ export default function Pricing() {
                       type="number"
                       min={0}
                       max={300}
-                      placeholder="12"
                       className="h-9"
                       value={calculatorInputs.reunioesAno || ''}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value;
                         setCalculatorInputs((prev) => ({
                           ...prev,
-                          reunioesAno: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                          reunioesAno: value === '' ? 0 : parseInt(value) || 0,
+                        }));
+                      }}
                     />
                   </div>
 
@@ -842,15 +859,15 @@ export default function Pricing() {
                       type="number"
                       min={1}
                       max={500}
-                      placeholder="40"
                       className="h-9"
                       value={calculatorInputs.numUsuarios || ''}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const value = e.target.value;
                         setCalculatorInputs((prev) => ({
                           ...prev,
-                          numUsuarios: parseInt(e.target.value) || 0,
-                        }))
-                      }
+                          numUsuarios: value === '' ? 0 : parseInt(value) || 0,
+                        }));
+                      }}
                     />
                   </div>
                 </div>
@@ -865,6 +882,19 @@ export default function Pricing() {
                   <Sparkles className="h-4 w-4 mr-2" />
                   Calcular Plano e Investimento
                 </Button>
+
+                {/* Instruções de preenchimento */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                    Como preencher:
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Campos marcados com <span className="text-destructive">*</span> são obrigatórios</li>
+                    <li>Preencha o número de empresas que você possui ou administra</li>
+                    <li>Informe a quantidade de conselhos, comitês e reuniões anuais (opcional)</li>
+                    <li>O número de usuários é apenas informativo - todos os planos incluem usuários ilimitados</li>
+                  </ul>
+                </div>
               </div>
             </>
           ) : (

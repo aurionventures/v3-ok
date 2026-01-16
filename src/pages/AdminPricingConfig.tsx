@@ -3,13 +3,14 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Save, RotateCcw, Building2, CreditCard, Grid3X3, Package, Puzzle, Calculator } from "lucide-react";
+import { Save, RotateCcw, Building2, CreditCard, Grid3X3, Package, Puzzle, Calculator, FileText } from "lucide-react";
 import { usePricingConfig } from "@/hooks/usePricingConfig";
 import { PortesPlanosTab } from "@/components/admin/pricing/PortesPlanosTab";
 import { MatrizPricingTab } from "@/components/admin/pricing/MatrizPricingTab";
 import { ModulosConfigTab } from "@/components/admin/pricing/ModulosConfigTab";
 import { AddonsConfigTab } from "@/components/admin/pricing/AddonsConfigTab";
 import { ComplexidadePesosTab } from "@/components/admin/pricing/ComplexidadePesosTab";
+import { PricingLogicTab } from "@/components/admin/pricing/PricingLogicTab";
 import { PLGSLGStrategyPDF } from "@/components/admin/pricing/PLGSLGStrategyPDF";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -65,7 +66,7 @@ export default function AdminPricingConfig() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+              <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
                 <TabsTrigger value="portes-planos" className="gap-2">
                   <Building2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Portes & Planos</span>
@@ -85,6 +86,10 @@ export default function AdminPricingConfig() {
                 <TabsTrigger value="addons" className="gap-2">
                   <Puzzle className="h-4 w-4" />
                   <span className="hidden sm:inline">Add-ons</span>
+                </TabsTrigger>
+                <TabsTrigger value="logica-pricing" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Lógica Pricing</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -106,6 +111,10 @@ export default function AdminPricingConfig() {
 
               <TabsContent value="addons" className="space-y-6">
                 <AddonsConfigTab />
+              </TabsContent>
+
+              <TabsContent value="logica-pricing" className="space-y-6">
+                <PricingLogicTab />
               </TabsContent>
             </Tabs>
           </div>

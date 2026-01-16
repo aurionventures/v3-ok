@@ -507,7 +507,7 @@ export function getComplexityLevel(score: number): {
 }
 
 // Valores mínimos por faturamento e estrutura informal (1 conselho, 12 reuniões, até 10 usuários)
-const MINIMUM_PRICES: Record<string, number> = {
+export const MINIMUM_PRICES: Record<string, number> = {
   'menos-50m': 3997,      // < R$ 50M + informal = R$ 3.997
   '50-300m': 5997,        // R$ 50M - R$ 300M + informal = R$ 5.997
   '300m-1b': 7997,        // R$ 300M - R$ 1B + informal = R$ 7.997
@@ -516,7 +516,7 @@ const MINIMUM_PRICES: Record<string, number> = {
 };
 
 // Multiplicadores para aumentos proporcionais
-const COMPLEXITY_MULTIPLIERS = {
+export const COMPLEXITY_MULTIPLIERS = {
   conselho: 0.15,         // Cada conselho adicional = +15% do valor base
   comite: 0.10,          // Cada comitê adicional = +10% do valor base
   reuniao: 0.001,        // Cada reunião adicional acima de 12 = +0.1% do valor base
