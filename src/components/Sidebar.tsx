@@ -523,7 +523,7 @@ const Sidebar = () => {
           onScroll={handleScroll}
           className="overflow-y-auto flex-1 py-4 px-2 scrollbar-thin"
         >
-          {isAdminRoute ? renderAdminMenu() : renderCompanyMenu()}
+          {isAdminRoute ? renderAdminMenu() : (isPartner && isPartnerRoute ? renderPartnerMenu() : renderCompanyMenu())}
         </div>
 
         {/* Footer - User Profile */}
@@ -535,7 +535,7 @@ const Sidebar = () => {
                   {user?.name || 'Usuário'}
                 </p>
                 <p className="text-xs text-sidebar-foreground/70">
-                  {isAdminRoute ? 'Admin Master' : 'Cliente'}
+                  {isAdminRoute ? 'Admin Master' : (isPartner ? 'Parceiro' : 'Cliente')}
                 </p>
               </div>
               <div className="flex items-center gap-1">
