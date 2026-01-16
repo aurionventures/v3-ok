@@ -130,9 +130,10 @@ export default function ContractCheckout() {
   });
   
   // Configuração do contrato (com valores da URL se disponíveis)
+  // Ciclo de pagamento fixo como mensal para previsibilidade de caixa
   const [contractConfig, setContractConfig] = useState({
     term: (termFromUrl ? Number(termFromUrl) : 12) as 12 | 24 | 36,
-    paymentCycle: (cycleFromUrl || 'monthly') as 'monthly' | 'quarterly' | 'semi_annual' | 'annual',
+    paymentCycle: 'monthly' as const, // Sempre mensal
     billingType: (billingFromUrl || 'BOLETO') as BillingType,
   });
   
@@ -142,35 +143,64 @@ export default function ContractCheckout() {
   
   // Calcular valores
   const termDiscount = CONTRACT_TERM_OPTIONS.find(t => t.value === contractConfig.term)?.discount || 0;
-  const cycleDiscount = PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.discount || 0;
+  // Removido cycleDiscount - sempre mensal, sem desconto por ciclo
   const pixDiscount = contractConfig.billingType === 'PIX' ? 5 : 0; // 5% de desconto para PIX
-  const totalDiscount = termDiscount + cycleDiscount + pixDiscount;
+  const totalDiscount = termDiscount + pixDiscount;
   
   const baseMonthly = pricing.mensal || 0;
   const addonsMonthly = selectedAddons.reduce((sum, a) => sum + a.precoMensal, 0);
   const totalMonthly = baseMonthly + addonsMonthly;
   const discountedMonthly = totalMonthly * (1 - totalDiscount / 100);
   
-  const cycleMonths = {
-    monthly: 1,
-    quarterly: 3,
-    semi_annual: 6,
-    annual: 12,
-  };
-  
-  const paymentValue = discountedMonthly * cycleMonths[contractConfig.paymentCycle];
+  // Sempre mensal (1 mês)
+  const paymentValue = discountedMonthly;
   const totalContractValue = discountedMonthly * contractConfig.term;
   const setupFee = pricing.setup || 0;
   const firstPayment = setupFee + paymentValue;
   
+  // Estado para rastrear campos preenchidos automaticamente
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+
   // Handlers para auto-preenchimento
   const handleCNPJLoaded = (company: CompanyData) => {
+    const filledFields = new Set<string>();
+    
+    // Preencher dados da empresa
+    if (company.razaoSocial) {
+      filledFields.add('companyName');
+    }
+    if (company.nomeFantasia) {
+      filledFields.add('tradingName');
+    }
+
+    // Preencher endereço se disponível
+    if (company.endereco?.logradouro) {
+      filledFields.add('street');
+    }
+    if (company.endereco?.numero) {
+      filledFields.add('number');
+    }
+    if (company.endereco?.complemento) {
+      filledFields.add('complement');
+    }
+    if (company.endereco?.bairro) {
+      filledFields.add('neighborhood');
+    }
+    if (company.endereco?.cidade) {
+      filledFields.add('city');
+    }
+    if (company.endereco?.uf) {
+      filledFields.add('state');
+    }
+    if (company.endereco?.cep) {
+      filledFields.add('zip');
+    }
+    
     setFormData(prev => ({
       ...prev,
+      cnpj: company.cnpj || prev.cnpj,
       companyName: company.razaoSocial || prev.companyName,
       tradingName: company.nomeFantasia || prev.tradingName,
-      cnpj: company.cnpj,
-      // Preencher endereço se disponível
       street: company.endereco?.logradouro || prev.street,
       number: company.endereco?.numero || prev.number,
       complement: company.endereco?.complemento || prev.complement,
@@ -179,20 +209,49 @@ export default function ContractCheckout() {
       state: company.endereco?.uf || prev.state,
       zip: company.endereco?.cep || prev.zip,
     }));
-    toast.success('Dados da empresa carregados automaticamente');
+
+    setAutoFilledFields(filledFields);
+    toast.success('Dados da empresa carregados automaticamente! Você pode revisar e editar se necessário.');
   };
 
   const handleCEPLoaded = (address: AddressData) => {
-    setFormData(prev => ({
-      ...prev,
-      street: address.street || prev.street,
-      complement: address.complement || prev.complement,
-      neighborhood: address.neighborhood || prev.neighborhood,
-      city: address.city || prev.city,
-      state: address.state || prev.state,
-      zip: address.cep,
-    }));
-    toast.success('Endereço preenchido automaticamente');
+    const filledFields = new Set<string>();
+    
+    setFormData(prev => {
+      const updated = { ...prev, zip: address.cep };
+      
+      if (address.street) {
+        updated.street = address.street;
+        filledFields.add('street');
+      }
+      if (address.complement) {
+        updated.complement = address.complement;
+        filledFields.add('complement');
+      }
+      if (address.neighborhood) {
+        updated.neighborhood = address.neighborhood;
+        filledFields.add('neighborhood');
+      }
+      if (address.city) {
+        updated.city = address.city;
+        filledFields.add('city');
+      }
+      if (address.state) {
+        updated.state = address.state;
+        filledFields.add('state');
+      }
+      
+      return updated;
+    });
+
+    // Adicionar campos preenchidos pelo CEP ao set existente
+    setAutoFilledFields(prev => {
+      const newSet = new Set(prev);
+      filledFields.forEach(field => newSet.add(field));
+      return newSet;
+    });
+    
+    toast.success('Endereço preenchido automaticamente! Você pode revisar e editar se necessário.');
   };
 
   // Validações melhoradas
@@ -246,53 +305,14 @@ export default function ContractCheckout() {
     setIsProcessing(true);
     
     try {
-      // 1. Salvar cliente no Supabase (tabela users)
-      let userId: string;
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', formData.contactEmail)
-        .single();
-
-      if (existingUser) {
-        userId = existingUser.id;
-        // Atualizar dados do usuário existente
-        await supabase
-          .from('users')
-          .update({
-            name: formData.contactName,
-            company: formData.companyName,
-            phone: formData.contactPhone,
-          })
-          .eq('id', userId);
-      } else {
-        // Criar novo usuário
-        const { data: newUser, error: userError } = await supabase
-          .from('users')
-          .insert({
-            name: formData.contactName,
-            email: formData.contactEmail,
-            company: formData.companyName,
-            phone: formData.contactPhone,
-          })
-          .select()
-          .single();
-
-        if (userError) throw userError;
-        userId = newUser.id;
-
-        // Inserir role de cliente
-        await supabase
-          .from('user_roles')
-          .insert({
-            user_id: userId,
-            role: 'cliente'
-          });
-      }
+      // 1. Gerar ID temporário para o cliente (será criado quando se cadastrar)
+      // Não criamos usuário na tabela users aqui devido às políticas RLS
+      // O usuário será criado quando se cadastrar ou quando o contrato for processado
+      const tempUserId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       // 2. Processar checkout (localStorage - manter para compatibilidade)
       const clientData: ClientBilling = {
-        id: userId,
+        id: tempUserId,
         company_name: formData.companyName,
         trading_name: formData.tradingName || undefined,
         cnpj: formData.cnpj,
@@ -356,6 +376,11 @@ export default function ContractCheckout() {
         .replace(/\{\{valor_mensal\}\}/g, discountedMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
         .replace(/\{\{duracao_meses\}\}/g, contractConfig.term.toString());
 
+      // Gerar token de assinatura para o cliente
+      const signatureToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
+      const tokenExpiresAt = new Date();
+      tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 7); // 7 dias de validade
+
       // Create contract in localStorage
       const newContract = {
         id: crypto.randomUUID(),
@@ -367,6 +392,7 @@ export default function ContractCheckout() {
         client_phone: formData.contactPhone,
         client_address: `${formData.street}, ${formData.number}${formData.complement ? ` - ${formData.complement}` : ''}, ${formData.neighborhood} - ${formData.city}/${formData.state} - CEP: ${formData.zip}`,
         signatory_name: formData.contactName,
+        signatory_cpf: '', // CPF será coletado na página de assinatura
         signatory_role: formData.contactRole || 'Representante Legal',
         signatory_email: formData.contactEmail,
         plan_type: plan.id,
@@ -379,6 +405,8 @@ export default function ContractCheckout() {
         duration_months: contractConfig.term,
         content_html: contractContent,
         status: 'pending_signature',
+        client_signature_token: signatureToken,
+        client_signature_token_expires_at: tokenExpiresAt.toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -406,6 +434,7 @@ export default function ContractCheckout() {
         firstPayment,
         contractId: newContract.id,
         contractNumber: newContract.contract_number,
+        signatureToken: signatureToken, // Token para assinatura
       }));
       
       toast.success(`Cliente "${formData.companyName}" cadastrado com sucesso!`);
@@ -501,43 +530,117 @@ export default function ContractCheckout() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* CNPJ como primeiro campo - Destaque especial */}
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-primary to-primary/90 rounded-lg border-2 border-primary shadow-lg shadow-primary/20 flex-shrink-0 mt-6">
+                        <Sparkles className="h-5 w-5 text-white animate-pulse" />
+                        <span className="text-sm font-semibold text-white whitespace-nowrap">Comece digitando o CNPJ</span>
+                      </div>
+                      <div className="flex-1">
+                        <InputCNPJ
+                          id="cnpj"
+                          label="CNPJ *"
+                          value={formData.cnpj}
+                          onChange={(value, companyData) => {
+                            setFormData({...formData, cnpj: value});
+                            // Limpar campos auto-preenchidos se CNPJ mudar ou for incompleto
+                            if (!value || value.length < 18) {
+                              setAutoFilledFields(new Set());
+                              // Limpar campos se CNPJ for removido ou alterado
+                              if (!value || value.length < 18) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  companyName: '',
+                                  tradingName: '',
+                                  street: '',
+                                  number: '',
+                                  complement: '',
+                                  neighborhood: '',
+                                  city: '',
+                                  state: '',
+                                  zip: '',
+                                }));
+                              }
+                            }
+                            // Se companyData foi passado, preencher automaticamente
+                            if (companyData) {
+                              handleCNPJLoaded(companyData);
+                            }
+                          }}
+                          onCompanyLoaded={handleCNPJLoaded}
+                          autoFetch={true}
+                          showSearchButton={true}
+                          showCompanyPreview={true}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Dados da Empresa - Grid mais compacto */}
                   <div className="space-y-3">
                     <h4 className="font-medium text-xs text-muted-foreground uppercase tracking-wide">EMPRESA</h4>
                     <div className="grid sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <Label htmlFor="companyName" className="text-xs">Razão Social *</Label>
+                        <Label htmlFor="companyName" className="text-xs flex items-center gap-1.5">
+                          Razão Social *
+                          {autoFilledFields.has('companyName') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="companyName"
                           value={formData.companyName}
-                          onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                          placeholder="Empresa Exemplo Ltda"
-                          className="h-9 text-sm"
+                          onChange={(e) => {
+                            setFormData({...formData, companyName: e.target.value});
+                            // Remover do set de auto-preenchidos se editado manualmente
+                            if (autoFilledFields.has('companyName')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('companyName');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('companyName') ? '' : 'Digite a razão social'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('companyName') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="tradingName" className="text-xs">Nome Fantasia</Label>
+                        <Label htmlFor="tradingName" className="text-xs flex items-center gap-1.5">
+                          Nome Fantasia
+                          {autoFilledFields.has('tradingName') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="tradingName"
                           value={formData.tradingName}
-                          onChange={(e) => setFormData({...formData, tradingName: e.target.value})}
-                          placeholder="Nome Fantasia"
-                          className="h-9 text-sm"
+                          onChange={(e) => {
+                            setFormData({...formData, tradingName: e.target.value});
+                            if (autoFilledFields.has('tradingName')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('tradingName');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('tradingName') ? '' : 'Digite o nome fantasia'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('tradingName') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <InputCNPJ
-                        id="cnpj"
-                        label="CNPJ"
-                        value={formData.cnpj}
-                        onChange={(value) => setFormData({...formData, cnpj: value})}
-                        onCompanyLoaded={handleCNPJLoaded}
-                        autoFetch={true}
-                        showSearchButton={true}
-                        showCompanyPreview={true}
-                        required
-                      />
                       <div className="space-y-1.5">
                         <Label htmlFor="stateRegistration" className="text-xs">Inscrição Estadual</Label>
                         <Input 
@@ -561,87 +664,214 @@ export default function ContractCheckout() {
                     </h4>
                     <div className="grid sm:grid-cols-3 gap-3">
                       <div className="sm:col-span-2 space-y-1.5">
-                        <Label htmlFor="street" className="text-xs">Logradouro *</Label>
+                        <Label htmlFor="street" className="text-xs flex items-center gap-1.5">
+                          Logradouro *
+                          {autoFilledFields.has('street') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="street"
                           value={formData.street}
-                          onChange={(e) => setFormData({...formData, street: e.target.value})}
-                          placeholder="Av. Paulista"
-                          className={`h-9 text-sm ${formData.street && formData.street.length >= 3 ? 'bg-muted/50' : ''}`}
+                          onChange={(e) => {
+                            setFormData({...formData, street: e.target.value});
+                            if (autoFilledFields.has('street')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('street');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('street') ? '' : 'Digite o logradouro'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('street') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="number" className="text-xs">Número *</Label>
+                        <Label htmlFor="number" className="text-xs flex items-center gap-1.5">
+                          Número *
+                          {autoFilledFields.has('number') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="number"
                           value={formData.number}
-                          onChange={(e) => setFormData({...formData, number: e.target.value})}
-                          placeholder="1000"
-                          className="h-9 text-sm"
+                          onChange={(e) => {
+                            setFormData({...formData, number: e.target.value});
+                            if (autoFilledFields.has('number')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('number');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('number') ? '' : 'Digite o número'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('number') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-4 gap-3">
                       <div className="space-y-1.5">
-                        <Label htmlFor="complement" className="text-xs">Complemento</Label>
+                        <Label htmlFor="complement" className="text-xs flex items-center gap-1.5">
+                          Complemento
+                          {autoFilledFields.has('complement') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="complement"
                           value={formData.complement}
-                          onChange={(e) => setFormData({...formData, complement: e.target.value})}
-                          placeholder="Sala 101"
-                          className={`h-9 text-sm ${formData.complement ? 'bg-muted/50' : ''}`}
+                          onChange={(e) => {
+                            setFormData({...formData, complement: e.target.value});
+                            if (autoFilledFields.has('complement')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('complement');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('complement') ? '' : 'Digite o complemento'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('complement') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="neighborhood" className="text-xs">Bairro *</Label>
+                        <Label htmlFor="neighborhood" className="text-xs flex items-center gap-1.5">
+                          Bairro *
+                          {autoFilledFields.has('neighborhood') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="neighborhood"
                           value={formData.neighborhood}
-                          onChange={(e) => setFormData({...formData, neighborhood: e.target.value})}
-                          placeholder="Bela Vista"
-                          className={`h-9 text-sm ${formData.neighborhood && formData.neighborhood.length >= 2 ? 'bg-muted/50' : ''}`}
+                          onChange={(e) => {
+                            setFormData({...formData, neighborhood: e.target.value});
+                            if (autoFilledFields.has('neighborhood')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('neighborhood');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('neighborhood') ? '' : 'Digite o bairro'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('neighborhood') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="city" className="text-xs">Cidade *</Label>
+                        <Label htmlFor="city" className="text-xs flex items-center gap-1.5">
+                          Cidade *
+                          {autoFilledFields.has('city') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="city"
                           value={formData.city}
-                          onChange={(e) => setFormData({...formData, city: e.target.value})}
-                          placeholder="São Paulo"
-                          className={`h-9 text-sm ${formData.city && formData.city.length >= 2 ? 'bg-muted/50' : ''}`}
-                          readOnly={formData.city.length > 0}
+                          onChange={(e) => {
+                            setFormData({...formData, city: e.target.value});
+                            if (autoFilledFields.has('city')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('city');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('city') ? '' : 'Digite a cidade'}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('city') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="state" className="text-xs">UF *</Label>
+                        <Label htmlFor="state" className="text-xs flex items-center gap-1.5">
+                          UF *
+                          {autoFilledFields.has('state') && (
+                            <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                              Preenchido
+                            </Badge>
+                          )}
+                        </Label>
                         <Input 
                           id="state"
                           value={formData.state}
-                          onChange={(e) => setFormData({...formData, state: e.target.value.toUpperCase()})}
-                          placeholder="SP"
+                          onChange={(e) => {
+                            setFormData({...formData, state: e.target.value.toUpperCase()});
+                            if (autoFilledFields.has('state')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('state');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          placeholder={autoFilledFields.has('state') ? '' : 'SP'}
                           maxLength={2}
-                          className={`h-9 text-sm ${formData.state && formData.state.length === 2 ? 'bg-muted/50' : ''}`}
-                          readOnly={formData.state.length > 0}
+                          className={`h-9 text-sm transition-all ${
+                            autoFilledFields.has('state') 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                              : ''
+                          }`}
                         />
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-3 gap-3">
-                      <InputCEP
-                        id="zip"
-                        label="CEP"
-                        value={formData.zip}
-                        onChange={(value, address) => {
-                          setFormData({...formData, zip: value});
-                          if (address) {
-                            handleCEPLoaded(address);
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Label htmlFor="zip" className="flex items-center gap-1.5">
+                            CEP *
+                            {autoFilledFields.has('zip') && (
+                              <Badge variant="outline" className="h-4 px-1.5 text-[10px] border-green-500 text-green-600">
+                                Preenchido
+                              </Badge>
+                            )}
+                          </Label>
+                        </div>
+                        <InputCEP
+                          id="zip"
+                          label=""
+                          value={formData.zip}
+                          onChange={(value, address) => {
+                            setFormData({...formData, zip: value});
+                            if (address) {
+                              handleCEPLoaded(address);
+                            }
+                            if (autoFilledFields.has('zip')) {
+                              const newSet = new Set(autoFilledFields);
+                              newSet.delete('zip');
+                              setAutoFilledFields(newSet);
+                            }
+                          }}
+                          onAddressLoaded={handleCEPLoaded}
+                          autoFetch={true}
+                          showSearchButton={true}
+                          required
+                          inputClassName={autoFilledFields.has('zip') 
+                            ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-800' 
+                            : ''
                           }
-                        }}
-                        onAddressLoaded={handleCEPLoaded}
-                        autoFetch={true}
-                        showSearchButton={true}
-                        required
-                      />
+                        />
+                      </div>
                     </div>
                   </div>
                   
@@ -713,6 +943,10 @@ export default function ContractCheckout() {
                             Email deve ser corporativo
                           </p>
                         )}
+                        <p className="text-xs text-amber-600 dark:text-amber-500 flex items-center gap-1.5 mt-1">
+                          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span>E-mail precisa ser válido para receber o contrato</span>
+                        </p>
                       </div>
                       <InputPhone
                         id="contactPhone"
@@ -803,36 +1037,23 @@ export default function ContractCheckout() {
                   
                   <Separator className="my-3" />
                   
-                  {/* Ciclo de Pagamento */}
+                  {/* Ciclo de Pagamento - Fixo como Mensal */}
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Ciclo de Pagamento</Label>
-                    <RadioGroup 
-                      value={contractConfig.paymentCycle} 
-                      onValueChange={(v) => setContractConfig({...contractConfig, paymentCycle: v as any})}
-                      className="grid grid-cols-2 gap-3"
-                    >
-                      {PAYMENT_CYCLE_OPTIONS.map(option => (
-                        <div key={option.value}>
-                          <RadioGroupItem value={option.value} id={`cycle-${option.value}`} className="peer sr-only" />
-                          <Label 
-                            htmlFor={`cycle-${option.value}`}
-                            className="flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 transition-colors"
-                          >
-                            <div>
-                              <span className="font-medium text-sm">{option.label}</span>
-                              <p className="text-xs text-muted-foreground">
-                                {cycleMonths[option.value]} {cycleMonths[option.value] === 1 ? 'fatura' : 'faturas'}/ano
-                              </p>
-                            </div>
-                            {option.discount && option.discount > 0 && (
-                              <Badge variant="secondary" className="text-xs text-green-600 px-1.5 py-0">
-                                -{option.discount}%
-                              </Badge>
-                            )}
-                          </Label>
+                    <div className="p-3 border rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">Mensal</p>
+                          <p className="text-xs text-muted-foreground">1 fatura por mês</p>
                         </div>
-                      ))}
-                    </RadioGroup>
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Padrão
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                        Pagamento mensal garante previsibilidade de caixa
+                      </p>
+                    </div>
                   </div>
                   
                   <Separator className="my-3" />
@@ -881,11 +1102,6 @@ export default function ContractCheckout() {
                       <div className="space-y-1 text-xs text-green-600 dark:text-green-400">
                         {termDiscount > 0 && (
                           <p>• {termDiscount}% por contrato de {contractConfig.term} meses</p>
-                        )}
-                        {cycleDiscount > 0 && (
-                          <p>• {cycleDiscount}% por pagamento {
-                            PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label.toLowerCase()
-                          }</p>
                         )}
                         {pixDiscount > 0 && (
                           <p>• {pixDiscount}% por pagamento via PIX</p>
@@ -971,8 +1187,22 @@ export default function ContractCheckout() {
                       <ArrowLeft className="h-4 w-4 mr-2" />
                       Voltar ao Site
                     </Button>
-                    <Button onClick={() => navigate('/admin/contratos')}>
-                      Ver Meu Contrato
+                    <Button onClick={() => {
+                      // Buscar token do contrato do localStorage
+                      const checkoutResult = localStorage.getItem('checkout_result');
+                      if (checkoutResult) {
+                        const result = JSON.parse(checkoutResult);
+                        if (result.signatureToken) {
+                          // Redirecionar para página de assinatura com o token
+                          navigate(`/contract/sign/${result.signatureToken}`);
+                        } else {
+                          toast.error('Token de assinatura não encontrado');
+                        }
+                      } else {
+                        toast.error('Dados do checkout não encontrados');
+                      }
+                    }}>
+                      Ver e Assinar Contrato
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>
@@ -1059,7 +1289,7 @@ export default function ContractCheckout() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Ciclo</span>
-                    <span className="font-medium">{PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label}</span>
+                    <span className="font-medium">Mensal</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Setup</span>
@@ -1080,9 +1310,7 @@ export default function ContractCheckout() {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm font-semibold">1ª Cobrança</p>
-                      <p className="text-xs text-muted-foreground">Setup + {
-                        PAYMENT_CYCLE_OPTIONS.find(c => c.value === contractConfig.paymentCycle)?.label
-                      }</p>
+                      <p className="text-xs text-muted-foreground">Setup + Mensal</p>
                     </div>
                     <span className="text-lg font-bold text-primary">
                       {formatCurrency(firstPayment)}

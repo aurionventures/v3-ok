@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   FileText, CheckCircle, AlertCircle, Clock, Download,
-  Shield, Lock, Pen, Building2, Calendar, DollarSign
+  Shield, Lock, Pen, Building2, Calendar, DollarSign, User
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -31,6 +31,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ContractPDF, ContractData } from "@/components/contracts/ContractPDF";
+import { CreatePasswordModal } from "@/components/modals/CreatePasswordModal";
+import { formatCPF, isValidCPF, onlyNumbers } from "@/utils/masks";
 
 interface Contract {
   id: string;
@@ -39,6 +41,7 @@ interface Contract {
   client_document: string;
   client_email: string;
   signatory_name: string;
+  signatory_cpf?: string; // CPF do signatário
   signatory_role: string;
   plan_name: string;
   plan_type: string;
@@ -65,11 +68,13 @@ export default function ContractSign() {
   
   // Form de assinatura
   const [signatoryNameConfirm, setSignatoryNameConfirm] = useState("");
+  const [signatoryCpfConfirm, setSignatoryCpfConfirm] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptLgpd, setAcceptLgpd] = useState(false);
   
-  // Modal de sucesso
+  // Modal de sucesso e criação de senha
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -125,6 +130,25 @@ export default function ContractSign() {
       return;
     }
 
+    // Validar CPF se fornecido no contrato
+    if (contract.signatory_cpf) {
+      const cleanCpfConfirm = onlyNumbers(signatoryCpfConfirm);
+      const cleanCpfContract = onlyNumbers(contract.signatory_cpf);
+      
+      if (cleanCpfConfirm !== cleanCpfContract) {
+        toast.error("O CPF digitado não confere com o CPF do signatário");
+        return;
+      }
+
+      if (!isValidCPF(signatoryCpfConfirm)) {
+        toast.error("CPF inválido");
+        return;
+      }
+    } else if (signatoryCpfConfirm && !isValidCPF(signatoryCpfConfirm)) {
+      toast.error("CPF inválido");
+      return;
+    }
+
     if (!acceptTerms || !acceptLgpd) {
       toast.error("Você precisa aceitar os termos para assinar o contrato");
       return;
@@ -133,8 +157,10 @@ export default function ContractSign() {
     setIsSigning(true);
 
     try {
-      // Gerar hash da assinatura
-      const signatureData = `${contract.signatory_name}|${new Date().toISOString()}|${window.location.hostname}`;
+      // Gerar hash da assinatura (incluindo CPF se disponível)
+      const cpfToUse = signatoryCpfConfirm || contract.signatory_cpf || '';
+      const cpfPart = cpfToUse ? `|${onlyNumbers(cpfToUse)}` : '';
+      const signatureData = `${contract.signatory_name}${cpfPart}|${new Date().toISOString()}|${window.location.hostname}`;
       const signatureHash = await generateHash(signatureData);
 
       // NOTE: contracts table doesn't exist yet, updating localStorage
@@ -150,6 +176,7 @@ export default function ContractSign() {
               client_signature_ip: clientIP,
               client_signature_user_agent: navigator.userAgent,
               client_signature_hash: signatureHash,
+              signatory_cpf_confirmed: signatoryCpfConfirm || contract.signatory_cpf || null,
             }
           : c
       );
@@ -162,7 +189,8 @@ export default function ContractSign() {
         actor_email: contract.client_email,
       });
 
-      setShowSuccessModal(true);
+      // Mostrar modal de criação de senha (fluxo PLG automatizado)
+      setShowPasswordModal(true);
     } catch (error) {
       console.error("Error signing contract:", error);
       toast.error("Erro ao assinar contrato. Tente novamente.");
@@ -394,7 +422,8 @@ export default function ContractSign() {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signatory_name">
+                  <Label htmlFor="signatory_name" className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
                     Digite seu nome completo para confirmar a assinatura
                   </Label>
                   <Input
@@ -407,6 +436,41 @@ export default function ContractSign() {
                   <p className="text-xs text-muted-foreground">
                     Digite exatamente: <strong>{contract.signatory_name}</strong>
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signatory_cpf" className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    CPF do Assinante {contract.signatory_cpf ? '*' : ''}
+                  </Label>
+                  <Input
+                    id="signatory_cpf"
+                    placeholder={contract.signatory_cpf ? formatCPF(contract.signatory_cpf) : "000.000.000-00"}
+                    value={signatoryCpfConfirm}
+                    onChange={(e) => {
+                      const formatted = formatCPF(e.target.value);
+                      setSignatoryCpfConfirm(formatted);
+                    }}
+                    maxLength={14}
+                    className="text-lg"
+                  />
+                  {contract.signatory_cpf && (
+                    <p className="text-xs text-muted-foreground">
+                      Digite exatamente: <strong>{formatCPF(contract.signatory_cpf)}</strong>
+                    </p>
+                  )}
+                  {signatoryCpfConfirm && !isValidCPF(signatoryCpfConfirm) && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      CPF inválido
+                    </p>
+                  )}
+                  {signatoryCpfConfirm && isValidCPF(signatoryCpfConfirm) && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      CPF válido
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -453,7 +517,13 @@ export default function ContractSign() {
             <Button
               size="lg"
               onClick={handleSign}
-              disabled={isSigning || !acceptTerms || !acceptLgpd || !signatoryNameConfirm}
+              disabled={
+                isSigning || 
+                !acceptTerms || 
+                !acceptLgpd || 
+                !signatoryNameConfirm ||
+                (contract.signatory_cpf && (!signatoryCpfConfirm || !isValidCPF(signatoryCpfConfirm)))
+              }
               className="gap-2"
             >
               {isSigning ? (
@@ -481,8 +551,23 @@ export default function ContractSign() {
         </div>
       </div>
 
-      {/* Modal de Sucesso */}
-      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+      {/* Modal de Criação de Senha (fluxo PLG automatizado) */}
+      {contract && (
+        <CreatePasswordModal
+          open={showPasswordModal}
+          email={contract.client_email}
+          name={contract.signatory_name}
+          companyName={contract.client_name}
+          contractId={contract.id}
+          onSuccess={() => {
+            // Modal será fechado automaticamente após redirecionamento
+            setShowPasswordModal(false);
+          }}
+        />
+      )}
+
+      {/* Modal de Sucesso (apenas se não foi redirecionado) */}
+      <Dialog open={showSuccessModal && !showPasswordModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="text-center">
           <DialogHeader>
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -519,6 +604,7 @@ function getMockContract(): Contract {
     client_document: "12.345.678/0001-90",
     client_email: "contato@empresaabc.com.br",
     signatory_name: "João Silva",
+    signatory_cpf: "123.456.789-00",
     signatory_role: "Diretor de Governança",
     plan_name: "Profissional",
     plan_type: "governance_plus",

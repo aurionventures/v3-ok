@@ -48,12 +48,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
-      // Buscar usuário mocado
-      const mockUser = mockUsers.find(u => 
+      // Buscar usuário primeiro nos mockUsers estáticos
+      let mockUser = mockUsers.find(u => 
         u.email === credentials.email && 
         u.password === credentials.password &&
         u.role === credentials.role
       );
+
+      // Se não encontrou, buscar no localStorage (usuários criados dinamicamente)
+      if (!mockUser) {
+        try {
+          const storedMockUsers = JSON.parse(localStorage.getItem('storedMockUsers') || '[]');
+          const storedUser = storedMockUsers.find((u: any) => 
+            u.email === credentials.email && 
+            u.password === credentials.password &&
+            u.role === credentials.role
+          );
+
+          if (storedUser) {
+            mockUser = {
+              id: storedUser.id,
+              email: storedUser.email,
+              password: storedUser.password,
+              name: storedUser.name,
+              role: storedUser.role,
+              company: storedUser.company,
+            };
+          }
+        } catch (error) {
+          console.warn('Erro ao buscar usuários do localStorage:', error);
+        }
+      }
 
       if (!mockUser) {
         toast({
