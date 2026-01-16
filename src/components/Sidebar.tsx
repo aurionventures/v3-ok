@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Handshake,
   DollarSign,
+  Link as LinkIcon,
   Award,
   Target,
   Zap,
@@ -158,6 +159,8 @@ const Sidebar = () => {
   const scrollPositionRef = useRef<number>(0);
   
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPartnerRoute = pathname.startsWith("/afiliado") || pathname.startsWith("/banca");
+  const isPartner = user?.role === 'parceiro';
   
   // Verificar quais add-ons o cliente tem ativados
   const getEnabledAddons = () => {
@@ -215,6 +218,44 @@ const Sidebar = () => {
     setSelectedAddon({ key, label });
     setUpgradeModalOpen(true);
   };
+
+  // Render partner menu
+  const renderPartnerMenu = () => (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        {PARTNER_MENU_ITEMS.map(item => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          
+          return (
+            <TooltipProvider key={item.href} delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link 
+                    to={item.href} 
+                    className={cn(
+                      "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
+                      isActive
+                        ? "bg-[#C0A062] text-white" 
+                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {open && <span>{item.name}</span>}
+                  </Link>
+                </TooltipTrigger>
+                {!open && (
+                  <TooltipContent side="right">
+                    <p>{item.name}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   // Render admin menu with sections
   const renderAdminMenu = () => (

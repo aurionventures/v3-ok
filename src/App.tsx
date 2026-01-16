@@ -67,6 +67,7 @@ const GeneratePartnerToken = lazy(() => import("./pages/GeneratePartnerToken"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
 
 // Governance Structure
 const ShareholderStructure = lazy(() => import("./pages/ShareholderStructure"));
@@ -771,6 +772,14 @@ const App = () => (
           />
           
           {/* Parceiro Routes */}
+          <Route 
+            path="/afiliado" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateDashboard /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/banca" 
             element={
