@@ -713,7 +713,7 @@ const AdminPartners = () => {
 
       {/* Wizard Dialog */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Novo Parceiro</DialogTitle>
             <DialogDescription>
@@ -746,8 +746,8 @@ const AdminPartners = () => {
 
           {/* Step 1: Parceiro + Admin */}
           {currentStep === 1 && (
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6 py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Dados do Parceiro */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
@@ -756,12 +756,12 @@ const AdminPartners = () => {
                   </div>
 
                   {/* CNPJ como campo principal com banner destacado */}
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary to-primary/90 rounded-lg border-2 border-primary shadow-sm flex-shrink-0 mt-6">
-                      <Building2 className="h-4 w-4 text-white" />
-                      <span className="text-xs font-semibold text-white whitespace-nowrap">Comece digitando o CNPJ</span>
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary to-primary/90 rounded-lg border-2 border-primary shadow-sm">
+                      <Building2 className="h-5 w-5 text-white flex-shrink-0" />
+                      <span className="text-sm font-semibold text-white">Comece digitando o CNPJ</span>
                     </div>
-                    <div className="flex-1 space-y-2">
+                    <div className="space-y-2">
                       <InputCNPJ
                         id="cnpj"
                         label="CNPJ *"
@@ -873,7 +873,7 @@ const AdminPartners = () => {
 
           {/* Step 2: Comissões */}
           {currentStep === 2 && (
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-6">
               <div className="flex items-center gap-2 mb-4">
                 <Percent className="h-5 w-5 text-primary" />
                 <h3 className="font-semibold">Configuração de Comissões</h3>
@@ -980,7 +980,7 @@ const AdminPartners = () => {
 
           {/* Step 3: Ativar Parceiro */}
           {currentStep === 3 && (
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-6">
               <div className="flex items-center gap-2 mb-4">
                 <CheckCircle className="h-5 w-5 text-emerald-500" />
                 <h3 className="font-semibold">Resumo e Ativação</h3>
@@ -1100,7 +1100,8 @@ const AdminPartners = () => {
                 <Button
                   onClick={() => setCurrentStep(currentStep + 1)}
                   disabled={!canAdvance()}
-                  className="gap-2"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-white min-w-[120px]"
+                  size="lg"
                 >
                   Próximo
                   <ChevronRight className="h-4 w-4" />
