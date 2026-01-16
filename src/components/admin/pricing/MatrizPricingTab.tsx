@@ -147,7 +147,7 @@ export function MatrizPricingTab() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="text-muted-foreground">Piso Mensal</div>
-              <div className="font-semibold text-lg">R$ 2.997</div>
+              <div className="font-semibold text-lg">R$ 3.997</div>
             </div>
             <div>
               <div className="text-muted-foreground">Teto Mensal</div>
@@ -155,7 +155,7 @@ export function MatrizPricingTab() {
             </div>
             <div>
               <div className="text-muted-foreground">Setup Mínimo</div>
-              <div className="font-semibold text-lg text-green-600">R$ 2.997</div>
+              <div className="font-semibold text-lg text-green-600">R$ 3.997</div>
             </div>
             <div>
               <div className="text-muted-foreground">Setup Máximo</div>
@@ -207,10 +207,10 @@ export function MatrizPricingTab() {
                     type="number" 
                     value={editingPricing.monthly_price} 
                     onChange={(e) => handleMonthlyPriceChange(Number(e.target.value))} 
-                    placeholder="2997"
+                    placeholder="3997"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Mínimo: R$ 2.997/mês
+                    Mínimo: R$ 3.997/mês
                   </p>
                 </div>
 
@@ -251,7 +251,7 @@ export function MatrizPricingTab() {
                     type="number" 
                     value={editingPricing.setup_fee || 0} 
                     onChange={(e) => setEditingPricing({ ...editingPricing, setup_fee: Number(e.target.value) })} 
-                    placeholder={isSMB ? "5994" : "2997"}
+                    placeholder={isSMB ? "7994" : "3997"}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isSMB ? (

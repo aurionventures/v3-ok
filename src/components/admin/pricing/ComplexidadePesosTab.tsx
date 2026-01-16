@@ -364,7 +364,7 @@ export function ComplexidadePesosTab() {
                   <TableCell className="font-medium">≤ 10</TableCell>
                   <TableCell><Badge className="bg-green-600">Baixa</Badge></TableCell>
                   <TableCell className="font-semibold">Essencial</TableCell>
-                  <TableCell className="text-center">R$ 2.997,00/mês</TableCell>
+                  <TableCell className="text-center">R$ 3.997,00/mês</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">11 - 20</TableCell>
@@ -382,7 +382,7 @@ export function ComplexidadePesosTab() {
                   <TableCell className="font-medium">&gt; 40</TableCell>
                   <TableCell><Badge className="bg-red-600">Muito Alta</Badge></TableCell>
                   <TableCell className="font-semibold">Enterprise</TableCell>
-                  <TableCell className="text-center">R$ 12.997,00/mês</TableCell>
+                  <TableCell className="text-center">R$ 14.997,00/mês</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

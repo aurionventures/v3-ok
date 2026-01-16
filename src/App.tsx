@@ -144,6 +144,7 @@ const AdminPartners = lazy(() => import("./pages/AdminPartners"));
 const AdminAddons = lazy(() => import("./pages/AdminAddons"));
 const AdminContracts = lazy(() => import("./pages/AdminContracts"));
 const AdminContractTemplates = lazy(() => import("./pages/AdminContractTemplates"));
+const AdminContractManagement = lazy(() => import("./pages/AdminContractManagement"));
 const ContractSign = lazy(() => import("./pages/ContractSign"));
 const AdminInvoices = lazy(() => import("./pages/AdminInvoices"));
 const AdminSales = lazy(() => import("./pages/AdminSales"));
@@ -726,6 +727,7 @@ const App = () => (
           <Route path="/admin/addons" element={<LazyRouteWrapper><AdminAddons /></LazyRouteWrapper>} />
           <Route path="/admin/contracts" element={<LazyRouteWrapper><AdminContracts /></LazyRouteWrapper>} />
           <Route path="/admin/contract-templates" element={<LazyRouteWrapper><AdminContractTemplates /></LazyRouteWrapper>} />
+          <Route path="/admin/contract-management" element={<LazyRouteWrapper><AdminContractManagement /></LazyRouteWrapper>} />
           <Route path="/admin/invoices" element={<LazyRouteWrapper><AdminInvoices /></LazyRouteWrapper>} />
           <Route path="/admin/sales" element={<LazyRouteWrapper><AdminSales /></LazyRouteWrapper>} />
           <Route path="/admin/plg-funnel" element={<LazyRouteWrapper><AdminPLGFunnel /></LazyRouteWrapper>} />

@@ -38,6 +38,7 @@ import {
   CheckCircle,
   ActivitySquare,
   Briefcase,
+  ClipboardList,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -122,6 +123,7 @@ const ADMIN_MENU_SECTIONS = [
     items: [
       { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
       { icon: ScrollText, href: "/admin/contract-templates", name: "Minutas de Contrato" },
+      { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
     ]
   },
   {

@@ -519,7 +519,7 @@ function PLGSLGStrategyPDFDocument({
               <Text style={[styles.tableCell, styles.tableCellFirst]}>≤ 10</Text>
               <Text style={[styles.tableCell, { color: '#10b981' }]}>Baixa</Text>
               <Text style={styles.tableCell}>Essencial</Text>
-              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 2.997,00/mês</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 3.997,00/mês</Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableCellFirst]}>11 - 20</Text>
@@ -537,7 +537,7 @@ function PLGSLGStrategyPDFDocument({
               <Text style={[styles.tableCell, styles.tableCellFirst]}>&gt; 40</Text>
               <Text style={[styles.tableCell, { color: '#ef4444' }]}>Muito Alta</Text>
               <Text style={styles.tableCell}>Enterprise</Text>
-              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 12.997,00/mês</Text>
+              <Text style={[styles.tableCell, { textAlign: 'center' }]}>R$ 14.997,00/mês</Text>
             </View>
           </View>
         </View>

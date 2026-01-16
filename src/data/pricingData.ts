@@ -344,43 +344,43 @@ export const COMPETITORS: Competitor[] = [
 ];
 
 // PRD v3.0 - Matriz de Pricing (Porte × Plano)
-// Mínimo: R$ 2.997/mês | Desconto anual: 2 meses grátis (16,67%)
+// Mínimo: R$ 3.997/mês | Desconto anual: 2 meses grátis (16,67%)
 // Setup SMB e SMB+ = 2 × mensalidade | Outros portes = 1 × mensalidade
 export const PRICING_MATRIX: Record<string, Record<string, { mensal: number; anual: number; setup: number }>> = {
   // SMB (< R$ 50M/ano) - Setup = 2 × mensalidade | Anual = Mensal × 12
   smb: {
-    essencial: { mensal: 2997, anual: 35964, setup: 5994 }, // anual = 2997 × 12, setup = 2997 × 2
-    profissional: { mensal: 4997, anual: 59964, setup: 9994 }, // anual = 4997 × 12, setup = 4997 × 2
-    business: { mensal: 7997, anual: 95964, setup: 15994 }, // anual = 7997 × 12, setup = 7997 × 2
-    enterprise: { mensal: 12997, anual: 155964, setup: 25994 }, // anual = 12997 × 12, setup = 12997 × 2
+    essencial: { mensal: 3997, anual: 47964, setup: 7994 }, // anual = 3997 × 12, setup = 3997 × 2
+    profissional: { mensal: 5997, anual: 71964, setup: 11994 }, // anual = 5997 × 12, setup = 5997 × 2
+    business: { mensal: 8997, anual: 107964, setup: 17994 }, // anual = 8997 × 12, setup = 8997 × 2
+    enterprise: { mensal: 14997, anual: 179964, setup: 29994 }, // anual = 14997 × 12, setup = 14997 × 2
   },
   // SMB+ (R$ 50M - R$ 300M/ano) - Setup = 2 × mensalidade | Anual = Mensal × 12
   smb_plus: {
-    essencial: { mensal: 3997, anual: 47964, setup: 7994 }, // anual = 3997 × 12, setup = 3997 × 2
-    profissional: { mensal: 5997, anual: 71964, setup: 11994 }, // anual = 5997 × 12, setup = 5997 × 2
-    business: { mensal: 9997, anual: 119964, setup: 19994 }, // anual = 9997 × 12, setup = 9997 × 2
-    enterprise: { mensal: 19997, anual: 239964, setup: 39994 }, // anual = 19997 × 12, setup = 19997 × 2
+    essencial: { mensal: 4997, anual: 59964, setup: 9994 }, // anual = 4997 × 12, setup = 4997 × 2
+    profissional: { mensal: 6997, anual: 83964, setup: 13994 }, // anual = 6997 × 12, setup = 6997 × 2
+    business: { mensal: 10997, anual: 131964, setup: 21994 }, // anual = 10997 × 12, setup = 10997 × 2
+    enterprise: { mensal: 21997, anual: 263964, setup: 43994 }, // anual = 21997 × 12, setup = 21997 × 2
   },
   // Mid-Market (R$ 300M - R$ 1B/ano) - Setup = 1 × mensalidade | Anual = Mensal × 12
   mid_market: {
-    essencial: { mensal: 5997, anual: 71964, setup: 5997 }, // anual = 5997 × 12, setup = 5997 × 1
-    profissional: { mensal: 8997, anual: 107964, setup: 8997 }, // anual = 8997 × 12, setup = 8997 × 1
-    business: { mensal: 14997, anual: 179964, setup: 14997 }, // anual = 14997 × 12, setup = 14997 × 1
-    enterprise: { mensal: 24997, anual: 299964, setup: 24997 }, // anual = 24997 × 12, setup = 24997 × 1
+    essencial: { mensal: 6997, anual: 83964, setup: 6997 }, // anual = 6997 × 12, setup = 6997 × 1
+    profissional: { mensal: 9997, anual: 119964, setup: 9997 }, // anual = 9997 × 12, setup = 9997 × 1
+    business: { mensal: 15997, anual: 191964, setup: 15997 }, // anual = 15997 × 12, setup = 15997 × 1
+    enterprise: { mensal: 26997, anual: 323964, setup: 26997 }, // anual = 26997 × 12, setup = 26997 × 1
   },
   // Large (R$ 1B - R$ 5B/ano) - Setup = 1 × mensalidade | Anual = Mensal × 12
   large: {
-    essencial: { mensal: 9997, anual: 119964, setup: 9997 }, // anual = 9997 × 12, setup = 9997 × 1
-    profissional: { mensal: 14997, anual: 179964, setup: 14997 }, // anual = 14997 × 12, setup = 14997 × 1
-    business: { mensal: 24997, anual: 299964, setup: 24997 }, // anual = 24997 × 12, setup = 24997 × 1
-    enterprise: { mensal: 49997, anual: 599964, setup: 49997 }, // anual = 49997 × 12, setup = 49997 × 1
+    essencial: { mensal: 10997, anual: 131964, setup: 10997 }, // anual = 10997 × 12, setup = 10997 × 1
+    profissional: { mensal: 15997, anual: 191964, setup: 15997 }, // anual = 15997 × 12, setup = 15997 × 1
+    business: { mensal: 26997, anual: 323964, setup: 26997 }, // anual = 26997 × 12, setup = 26997 × 1
+    enterprise: { mensal: 54997, anual: 659964, setup: 54997 }, // anual = 54997 × 12, setup = 54997 × 1
   },
   // Enterprise (R$ 5B+ ou Listada B3) - Setup = 1 × mensalidade | Anual = Mensal × 12
   enterprise: {
-    essencial: { mensal: 14997, anual: 179964, setup: 14997 }, // anual = 14997 × 12, setup = 14997 × 1
-    profissional: { mensal: 24997, anual: 299964, setup: 24997 }, // anual = 24997 × 12, setup = 24997 × 1
-    business: { mensal: 49997, anual: 599964, setup: 49997 }, // anual = 49997 × 12, setup = 49997 × 1
-    enterprise: { mensal: 99997, anual: 1199964, setup: 99997 }, // anual = 99997 × 12, setup = 99997 × 1
+    essencial: { mensal: 15997, anual: 191964, setup: 15997 }, // anual = 15997 × 12, setup = 15997 × 1
+    profissional: { mensal: 26997, anual: 323964, setup: 26997 }, // anual = 26997 × 12, setup = 26997 × 1
+    business: { mensal: 54997, anual: 659964, setup: 54997 }, // anual = 54997 × 12, setup = 54997 × 1
+    enterprise: { mensal: 109997, anual: 1319964, setup: 109997 }, // anual = 109997 × 12, setup = 109997 × 1
   },
 };
 
@@ -391,13 +391,13 @@ export const SETUP_DISCOUNTS = {
   trial_conversion: 0.30, // 30% OFF para conversão durante trial
 };
 
-// Tabela simplificada para compatibilidade (usa SMB+ como base)
+// Tabela simplificada para compatibilidade (usa SMB como base - novo mínimo R$ 3.997)
 export const PRICING_TABLE = {
   essencial: {
-    mensal: 2997,
-    anual: 29970,
-    economia: 5994, // 2 meses
-    setup: 2997,
+    mensal: 3997,
+    anual: 47964,
+    economia: 7994, // 2 meses
+    setup: 7994,
   },
   profissional: {
     mensal: 5997,
@@ -532,8 +532,8 @@ export function recommendPlan(
   }
 
   // Regras específicas para startups e PMEs:
-  // 1 conselho, mínimo 12 reuniões, até 10 usuários = Essencial (R$ 2.997)
-  // 1 conselho + 1 comitê, mais de 10 usuários = Essencial SMB+ (R$ 3.997) ou Profissional SMB (R$ 4.997)
+  // 1 conselho, mínimo 12 reuniões, até 10 usuários = Essencial (R$ 3.997)
+  // 1 conselho + 1 comitê, mais de 10 usuários = Essencial SMB+ (R$ 4.997) ou Profissional SMB (R$ 5.997)
   
   // Se tem comitês ou muitos usuários, considerar upgrade
   let planAdjustment = 0;

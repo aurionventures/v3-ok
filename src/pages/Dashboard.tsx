@@ -22,6 +22,33 @@ import { calculateRiskStats } from "@/utils/riskCalculator";
 // Calculate real-time risk statistics
 const riskSummary = calculateRiskStats(governanceRisks);
 
+// Botão de teste para o Tour Guiado (apenas em desenvolvimento)
+const TestTourButton = () => {
+  const handleTestTour = () => {
+    // Limpar flags do tour
+    localStorage.removeItem('guided_tour_completed');
+    localStorage.removeItem('guided_tour_completed_at');
+    localStorage.removeItem('guided_tour_skipped');
+    localStorage.removeItem('guided_tour_skipped_at');
+    localStorage.removeItem('just_created_password');
+    
+    // Forçar mostrar o tour
+    window.location.href = '/dashboard?testTour=true';
+  };
+  
+  return (
+    <Button 
+      onClick={handleTestTour}
+      variant="outline"
+      size="sm"
+      className="fixed bottom-4 right-4 z-50 shadow-lg bg-background hover:bg-muted"
+      title="Testar Tour Guiado de Onboarding"
+    >
+      🧪 Testar Tour
+    </Button>
+  );
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,15 +58,19 @@ const Dashboard = () => {
 
   // Verificar se deve mostrar o tour guiado
   useEffect(() => {
-    const shouldShowTour = location.state?.showTour || false;
+    // Verificar parâmetro de teste na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const testTour = urlParams.get('testTour') === 'true';
+    
+    const shouldShowTour = location.state?.showTour || testTour;
     const hasCompletedTour = localStorage.getItem('guided_tour_completed');
     const hasSkippedTour = localStorage.getItem('guided_tour_skipped');
     
-    // Mostrar tour se veio do login e nunca foi completado/pulado
+    // Mostrar tour se veio do login, teste ou nunca foi completado/pulado
     if (shouldShowTour && !hasCompletedTour && !hasSkippedTour) {
       setShowTour(true);
-      // Limpar o state da navegação para não mostrar novamente ao recarregar
-      window.history.replaceState({}, document.title);
+      // Limpar o state da navegação e parâmetro da URL
+      window.history.replaceState({}, document.title, '/dashboard');
     }
   }, [location]);
 
@@ -120,6 +151,10 @@ const Dashboard = () => {
           onSkip={() => setShowTour(false)}
         />
       )}
+      
+      {/* Botão de teste do Tour (apenas em desenvolvimento) */}
+      {process.env.NODE_ENV === 'development' && <TestTourButton />}
+      
       <div className="flex h-screen bg-background overflow-hidden">
         <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
