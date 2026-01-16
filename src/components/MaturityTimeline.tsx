@@ -22,15 +22,16 @@ interface MaturityTimelineProps {
 }
 
 const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
-  // Calculate evolution percentage
+  // Calculate evolution in points
   const firstScore = data[0]?.score || 0;
   const lastScore = data[data.length - 1]?.score || 0;
+  const evolutionPoints = lastScore - firstScore;
   const evolutionPercentage = firstScore > 0 ? ((lastScore - firstScore) / firstScore * 100) : 0;
 
-  // Convert scores to percentage for display
+  // Use scores directly as points (0-5 scale)
   const chartData = data.map(item => ({
     ...item,
-    scorePercentage: item.score * 100
+    scorePoints: item.score // Já está em pontos (0-5)
   }));
 
   const getStageColor = (stage: string) => {
@@ -53,7 +54,9 @@ const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
           </h2>
           <div className="flex items-center gap-2 text-green-600">
             <TrendingUp className="h-5 w-5" />
-            <span className="font-semibold">+{evolutionPercentage.toFixed(1)}%</span>
+            <span className="font-semibold">
+              {evolutionPoints > 0 ? '+' : ''}{evolutionPoints.toFixed(2)} pontos
+            </span>
             <span className="text-sm text-gray-500">desde {data[0]?.period}</span>
           </div>
         </div>
@@ -72,14 +75,14 @@ const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
                 stroke="#666"
               />
               <YAxis 
-                domain={[0, 100]}
+                domain={[0, 5]}
                 tick={{ fontSize: 12 }}
                 stroke="#666"
-                label={{ value: 'Pontuação (%)', angle: -90, position: 'insideLeft' }}
+                label={{ value: 'Pontuação (pontos)', angle: -90, position: 'insideLeft' }}
               />
               <Tooltip 
                 formatter={(value: any, name: string) => [
-                  `${value.toFixed(1)}%`, 
+                  `${value.toFixed(2)} pontos`, 
                   'Maturidade IBGC'
                 ]}
                 labelFormatter={(label) => `Período: ${label}`}
@@ -92,7 +95,7 @@ const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
               />
               <Line 
                 type="monotone" 
-                dataKey="scorePercentage" 
+                dataKey="scorePoints" 
                 stroke="#8B5CF6" 
                 strokeWidth={3}
                 dot={{ 
@@ -121,8 +124,12 @@ const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
               </div>
               <div className="flex-1">
                 <div className="font-medium text-gray-900">{item.period}</div>
-                <div className="text-2xl font-bold text-legacy-purple-500">
-                  {(item.score * 100).toFixed(0)}%
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-legacy-purple-500">
+                    {item.score.toFixed(2)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">pontos</span>
+                  <span className="text-xs text-muted-foreground">/ 5.0</span>
                 </div>
                 <div className={`text-sm font-medium ${getStageColor(item.stage)}`}>
                   {item.stage}
@@ -142,12 +149,20 @@ const MaturityTimeline: React.FC<MaturityTimelineProps> = ({ data }) => {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-green-600">
-                +{evolutionPercentage.toFixed(1)}%
+              <div className="flex items-baseline gap-1 justify-end">
+                <span className="text-3xl font-bold text-green-600">
+                  {evolutionPoints > 0 ? '+' : ''}{evolutionPoints.toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground">pontos</span>
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 mt-1">
                 {data[0]?.stage} → {data[data.length - 1]?.stage}
               </div>
+              {evolutionPercentage !== 0 && (
+                <div className="text-xs text-gray-500 mt-1">
+                  ({evolutionPercentage > 0 ? '+' : ''}{evolutionPercentage.toFixed(1)}% de evolução)
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -419,7 +419,7 @@ export default function DocumentChecklist() {
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="mb-4">
                 <TabsTrigger value="checklist">Checklist</TabsTrigger>
-                <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
+                <TabsTrigger value="biblioteca" data-tour="checklist-upload">Biblioteca</TabsTrigger>
                 <TabsTrigger value="cadastro-empresa" className="gap-2">
                   <Building2 className="h-4 w-4" />
                   Cadastro da Empresa

@@ -73,7 +73,7 @@ export const MembersTable: React.FC<MembersTableProps> = ({
           />
         </div>
         {!readOnly && (
-          <Button onClick={onCreateMember} className="flex items-center gap-2">
+          <Button onClick={onCreateMember} className="flex items-center gap-2" data-tour="create-member-button">
             <Plus className="h-4 w-4" />
             Criar Membro
           </Button>
@@ -151,6 +151,7 @@ export const MembersTable: React.FC<MembersTableProps> = ({
                             size="icon"
                             onClick={() => onAllocateMember(member)}
                             title="Alocar em órgão"
+                            data-tour="allocate-member-button"
                           >
                             <UserPlus className="h-4 w-4" />
                           </Button>

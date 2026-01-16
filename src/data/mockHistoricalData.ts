@@ -23,14 +23,14 @@ export const mockHistoricalAssessments: HistoricalAssessment[] = [
     analystInitials: "MS",
     status: 'completed',
     result: {
-      pontuacao_total: 0.5,
+      pontuacao_total: 2.5, // Pontos (0-5)
       estagio: "Básico",
       pontuacao_dimensoes: {
-        "Sócios": 0.48,
-        "Conselho": 0.45,
-        "Diretoria": 0.52,
-        "Órgãos de fiscalização e controle": 0.48,
-        "Conduta e conflitos de interesses": 0.55
+        "Sócios": 2.4, // Pontos (0-5)
+        "Conselho": 2.25, // Pontos (0-5)
+        "Diretoria": 2.6, // Pontos (0-5)
+        "Órgãos de fiscalização e controle": 2.4, // Pontos (0-5)
+        "Conduta e conflitos de interesses": 2.75 // Pontos (0-5)
       },
       pontuacao_indicadores: {
         "indicador_01": 2.5,
@@ -39,7 +39,7 @@ export const mockHistoricalAssessments: HistoricalAssessment[] = [
         "indicador_04": 3.0,
         "indicador_05": 3.1,
       },
-      pontuacao_empresas_controle_concentrado: { percentual: 0.52 }
+      pontuacao_empresas_controle_concentrado: { percentual: 0.52, pontos: 2.6 }
     },
     companyData: {
       nome: "TechCorp Ltda",
@@ -73,14 +73,14 @@ export const mockHistoricalAssessments: HistoricalAssessment[] = [
     analystInitials: "JC",
     status: 'completed',
     result: {
-      pontuacao_total: 0.6,
+      pontuacao_total: 3.0, // Pontos (0-5)
       estagio: "Básico",
       pontuacao_dimensoes: {
-        "Sócios": 0.62,
-        "Conselho": 0.58,
-        "Diretoria": 0.63,
-        "Órgãos de fiscalização e controle": 0.56,
-        "Conduta e conflitos de interesses": 0.61
+        "Sócios": 3.1, // Pontos (0-5)
+        "Conselho": 2.9, // Pontos (0-5)
+        "Diretoria": 3.15, // Pontos (0-5)
+        "Órgãos de fiscalização e controle": 2.8, // Pontos (0-5)
+        "Conduta e conflitos de interesses": 3.05 // Pontos (0-5)
       },
       pontuacao_indicadores: {
         "indicador_01": 3.0,
@@ -89,7 +89,7 @@ export const mockHistoricalAssessments: HistoricalAssessment[] = [
         "indicador_04": 3.4,
         "indicador_05": 3.3,
       },
-      pontuacao_empresas_controle_concentrado: { percentual: 0.61 }
+      pontuacao_empresas_controle_concentrado: { percentual: 0.61, pontos: 3.05 }
     },
     companyData: {
       nome: "TechCorp Ltda",
@@ -123,14 +123,14 @@ export const mockHistoricalAssessments: HistoricalAssessment[] = [
     analystInitials: "AS",
     status: 'completed',
     result: {
-      pontuacao_total: 0.8,
+      pontuacao_total: 4.0, // Pontos (0-5)
       estagio: "Sólido",
       pontuacao_dimensoes: {
-        "Sócios": 0.82,
-        "Conselho": 0.78,
-        "Diretoria": 0.85,
-        "Órgãos de fiscalização e controle": 0.76,
-        "Conduta e conflitos de interesses": 0.79
+        "Sócios": 4.1, // Pontos (0-5)
+        "Conselho": 3.9, // Pontos (0-5)
+        "Diretoria": 4.25, // Pontos (0-5)
+        "Órgãos de fiscalização e controle": 3.8, // Pontos (0-5)
+        "Conduta e conflitos de interesses": 3.95 // Pontos (0-5)
       },
       pontuacao_indicadores: {
         "indicador_01": 4.0,
@@ -139,7 +139,7 @@ export const mockHistoricalAssessments: HistoricalAssessment[] = [
         "indicador_04": 4.3,
         "indicador_05": 4.4,
       },
-      pontuacao_empresas_controle_concentrado: { percentual: 0.81 }
+      pontuacao_empresas_controle_concentrado: { percentual: 0.81, pontos: 4.05 }
     },
     companyData: {
       nome: "TechCorp Ltda",

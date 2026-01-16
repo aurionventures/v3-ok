@@ -648,7 +648,7 @@ export function Phase1BasicSetup({ onComplete, onBack, skipPhaseCompletion = fal
   const SectionIcon = SECTIONS[currentSection].icon;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6" data-tour="knowledge-base-form">
       {/* Progress Header */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">

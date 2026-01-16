@@ -211,14 +211,17 @@ const IGBCPDFDocument: React.FC<IGBCPDFReportProps> = ({ assessment }) => {
   };
 
   const dimensionData = [
-    { name: "Sócios", score: (assessment.result.pontuacao_dimensoes["Sócios"] || 0) * 5 },
-    { name: "Conselho", score: (assessment.result.pontuacao_dimensoes["Conselho"] || 0) * 5 },
-    { name: "Diretoria", score: (assessment.result.pontuacao_dimensoes["Diretoria"] || 0) * 5 },
-    { name: "Órgãos de Fiscalização", score: (assessment.result.pontuacao_dimensoes["Órgãos de fiscalização e controle"] || 0) * 5 },
-    { name: "Conduta e Conflitos", score: (assessment.result.pontuacao_dimensoes["Conduta e conflitos de interesses"] || 0) * 5 }
+    // pontuacao_dimensoes já está em pontos (0-5) após a correção
+    { name: "Sócios", score: assessment.result.pontuacao_dimensoes["Sócios"] || 0 },
+    { name: "Conselho", score: assessment.result.pontuacao_dimensoes["Conselho"] || 0 },
+    { name: "Diretoria", score: assessment.result.pontuacao_dimensoes["Diretoria"] || 0 },
+    { name: "Órgãos de Fiscalização", score: assessment.result.pontuacao_dimensoes["Órgãos de fiscalização e controle"] || 0 },
+    { name: "Conduta e Conflitos", score: assessment.result.pontuacao_dimensoes["Conduta e conflitos de interesses"] || 0 }
   ];
 
-  const concentratedControlScore = (assessment.result.pontuacao_empresas_controle_concentrado?.percentual || 0) * 100;
+  // Usar percentual se disponível, senão converter de pontos
+  const concentratedControlScore = assessment.result.pontuacao_empresas_controle_concentrado?.percentual || 
+    ((assessment.result.pontuacao_empresas_controle_concentrado?.pontos || 0) / 5 * 100);
 
   return (
     <Document>
@@ -250,7 +253,12 @@ const IGBCPDFDocument: React.FC<IGBCPDFReportProps> = ({ assessment }) => {
 
         {/* Score Geral */}
         <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>{(assessment.result.pontuacao_total * 100).toFixed(1)}%</Text>
+          <Text style={styles.scoreText}>
+            {assessment.result.pontuacao_total_percentual 
+              ? `${assessment.result.pontuacao_total_percentual.toFixed(1)}%`
+              : `${(assessment.result.pontuacao_total / 5 * 100).toFixed(1)}%`
+            }
+          </Text>
           <Text style={styles.levelText}>
             Nível de Maturidade: {assessment.result.estagio}
           </Text>

@@ -22,33 +22,6 @@ import { calculateRiskStats } from "@/utils/riskCalculator";
 // Calculate real-time risk statistics
 const riskSummary = calculateRiskStats(governanceRisks);
 
-// Botão de teste para o Tour Guiado (apenas em desenvolvimento)
-const TestTourButton = () => {
-  const handleTestTour = () => {
-    // Limpar flags do tour
-    localStorage.removeItem('guided_tour_completed');
-    localStorage.removeItem('guided_tour_completed_at');
-    localStorage.removeItem('guided_tour_skipped');
-    localStorage.removeItem('guided_tour_skipped_at');
-    localStorage.removeItem('just_created_password');
-    
-    // Forçar mostrar o tour
-    window.location.href = '/dashboard?testTour=true';
-  };
-  
-  return (
-    <Button 
-      onClick={handleTestTour}
-      variant="outline"
-      size="sm"
-      className="fixed bottom-4 right-4 z-50 shadow-lg bg-background hover:bg-muted"
-      title="Testar Tour Guiado de Onboarding"
-    >
-      🧪 Testar Tour
-    </Button>
-  );
-};
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -152,9 +125,6 @@ const Dashboard = () => {
         />
       )}
       
-      {/* Botão de teste do Tour (apenas em desenvolvimento) */}
-      {process.env.NODE_ENV === 'development' && <TestTourButton />}
-      
       <div className="flex h-screen bg-background overflow-hidden">
         <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -174,10 +144,15 @@ const Dashboard = () => {
                 <div className="flex-1">
                   <p className="text-[10px] text-muted-foreground font-medium">Score Maturidade</p>
                   <div className="flex items-baseline gap-1.5 mt-1">
-                    <p className="text-xl font-bold text-primary">3.6</p>
-                    <span className="text-[10px] text-green-600 font-semibold">+9%</span>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-xl font-bold text-primary">
+                        {latestGovernanceAssessment?.result?.pontuacao_total?.toFixed(2) || '3.60'}
+                      </p>
+                      <span className="text-[10px] text-muted-foreground">/ 5.0</span>
+                    </div>
+                    <span className="text-[10px] text-green-600 font-semibold">+0.5</span>
                   </div>
-                  <Progress value={72} className="h-1.5 mt-1.5" />
+                  <Progress value={((latestGovernanceAssessment?.result?.pontuacao_total || 3.6) / 5) * 100} className="h-1.5 mt-1.5" />
                 </div>
                 <div className="p-1.5 rounded-md bg-primary/10">
                   <BarChart3 className="h-4 w-4 text-primary" />
@@ -358,7 +333,7 @@ const Dashboard = () => {
               status: r.status,
               controls: r.controls,
             }))}
-            maturityScore={latestGovernanceAssessment?.result?.overallScore || 3.6}
+            maturityScore={latestGovernanceAssessment?.result?.pontuacao_total || 3.6}
             esgScore={latestESGAssessment?.overallScore || 65}
             pendingTasks={taskMetrics.pending}
             overduesTasks={taskMetrics.overdue}

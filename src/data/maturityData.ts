@@ -305,11 +305,11 @@ export const QUESTIONS: Question[] = [
 
 export const MATURITY_STRUCTURE: MaturityStructure = {
   dimensoes: {
-    "1": { nome: "Sócios", peso: 0.2 },
-    "2": { nome: "Conselho", peso: 0.25 },
-    "3": { nome: "Diretoria", peso: 0.2 },
-    "4": { nome: "Órgãos de fiscalização e controle", peso: 0.15 },
-    "5": { nome: "Conduta e conflitos de interesses", peso: 0.2 }
+    "1": { nome: "Sócios", peso: 0.25 }, // Manual IBGC: 0.25
+    "2": { nome: "Conselho", peso: 0.3 }, // Manual IBGC: 0.3
+    "3": { nome: "Diretoria", peso: 0.25 }, // Manual IBGC: 0.25
+    "4": { nome: "Órgãos de fiscalização e controle", peso: 0.1 }, // Manual IBGC: 0.1
+    "5": { nome: "Conduta e conflitos de interesses", peso: 0.1 } // Manual IBGC: 0.1
   },
   indicadores: {
     "1": { dimensao: "1", nome: "Assembleia / Reunião de sócios", peso: 0.4, questoes: ["1", "2"] },

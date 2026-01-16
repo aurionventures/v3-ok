@@ -181,11 +181,10 @@ const Maturity = () => {
     const formattedHistory = ibgcHistory.map(assessment => ({
       id: assessment.id,
       date: assessment.period,
-      overall: assessment.result.pontuacao_total * 5,
-      // Convert to 0-5 scale
+      overall: assessment.result.pontuacao_total, // Já está em pontos (0-5)
       details: Object.entries(assessment.result.pontuacao_dimensoes).map(([name, score]) => ({
         name,
-        score: score * 5
+        score: score // Já está em pontos (0-5)
       })),
       timestamp: assessment.date,
       stage: assessment.result.estagio
@@ -207,7 +206,7 @@ const Maturity = () => {
       userInitials: assessment.analystInitials,
       action: "Avaliação de maturidade IBGC concluída",
       timestamp: assessment.date,
-      details: `Pontuação geral: ${(assessment.result.pontuacao_total * 100).toFixed(0)}% | Estágio: ${assessment.result.estagio}`
+      details: `Pontuação geral: ${assessment.result.pontuacao_total.toFixed(2)} pontos | Estágio: ${assessment.result.estagio}`
     }));
     setActivityLogs(logs);
   }, []);
@@ -341,7 +340,7 @@ const Maturity = () => {
                               {assessment.date}
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium">{(assessment.overall * 20).toFixed(0)}%</TableCell>
+                          <TableCell className="font-medium">{assessment.overall.toFixed(2)} pontos</TableCell>
                           <TableCell>
                             <Badge variant="outline">{assessment.stage}</Badge>
                           </TableCell>
@@ -433,7 +432,7 @@ const Maturity = () => {
           {selectedAssessment && (() => {
             // Find the full assessment data from mockHistoricalAssessments
             const fullAssessment = mockHistoricalAssessments.find(a => a.period === selectedAssessment.date);
-            const scorePercent = selectedAssessment.overall * 20;
+            const scorePoints = selectedAssessment.overall; // Já está em pontos (0-5)
             
             const getStageDescription = (stage: string) => {
               const descriptions: Record<string, string> = {
@@ -456,7 +455,11 @@ const Maturity = () => {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 mb-3">
-                    <span className="text-4xl font-bold text-primary">{scorePercent.toFixed(0)}%</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold text-primary">{scorePoints.toFixed(2)}</span>
+                      <span className="text-xl text-muted-foreground">pontos</span>
+                      <span className="text-sm text-muted-foreground">/ 5.0</span>
+                    </div>
                     <Badge className={`${getMaturityLevel(selectedAssessment.overall).color} hover:${getMaturityLevel(selectedAssessment.overall).color}`}>
                       {getMaturityLevel(selectedAssessment.overall).level}
                     </Badge>

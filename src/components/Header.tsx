@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "./NotificationBell";
 import GovernanceAssistant from "./GovernanceAssistant";
@@ -11,6 +11,19 @@ interface HeaderProps {
 
 const Header = ({ title = "Dashboard" }: HeaderProps) => {
   const [showGuide, setShowGuide] = useState(false);
+
+  // Função para testar o Tour Guiado (apenas em desenvolvimento)
+  const handleTestTour = () => {
+    // Limpar flags do tour
+    localStorage.removeItem('guided_tour_completed');
+    localStorage.removeItem('guided_tour_completed_at');
+    localStorage.removeItem('guided_tour_skipped');
+    localStorage.removeItem('guided_tour_skipped_at');
+    localStorage.removeItem('just_created_password');
+    
+    // Forçar mostrar o tour
+    window.location.href = '/dashboard?testTour=true';
+  };
 
   return (
     <>
@@ -27,6 +40,20 @@ const Header = ({ title = "Dashboard" }: HeaderProps) => {
             <BookOpen className="h-4 w-4 mr-2" />
             Guia Legacy
           </Button>
+
+          {/* Botão de teste do Tour (apenas em desenvolvimento) */}
+          {process.env.NODE_ENV === 'development' && (
+            <Button 
+              onClick={handleTestTour}
+              variant="outline"
+              size="sm"
+              className="rounded-full px-4 py-2"
+              title="Testar Tour Guiado de Onboarding"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Testar Tour
+            </Button>
+          )}
 
           <NotificationBell />
         </div>

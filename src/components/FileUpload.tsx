@@ -82,7 +82,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-tour="checklist-upload">
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           isDragging 

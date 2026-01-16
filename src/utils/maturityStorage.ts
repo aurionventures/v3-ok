@@ -73,14 +73,14 @@ const initializeMockHistory = (): void => {
       id: "assessment-2024-06",
       timestamp: new Date(2024, 5, 15),
       result: {
-        pontuacao_total: 0.49,
+        pontuacao_total: 2.45, // Pontos (0-5)
         estagio: "Básico",
         pontuacao_dimensoes: {
-          "Sócios": 0.42,
-          "Conselho": 0.60,
-          "Diretoria": 0.80,
-          "Órgãos de fiscalização e controle": 0.20,
-          "Conduta e conflitos de interesses": 0.35
+          "Sócios": 2.1, // Pontos (0-5)
+          "Conselho": 3.0, // Pontos (0-5)
+          "Diretoria": 4.0, // Pontos (0-5)
+          "Órgãos de fiscalização e controle": 1.0, // Pontos (0-5)
+          "Conduta e conflitos de interesses": 1.75 // Pontos (0-5)
         },
         pontuacao_indicadores: {
           "indicador_01": 2.1,
@@ -89,7 +89,7 @@ const initializeMockHistory = (): void => {
           "indicador_04": 1.0,
           "indicador_05": 1.75,
         },
-        pontuacao_empresas_controle_concentrado: { percentual: 0.25 }
+        pontuacao_empresas_controle_concentrado: { percentual: 0.25, pontos: 1.25 }
       },
       companyData: { nome: "TechCorp Ltda", setor: "Tecnologia" },
       contactInfo: { analista: "Maria Silva" }
@@ -98,14 +98,14 @@ const initializeMockHistory = (): void => {
       id: "assessment-2025-01",
       timestamp: new Date(2025, 0, 20),
       result: {
-        pontuacao_total: 0.62,
-        estagio: "Sólido",
+        pontuacao_total: 3.1, // Pontos (0-5)
+        estagio: "Básico",
         pontuacao_dimensoes: {
-          "Sócios": 0.65,
-          "Conselho": 0.58,
-          "Diretoria": 0.68,
-          "Órgãos de fiscalização e controle": 0.55,
-          "Conduta e conflitos de interesses": 0.64
+          "Sócios": 3.25, // Pontos (0-5)
+          "Conselho": 2.9, // Pontos (0-5)
+          "Diretoria": 3.4, // Pontos (0-5)
+          "Órgãos de fiscalização e controle": 2.75, // Pontos (0-5)
+          "Conduta e conflitos de interesses": 3.2 // Pontos (0-5)
         },
         pontuacao_indicadores: {
           "indicador_01": 3.1,
@@ -114,7 +114,7 @@ const initializeMockHistory = (): void => {
           "indicador_04": 3.6,
           "indicador_05": 3.7,
         },
-        pontuacao_empresas_controle_concentrado: { percentual: 0.68 }
+        pontuacao_empresas_controle_concentrado: { percentual: 0.68, pontos: 3.4 }
       },
       companyData: { nome: "TechCorp Ltda", setor: "Tecnologia" },
       contactInfo: { analista: "João Costa" }
@@ -141,31 +141,31 @@ export const convertStoredDataToRadarData = (stored: StoredMaturityAssessment | 
   return [
     {
       name: "Sócios",
-      score: (pontuacao_dimensoes["Sócios"] || 0) * 5,
+      score: pontuacao_dimensoes["Sócios"] || 0, // Já está em pontos (0-5)
       sectorAverage: 3.2,
       fullMark: 5
     },
     {
       name: "Conselho", 
-      score: (pontuacao_dimensoes["Conselho"] || 0) * 5,
+      score: pontuacao_dimensoes["Conselho"] || 0, // Já está em pontos (0-5)
       sectorAverage: 2.8,
       fullMark: 5
     },
     {
       name: "Diretoria",
-      score: (pontuacao_dimensoes["Diretoria"] || 0) * 5,
+      score: pontuacao_dimensoes["Diretoria"] || 0, // Já está em pontos (0-5)
       sectorAverage: 3.0,
       fullMark: 5
     },
     {
       name: "Órgãos de Fiscalização",
-      score: (pontuacao_dimensoes["Órgãos de fiscalização e controle"] || 0) * 5,
+      score: pontuacao_dimensoes["Órgãos de fiscalização e controle"] || 0, // Já está em pontos (0-5)
       sectorAverage: 2.5,
       fullMark: 5
     },
     {
       name: "Conduta e Conflitos",
-      score: (pontuacao_dimensoes["Conduta e conflitos de interesses"] || 0) * 5,
+      score: pontuacao_dimensoes["Conduta e conflitos de interesses"] || 0, // Já está em pontos (0-5)
       sectorAverage: 2.7,
       fullMark: 5
     }

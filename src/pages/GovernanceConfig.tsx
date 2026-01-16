@@ -241,7 +241,7 @@ const GovernanceConfig = () => {
                     <div className="flex justify-end gap-2">
                       <Dialog open={isCreateDialogOpen && activeTab === type} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button className="flex items-center gap-2">
+                          <Button className="flex items-center gap-2" data-tour="create-organ-button">
                             <Plus className="h-4 w-4" />
                             Criar {getOrganTypeLabel(type)}
                           </Button>
