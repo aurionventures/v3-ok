@@ -685,7 +685,7 @@ export default function Pricing() {
 
       {/* Modal Calculadora */}
       <Dialog open={calculatorOpen} onOpenChange={setCalculatorOpen}>
-        <DialogContent className="max-w-4xl sm:max-w-5xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl sm:max-w-5xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto pointer-events-auto">
           {!calculatorResult ? (
             <>
               <DialogHeader className="pb-2">
@@ -698,7 +698,7 @@ export default function Pricing() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-3 py-2">
+              <div className="space-y-3 py-2 relative z-10 pointer-events-auto">
                 {/* Faturamento e Maturidade - Row 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -858,8 +858,9 @@ export default function Pricing() {
                 <Button
                   onClick={handleCalculate}
                   disabled={!canCalculate}
-                  className="w-full bg-accent hover:bg-accent/90 text-primary-foreground mt-2"
+                  className="w-full bg-accent hover:bg-accent/90 text-primary-foreground mt-2 pointer-events-auto relative z-10"
                   size="default"
+                  type="button"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Calcular Plano e Investimento
