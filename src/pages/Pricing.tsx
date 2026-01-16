@@ -57,6 +57,7 @@ import {
   ChevronDown,
   FileText,
   CreditCard,
+  ShoppingCart,
 } from 'lucide-react';
 import legacyLogo from '@/assets/legacy-logo-new.png';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
@@ -411,42 +412,12 @@ export default function Pricing() {
     toast.success('Abrindo WhatsApp...');
   };
 
-  // Função para ir para checkout Stripe
-  const handleStartTrial = () => {
-    if (!calculatorResult) return;
-
-    // Calcular preço total com add-ons
-    const totalAnual = calculateTotalWithAddons?.anual || calculatorResult.pricing.anual || 0;
-    // Preço mensal calculado (importante para manter consistência)
-    const calculatedMonthlyPrice = calculatorResult.pricing.mensal;
-
-    const params = new URLSearchParams({
-      plan: calculatorResult.planoId,
-      price: totalAnual.toString(),
-      source: 'calculator',
-    });
-
-    // Adicionar preço mensal calculado para garantir consistência no checkout
-    if (calculatedMonthlyPrice) {
-      params.set('calculatedPrice', calculatedMonthlyPrice.toString());
-    }
-
-    // Adicionar add-ons selecionados se houver
-    if (selectedAddons.length > 0) {
-      params.set('addons', selectedAddons.join(','));
-    }
-
-    // Redirecionar para checkout Stripe
-    navigate(`/checkout?${params.toString()}`);
-  };
-
-  // Função para ir para checkout com contrato (Asaas)
+  // Função para ir para página de checkout
   const handleContractCheckout = () => {
     if (!calculatorResult) return;
 
-    // Mapear faturamento para porte (igual ao cálculo)
+    // Mapear faturamento para porte
     const porte = mapFaturamentoToPorte(calculatorInputs.faturamento);
-    // Preço mensal calculado (importante para manter consistência)
     const calculatedMonthlyPrice = calculatorResult.pricing.mensal;
 
     const params = new URLSearchParams({
@@ -455,18 +426,16 @@ export default function Pricing() {
       source: 'calculator',
     });
 
-    // Adicionar preço mensal calculado para garantir consistência no checkout
     if (calculatedMonthlyPrice) {
       params.set('calculatedPrice', calculatedMonthlyPrice.toString());
     }
 
-    // Adicionar add-ons selecionados se houver
     if (selectedAddons.length > 0) {
       params.set('addons', selectedAddons.join(','));
     }
 
-    // Redirecionar para checkout com contrato
-    navigate(`/checkout-contrato?${params.toString()}`);
+    // Navegar para página de checkout
+    navigate(`/plan-checkout?${params.toString()}`);
   };
 
   // Função para falar com especialista
@@ -1154,34 +1123,17 @@ export default function Pricing() {
                   )}
                 </div>
 
-                {/* CTAs - Compacto */}
-                <div className="flex flex-col gap-2 pt-2">
+                {/* CTA - Botão único */}
+                <div className="pt-2">
                   <Button
                     onClick={handleContractCheckout}
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    size="default"
+                    size="lg"
                   >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Contratar com Boleto/PIX
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    Contratar Plano
+                    <ArrowRight className="h-5 w-5 ml-2" />
                   </Button>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      onClick={handleStartTrial}
-                      variant="outline"
-                      size="default"
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Pagar com Cartão
-                    </Button>
-                    <Button
-                      onClick={handleContactSpecialist}
-                      variant="outline"
-                      size="default"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Falar com Especialista
-                    </Button>
-                  </div>
                 </div>
 
                 <Button

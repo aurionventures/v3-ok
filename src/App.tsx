@@ -50,6 +50,7 @@ const MaturityQuiz = lazy(() => import("./pages/MaturityQuiz"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const ContractCheckout = lazy(() => import("./pages/ContractCheckout"));
 const StripeCheckout = lazy(() => import("./pages/StripeCheckout"));
+const PlanCheckout = lazy(() => import("./pages/PlanCheckout"));
 const Payment = lazy(() => import("./pages/Payment"));
 const PaymentConfirmed = lazy(() => import("./pages/PaymentConfirmed"));
 
@@ -228,6 +229,7 @@ const App = () => (
           <Route path="/checkout" element={<LazyRouteWrapper><StripeCheckout /></LazyRouteWrapper>} />
           <Route path="/checkout-legacy" element={<LazyRouteWrapper><Checkout /></LazyRouteWrapper>} />
           <Route path="/checkout-contrato" element={<LazyRouteWrapper><ContractCheckout /></LazyRouteWrapper>} />
+          <Route path="/plan-checkout" element={<LazyRouteWrapper><PlanCheckout /></LazyRouteWrapper>} />
           <Route path="/payment" element={<LazyRouteWrapper><Payment /></LazyRouteWrapper>} />
           <Route path="/payment-confirmed" element={<LazyRouteWrapper><PaymentConfirmed /></LazyRouteWrapper>} />
           <Route path="/email-confirmation" element={<LazyRouteWrapper><EmailConfirmation /></LazyRouteWrapper>} />

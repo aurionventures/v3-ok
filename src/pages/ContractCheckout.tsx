@@ -47,7 +47,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { CompanyData } from '@/hooks/useCNPJ';
 import type { AddressData } from '@/hooks/useCEP';
 
-type Step = 'dados' | 'plano' | 'contrato' | 'pagamento' | 'confirmacao';
+type Step = 'dados' | 'contrato' | 'confirmacao';
 type BillingType = 'BOLETO' | 'PIX';
 
 export default function ContractCheckout() {
@@ -59,6 +59,9 @@ export default function ContractCheckout() {
   const porteParam = searchParams.get('porte') || 'smb_plus';
   const addonsFromUrl = searchParams.get('addons')?.split(',').filter(Boolean) || [];
   const calculatedPriceFromUrl = searchParams.get('calculatedPrice');
+  const termFromUrl = searchParams.get('term');
+  const cycleFromUrl = searchParams.get('cycle');
+  const billingFromUrl = searchParams.get('billing');
   
   // Estado
   const [currentStep, setCurrentStep] = useState<Step>('dados');
@@ -126,11 +129,11 @@ export default function ContractCheckout() {
     financeContactPhone: '',
   });
   
-  // Configuração do contrato
+  // Configuração do contrato (com valores da URL se disponíveis)
   const [contractConfig, setContractConfig] = useState({
-    term: 24 as 12 | 24 | 36,
-    paymentCycle: 'monthly' as 'monthly' | 'quarterly' | 'semi_annual' | 'annual',
-    billingType: 'BOLETO' as BillingType,
+    term: (termFromUrl ? Number(termFromUrl) : 12) as 12 | 24 | 36,
+    paymentCycle: (cycleFromUrl || 'monthly') as 'monthly' | 'quarterly' | 'semi_annual' | 'annual',
+    billingType: (billingFromUrl || 'BOLETO') as BillingType,
   });
   
   // Aceites
@@ -210,9 +213,7 @@ export default function ContractCheckout() {
   
   const steps: { id: Step; label: string; icon: React.ComponentType<any> }[] = [
     { id: 'dados', label: 'Dados', icon: Building2 },
-    { id: 'plano', label: 'Plano', icon: Sparkles },
     { id: 'contrato', label: 'Contrato', icon: FileSignature },
-    { id: 'pagamento', label: 'Pagamento', icon: Receipt },
     { id: 'confirmacao', label: 'Confirmação', icon: CheckCircle2 },
   ];
   
@@ -220,7 +221,7 @@ export default function ContractCheckout() {
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
   
   const handleNext = () => {
-    const stepOrder: Step[] = ['dados', 'plano', 'contrato', 'pagamento', 'confirmacao'];
+    const stepOrder: Step[] = ['dados', 'contrato', 'confirmacao'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
@@ -228,7 +229,7 @@ export default function ContractCheckout() {
   };
   
   const handleBack = () => {
-    const stepOrder: Step[] = ['dados', 'plano', 'contrato', 'pagamento', 'confirmacao'];
+    const stepOrder: Step[] = ['dados', 'contrato', 'confirmacao'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
@@ -438,7 +439,7 @@ export default function ContractCheckout() {
               <Separator orientation="vertical" className="h-5" />
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-primary" />
-                <span className="font-semibold text-sm">Checkout</span>
+                <span className="font-semibold text-sm">Contratar Plano</span>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')} className="h-8">
@@ -731,78 +732,7 @@ export default function ContractCheckout() {
               </Card>
             )}
             
-            {/* Step 2: Confirmação do Plano */}
-            {currentStep === 'plano' && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Sparkles className="h-4 w-4" />
-                    Plano Selecionado
-                  </CardTitle>
-                  <CardDescription className="text-xs mt-1">
-                    Confirme seu plano e add-ons
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Plano */}
-                  <div className="p-3 border rounded-lg bg-primary/5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-lg font-bold">{plan.nome}</h3>
-                        <p className="text-xs text-muted-foreground">{plan.descricao}</p>
-                      </div>
-                      <Badge className="text-sm px-2.5 py-1">
-                        {formatCurrency(baseMonthly)}/mês
-                      </Badge>
-                    </div>
-                    <Separator className="my-2" />
-                    <div className="grid sm:grid-cols-2 gap-1.5">
-                      {plan.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-1.5 text-xs">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                          <span className="truncate">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Add-ons */}
-                  {selectedAddons.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Add-ons Selecionados</h4>
-                      {selectedAddons.map(addon => (
-                        <div key={addon.id} className="flex items-center justify-between p-2.5 border rounded-lg">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <Sparkles className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm truncate">{addon.nome}</p>
-                              <p className="text-xs text-muted-foreground truncate">{addon.descricao}</p>
-                            </div>
-                          </div>
-                          <span className="font-semibold text-sm flex-shrink-0 ml-2">
-                            +{formatCurrency(addon.precoMensal)}/mês
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-                <CardFooter className="justify-between">
-                  <Button variant="outline" onClick={handleBack}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Voltar
-                  </Button>
-                  <Button onClick={handleNext}>
-                    Continuar
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
-            
-            {/* Step 3: Configuração do Contrato */}
+            {/* Step 2: Configuração do Contrato */}
             {currentStep === 'contrato' && (
               <Card>
                 <CardHeader className="pb-3">
@@ -811,37 +741,63 @@ export default function ContractCheckout() {
                     Configuração do Contrato
                   </CardTitle>
                   <CardDescription className="text-xs mt-1">
-                    Escolha o prazo e ciclo de pagamento
+                    Configure o prazo, ciclo de pagamento e forma de pagamento
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Prazo do Contrato */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Prazo do Contrato</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold">Prazo do Contrato</Label>
+                      {termDiscount > 0 && (
+                        <Badge variant="secondary" className="text-xs text-green-600 bg-green-50 dark:bg-green-950">
+                          Desconto: {termDiscount}%
+                        </Badge>
+                      )}
+                    </div>
                     <RadioGroup 
                       value={String(contractConfig.term)} 
                       onValueChange={(v) => setContractConfig({...contractConfig, term: Number(v) as 12 | 24 | 36})}
                       className="grid grid-cols-3 gap-3"
                     >
-                      {CONTRACT_TERM_OPTIONS.map(option => (
-                        <div key={option.value}>
-                          <RadioGroupItem value={String(option.value)} id={`term-${option.value}`} className="peer sr-only" />
-                          <Label 
-                            htmlFor={`term-${option.value}`}
-                            className="flex flex-col items-center justify-center p-3 border-2 rounded-lg cursor-pointer hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 transition-colors"
-                          >
-                            <Calendar className="h-5 w-5 mb-1.5" />
-                            <span className="font-bold text-base">{option.value}</span>
-                            <span className="text-xs text-muted-foreground">meses</span>
-                            {option.discount > 0 && (
-                              <Badge variant="secondary" className="mt-1.5 text-xs text-green-600 px-1.5 py-0">
-                                -{option.discount}%
-                              </Badge>
-                            )}
-                          </Label>
-                        </div>
-                      ))}
+                      {CONTRACT_TERM_OPTIONS.map(option => {
+                        const isSelected = contractConfig.term === option.value;
+                        return (
+                          <div key={option.value}>
+                            <RadioGroupItem value={String(option.value)} id={`term-${option.value}`} className="peer sr-only" />
+                            <Label 
+                              htmlFor={`term-${option.value}`}
+                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                isSelected 
+                                  ? 'border-primary bg-primary/10 shadow-md' 
+                                  : 'border-gray-200 hover:border-primary/50 hover:bg-muted/50'
+                              }`}
+                            >
+                              <Calendar className={`h-5 w-5 mb-2 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <span className={`font-bold text-lg ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                {option.value}
+                              </span>
+                              <span className="text-xs text-muted-foreground mb-1">meses</span>
+                              {option.discount > 0 && (
+                                <Badge 
+                                  variant={isSelected ? "default" : "secondary"} 
+                                  className={`text-xs px-2 py-0.5 mt-1 ${
+                                    isSelected 
+                                      ? 'bg-green-600 text-white' 
+                                      : 'text-green-600 bg-green-50 dark:bg-green-950'
+                                  }`}
+                                >
+                                  -{option.discount}% OFF
+                                </Badge>
+                              )}
+                            </Label>
+                          </div>
+                        );
+                      })}
                     </RadioGroup>
+                    <p className="text-xs text-muted-foreground">
+                      Contratos de 24 e 36 meses oferecem descontos progressivos.
+                    </p>
                   </div>
                   
                   <Separator className="my-3" />
@@ -878,6 +834,40 @@ export default function ContractCheckout() {
                     </RadioGroup>
                   </div>
                   
+                  <Separator className="my-3" />
+                  
+                  {/* Forma de Pagamento */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Forma de Pagamento</Label>
+                    <RadioGroup 
+                      value={contractConfig.billingType} 
+                      onValueChange={(v) => setContractConfig({...contractConfig, billingType: v as BillingType})}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="BOLETO" id="boleto" />
+                        <Label htmlFor="boleto" className="flex items-center gap-2.5 cursor-pointer flex-1">
+                          <FileText className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm">Boleto Bancário</p>
+                            <p className="text-xs text-muted-foreground">Vencimento em 5 dias úteis</p>
+                          </div>
+                        </Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="PIX" id="pix" />
+                        <Label htmlFor="pix" className="flex items-center gap-2.5 cursor-pointer flex-1">
+                          <QrCode className="h-5 w-5 text-green-500 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm">PIX</p>
+                            <p className="text-xs text-muted-foreground">QR Code ou Copia e Cola</p>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
                   {/* Resumo de Descontos */}
                   {totalDiscount > 0 && (
                     <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
@@ -894,60 +884,6 @@ export default function ContractCheckout() {
                       </p>
                     </div>
                   )}
-                </CardContent>
-                <CardFooter className="justify-between">
-                  <Button variant="outline" onClick={handleBack}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Voltar
-                  </Button>
-                  <Button onClick={handleNext}>
-                    Continuar
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
-            
-            {/* Step 4: Forma de Pagamento */}
-            {currentStep === 'pagamento' && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Receipt className="h-4 w-4" />
-                    Forma de Pagamento
-                  </CardTitle>
-                  <CardDescription className="text-xs mt-1">
-                    Escolha como deseja receber as faturas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <RadioGroup 
-                    value={contractConfig.billingType} 
-                    onValueChange={(v) => setContractConfig({...contractConfig, billingType: v as BillingType})}
-                    className="space-y-3"
-                  >
-                    <div className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value="BOLETO" id="boleto" />
-                      <Label htmlFor="boleto" className="flex items-center gap-2.5 cursor-pointer flex-1">
-                        <FileText className="h-5 w-5 text-orange-500 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm">Boleto Bancário</p>
-                          <p className="text-xs text-muted-foreground">Vencimento em 5 dias úteis</p>
-                        </div>
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value="PIX" id="pix" />
-                      <Label htmlFor="pix" className="flex items-center gap-2.5 cursor-pointer flex-1">
-                        <QrCode className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm">PIX</p>
-                          <p className="text-xs text-muted-foreground">QR Code ou Copia e Cola</p>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
                   
                   <Separator className="my-3" />
                   
@@ -1006,7 +942,7 @@ export default function ContractCheckout() {
               </Card>
             )}
             
-            {/* Step 5: Confirmação */}
+            {/* Step 3: Confirmação */}
             {currentStep === 'confirmacao' && (
               <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
                 <CardContent className="pt-8 pb-8 text-center">
@@ -1082,9 +1018,28 @@ export default function ContractCheckout() {
                 <Separator className="my-2" />
                 
                 {/* Total Mensal */}
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-semibold">Valor mensal</span>
-                  <span className="text-base font-bold text-primary">{formatCurrency(discountedMonthly)}</span>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-sm font-semibold">Valor mensal</span>
+                    {totalDiscount > 0 ? (
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatCurrency(totalMonthly)}
+                        </span>
+                        <span className="text-base font-bold text-primary">
+                          {formatCurrency(discountedMonthly)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-base font-bold text-primary">{formatCurrency(discountedMonthly)}</span>
+                    )}
+                  </div>
+                  {totalDiscount > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-green-600">
+                      <Percent className="h-3 w-3" />
+                      <span>Desconto de {totalDiscount}% aplicado</span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Detalhes do Contrato - Compacto */}
