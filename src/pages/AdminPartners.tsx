@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { usePartners, Partner, PartnerFormData } from "@/hooks/usePartners";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { CompanyData } from "@/hooks/useCNPJ";
+import { InputCNPJ } from "@/components/ui/input-masked";
 import { 
   Plus, 
   Building2, 
@@ -56,6 +58,7 @@ const AdminPartners = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
   
   // Partner Details Modal
   const [partnerDetailsOpen, setPartnerDetailsOpen] = useState(false);
@@ -110,6 +113,7 @@ const AdminPartners = () => {
       recurringCommissionMonths: 12
     });
     setCurrentStep(1);
+    setAutoFilledFields(new Set());
   };
 
   const handleOpenWizard = () => {
@@ -185,6 +189,28 @@ const AdminPartners = () => {
       toast.success("Link de afiliado copiado!");
       setTimeout(() => setCopiedToken(null), 2000);
     }
+  };
+
+  // Handler para auto-preenchimento via CNPJ
+  const handleCNPJLoaded = (company: CompanyData) => {
+    const filledFields = new Set<string>();
+    
+    // Preencher dados da empresa
+    if (company.razaoSocial) {
+      filledFields.add('companyName');
+    }
+    
+    // Preencher CNPJ formatado
+    filledFields.add('cnpj');
+
+    setPartnerForm(prev => ({
+      ...prev,
+      cnpj: company.cnpj || prev.cnpj,
+      companyName: company.razaoSocial || prev.companyName,
+    }));
+
+    setAutoFilledFields(filledFields);
+    toast.success('Dados da empresa carregados automaticamente! Você pode revisar e editar se necessário.');
   };
 
   const handleResendAffiliateLink = async (partner: Partner) => {
@@ -728,25 +754,59 @@ const AdminPartners = () => {
                     <Building2 className="h-5 w-5 text-primary" />
                     <h3 className="font-semibold">Dados do Parceiro</h3>
                   </div>
+
+                  {/* CNPJ como campo principal com banner destacado */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary to-primary/90 rounded-lg border-2 border-primary shadow-sm flex-shrink-0 mt-6">
+                      <Building2 className="h-4 w-4 text-white" />
+                      <span className="text-xs font-semibold text-white whitespace-nowrap">Comece digitando o CNPJ</span>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <InputCNPJ
+                        id="cnpj"
+                        label="CNPJ *"
+                        value={partnerForm.cnpj}
+                        onChange={(value) => {
+                          setPartnerForm({ ...partnerForm, cnpj: value });
+                          // Limpar campos auto-preenchidos se CNPJ for removido ou alterado
+                          if (!value || value.length < 18) {
+                            setAutoFilledFields(new Set());
+                            setPartnerForm(prev => ({
+                              ...prev,
+                              cnpj: value,
+                              companyName: '',
+                            }));
+                          }
+                        }}
+                        onCompanyLoaded={handleCNPJLoaded}
+                        autoFetch={true}
+                        showSearchButton={true}
+                        showCompanyPreview={false}
+                        required
+                        inputClassName={autoFilledFields.has('cnpj') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
+                      />
+                      {autoFilledFields.has('cnpj') && (
+                        <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900 text-green-700 dark:text-green-300">
+                          Preenchido automaticamente
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="companyName">Nome da Empresa *</Label>
                     <Input
                       id="companyName"
-                      placeholder="Ex: Consultoria ABC"
+                      placeholder="Será preenchido automaticamente ao digitar o CNPJ"
                       value={partnerForm.companyName}
                       onChange={(e) => setPartnerForm({ ...partnerForm, companyName: e.target.value })}
+                      className={autoFilledFields.has('companyName') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
                     />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cnpj">CNPJ</Label>
-                    <Input
-                      id="cnpj"
-                      placeholder="00.000.000/0000-00"
-                      value={partnerForm.cnpj}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, cnpj: e.target.value })}
-                    />
+                    {autoFilledFields.has('companyName') && (
+                      <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900 text-green-700 dark:text-green-300">
+                        Preenchido automaticamente
+                      </Badge>
+                    )}
                   </div>
                   
                   <div className="space-y-2">

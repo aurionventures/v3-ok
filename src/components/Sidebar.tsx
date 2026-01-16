@@ -234,18 +234,23 @@ const Sidebar = () => {
           {/* Section Items */}
           {section.items.map(item => {
             const Icon = item.icon;
-            // Verificar se é exatamente igual ou se começa com o href + "/"
-            // Mas não marcar se for um subcaminho de outro item da mesma seção
+            // Verificar se é exatamente igual
             let isActive = pathname === item.href;
             
-            if (!isActive && item.href !== "/admin" && pathname.startsWith(item.href)) {
-              // Verificar se não é um subcaminho de outro item na mesma seção
-              const hasLongerMatch = section.items.some(otherItem => 
-                otherItem.href !== item.href && 
-                pathname.startsWith(otherItem.href) &&
-                otherItem.href.length > item.href.length
-              );
-              isActive = !hasLongerMatch;
+            // Se não for exatamente igual, verificar se é um subcaminho direto
+            // Mas só marcar se não houver outro item com href mais longo que também match
+            if (!isActive && item.href !== "/admin") {
+              const isSubPath = pathname.startsWith(item.href + "/");
+              
+              if (isSubPath) {
+                // Verificar se existe outro item com href mais longo que também faz match
+                const hasLongerMatch = section.items.some(otherItem => 
+                  otherItem.href !== item.href && 
+                  otherItem.href.length > item.href.length &&
+                  pathname.startsWith(otherItem.href)
+                );
+                isActive = !hasLongerMatch;
+              }
             }
             
             return (
