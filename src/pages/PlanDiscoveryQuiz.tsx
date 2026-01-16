@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -79,6 +79,7 @@ function saveQuizResponse(data: {
 
 export default function PlanDiscoveryQuiz() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>('faturamento');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,6 +93,21 @@ export default function PlanDiscoveryQuiz() {
     contatoEmail: '',
     contatoWhatsapp: ''
   });
+
+  // Capturar token de afiliado da URL (?ref=aff_XXXXX)
+  useEffect(() => {
+    const affiliateToken = searchParams.get('ref');
+    if (affiliateToken && affiliateToken.startsWith('aff_')) {
+      // Salvar token no localStorage para ser usado pelo funil PLG
+      localStorage.setItem('plg_affiliate_token', affiliateToken);
+      // Limpar parâmetro da URL para manter a URL limpa
+      if (window.history.replaceState) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+      console.log('✅ Token de afiliado capturado:', affiliateToken);
+    }
+  }, [searchParams]);
 
   // Integração com ISCA (GovMetrix) - pré-popular dados se existirem
   useEffect(() => {

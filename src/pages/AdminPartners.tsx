@@ -16,15 +16,13 @@ import { usePartners, Partner, PartnerFormData } from "@/hooks/usePartners";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyData } from "@/hooks/useCNPJ";
-import { InputCNPJ } from "@/components/ui/input-masked";
+import { InputCNPJ, InputPhone } from "@/components/ui/input-masked";
 import { 
   Plus, 
   Building2, 
   User, 
   Palette, 
   CheckCircle, 
-  ChevronRight, 
-  ChevronLeft, 
   MoreHorizontal, 
   Edit, 
   Trash2, 
@@ -38,9 +36,7 @@ import {
   Loader2,
   Link as LinkIcon,
   Copy,
-  Check,
-  DollarSign,
-  TrendingUp
+  Check
 } from "lucide-react";
 
 const PARTNER_TYPES = [
@@ -52,13 +48,15 @@ const PARTNER_TYPES = [
 
 const AdminPartners = () => {
   const navigate = useNavigate();
-  const { partners, loading, createPartner, updatePartnerSettings, updatePartnerStatus, deletePartner } = usePartners();
+  const { partners, loading, createPartner, updatePartnerSettings, updatePartnerStatus, deletePartner, fetchPartners } = usePartners();
   
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+  const [affiliateLinkModalOpen, setAffiliateLinkModalOpen] = useState(false);
+  const [newPartnerAffiliateLink, setNewPartnerAffiliateLink] = useState<string | null>(null);
+  const [newPartnerToken, setNewPartnerToken] = useState<string | null>(null);
   
   // Partner Details Modal
   const [partnerDetailsOpen, setPartnerDetailsOpen] = useState(false);
@@ -77,7 +75,7 @@ const AdminPartners = () => {
   const [partnerForm, setPartnerForm] = useState<PartnerFormData>({
     companyName: '',
     cnpj: '',
-    type: '',
+    type: 'afiliado', // Valor padrão
     adminName: '',
     adminEmail: '',
     adminPhone: '',
@@ -86,21 +84,15 @@ const AdminPartners = () => {
     customDomain: '',
     commission: 15,
     commissionService: 0,
-    commissionRecurring: 15,
+    commissionRecurring: 0,
     recurringCommissionMonths: 12
   });
-
-  const steps = [
-    { number: 1, label: "Parceiro + Admin", icon: Building2 },
-    { number: 2, label: "Comissões", icon: Percent },
-    { number: 3, label: "Ativar Parceiro", icon: CheckCircle }
-  ];
 
   const resetForm = () => {
     setPartnerForm({
       companyName: '',
       cnpj: '',
-      type: '',
+      type: 'afiliado', // Valor padrão
       adminName: '',
       adminEmail: '',
       adminPhone: '',
@@ -109,10 +101,9 @@ const AdminPartners = () => {
       customDomain: '',
       commission: 15,
       commissionService: 0,
-      commissionRecurring: 15,
+      commissionRecurring: 0,
       recurringCommissionMonths: 12
     });
-    setCurrentStep(1);
     setAutoFilledFields(new Set());
   };
 
@@ -121,15 +112,56 @@ const AdminPartners = () => {
     setWizardOpen(true);
   };
 
-  const handleActivatePartner = async () => {
+  const handleCreatePartner = async () => {
     setSaving(true);
-    const result = await createPartner(partnerForm);
-    setSaving(false);
-    
-    if (result.success) {
-      setWizardOpen(false);
-      resetForm();
-      toast.success("Parceiro ativado com sucesso! Convite enviado para " + partnerForm.adminEmail);
+    try {
+      const result = await createPartner(partnerForm);
+      
+      if (result.success) {
+        let affiliateToken = result.affiliateToken;
+        
+        // Se não tiver token na resposta, buscar do banco
+        if (!affiliateToken && result.userId) {
+          console.log('🔍 Token não veio na resposta, buscando do banco...');
+          await fetchPartners();
+          const { data: partnerData, error: fetchError } = await supabase
+            .from('partner_settings')
+            .select('affiliate_token')
+            .eq('user_id', result.userId)
+            .single();
+          
+          if (fetchError) {
+            console.error('Erro ao buscar token:', fetchError);
+          } else if (partnerData?.affiliate_token) {
+            affiliateToken = partnerData.affiliate_token;
+            console.log('✅ Token encontrado no banco:', affiliateToken);
+          }
+        }
+        
+        if (affiliateToken) {
+          const baseUrl = window.location.origin;
+          const affiliateLink = `${baseUrl}/plan-discovery?ref=${affiliateToken}`;
+          setNewPartnerToken(affiliateToken);
+          setNewPartnerAffiliateLink(affiliateLink);
+          setWizardOpen(false);
+          resetForm();
+          setAffiliateLinkModalOpen(true);
+          toast.success('Parceiro cadastrado com sucesso!');
+        } else {
+          // Parceiro criado mas sem token - ainda assim mostrar sucesso
+          setWizardOpen(false);
+          resetForm();
+          toast.success('Parceiro cadastrado com sucesso! O link de afiliado será gerado em breve.');
+        }
+      } else {
+        // Erro já foi mostrado no toast pelo createPartner
+        console.error('Erro ao criar parceiro:', result.error);
+      }
+    } catch (error: any) {
+      console.error('Erro inesperado:', error);
+      toast.error(error.message || 'Erro inesperado ao criar parceiro');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -178,7 +210,7 @@ const AdminPartners = () => {
     const token = partner.settings?.affiliate_token;
     if (!token) return null;
     const baseUrl = window.location.origin;
-    return `${baseUrl}/?ref=${token}`;
+    return `${baseUrl}/plan-discovery?ref=${token}`;
   };
 
   const handleCopyAffiliateLink = (partner: Partner) => {
@@ -195,22 +227,31 @@ const AdminPartners = () => {
   const handleCNPJLoaded = (company: CompanyData) => {
     const filledFields = new Set<string>();
     
+    // Preencher CNPJ formatado
+    if (company.cnpj) {
+      filledFields.add('cnpj');
+    }
+    
     // Preencher dados da empresa
     if (company.razaoSocial) {
       filledFields.add('companyName');
     }
-    
-    // Preencher CNPJ formatado
-    filledFields.add('cnpj');
 
+    // Atualizar o formulário com os dados da empresa
     setPartnerForm(prev => ({
       ...prev,
       cnpj: company.cnpj || prev.cnpj,
-      companyName: company.razaoSocial || prev.companyName,
+      companyName: company.razaoSocial || prev.companyName || '',
     }));
 
+    // Atualizar os campos auto-preenchidos
     setAutoFilledFields(filledFields);
-    toast.success('Dados da empresa carregados automaticamente! Você pode revisar e editar se necessário.');
+    
+    if (company.razaoSocial) {
+      toast.success('Dados da empresa carregados automaticamente! Você pode revisar e editar se necessário.');
+    } else {
+      toast.warning('CNPJ encontrado, mas alguns dados não puderam ser preenchidos automaticamente.');
+    }
   };
 
   const handleResendAffiliateLink = async (partner: Partner) => {
@@ -258,14 +299,27 @@ const AdminPartners = () => {
     return PARTNER_TYPES.find(t => t.value === type)?.label || type || 'Consultoria';
   };
 
-  const canAdvance = () => {
-    if (currentStep === 1) {
-      return partnerForm.companyName && partnerForm.type && partnerForm.adminName && partnerForm.adminEmail;
+  const getValidationErrors = () => {
+    const errors: string[] = [];
+    if (!partnerForm.companyName || partnerForm.companyName.trim().length === 0) {
+      errors.push('Nome / Razão Social');
     }
-    if (currentStep === 2) {
-      return partnerForm.commissionRecurring > 0;
+    const phoneCleaned = partnerForm.adminPhone?.replace(/\D/g, '') || '';
+    if (!partnerForm.adminPhone || phoneCleaned.length < 10) {
+      errors.push('WhatsApp');
     }
-    return true;
+    if (!partnerForm.adminEmail || partnerForm.adminEmail.trim().length === 0 || !partnerForm.adminEmail.includes('@')) {
+      errors.push('Email');
+    }
+    if (!partnerForm.type || partnerForm.type.trim().length === 0) {
+      errors.push('Tipo');
+    }
+    // Comissões são opcionais, não precisam ser validadas
+    return errors;
+  };
+
+  const canCreate = () => {
+    return getValidationErrors().length === 0;
   };
 
   // Buscar comissões dos parceiros
@@ -711,414 +765,217 @@ const AdminPartners = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Wizard Dialog */}
+      {/* Partner Registration Dialog */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Novo Parceiro</DialogTitle>
             <DialogDescription>
-              Cadastre um novo parceiro em 3 passos simples
+              Cadastre um novo parceiro na plataforma
             </DialogDescription>
           </DialogHeader>
 
-          {/* Stepper */}
-          <div className="flex items-center justify-center gap-2 py-4 border-b">
-            {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <div
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                    currentStep === step.number
-                      ? "bg-primary text-primary-foreground"
-                      : currentStep > step.number
-                      ? "bg-emerald-500 text-white"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <step.icon className="h-4 w-4" />
-                  <span className="text-sm font-medium hidden sm:inline">{step.label}</span>
-                </div>
-                {index < steps.length - 1 && (
-                  <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground" />
-                )}
+          {/* Compact Form */}
+          <div className="space-y-4 py-4">
+            {/* CNPJ com auto-complete */}
+            <div className="space-y-2">
+              <InputCNPJ
+                id="cnpj"
+                label="CNPJ"
+                value={partnerForm.cnpj}
+                onChange={(value, company) => {
+                  const cnpjCleaned = value?.replace(/\D/g, '') || '';
+                  
+                  // Se os dados da empresa foram carregados via onChange, preencher automaticamente
+                  if (company && company.razaoSocial) {
+                    const filledFields = new Set<string>(['cnpj', 'companyName']);
+                    setAutoFilledFields(filledFields);
+                    setPartnerForm(prev => ({
+                      ...prev,
+                      cnpj: value,
+                      companyName: company.razaoSocial,
+                    }));
+                  } else {
+                    if (!value || cnpjCleaned.length === 0) {
+                      setAutoFilledFields(new Set());
+                      setPartnerForm(prev => ({
+                        ...prev,
+                        cnpj: value,
+                        companyName: '',
+                      }));
+                    } else {
+                      setPartnerForm(prev => ({
+                        ...prev,
+                        cnpj: value,
+                      }));
+                    }
+                  }
+                }}
+                onCompanyLoaded={handleCNPJLoaded}
+                autoFetch={true}
+                showSearchButton={true}
+                showCompanyPreview={false}
+                inputClassName={autoFilledFields.has('cnpj') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
+              />
+            </div>
+
+            {/* Nome / Razão Social */}
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Nome / Razão Social *</Label>
+              <Input
+                id="companyName"
+                placeholder="Nome do parceiro"
+                value={partnerForm.companyName}
+                onChange={(e) => setPartnerForm({ ...partnerForm, companyName: e.target.value })}
+                className={autoFilledFields.has('companyName') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
+              />
+            </div>
+
+            {/* WhatsApp */}
+            <div className="space-y-2">
+              <InputPhone
+                id="adminPhone"
+                label="WhatsApp *"
+                value={partnerForm.adminPhone}
+                onChange={(value) => setPartnerForm({ ...partnerForm, adminPhone: value })}
+                required
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="adminEmail">Email *</Label>
+              <Input
+                id="adminEmail"
+                type="email"
+                placeholder="email@empresa.com"
+                value={partnerForm.adminEmail}
+                onChange={(e) => setPartnerForm({ ...partnerForm, adminEmail: e.target.value })}
+              />
+            </div>
+
+            {/* Tipo de Parceria */}
+            <div className="space-y-2">
+              <Label htmlFor="type">Tipo *</Label>
+              <Select
+                value={partnerForm.type}
+                onValueChange={(value) => setPartnerForm({ ...partnerForm, type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="afiliado">Afiliado</SelectItem>
+                  <SelectItem value="parceiro">Parceiro</SelectItem>
+                  <SelectItem value="revenda">Revenda</SelectItem>
+                  <SelectItem value="consultoria">Consultoria</SelectItem>
+                  <SelectItem value="integrador">Integrador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Comissões em 3 colunas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Comissão Serviço */}
+              <div className="space-y-2">
+                <Label htmlFor="commissionService">Comissão Serviço (%)</Label>
+                <Input
+                  id="commissionService"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={partnerForm.commissionService || ''}
+                  onChange={(e) => setPartnerForm({ ...partnerForm, commissionService: e.target.value ? Number(e.target.value) : 0 })}
+                  placeholder="0"
+                />
               </div>
-            ))}
+
+              {/* Comissão Recorrência */}
+              <div className="space-y-2">
+                <Label htmlFor="commissionRecurring">Comissão Recorrência (%)</Label>
+                <Input
+                  id="commissionRecurring"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={partnerForm.commissionRecurring || ''}
+                  onChange={(e) => setPartnerForm({ ...partnerForm, commissionRecurring: e.target.value ? Number(e.target.value) : 0 })}
+                  placeholder="0"
+                />
+              </div>
+
+              {/* Período de Comissão SaaS */}
+              <div className="space-y-2">
+                <Label htmlFor="recurringCommissionMonths">Período de Comissão SaaS</Label>
+                <Select
+                  value={partnerForm.recurringCommissionMonths.toString()}
+                  onValueChange={(value) => setPartnerForm({ ...partnerForm, recurringCommissionMonths: Number(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 meses</SelectItem>
+                    <SelectItem value="6">6 meses</SelectItem>
+                    <SelectItem value="12">12 meses (Total do contrato)</SelectItem>
+                    <SelectItem value="18">18 meses</SelectItem>
+                    <SelectItem value="24">24 meses</SelectItem>
+                    <SelectItem value="36">36 meses</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Após este período, o parceiro não recebe mais comissão de recorrência
+            </p>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value="active"
+                onValueChange={(value) => {
+                  // Status é sempre ativo ao criar
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="suspended">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Step 1: Parceiro + Admin */}
-          {currentStep === 1 && (
-            <div className="space-y-6 py-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Dados do Parceiro */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Building2 className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Dados do Parceiro</h3>
-                  </div>
-
-                  {/* CNPJ como campo principal com banner destacado */}
-                  <div className="space-y-4 mb-6">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary to-primary/90 rounded-lg border-2 border-primary shadow-sm">
-                      <Building2 className="h-5 w-5 text-white flex-shrink-0" />
-                      <span className="text-sm font-semibold text-white">Comece digitando o CNPJ</span>
-                    </div>
-                    <div className="space-y-2">
-                      <InputCNPJ
-                        id="cnpj"
-                        label="CNPJ *"
-                        value={partnerForm.cnpj}
-                        onChange={(value) => {
-                          setPartnerForm({ ...partnerForm, cnpj: value });
-                          // Limpar campos auto-preenchidos se CNPJ for removido ou alterado
-                          if (!value || value.length < 18) {
-                            setAutoFilledFields(new Set());
-                            setPartnerForm(prev => ({
-                              ...prev,
-                              cnpj: value,
-                              companyName: '',
-                            }));
-                          }
-                        }}
-                        onCompanyLoaded={handleCNPJLoaded}
-                        autoFetch={true}
-                        showSearchButton={true}
-                        showCompanyPreview={false}
-                        required
-                        inputClassName={autoFilledFields.has('cnpj') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
-                      />
-                      {autoFilledFields.has('cnpj') && (
-                        <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900 text-green-700 dark:text-green-300">
-                          Preenchido automaticamente
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Nome da Empresa *</Label>
-                    <Input
-                      id="companyName"
-                      placeholder="Será preenchido automaticamente ao digitar o CNPJ"
-                      value={partnerForm.companyName}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, companyName: e.target.value })}
-                      className={autoFilledFields.has('companyName') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
-                    />
-                    {autoFilledFields.has('companyName') && (
-                      <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900 text-green-700 dark:text-green-300">
-                        Preenchido automaticamente
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Tipo de Parceria *</Label>
-                    <Select
-                      value={partnerForm.type}
-                      onValueChange={(value) => setPartnerForm({ ...partnerForm, type: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PARTNER_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Dados do Administrador */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <User className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Administrador do Parceiro</h3>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="adminName">Nome do Responsável *</Label>
-                    <Input
-                      id="adminName"
-                      placeholder="Ex: João Silva"
-                      value={partnerForm.adminName}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, adminName: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="adminEmail">Email *</Label>
-                    <Input
-                      id="adminEmail"
-                      type="email"
-                      placeholder="email@parceiro.com"
-                      value={partnerForm.adminEmail}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, adminEmail: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="adminPhone">Telefone</Label>
-                    <Input
-                      id="adminPhone"
-                      placeholder="(00) 00000-0000"
-                      value={partnerForm.adminPhone}
-                      onChange={(e) => setPartnerForm({ ...partnerForm, adminPhone: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Comissões */}
-          {currentStep === 2 && (
-            <div className="space-y-6 py-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Percent className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Configuração de Comissões</h3>
-              </div>
-
-              <div className="space-y-6">
-                {/* Comissão por Recorrência */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" />
-                      Comissão por Recorrência (Mensalidades)
-                    </CardTitle>
-                    <CardDescription>
-                      Percentual de comissão sobre mensalidades recorrentes
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="commissionRecurring" className="flex items-center gap-2">
-                        <Percent className="h-4 w-4" />
-                        Taxa de Comissão Recorrente (%) *
-                      </Label>
-                      <Input
-                        id="commissionRecurring"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={partnerForm.commissionRecurring}
-                        onChange={(e) => setPartnerForm({ ...partnerForm, commissionRecurring: Number(e.target.value) })}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Percentual de comissão sobre cada mensalidade recebida
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="recurringCommissionMonths">
-                        Prazo de Valor da Mensalidade de Recorrência (meses) *
-                      </Label>
-                      <Input
-                        id="recurringCommissionMonths"
-                        type="number"
-                        min="1"
-                        max="36"
-                        value={partnerForm.recurringCommissionMonths}
-                        onChange={(e) => setPartnerForm({ ...partnerForm, recurringCommissionMonths: Number(e.target.value) })}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Quantos meses de mensalidade considerar para cálculo da comissão de recorrência
-                      </p>
-                    </div>
-
-                    {partnerForm.commissionRecurring > 0 && partnerForm.recurringCommissionMonths > 0 && (
-                      <div className="p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium mb-1">Exemplo de Cálculo:</p>
-                        <p className="text-xs text-muted-foreground">
-                          Para uma mensalidade de R$ 1.000,00 com {partnerForm.commissionRecurring}% de comissão sobre {partnerForm.recurringCommissionMonths} meses:
-                        </p>
-                        <p className="text-sm font-bold text-primary mt-1">
-                          Comissão Total: R$ {(1000 * partnerForm.commissionRecurring / 100 * partnerForm.recurringCommissionMonths).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Comissão por Serviço */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Comissão por Serviço (One-Time/Setup)
-                    </CardTitle>
-                    <CardDescription>
-                      Percentual de comissão sobre vendas de serviços únicos (taxa de setup, etc.)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Label htmlFor="commissionService" className="flex items-center gap-2">
-                        <Percent className="h-4 w-4" />
-                        Taxa de Comissão por Serviço (%)
-                      </Label>
-                      <Input
-                        id="commissionService"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={partnerForm.commissionService}
-                        onChange={(e) => setPartnerForm({ ...partnerForm, commissionService: Number(e.target.value) })}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Percentual de comissão sobre vendas de serviços únicos (ex: taxa de setup). Deixe em 0 se não aplicável.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Ativar Parceiro */}
-          {currentStep === 3 && (
-            <div className="space-y-6 py-6">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle className="h-5 w-5 text-emerald-500" />
-                <h3 className="font-semibold">Resumo e Ativação</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dados do Parceiro */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Dados do Parceiro
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Empresa:</span>
-                      <span className="font-medium">{partnerForm.companyName}</span>
-                    </div>
-                    {partnerForm.cnpj && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">CNPJ:</span>
-                        <span>{partnerForm.cnpj}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tipo:</span>
-                      <Badge variant="outline">{getPartnerTypeLabel(partnerForm.type)}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Dados do Admin */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Administrador
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Nome:</span>
-                      <span className="font-medium">{partnerForm.adminName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span>{partnerForm.adminEmail}</span>
-                    </div>
-                    {partnerForm.adminPhone && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Telefone:</span>
-                        <span>{partnerForm.adminPhone}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Comissões Config */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Percent className="h-4 w-4" />
-                    Configuração de Comissões
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Comissão Recorrente:</span>
-                      <Badge className="bg-blue-500 gap-1">
-                        <Percent className="h-3 w-3" />
-                        {partnerForm.commissionRecurring}% ({partnerForm.recurringCommissionMonths} meses)
-                      </Badge>
-                    </div>
-                    {partnerForm.commissionService > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Comissão por Serviço:</span>
-                        <Badge variant="outline" className="gap-1">
-                          <Percent className="h-3 w-3" />
-                          {partnerForm.commissionService}%
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <Send className="h-4 w-4 inline mr-2" />
-                  Ao ativar, um convite será enviado para <strong>{partnerForm.adminEmail}</strong> com as instruções de acesso.
-                </p>
-              </div>
-            </div>
-          )}
-
           <DialogFooter className="flex justify-between gap-2 pt-4 border-t">
-            <div>
-              {currentStep > 1 && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  className="gap-2"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Voltar
-                </Button>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setWizardOpen(false)}>
-                Cancelar
-              </Button>
-              {currentStep < 3 ? (
-                <Button
-                  onClick={() => setCurrentStep(currentStep + 1)}
-                  disabled={!canAdvance()}
-                  className="gap-2 bg-primary hover:bg-primary/90 text-white min-w-[120px]"
-                  size="lg"
-                >
-                  Próximo
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleActivatePartner}
-                  disabled={saving}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-                >
-                  {saving ? (
+            <Button variant="outline" onClick={() => setWizardOpen(false)}>
+              Cancelar
+            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleCreatePartner}
+                disabled={saving || !canCreate()}
+                className="gap-2 bg-primary hover:bg-primary/90"
+              >
+                {saving ? (
+                  <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <CheckCircle className="h-4 w-4" />
-                  )}
-                  Ativar Parceiro e Enviar Convite
-                </Button>
+                    Cadastrando...
+                  </>
+                ) : (
+                  'Cadastrar Parceiro'
+                )}
+              </Button>
+              {!canCreate() && getValidationErrors().length > 0 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Preencha os seguintes campos obrigatórios: {getValidationErrors().join(', ')}
+                </p>
               )}
             </div>
           </DialogFooter>
@@ -1309,6 +1166,120 @@ const AdminPartners = () => {
               }
             }}>
               Editar Configurações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Link de Afiliado */}
+      <Dialog open={affiliateLinkModalOpen} onOpenChange={setAffiliateLinkModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-primary" />
+              Link de Afiliado Gerado
+            </DialogTitle>
+            <DialogDescription>
+              Parceiro cadastrado com sucesso! Compartilhe este link para que clientes possam fazer adesão.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Link de Afiliado</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Link Completo</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newPartnerAffiliateLink || ''}
+                      readOnly
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        if (newPartnerAffiliateLink) {
+                          navigator.clipboard.writeText(newPartnerAffiliateLink);
+                          toast.success("Link copiado!");
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {newPartnerToken && (
+                  <div className="space-y-2">
+                    <Label>Token de Afiliado</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newPartnerToken}
+                        readOnly
+                        className="font-mono text-sm"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          navigator.clipboard.writeText(newPartnerToken);
+                          toast.success("Token copiado!");
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-900">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Como usar:</strong> Compartilhe este link com seus clientes. Quando eles acessarem através do link, serão automaticamente atribuídos ao seu parceiro e você receberá comissão sobre as vendas.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAffiliateLinkModalOpen(false)}>
+              Fechar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (newPartnerAffiliateLink && partnerForm.adminEmail) {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('send-affiliate-link', {
+                      body: {
+                        partner_email: partnerForm.adminEmail,
+                        partner_name: partnerForm.adminName,
+                        company_name: partnerForm.companyName,
+                        affiliate_token: newPartnerToken || '',
+                        affiliate_link: newPartnerAffiliateLink,
+                      },
+                    });
+
+                    if (error) throw error;
+
+                    if (data?.success) {
+                      toast.success(`Link de afiliado enviado por email para ${partnerForm.adminEmail}`);
+                      setAffiliateLinkModalOpen(false);
+                    } else {
+                      toast.error(data?.message || 'Erro ao enviar email');
+                    }
+                  } catch (error: any) {
+                    console.error('Erro ao enviar link:', error);
+                    toast.error(error.message || 'Erro ao enviar link por email');
+                  }
+                }
+              }}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Enviar Link por Email
             </Button>
           </DialogFooter>
         </DialogContent>

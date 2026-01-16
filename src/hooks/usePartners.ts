@@ -139,71 +139,215 @@ export function usePartners() {
 
   const createPartner = async (formData: PartnerFormData) => {
     try {
-      // 1. Criar usuário na tabela users
-      const { data: newUser, error: userError } = await supabase
-        .from('users')
-        .insert({
-          email: formData.adminEmail,
-          name: formData.adminName,
-          company: formData.companyName,
-          phone: formData.adminPhone,
-        })
-        .select()
-        .single();
+      console.log('🔍 Criando parceiro com dados:', {
+        email: formData.adminEmail,
+        name: formData.adminName,
+        companyName: formData.companyName,
+        type: formData.type,
+      });
 
-      if (userError) throw userError;
+      // Tentar usar Edge Function primeiro
+      let affiliateToken: string | null = null;
+      let userId: string | null = null;
 
-      // 2. Adicionar role de parceiro
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: newUser.id,
-          role: 'parceiro',
+      try {
+        const { data, error } = await supabase.functions.invoke('create-partner', {
+          method: 'POST',
+          body: {
+            email: formData.adminEmail,
+            name: formData.adminName,
+            companyName: formData.companyName,
+            phone: formData.adminPhone || null,
+            cnpj: formData.cnpj || null,
+            type: formData.type || 'consultoria',
+            primaryColor: formData.primaryColor || '#3B82F6',
+            secondaryColor: formData.secondaryColor || '#1E40AF',
+            customDomain: formData.customDomain || null,
+            commission: formData.commission || 15,
+            commissionService: formData.commissionService || null,
+            commissionRecurring: formData.commissionRecurring || null,
+            recurringCommissionMonths: formData.recurringCommissionMonths || 12,
+          },
         });
 
-      if (roleError) throw roleError;
+        console.log('📥 Resposta da Edge Function:', { data, error });
 
-      // 3. Tentar criar settings (se tabela existir)
-      try {
-        // Gerar token de afiliado (a função do banco vai gerar automaticamente)
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('partner_settings' as any)
-          .insert({
-            user_id: newUser.id,
-            company_name: formData.companyName,
-            cnpj: formData.cnpj || null,
-            partner_type: formData.type,
-            admin_phone: formData.adminPhone || null,
-            primary_color: formData.primaryColor,
-            secondary_color: formData.secondaryColor,
-            custom_domain: formData.customDomain || null,
-            commission: formData.commission,
-            commission_service: formData.commissionService || null,
-            commission_recurring: formData.commissionRecurring || null,
-            recurring_commission_months: formData.recurringCommissionMonths || 12,
-            status: 'active',
-          })
-          .select('affiliate_token')
-          .single();
-
-        // Se o token não foi gerado automaticamente, gerar manualmente
-        if (settingsData && !settingsData.affiliate_token) {
-          const token = `aff_${Math.random().toString(36).substring(2, 14).toUpperCase()}`;
-          await supabase
-            .from('partner_settings' as any)
-            .update({ affiliate_token: token })
-            .eq('user_id', newUser.id);
+        if (!error && data?.success) {
+          userId = data.userId;
+          affiliateToken = data.affiliateToken || null;
+        } else {
+          throw new Error('Edge Function não disponível, usando método alternativo');
         }
-      } catch {
-        console.log('Could not create partner_settings, table may not exist');
+      } catch (edgeError: any) {
+        console.log('⚠️ Edge Function não disponível, usando método alternativo:', edgeError);
+        
+        // Método alternativo: criar usuário via signUp e depois criar settings
+        // Gerar senha temporária
+        const tempPassword = Math.random().toString(36).slice(-12) + 'A1!@#';
+        
+        // Criar usuário via auth.signUp
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.adminEmail,
+          password: tempPassword,
+          options: {
+            data: {
+              name: formData.adminName,
+              company: formData.companyName,
+              role: 'parceiro',
+            },
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+
+        if (authError) {
+          // Se o usuário já existe, buscar do banco
+          if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+            const { data: existingUsers } = await supabase
+              .from('users')
+              .select('id')
+              .eq('email', formData.adminEmail)
+              .single();
+            
+            if (existingUsers) {
+              userId = existingUsers.id;
+            } else {
+              throw new Error('Usuário já existe mas não foi encontrado no banco');
+            }
+          } else {
+            throw authError;
+          }
+        } else if (authData?.user) {
+          userId = authData.user.id;
+          
+          // Criar registro na tabela users
+          await supabase
+            .from('users')
+            .upsert({
+              id: userId,
+              email: formData.adminEmail,
+              name: formData.adminName,
+              company: formData.companyName,
+              phone: formData.adminPhone || null,
+            }, {
+              onConflict: 'id'
+            });
+        } else {
+          throw new Error('Falha ao criar usuário');
+        }
+
+        // Adicionar role de parceiro
+        await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: userId,
+            role: 'parceiro',
+          }, {
+            onConflict: 'user_id,role'
+          });
+
+        // Criar/atualizar partner_settings usando função RPC
+        // Tentar usar função RPC primeiro (gera token automaticamente)
+        try {
+          const { data: rpcData, error: rpcError } = await supabase.rpc('setup_partner_settings', {
+            p_user_id: userId,
+            p_company_name: formData.companyName,
+            p_phone: formData.adminPhone || null,
+            p_cnpj: formData.cnpj || null,
+            p_type: formData.type || 'consultoria',
+            p_primary_color: formData.primaryColor || '#3B82F6',
+            p_secondary_color: formData.secondaryColor || '#1E40AF',
+            p_custom_domain: formData.customDomain || null,
+            p_commission: formData.commission || 15,
+            p_commission_service: formData.commissionService || null,
+            p_commission_recurring: formData.commissionRecurring || null,
+            p_recurring_commission_months: formData.recurringCommissionMonths || 12,
+          });
+
+          if (!rpcError && rpcData?.success) {
+            affiliateToken = rpcData.affiliateToken;
+            console.log('✅ Settings criadas via RPC:', rpcData);
+          } else {
+            throw new Error('RPC não disponível, usando método direto');
+          }
+        } catch (rpcErr: any) {
+          console.log('⚠️ RPC não disponível, usando método direto:', rpcErr);
+          
+          // Método direto: inserir/atualizar partner_settings
+          // Gerar token de afiliado manualmente
+          affiliateToken = `aff_${Math.random().toString(36).substring(2, 14).toUpperCase()}`;
+          
+          const { data: settingsData, error: settingsError } = await supabase
+            .from('partner_settings')
+            .upsert({
+              user_id: userId,
+              company_name: formData.companyName,
+              cnpj: formData.cnpj || null,
+              partner_type: formData.type || 'consultoria',
+              admin_phone: formData.adminPhone || null,
+              primary_color: formData.primaryColor || '#3B82F6',
+              secondary_color: formData.secondaryColor || '#1E40AF',
+              custom_domain: formData.customDomain || null,
+              commission: formData.commission || 15,
+              commission_service: formData.commissionService || null,
+              commission_recurring: formData.commissionRecurring || null,
+              recurring_commission_months: formData.recurringCommissionMonths || 12,
+              affiliate_token: affiliateToken,
+              status: 'active',
+            }, {
+              onConflict: 'user_id'
+            })
+            .select('affiliate_token')
+            .single();
+
+          if (settingsError) {
+            console.error('Erro ao criar partner_settings:', settingsError);
+            // Tentar buscar o token se já existir
+            const { data: existing } = await supabase
+              .from('partner_settings')
+              .select('affiliate_token')
+              .eq('user_id', userId)
+              .single();
+            
+            if (existing?.affiliate_token) {
+              affiliateToken = existing.affiliate_token;
+            }
+          } else {
+            affiliateToken = settingsData?.affiliate_token || affiliateToken;
+          }
+        }
       }
 
+      if (!userId) {
+        throw new Error('Falha ao obter ID do usuário');
+      }
+
+      console.log('✅ Parceiro criado com sucesso:', {
+        userId,
+        affiliateToken,
+      });
+
       await fetchPartners();
-      return { success: true, userId: newUser.id };
+      return { 
+        success: true, 
+        userId,
+        affiliateToken: affiliateToken || null
+      };
     } catch (err: any) {
-      console.error('Error creating partner:', err);
-      toast.error(err.message || 'Erro ao criar parceiro');
-      return { success: false, error: err.message };
+      console.error('❌ Erro completo ao criar parceiro:', err);
+      
+      // Tratamento específico para diferentes tipos de erro
+      let errorMessage = 'Erro ao criar parceiro. Tente novamente.';
+      
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.message?.includes('Load failed')) {
+        errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      } else if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
+        errorMessage = 'Este email já está cadastrado. Use outro email ou edite o parceiro existente.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
