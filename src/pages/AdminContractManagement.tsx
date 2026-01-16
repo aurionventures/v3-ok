@@ -55,6 +55,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 
 interface Contract {
   id: string;
@@ -82,12 +83,110 @@ const getMockContracts = (): Contract[] => {
   const stored = localStorage.getItem("contracts");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (parsed && parsed.length > 0) {
+        return parsed;
+      }
     } catch {
-      return [];
+      // Se houver erro, usar dados de exemplo
     }
   }
-  return [];
+  
+  // Dados de exemplo para visualização
+  const mockData: Contract[] = [
+    {
+      id: "1",
+      contract_number: "CONT-2026-0001",
+      client_name: "Empresa ABC Ltda",
+      client_document: "12.345.678/0001-90",
+      client_email: "contato@empresaabc.com.br",
+      signatory_name: "João Silva",
+      plan_name: "Profissional",
+      monthly_value: 4796,
+      status: "active",
+      created_at: new Date(2026, 0, 10).toISOString(),
+      sent_at: new Date(2026, 0, 12).toISOString(),
+      client_signed_at: new Date(2026, 0, 15).toISOString(),
+      counter_signed_at: new Date(2026, 0, 15).toISOString(),
+      origin: "PLG",
+    },
+    {
+      id: "2",
+      contract_number: "CONT-2026-0002",
+      client_name: "Tech Solutions XYZ S.A.",
+      client_document: "98.765.432/0001-10",
+      client_email: "legal@techxyz.com.br",
+      signatory_name: "Maria Santos",
+      plan_name: "Business",
+      monthly_value: 8997,
+      status: "pending_signature",
+      created_at: new Date(2026, 0, 8).toISOString(),
+      sent_at: new Date(2026, 0, 10).toISOString(),
+      origin: "SLG",
+    },
+    {
+      id: "3",
+      contract_number: "CONT-2026-0003",
+      client_name: "Governança Corporativa Ltda",
+      client_document: "11.222.333/0001-44",
+      client_email: "admin@govcorp.com.br",
+      signatory_name: "Carlos Oliveira",
+      plan_name: "Essencial",
+      monthly_value: 3997,
+      status: "draft",
+      created_at: new Date(2026, 0, 5).toISOString(),
+      origin: "PLG",
+    },
+    {
+      id: "4",
+      contract_number: "CONT-2026-0004",
+      client_name: "Inovação Digital S.A.",
+      client_document: "55.666.777/0001-88",
+      client_email: "financeiro@inovacao.com.br",
+      signatory_name: "Ana Paula",
+      plan_name: "Enterprise",
+      monthly_value: 14997,
+      status: "pending_counter_signature",
+      created_at: new Date(2025, 11, 28).toISOString(),
+      sent_at: new Date(2025, 11, 30).toISOString(),
+      client_signed_at: new Date(2026, 0, 2).toISOString(),
+      origin: "SLG",
+    },
+    {
+      id: "5",
+      contract_number: "CONT-2025-0045",
+      client_name: "Consultoria Estratégica Ltda",
+      client_document: "33.444.555/0001-22",
+      client_email: "contato@consultoria.com.br",
+      signatory_name: "Roberto Mendes",
+      plan_name: "Profissional",
+      monthly_value: 4796,
+      status: "expired",
+      created_at: new Date(2025, 5, 15).toISOString(),
+      sent_at: new Date(2025, 5, 20).toISOString(),
+      client_signed_at: new Date(2025, 5, 25).toISOString(),
+      counter_signed_at: new Date(2025, 5, 25).toISOString(),
+      origin: "PLG",
+    },
+    {
+      id: "6",
+      contract_number: "CONT-2025-0038",
+      client_name: "Gestão Avançada S.A.",
+      client_document: "77.888.999/0001-33",
+      client_email: "admin@gestao.com.br",
+      signatory_name: "Fernanda Costa",
+      plan_name: "Business",
+      monthly_value: 8997,
+      status: "cancelled",
+      created_at: new Date(2025, 8, 10).toISOString(),
+      sent_at: new Date(2025, 8, 12).toISOString(),
+      origin: "SLG",
+    },
+  ];
+  
+  // Salvar no localStorage para persistência
+  localStorage.setItem("contracts", JSON.stringify(mockData));
+  return mockData;
 };
 
 export default function AdminContractManagement() {
@@ -101,6 +200,7 @@ export default function AdminContractManagement() {
   // Modals
   const [showSendModal, setShowSendModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [sending, setSending] = useState(false);
 
   // Carregar contratos
@@ -284,10 +384,12 @@ export default function AdminContractManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header title="Gestão de Contratos" />
-      
-      <div className="container mx-auto p-6 space-y-6">
+    <div className="flex h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header title="Gestão de Contratos" />
+        <main className="flex-1 overflow-auto p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card>
@@ -493,9 +595,10 @@ export default function AdminContractManagement() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() =>
-                                navigate(`/contract-sign/${contract.client_signature_token}`)
-                              }
+                              onClick={() => {
+                                setSelectedContract(contract);
+                                setShowDetailsModal(true);
+                              }}
                               title="Visualizar contrato"
                             >
                               <Eye className="h-4 w-4" />
@@ -660,6 +763,148 @@ export default function AdminContractManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Modal: Visualizar Detalhes do Contrato */}
+        <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Contrato {selectedContract?.contract_number}
+              </DialogTitle>
+              <DialogDescription>
+                Detalhes completos do contrato
+              </DialogDescription>
+            </DialogHeader>
+            {selectedContract && (
+              <div className="space-y-4 py-4">
+                {/* Status */}
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Status</p>
+                    {getStatusBadge(selectedContract.status)}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground mb-1">Valor Mensal</p>
+                    <p className="text-xl font-bold">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(selectedContract.monthly_value)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Informações do Cliente */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Cliente</p>
+                    <p className="font-medium">{selectedContract.client_name}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{selectedContract.client_document}</p>
+                    <p className="text-sm text-muted-foreground">{selectedContract.client_email}</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Signatário</p>
+                    <p className="font-medium">{selectedContract.signatory_name}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Plano: {selectedContract.plan_name}</p>
+                    <p className="text-sm text-muted-foreground">Origem: {selectedContract.origin}</p>
+                  </div>
+                </div>
+
+                {/* Datas */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Data de Criação</Label>
+                    <p className="text-sm font-medium">
+                      {format(new Date(selectedContract.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                  {selectedContract.sent_at && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Enviado em</Label>
+                      <p className="text-sm font-medium">
+                        {format(new Date(selectedContract.sent_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                  )}
+                  {selectedContract.client_signed_at && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Assinado pelo Cliente</Label>
+                      <p className="text-sm font-medium text-green-600">
+                        {format(new Date(selectedContract.client_signed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                  )}
+                  {selectedContract.counter_signed_at && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Contra-assinado</Label>
+                      <p className="text-sm font-medium text-green-600">
+                        {format(new Date(selectedContract.counter_signed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Link de Assinatura (se disponível) */}
+                {selectedContract.client_signature_token && (
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <Label className="text-xs text-muted-foreground mb-2 block">Link de Assinatura</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={generateSignatureLink(selectedContract)}
+                        readOnly
+                        className="font-mono text-xs"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copySignatureLink(selectedContract)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Email de Senha */}
+                {selectedContract.password_email_sent_at && (
+                  <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                          Email de senha enviado
+                        </p>
+                        <p className="text-xs text-green-800 dark:text-green-200">
+                          {format(new Date(selectedContract.password_email_sent_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDetailsModal(false)}>
+                Fechar
+              </Button>
+              {selectedContract?.client_signature_token && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    copySignatureLink(selectedContract);
+                    toast.success("Link copiado!");
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Link
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+          </div>
+        </main>
       </div>
     </div>
   );
