@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf, Calendar, Users } from "lucide-react";
+import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf, Calendar, Users, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -62,8 +62,22 @@ const Dashboard = () => {
     return { total, overdue, inProgress, pending, completed, resolutionRate };
   }, [actions]);
 
-  // Metrics for meetings and ATAs (demo data)
+  // Verificar se é um novo usuário (sem dados salvos)
+  const isNewUser = React.useMemo(() => {
+    const onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
+    const hasOnboardingData = localStorage.getItem('onboarding_data');
+    const hasEmpresas = localStorage.getItem('empresas');
+    const hasConselhos = localStorage.getItem('conselhos');
+    
+    // Se não completou onboarding e não tem dados salvos, é novo usuário
+    return !onboardingCompleted && !hasOnboardingData && !hasEmpresas && !hasConselhos;
+  }, []);
+
+  // Metrics for meetings and ATAs (só mostrar dados mockados se não for novo usuário)
   const meetingMetrics = React.useMemo(() => {
+    if (isNewUser) {
+      return { totalMeetings: 0, meetingsWithAgenda: 0, totalConcluidas: 0, meetingsWithATA: 0, pautasPercentual: 0, atasPercentual: 0 };
+    }
     const totalMeetings = 36;
     const meetingsWithAgenda = 12;
     const totalConcluidas = 10;
@@ -71,21 +85,30 @@ const Dashboard = () => {
     const pautasPercentual = Math.round(meetingsWithAgenda / totalMeetings * 100);
     const atasPercentual = totalConcluidas > 0 ? Math.round(meetingsWithATA / totalConcluidas * 100) : 0;
     return { totalMeetings, meetingsWithAgenda, totalConcluidas, meetingsWithATA, pautasPercentual, atasPercentual };
-  }, []);
+  }, [isNewUser]);
 
-  // ATA approval metrics (demo data)
-  const ataApprovalMetrics = React.useMemo(() => ({
-    aguardandoAprovacao: 1,
-    aguardandoAssinatura: 1,
-    finalizadas: 1
-  }), []);
+  // ATA approval metrics (só mostrar dados mockados se não for novo usuário)
+  const ataApprovalMetrics = React.useMemo(() => {
+    if (isNewUser) {
+      return { aguardandoAprovacao: 0, aguardandoAssinatura: 0, finalizadas: 0 };
+    }
+    return { aguardandoAprovacao: 1, aguardandoAssinatura: 1, finalizadas: 1 };
+  }, [isNewUser]);
 
   React.useEffect(() => {
+    // Se for novo usuário, não carregar dados mockados
+    if (isNewUser) {
+      setLatestGovernanceAssessment(null);
+      setLatestESGAssessment(null);
+      return;
+    }
+
     // Load latest Governance assessment
     const governanceAssessment = getCurrentMaturityAssessment();
     if (governanceAssessment) {
       setLatestGovernanceAssessment(governanceAssessment);
     } else {
+      // Só usar mock se não for novo usuário
       const latestMock = mockHistoricalAssessments[mockHistoricalAssessments.length - 1];
       if (latestMock) {
         setLatestGovernanceAssessment({
@@ -100,6 +123,7 @@ const Dashboard = () => {
     if (esgAssessment && esgAssessment.pillarScores) {
       setLatestESGAssessment(esgAssessment);
     } else {
+      // Só usar mock se não for novo usuário
       const mockESG = getLatestESGAssessment();
       if (mockESG && mockESG.result) {
         setLatestESGAssessment({
@@ -110,11 +134,45 @@ const Dashboard = () => {
         });
       }
     }
-  }, []);
+  }, [isNewUser]);
 
   const navigateTo = (path: string) => {
     navigate(path);
   };
+
+  // Se for novo usuário, mostrar tela vazia com call-to-action para onboarding
+  if (isNewUser) {
+    return (
+      <div className="flex h-screen bg-background overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header title="Dashboard" />
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="max-w-md text-center space-y-6">
+              <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Building2 className="h-10 w-10 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Bem-vindo à Legacy OS!</h2>
+                <p className="text-muted-foreground mb-6">
+                  Para começar a usar a plataforma, você precisa configurar sua empresa e estrutura de governança.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button size="lg" onClick={() => navigate('/onboarding-wizard')} className="gap-2">
+                  <Rocket className="h-4 w-4" />
+                  Começar Configuração
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => navigate('/knowledge-base')}>
+                  Configurar Knowledge Base
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -1179,7 +1179,7 @@ export default function ContractCheckout() {
                   </h2>
                   <p className="text-green-700 dark:text-green-300 mb-6 max-w-md mx-auto">
                     Enviamos os dados de pagamento para o email <strong>{formData.contactEmail}</strong>.
-                    Após a confirmação do pagamento, seu acesso será liberado em até 24 horas.
+                    Clique no botão abaixo para visualizar e assinar seu contrato eletronicamente.
                   </p>
                   
                   <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto mt-8">

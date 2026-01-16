@@ -81,9 +81,9 @@ export default function KnowledgeBase() {
         <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-primary/60 rounded-2xl flex items-center justify-center">
           <Database className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-3xl font-bold">Bem-vindo a Knowledge Base</h1>
+        <h1 className="text-3xl font-bold">Bem-vindo à Legacy OS</h1>
         <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-          Configure sua base de conhecimento em 3 etapas simples para obter o maximo do MOAT Engine.
+          Configure sua base de conhecimento em 3 etapas simples. Preencha os dados da sua empresa para começar a usar a plataforma.
         </p>
       </div>
 
@@ -165,7 +165,7 @@ export default function KnowledgeBase() {
         </div>
         <h1 className="text-2xl font-bold">Processando sua Knowledge Base</h1>
         <p className="text-muted-foreground">
-          Estamos analisando os dados e preparando o MOAT Engine...
+          Estamos analisando os dados e preparando sua base de conhecimento...
         </p>
       </div>
 
@@ -180,7 +180,7 @@ export default function KnowledgeBase() {
           { text: 'Processando documentos', done: processingProgress >= 40 },
           { text: 'Extraindo entidades', done: processingProgress >= 60 },
           { text: 'Gerando embeddings', done: processingProgress >= 80 },
-          { text: 'Configurando MOAT Engine', done: processingProgress >= 100 }
+          { text: 'Finalizando configuração', done: processingProgress >= 100 }
         ].map((step, index) => (
           <div key={index} className="flex items-center gap-3">
             {step.done ? (

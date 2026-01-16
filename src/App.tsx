@@ -39,6 +39,7 @@ const InitialSetup = lazy(() => import("./pages/InitialSetup"));
 const OnboardingWizard = lazy(() => import("./pages/OnboardingWizard"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const EmailConfirmation = lazy(() => import("./pages/EmailConfirmation"));
+const WelcomeNewUser = lazy(() => import("./pages/WelcomeNewUser"));
 
 // Quiz & Discovery
 const StandaloneQuiz = lazy(() => import("./pages/StandaloneQuiz"));
@@ -216,6 +217,7 @@ const App = () => (
           <Route path="/blog/:slug" element={<LazyRouteWrapper><BlogArticle /></LazyRouteWrapper>} />
           <Route path="/signup" element={<LazyRouteWrapper><Signup /></LazyRouteWrapper>} />
           <Route path="/contract/sign/:token" element={<LazyRouteWrapper><ContractSign /></LazyRouteWrapper>} />
+          <Route path="/welcome" element={<LazyRouteWrapper><WelcomeNewUser /></LazyRouteWrapper>} />
           <Route path="/onboarding-wizard" element={<LazyRouteWrapper><OnboardingWizard /></LazyRouteWrapper>} />
           <Route path="/invite/accept" element={<LazyRouteWrapper><AcceptInvite /></LazyRouteWrapper>} />
           <Route path="/empresas" element={<LazyRouteWrapper><EmpresasLanding /></LazyRouteWrapper>} />

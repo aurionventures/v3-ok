@@ -170,7 +170,7 @@ export function OnboardingDashboard({ onNavigateToPhase }: OnboardingDashboardPr
                 Status: <span className="font-semibold">{getScoreLabel(progress.overall_score)}</span>
               </p>
               <p className="text-sm text-slate-400 mt-1">
-                Quanto maior o score, melhores serao os outputs do MOAT Engine
+                Quanto maior o score, melhor será a qualidade dos insights e recomendações
               </p>
             </div>
             
@@ -261,7 +261,7 @@ export function OnboardingDashboard({ onNavigateToPhase }: OnboardingDashboardPr
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Dados Criticos Faltando</AlertTitle>
           <AlertDescription>
-            Complete os seguintes campos para melhorar a eficacia do MOAT Engine:
+            Complete os seguintes campos para melhorar a qualidade dos insights:
             <ul className="list-disc list-inside mt-2">
               {progress.missing_critical_data.map((field) => (
                 <li key={field}>{field}</li>

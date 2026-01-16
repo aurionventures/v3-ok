@@ -153,9 +153,9 @@ export function CreatePasswordModal({
           onSuccess();
         }
 
-        // Redirecionar para dashboard após um breve delay
+        // Redirecionar para página de boas-vindas após um breve delay
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/welcome');
         }, 1500);
       } else {
         toast.error('Erro ao fazer login. Tente fazer login manualmente.');

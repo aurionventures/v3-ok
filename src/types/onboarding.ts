@@ -1,6 +1,6 @@
 // =====================================================
 // LEGACY OS - ONBOARDING & KNOWLEDGE BASE TYPES
-// Sistema de Carga Inicial de Contexto para MOAT Engine
+// Sistema de Carga Inicial de Contexto - Knowledge Base
 // =====================================================
 
 // =====================================================
@@ -476,7 +476,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'complete',
     title: 'Onboarding Completo!',
-    subtitle: 'Seu MOAT Engine esta pronto para uso',
+    subtitle: 'Sua base de conhecimento está pronta para uso',
     estimatedTime: 0
   }
 ];
