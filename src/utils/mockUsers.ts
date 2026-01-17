@@ -86,6 +86,23 @@ export const mockUsers: MockUser[] = [
       onboardingCompleted: true
     }
   },
+  // Parceiro Demo (para testes)
+  {
+    id: 'a0000000-0000-0000-0000-000000000020',
+    email: 'parceiro@legacy.com',
+    password: '123456',
+    name: 'Parceiro Demo',
+    role: 'parceiro',
+    company: 'Parceiro Demo Legacy',
+    organization: {
+      id: 'org-parceiro-demo',
+      name: 'Parceiro Demo Legacy',
+      companySize: 'large',
+      plan: 'legacy_360',
+      enabledModules: getDefaultModules('large', 'legacy_360'),
+      onboardingCompleted: true
+    }
+  },
   // Admin Master
   {
     id: 'a0000000-0000-0000-0000-000000000003',

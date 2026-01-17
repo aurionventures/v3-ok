@@ -4,25 +4,21 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   TrendingUp,
   Users,
   DollarSign,
-  Link as LinkIcon,
-  Copy,
-  Check,
-  Eye,
-  ArrowRight,
-  Calendar,
-  Target
+  Target,
+  Filter,
+  AlertTriangle
 } from 'lucide-react';
+import { FUNNEL_STAGE_LABELS, PLGMetrics } from '@/services/plgService';
 
 interface Lead {
   id: string;
@@ -44,8 +40,85 @@ interface Commission {
   sale_date: string;
 }
 
+// Dados mockados para demonstração
+const MOCK_AFFILIATE_TOKEN = 'aff_demo_parceiro_legacy_2024';
+const MOCK_LEADS: Lead[] = [
+  {
+    id: 'lead-1',
+    email: 'cliente1@exemplo.com',
+    name: 'João Silva',
+    company: 'Empresa ABC Ltda',
+    status: 'qualified',
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    current_stage: 'qualified'
+  },
+  {
+    id: 'lead-2',
+    email: 'cliente2@exemplo.com',
+    name: 'Maria Santos',
+    company: 'Tech Solutions S.A.',
+    status: 'proposal',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    current_stage: 'proposal'
+  }
+];
+
+const MOCK_COMMISSIONS: Commission[] = [
+  {
+    id: 'comm-1',
+    plan_name: 'Legacy 360',
+    plan_value: 1500.00,
+    commission_rate: 10,
+    commission_amount: 150.00,
+    status: 'confirmed',
+    sale_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'comm-2',
+    plan_name: 'Legacy 720',
+    plan_value: 2500.00,
+    commission_rate: 10,
+    commission_amount: 250.00,
+    status: 'paid',
+    sale_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
+// Dados mockados do funil PLG filtrados por parceiro
+const MOCK_PARTNER_FUNNEL_METRICS: Partial<PLGMetrics> = {
+  funnelStages: [
+    { stage: 'isca_started', count: 12, avgScore: null },
+    { stage: 'isca_completed', count: 8, avgScore: 58 },
+    { stage: 'discovery_started', count: 6, avgScore: 62 },
+    { stage: 'discovery_completed', count: 4, avgScore: 65 },
+    { stage: 'checkout_started', count: 3, avgScore: 68 },
+    { stage: 'checkout_completed', count: 2, avgScore: 70 },
+    { stage: 'payment_started', count: 2, avgScore: 72 },
+    { stage: 'payment_completed', count: 2, avgScore: 74 },
+    { stage: 'activation_started', count: 2, avgScore: 75 },
+    { stage: 'activation_completed', count: 2, avgScore: 76 },
+  ],
+  conversionRates: [
+    { fromStage: 'isca_started', toStage: 'isca_completed', rate: 67 },
+    { fromStage: 'isca_completed', toStage: 'discovery_started', rate: 75 },
+    { fromStage: 'discovery_started', toStage: 'discovery_completed', rate: 67 },
+    { fromStage: 'discovery_completed', toStage: 'checkout_started', rate: 75 },
+    { fromStage: 'checkout_started', toStage: 'checkout_completed', rate: 67 },
+    { fromStage: 'checkout_completed', toStage: 'payment_started', rate: 100 },
+    { fromStage: 'payment_started', toStage: 'payment_completed', rate: 100 },
+    { fromStage: 'payment_completed', toStage: 'activation_started', rate: 100 },
+    { fromStage: 'activation_started', toStage: 'activation_completed', rate: 100 },
+  ],
+};
+
+const FUNNEL_COLORS = [
+  '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+  '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e'
+];
+
 export default function AffiliateDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [affiliateToken, setAffiliateToken] = useState<string | null>(null);
   const [affiliateLink, setAffiliateLink] = useState<string>('');
@@ -58,92 +131,148 @@ export default function AffiliateDashboard() {
     pendingCommissions: 0,
     paidCommissions: 0
   });
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      navigate('/login');
+      return;
+    }
     loadAffiliateData();
-  }, []);
+  }, [user]);
 
   const loadAffiliateData = async () => {
     try {
       setLoading(true);
 
-      // Buscar dados do usuário logado
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Usuário não autenticado');
         navigate('/login');
         return;
       }
 
-      // Buscar token de afiliado do parceiro
-      const { data: partnerSettings } = await supabase
-        .from('partner_settings')
-        .select('affiliate_token')
-        .eq('user_id', user.id)
-        .single();
+      // Verificar se é o parceiro demo (mockUsers)
+      const isDemoPartner = user.email === 'parceiro@legacy.com';
 
-      if (!partnerSettings?.affiliate_token) {
-        toast.error('Token de afiliado não encontrado. Entre em contato com o suporte.');
-        return;
-      }
+      if (isDemoPartner) {
+        // Usar dados mockados para demonstração
+        const token = MOCK_AFFILIATE_TOKEN;
+        setAffiliateToken(token);
+        setAffiliateLink(`${window.location.origin}/plan-discovery?ref=${token}`);
+        setLeads(MOCK_LEADS);
+        setCommissions(MOCK_COMMISSIONS);
 
-      const token = partnerSettings.affiliate_token;
-      setAffiliateToken(token);
-      setAffiliateLink(`${window.location.origin}/plan-discovery?ref=${token}`);
-
-      // Buscar leads atribuídos a este parceiro
-      const { data: leadsData } = await supabase
-        .from('plg_leads')
-        .select('*')
-        .or(`partner_id.eq.${user.id},affiliate_token.eq.${token}`)
-        .order('created_at', { ascending: false });
-
-      if (leadsData) {
-        setLeads(leadsData as Lead[]);
-        
-        // Calcular estatísticas de leads
-        const totalLeads = leadsData.length;
-        const activeLeads = leadsData.filter(l => 
-          l.current_stage && l.current_stage !== 'lost'
-        ).length;
-
-        setStats(prev => ({
-          ...prev,
-          totalLeads,
-          activeLeads
-        }));
-      }
-
-      // Buscar comissões do parceiro
-      const { data: commissionsData } = await supabase
-        .from('partner_commissions')
-        .select('*')
-        .eq('partner_id', user.id)
-        .order('sale_date', { ascending: false });
-
-      if (commissionsData) {
-        const commissionsList = commissionsData as Commission[];
-        setCommissions(commissionsList);
-
-        // Calcular estatísticas de comissões
-        const totalCommissions = commissionsList.reduce(
+        // Calcular estatísticas
+        const totalLeads = MOCK_LEADS.length;
+        const activeLeads = MOCK_LEADS.filter(l => l.current_stage !== 'lost').length;
+        const totalCommissions = MOCK_COMMISSIONS.reduce(
           (sum, c) => sum + Number(c.commission_amount || 0), 
           0
         );
-        const pendingCommissions = commissionsList
+        const pendingCommissions = MOCK_COMMISSIONS
           .filter(c => c.status === 'pending' || c.status === 'confirmed')
           .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-        const paidCommissions = commissionsList
+        const paidCommissions = MOCK_COMMISSIONS
           .filter(c => c.status === 'paid')
           .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
 
-        setStats(prev => ({
-          ...prev,
+        setStats({
+          totalLeads,
+          activeLeads,
           totalCommissions,
           pendingCommissions,
           paidCommissions
-        }));
+        });
+      } else {
+        // Buscar dados reais do Supabase
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+        if (!supabaseUser) {
+          // Se não encontrar no Supabase Auth, tentar usar o user do contexto
+          const { data: partnerSettings } = await supabase
+            .from('partner_settings')
+            .select('affiliate_token')
+            .eq('user_id', user.id)
+            .single();
+
+          if (!partnerSettings?.affiliate_token) {
+            toast.error('Token de afiliado não encontrado. Entre em contato com o suporte.');
+            return;
+          }
+
+          const token = partnerSettings.affiliate_token;
+          setAffiliateToken(token);
+          setAffiliateLink(`${window.location.origin}/plan-discovery?ref=${token}`);
+        } else {
+          // Buscar token de afiliado do parceiro
+          const { data: partnerSettings } = await supabase
+            .from('partner_settings')
+            .select('affiliate_token')
+            .eq('user_id', supabaseUser.id)
+            .single();
+
+          if (!partnerSettings?.affiliate_token) {
+            toast.error('Token de afiliado não encontrado. Entre em contato com o suporte.');
+            return;
+          }
+
+          const token = partnerSettings.affiliate_token;
+          setAffiliateToken(token);
+          setAffiliateLink(`${window.location.origin}/plan-discovery?ref=${token}`);
+
+          // Buscar leads atribuídos a este parceiro
+          const { data: leadsData } = await supabase
+            .from('plg_leads')
+            .select('*')
+            .or(`partner_id.eq.${supabaseUser.id},affiliate_token.eq.${token}`)
+            .order('created_at', { ascending: false });
+
+          if (leadsData) {
+            setLeads(leadsData as Lead[]);
+            
+            // Calcular estatísticas de leads
+            const totalLeads = leadsData.length;
+            const activeLeads = leadsData.filter(l => 
+              l.current_stage && l.current_stage !== 'lost'
+            ).length;
+
+            setStats(prev => ({
+              ...prev,
+              totalLeads,
+              activeLeads
+            }));
+          }
+
+          // Buscar comissões do parceiro
+          const { data: commissionsData } = await supabase
+            .from('partner_commissions')
+            .select('*')
+            .eq('partner_id', supabaseUser.id)
+            .order('sale_date', { ascending: false });
+
+          if (commissionsData) {
+            const commissionsList = commissionsData as Commission[];
+            setCommissions(commissionsList);
+
+            // Calcular estatísticas de comissões
+            const totalCommissions = commissionsList.reduce(
+              (sum, c) => sum + Number(c.commission_amount || 0), 
+              0
+            );
+            const pendingCommissions = commissionsList
+              .filter(c => c.status === 'pending' || c.status === 'confirmed')
+              .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
+            const paidCommissions = commissionsList
+              .filter(c => c.status === 'paid')
+              .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
+
+            setStats(prev => ({
+              ...prev,
+              totalCommissions,
+              pendingCommissions,
+              paidCommissions
+            }));
+          }
+        }
       }
     } catch (error: any) {
       console.error('Erro ao carregar dados do afiliado:', error);
@@ -151,43 +280,6 @@ export default function AffiliateDashboard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCopyLink = async () => {
-    if (!affiliateLink) return;
-    
-    try {
-      await navigator.clipboard.writeText(affiliateLink);
-      setCopied(true);
-      toast.success('Link copiado para a área de transferência!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error('Erro ao copiar link');
-    }
-  };
-
-  const getStageLabel = (stage: string | null) => {
-    const stages: Record<string, string> = {
-      'visitor': 'Visitante',
-      'lead': 'Lead',
-      'qualified': 'Qualificado',
-      'proposal': 'Proposta',
-      'negotiation': 'Negociação',
-      'closed': 'Fechado',
-      'lost': 'Perdido'
-    };
-    return stages[stage || 'visitor'] || 'Visitante';
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      'pending': { label: 'Pendente', variant: 'outline' },
-      'confirmed': { label: 'Confirmada', variant: 'default' },
-      'paid': { label: 'Paga', variant: 'default' },
-      'cancelled': { label: 'Cancelada', variant: 'destructive' }
-    };
-    const config = variants[status] || { label: status, variant: 'outline' };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   if (loading) {
@@ -224,41 +316,6 @@ export default function AffiliateDashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Painel de Afiliado</h1>
               <p className="text-gray-600 mt-1">Acompanhe o desempenho das suas indicações</p>
             </div>
-
-            {/* Link de Afiliado */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LinkIcon className="h-5 w-5" />
-                  Seu Link de Afiliado
-                </CardTitle>
-                <CardDescription>
-                  Compartilhe este link para receber comissões pelas vendas indicadas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Input
-                    value={affiliateLink}
-                    readOnly
-                    className="flex-1 font-mono text-sm"
-                  />
-                  <Button onClick={handleCopyLink} variant="outline">
-                    {copied ? (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Copiado!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copiar
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Estatísticas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -339,124 +396,120 @@ export default function AffiliateDashboard() {
               </Card>
             </div>
 
-            {/* Funil de Leads */}
+            {/* Funil PLG */}
             <Card>
               <CardHeader>
-                <CardTitle>Funil de Indicações</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Funil de Conversão PLG
+                </CardTitle>
                 <CardDescription>
-                  Acompanhe o progresso dos seus leads através do funil PLG
+                  Acompanhe as etapas e o desempenho dos seus leads através do funil PLG
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {leads.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Nenhuma indicação ainda</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Compartilhe seu link de afiliado para começar a receber indicações
-                    </p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Empresa</TableHead>
-                        <TableHead>Etapa</TableHead>
-                        <TableHead>Data</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {leads.map((lead) => (
-                        <TableRow key={lead.id}>
-                          <TableCell className="font-medium">
-                            {lead.name || 'Não informado'}
-                          </TableCell>
-                          <TableCell>{lead.email}</TableCell>
-                          <TableCell>{lead.company || '-'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {getStageLabel(lead.current_stage)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(lead.created_at).toLocaleDateString('pt-BR')}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                // Navegar para detalhes do lead
-                                navigate(`/admin/funil-plg?lead=${lead.id}`);
+                <div className="space-y-4">
+                  {MOCK_PARTNER_FUNNEL_METRICS.funnelStages?.map((stage, index) => {
+                    const prevCount = index > 0 
+                      ? (MOCK_PARTNER_FUNNEL_METRICS.funnelStages?.[index - 1]?.count || 0) 
+                      : stage.count;
+                    const conversionRate = prevCount > 0 
+                      ? Math.round((stage.count / prevCount) * 100) 
+                      : 100;
+                    const widthPercent = MOCK_PARTNER_FUNNEL_METRICS.funnelStages?.[0]?.count 
+                      ? (stage.count / MOCK_PARTNER_FUNNEL_METRICS.funnelStages[0].count) * 100 
+                      : 0;
+
+                    return (
+                      <div key={stage.stage} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs"
+                              style={{ 
+                                borderColor: FUNNEL_COLORS[index % FUNNEL_COLORS.length], 
+                                color: FUNNEL_COLORS[index % FUNNEL_COLORS.length] 
                               }}
                             >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
+                              {index + 1}
+                            </Badge>
+                            <span className="font-medium">
+                              {FUNNEL_STAGE_LABELS[stage.stage] || stage.stage}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="font-bold">{stage.count} leads</span>
+                            {index > 0 && (
+                              <Badge 
+                                variant={
+                                  conversionRate >= 70 ? "default" : 
+                                  conversionRate >= 50 ? "secondary" : 
+                                  "destructive"
+                                }
+                              >
+                                {conversionRate}% conversão
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+                          <div 
+                            className="h-full rounded-lg transition-all duration-500"
+                            style={{ 
+                              width: `${widthPercent}%`,
+                              backgroundColor: FUNNEL_COLORS[index % FUNNEL_COLORS.length]
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Comissões */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Comissões</CardTitle>
-                <CardDescription>
-                  Histórico de comissões geradas pelas suas indicações
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {commissions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Nenhuma comissão ainda</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Suas comissões aparecerão aqui quando suas indicações fecharem vendas
-                    </p>
+            {/* Análise de Conversão */}
+            {MOCK_PARTNER_FUNNEL_METRICS.conversionRates && MOCK_PARTNER_FUNNEL_METRICS.conversionRates.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Taxa de Conversão entre Etapas</CardTitle>
+                  <CardDescription>
+                    Monitoramento da conversão entre cada etapa do funil
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {MOCK_PARTNER_FUNNEL_METRICS.conversionRates.map((rate, index) => {
+                      const dropOff = 100 - rate.rate;
+                      const isHighDropOff = dropOff > 30;
+                      
+                      return (
+                        <div key={index} className="flex items-center gap-4 p-3 rounded-lg border">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">
+                                {FUNNEL_STAGE_LABELS[rate.fromStage]} → {FUNNEL_STAGE_LABELS[rate.toStage]}
+                              </span>
+                              {isHighDropOff && (
+                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                              )}
+                            </div>
+                            <Progress value={rate.rate} className="mt-2 h-2" />
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-lg font-bold ${isHighDropOff ? 'text-amber-500' : 'text-green-600'}`}>
+                              {rate.rate}%
+                            </p>
+                            <p className="text-xs text-gray-500">taxa de conversão</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Plano</TableHead>
-                        <TableHead>Valor da Venda</TableHead>
-                        <TableHead>Taxa</TableHead>
-                        <TableHead>Comissão</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {commissions.map((commission) => (
-                        <TableRow key={commission.id}>
-                          <TableCell className="font-medium">
-                            {commission.plan_name}
-                          </TableCell>
-                          <TableCell>
-                            R$ {Number(commission.plan_value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                          <TableCell>{commission.commission_rate}%</TableCell>
-                          <TableCell className="font-semibold">
-                            R$ {Number(commission.commission_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(commission.status)}</TableCell>
-                          <TableCell>
-                            {new Date(commission.sale_date).toLocaleDateString('pt-BR')}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </main>
       </div>

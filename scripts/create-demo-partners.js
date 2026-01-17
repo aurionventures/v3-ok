@@ -26,7 +26,8 @@ const partners = [
     type: 'consultoria',
     commissionService: 15.00,
     commissionRecurring: 15.00,
-    recurringCommissionMonths: 12
+    recurringCommissionMonths: 12,
+    password: '123456'
   },
   {
     email: 'parceiro2.demo@legacyos.com.br',
@@ -37,7 +38,20 @@ const partners = [
     type: 'consultoria',
     commissionService: 15.00,
     commissionRecurring: 5.00,
-    recurringCommissionMonths: 12
+    recurringCommissionMonths: 12,
+    password: '123456'
+  },
+  {
+    email: 'parceiro@legacy.com',
+    name: 'Parceiro Demo',
+    companyName: 'Parceiro Demo Legacy',
+    phone: '(11) 77777-7777',
+    cnpj: '11.222.333/0001-44',
+    type: 'afiliado',
+    commissionService: 15.00,
+    commissionRecurring: 10.00,
+    recurringCommissionMonths: 12,
+    password: '123456'
   }
 ];
 
@@ -64,7 +78,8 @@ async function createPartners() {
           type: partner.type,
           commissionService: partner.commissionService,
           commissionRecurring: partner.commissionRecurring,
-          recurringCommissionMonths: partner.recurringCommissionMonths
+          recurringCommissionMonths: partner.recurringCommissionMonths,
+          password: partner.password || undefined
         })
       });
 

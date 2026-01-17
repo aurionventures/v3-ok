@@ -40,6 +40,10 @@ import {
   ActivitySquare,
   Briefcase,
   ClipboardList,
+  MessageSquare,
+  GraduationCap,
+  Share2,
+  Filter,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -117,6 +121,7 @@ const ADMIN_MENU_SECTIONS = [
       { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
       { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
       { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões Parceiros" },
+      { icon: Share2, href: "/admin/parceiros/conteudo", name: "Conteúdo Parceiros" },
     ]
   },
   {
@@ -142,6 +147,16 @@ const ADMIN_MENU_SECTIONS = [
       { icon: Bot, href: "/admin/prompts", name: "AI Engine" },
     ]
   },
+];
+
+// Parceiro menu items
+const PARTNER_MENU_ITEMS = [
+  { icon: LayoutDashboard, href: "/afiliado", name: "Dashboard" },
+  { icon: Share2, href: "/afiliado/link", name: "Link do Afiliado" },
+  { icon: Filter, href: "/afiliado/funil", name: "Funil de Indicações" },
+  { icon: DollarSign, href: "/afiliado/comissoes", name: "Comissões" },
+  { icon: GraduationCap, href: "/afiliado/academy", name: "Academy" },
+  { icon: MessageSquare, href: "/afiliado/chat", name: "Chat" },
 ];
 
 const Sidebar = () => {
@@ -200,19 +215,27 @@ const Sidebar = () => {
     }
   };
   
+  // Gerenciar estado do sidebar baseado em mobile/desktop
   useEffect(() => {
-    setOpen(!isMobile);
+    // Apenas ajustar quando isMobile mudar, não quando pathname mudar
+    // Em desktop, manter o estado atual do sidebar (aberto/fechado)
+    if (isMobile) {
+      // Em mobile, fechar sidebar ao navegar
+      setOpen(false);
+    }
+    // Em desktop, não forçar o estado - deixar o usuário controlar via toggle
   }, [isMobile]);
+  
+  // Fechar sidebar apenas em mobile quando navegar
+  useEffect(() => {
+    if (isMobile && pathname) {
+      setOpen(false);
+    }
+  }, [pathname, isMobile]);
   
   const toggleSidebar = () => {
     setOpen(!open);
   };
-  
-  useEffect(() => {
-    if (isMobile) {
-      setOpen(false);
-    }
-  }, [pathname, isMobile]);
 
   const handleLockedClick = (key: string, label: string) => {
     setSelectedAddon({ key, label });
@@ -546,7 +569,11 @@ const Sidebar = () => {
                         variant="ghost" 
                         size="icon"
                         className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
-                        onClick={() => navigate(isAdminRoute ? '/admin/settings' : '/settings')}
+                        onClick={() => navigate(
+                          isAdminRoute ? '/admin/settings' : 
+                          isPartner ? '/afiliado/configuracoes' : 
+                          '/settings'
+                        )}
                       >
                         <Settings className="h-4 w-4" />
                       </Button>

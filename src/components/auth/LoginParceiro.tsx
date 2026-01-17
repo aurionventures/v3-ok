@@ -50,7 +50,7 @@ export default function LoginParceiro({ onBack, initialEmail = '' }: LoginParcei
           title: "Login realizado com sucesso!",
           description: "Bem-vindo ao painel do Parceiro",
         });
-        navigate('/parceiro');
+        navigate('/afiliado');
       } else {
         toast({
           title: "Erro no login",

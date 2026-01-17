@@ -68,6 +68,12 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
+const AffiliateLink = lazy(() => import("./pages/partner/AffiliateLink"));
+const AffiliateFunnel = lazy(() => import("./pages/partner/AffiliateFunnel"));
+const AffiliateCommissions = lazy(() => import("./pages/partner/AffiliateCommissions"));
+const AffiliateAcademy = lazy(() => import("./pages/partner/AffiliateAcademy"));
+const AffiliateChat = lazy(() => import("./pages/partner/AffiliateChat"));
+const AffiliateSettings = lazy(() => import("./pages/partner/AffiliateSettings"));
 
 // Governance Structure
 const ShareholderStructure = lazy(() => import("./pages/ShareholderStructure"));
@@ -145,6 +151,7 @@ const AdminPlanConfigurator = lazy(() => import("./pages/AdminPlanConfigurator")
 const AdminClientManagement = lazy(() => import("./pages/AdminClientManagement"));
 const AdminPartners = lazy(() => import("./pages/AdminPartners"));
 const AdminPartnerCommissions = lazy(() => import("./pages/AdminPartnerCommissions"));
+const AdminPartnerContent = lazy(() => import("./pages/AdminPartnerContent"));
 const AdminAddons = lazy(() => import("./pages/AdminAddons"));
 const AdminContracts = lazy(() => import("./pages/AdminContracts"));
 const AdminContractTemplates = lazy(() => import("./pages/AdminContractTemplates"));
@@ -751,6 +758,7 @@ const App = () => (
           <Route path="/admin/settings" element={<LazyRouteWrapper><Settings /></LazyRouteWrapper>} />
           <Route path="/admin/parceiros" element={<LazyRouteWrapper><AdminPartners /></LazyRouteWrapper>} />
           <Route path="/admin/parceiros/comissoes" element={<LazyRouteWrapper><AdminPartnerCommissions /></LazyRouteWrapper>} />
+          <Route path="/admin/parceiros/conteudo" element={<LazyRouteWrapper><AdminPartnerContent /></LazyRouteWrapper>} />
           <Route path="/login-admin" element={<LazyRouteWrapper><LoginAdmin /></LazyRouteWrapper>} />
           
           {/* Audit & Security */}
@@ -777,6 +785,54 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <LazyRouteWrapper><AffiliateDashboard /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/afiliado/link" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateLink /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/afiliado/funil" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateFunnel /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/afiliado/comissoes" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateCommissions /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/afiliado/academy" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateAcademy /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/afiliado/chat" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateChat /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/afiliado/configuracoes" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><AffiliateSettings /></LazyRouteWrapper>
               </ProtectedRoute>
             } 
           />

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Shield, Briefcase, Home } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Building2, Shield, Briefcase, Home, Link as LinkIcon } from 'lucide-react';
 import { UserRole } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import { invitationService } from '@/utils/invitationService';
@@ -23,6 +24,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const [invitedCompany, setInvitedCompany] = useState('');
+  const [partnerLoginModalOpen, setPartnerLoginModalOpen] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
@@ -107,7 +109,7 @@ export default function Login() {
             navigate('/admin');
             break;
           case 'parceiro':
-            navigate('/parceiro');
+            navigate('/afiliado');
             break;
           case 'cliente':
             navigate('/dashboard');
@@ -138,7 +140,7 @@ export default function Login() {
       case 'admin':
         return { email: 'admin@gov.com', password: 'admin123' };
       case 'parceiro':
-        return { email: 'parceiro@consultor.com', password: 'parceiro123' };
+        return { email: 'parceiro@legacy.com', password: '123456' };
       case 'cliente':
         return { email: 'cliente@empresa.com', password: '123456' };
       default:
@@ -319,7 +321,11 @@ export default function Login() {
 
             <Card 
               className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
-              onClick={() => setUserType('parceiro')}
+              onClick={() => {
+                setPartnerLoginModalOpen(true);
+                setEmail('parceiro@legacy.com');
+                setPassword('123456');
+              }}
             >
               <CardHeader className="text-center">
                 <Briefcase className="h-8 w-8 mx-auto text-blue-600" />
@@ -329,6 +335,103 @@ export default function Login() {
                 </CardDescription>
               </CardHeader>
             </Card>
+            
+            {/* Modal de Login do Parceiro */}
+            <Dialog open={partnerLoginModalOpen} onOpenChange={setPartnerLoginModalOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <div className="flex items-center gap-2 justify-center mb-2">
+                    <Briefcase className="h-6 w-6 text-blue-600" />
+                    <DialogTitle className="text-2xl">Parceiro</DialogTitle>
+                  </div>
+                  <DialogDescription className="text-center">
+                    Entre com suas credenciais de parceiro
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="partner-email">Email</Label>
+                    <Input 
+                      id="partner-email" 
+                      type="email" 
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-yellow-50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="partner-password">Senha</Label>
+                    <Input 
+                      id="partner-password" 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Digite sua senha"
+                      className="bg-yellow-50"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setPartnerLoginModalOpen(false);
+                        setEmail('');
+                        setPassword('');
+                      }}
+                      className="flex-1"
+                      disabled={loading}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        if (!email || !password) {
+                          toast({
+                            title: "Erro",
+                            description: "Por favor, preencha todos os campos",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        setLoading(true);
+                        try {
+                          const success = await login({ email, password, role: 'parceiro' });
+
+                          if (success) {
+                            toast({
+                              title: "Login realizado com sucesso!",
+                              description: "Bem-vindo ao painel do Parceiro",
+                            });
+                            setPartnerLoginModalOpen(false);
+                            navigate('/afiliado');
+                          } else {
+                            toast({
+                              title: "Erro no login",
+                              description: "Email ou senha incorretos",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Erro",
+                            description: "Ocorreu um erro durante o login",
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="flex-1"
+                      disabled={loading}
+                    >
+                      {loading ? 'Entrando...' : 'Entrar'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             
           </div>
         </div>

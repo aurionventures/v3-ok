@@ -57,6 +57,8 @@ const AdminPartners = () => {
   const [affiliateLinkModalOpen, setAffiliateLinkModalOpen] = useState(false);
   const [newPartnerAffiliateLink, setNewPartnerAffiliateLink] = useState<string | null>(null);
   const [newPartnerToken, setNewPartnerToken] = useState<string | null>(null);
+  const [partnerCommissions, setPartnerCommissions] = useState<Record<string, { total: number; pending: number }>>({});
+  const [loadingCommissions, setLoadingCommissions] = useState(false);
   
   // Partner Details Modal
   const [partnerDetailsOpen, setPartnerDetailsOpen] = useState(false);
@@ -330,6 +332,20 @@ const AdminPartners = () => {
         return;
       }
 
+      // Se for o parceiro demo (mockado), usar dados mockados de comissões
+      const demoPartner = partners.find(p => p.email === 'parceiro@legacy.com');
+      if (demoPartner && partners.length === 1) {
+        const mockCommissions: Record<string, { total: number; pending: number }> = {
+          'demo-partner-id-1': {
+            total: 400.00, // R$ 150 (confirmed) + R$ 250 (paid)
+            pending: 150.00 // R$ 150 (confirmed, não paga ainda)
+          }
+        };
+        setPartnerCommissions(mockCommissions);
+        setLoadingCommissions(false);
+        return;
+      }
+
       try {
         setLoadingCommissions(true);
         const partnerIds = partners.map(p => p.id);
@@ -490,11 +506,6 @@ const AdminPartners = () => {
                     <TableRow>
                       <TableHead>Empresa</TableHead>
                       <TableHead>Tipo</TableHead>
-                      <TableHead>Administrador</TableHead>
-                      <TableHead>Cores</TableHead>
-                      <TableHead>Comissão</TableHead>
-                      <TableHead>Total Comissões</TableHead>
-                      <TableHead>Link Afiliado</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="w-[70px]">Ações</TableHead>
                     </TableRow>
@@ -512,76 +523,6 @@ const AdminPartners = () => {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{getPartnerTypeLabel(partner.settings?.partner_type)}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{partner.name}</p>
-                            <p className="text-sm text-muted-foreground">{partner.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <div 
-                              className="w-6 h-6 rounded border"
-                              style={{ backgroundColor: partner.settings?.primary_color || '#3B82F6' }}
-                              title="Cor Primária"
-                            />
-                            <div 
-                              className="w-6 h-6 rounded border"
-                              style={{ backgroundColor: partner.settings?.secondary_color || '#1E40AF' }}
-                              title="Cor Secundária"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{partner.settings?.commission || 15}%</span>
-                        </TableCell>
-                        <TableCell>
-                          {loadingCommissions ? (
-                            <Skeleton className="h-4 w-20" />
-                          ) : partnerCommissions[partner.id] ? (
-                            <div>
-                              <p className="font-medium text-emerald-600">
-                                {formatCurrency(partnerCommissions[partner.id].total)}
-                              </p>
-                              {partnerCommissions[partner.id].pending > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                  {formatCurrency(partnerCommissions[partner.id].pending)} pendente
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">R$ 0,00</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {partner.settings?.affiliate_token ? (
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                                onClick={() => handleCopyAffiliateLink(partner)}
-                              >
-                                {copiedToken === partner.id ? (
-                                  <>
-                                    <Check className="h-3 w-3" />
-                                    Copiado!
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="h-3 w-3" />
-                                    Copiar Link
-                                  </>
-                                )}
-                              </Button>
-                              <Badge variant="outline" className="font-mono text-xs">
-                                {partner.settings.affiliate_token}
-                              </Badge>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Gerando...</span>
-                          )}
                         </TableCell>
                         <TableCell>{getStatusBadge(partner.settings?.status)}</TableCell>
                         <TableCell>
@@ -984,90 +925,65 @@ const AdminPartners = () => {
 
       {/* Partner Details Dialog */}
       <Dialog open={partnerDetailsOpen} onOpenChange={setPartnerDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Handshake className="h-5 w-5 text-primary" />
               Detalhes do Parceiro
             </DialogTitle>
-            <DialogDescription>
-              Informações completas do parceiro e link de afiliado
-            </DialogDescription>
           </DialogHeader>
 
           {selectedPartner && (
-            <div className="space-y-6 py-4">
-              {/* Informações Básicas */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Informações da Empresa</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Empresa:</span>
-                    <span className="font-medium">{selectedPartner.settings?.company_name || selectedPartner.company}</span>
+            <div className="space-y-4 py-2">
+              {/* Dados Cadastrais */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-900">Dados Cadastrais</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground">Nome / Razão Social:</span>
+                    <span className="font-medium text-right">{selectedPartner.settings?.company_name || selectedPartner.company}</span>
                   </div>
                   {selectedPartner.settings?.cnpj && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between py-1">
                       <span className="text-muted-foreground">CNPJ:</span>
-                      <span>{selectedPartner.settings.cnpj}</span>
+                      <span className="text-right">{selectedPartner.settings.cnpj}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-1">
                     <span className="text-muted-foreground">Tipo:</span>
                     <Badge variant="outline">{getPartnerTypeLabel(selectedPartner.settings?.partner_type)}</Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status:</span>
-                    {getStatusBadge(selectedPartner.settings?.status)}
+                  <div className="flex justify-between py-1">
+                    <span className="text-muted-foreground">WhatsApp:</span>
+                    <span className="text-right">{selectedPartner.settings?.admin_phone || selectedPartner.phone || '-'}</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Informações do Contato */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Contato</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Nome:</span>
-                    <span className="font-medium">{selectedPartner.name}</span>
-                  </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-1">
                     <span className="text-muted-foreground">Email:</span>
-                    <span>{selectedPartner.email}</span>
+                    <span className="text-right">{selectedPartner.email}</span>
                   </div>
-                  {selectedPartner.phone && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Telefone:</span>
-                      <span>{selectedPartner.phone}</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Link de Afiliado */}
               {selectedPartner.settings?.affiliate_token && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <LinkIcon className="h-4 w-4" />
-                      Link de Afiliado
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Token</Label>
+                <div className="space-y-3 pt-2 border-t">
+                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />
+                    Link de Afiliado
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Token</Label>
                       <div className="flex gap-2">
                         <Input
                           value={selectedPartner.settings.affiliate_token}
                           readOnly
-                          className="font-mono"
+                          className="font-mono text-xs h-9"
                         />
                         <Button
                           variant="outline"
                           size="icon"
+                          className="h-9 w-9"
                           onClick={() => {
                             navigator.clipboard.writeText(selectedPartner.settings!.affiliate_token!);
                             setCopiedToken(selectedPartner.id);
@@ -1076,96 +992,64 @@ const AdminPartners = () => {
                           }}
                         >
                           {copiedToken === selectedPartner.id ? (
-                            <Check className="h-4 w-4" />
+                            <Check className="h-3.5 w-3.5" />
                           ) : (
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3.5 w-3.5" />
                           )}
                         </Button>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Link Completo</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Link Completo</Label>
                       <div className="flex gap-2">
                         <Input
                           value={getAffiliateLink(selectedPartner) || ''}
                           readOnly
-                          className="font-mono text-xs"
+                          className="font-mono text-xs h-9"
                         />
                         <Button
                           variant="outline"
                           size="icon"
+                          className="h-9 w-9"
                           onClick={() => handleCopyAffiliateLink(selectedPartner)}
                         >
                           {copiedToken === selectedPartner.id ? (
-                            <Check className="h-4 w-4" />
+                            <Check className="h-3.5 w-3.5" />
                           ) : (
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3.5 w-3.5" />
                           )}
                         </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pt-1">
                       <Button
                         variant="outline"
-                        className="flex-1 gap-2"
+                        size="sm"
+                        className="flex-1 gap-2 h-9"
                         onClick={() => handleCopyAffiliateLink(selectedPartner)}
                       >
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-3.5 w-3.5" />
                         Copiar Link
                       </Button>
                       <Button
                         variant="outline"
-                        className="gap-2"
+                        size="sm"
+                        className="gap-2 h-9"
                         onClick={() => handleResendAffiliateLink(selectedPartner)}
                       >
-                        <Send className="h-4 w-4" />
-                        Reenviar Link
+                        <Send className="h-3.5 w-3.5" />
+                        Reenviar
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Comissões */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Percent className="h-4 w-4" />
-                    Configuração de Comissões
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Comissão Recorrente:</span>
-                    <Badge className="bg-blue-500 gap-1">
-                      {selectedPartner.settings?.commission_recurring || selectedPartner.settings?.commission || 15}%
-                      {selectedPartner.settings?.recurring_commission_months && 
-                        ` (${selectedPartner.settings.recurring_commission_months} meses)`
-                      }
-                    </Badge>
                   </div>
-                  {selectedPartner.settings?.commission_service && selectedPartner.settings.commission_service > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Comissão por Serviço:</span>
-                      <Badge variant="outline">{selectedPartner.settings.commission_service}%</Badge>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                </div>
+              )}
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="pt-4 border-t">
             <Button variant="outline" onClick={() => setPartnerDetailsOpen(false)}>
               Fechar
-            </Button>
-            <Button onClick={() => {
-              setPartnerDetailsOpen(false);
-              if (selectedPartner) {
-                handleEditWhitelabel(selectedPartner);
-              }
-            }}>
-              Editar Configurações
             </Button>
           </DialogFooter>
         </DialogContent>

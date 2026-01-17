@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
       commissionService,
       commissionRecurring,
       recurringCommissionMonths,
+      password, // Senha opcional
     } = requestBody;
 
     if (!email || !name || !companyName) {
@@ -79,12 +80,12 @@ Deno.serve(async (req) => {
         .eq('id', userId);
     } else {
       // Criar novo usuário usando auth.admin
-      // Gerar senha temporária aleatória
-      const tempPassword = Math.random().toString(36).slice(-12) + 'A1!';
+      // Usar senha fornecida ou gerar uma aleatória
+      const userPassword = password || (Math.random().toString(36).slice(-12) + 'A1!');
       
       const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
         email,
-        password: tempPassword,
+        password: userPassword,
         email_confirm: true,
         user_metadata: {
           name,

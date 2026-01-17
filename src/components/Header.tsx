@@ -4,6 +4,8 @@ import { BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "./NotificationBell";
 import GovernanceAssistant from "./GovernanceAssistant";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 interface HeaderProps {
   title?: string;
@@ -11,6 +13,10 @@ interface HeaderProps {
 
 const Header = ({ title = "Dashboard" }: HeaderProps) => {
   const [showGuide, setShowGuide] = useState(false);
+  const { user } = useAuth();
+  const location = useLocation();
+  const isPartnerRoute = location.pathname.startsWith("/afiliado");
+  const isPartner = user?.role === 'parceiro';
 
   // Função para testar o Tour Guiado (apenas em desenvolvimento)
   const handleTestTour = () => {
@@ -41,8 +47,8 @@ const Header = ({ title = "Dashboard" }: HeaderProps) => {
             Guia Legacy
           </Button>
 
-          {/* Botão de teste do Tour (apenas em desenvolvimento) */}
-          {process.env.NODE_ENV === 'development' && (
+          {/* Botão de teste do Tour (apenas em desenvolvimento e não para parceiros) */}
+          {process.env.NODE_ENV === 'development' && !isPartner && !isPartnerRoute && (
             <Button 
               onClick={handleTestTour}
               variant="outline"
