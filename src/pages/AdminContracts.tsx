@@ -476,36 +476,33 @@ export default function AdminContracts() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {(() => {
-                                const partner = partners.find(p => 
-                                  p.id === contract.partner_id || 
-                                  p.settings?.affiliate_token === contract.affiliate_token
-                                );
-                                return partner ? (
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      {partner.settings?.company_name || partner.company || partner.name}
-                                    </p>
-                                    {contract.origin === 'PLG' && (
-                                      <Badge variant="outline" className="text-xs mt-1">
-                                        PLG
-                                      </Badge>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="text-sm text-muted-foreground">
-                                    {contract.origin === 'PLG' ? 'PLG (N/A)' : contract.origin || 'DIRECT'}
-                                  </span>
-                                );
-                              })()}
-                            </TableCell>
-                            <TableCell>
                               <Badge variant="outline">{contract.plan_name}</Badge>
                               {contract.addons?.length > 0 && (
                                 <p className="text-xs text-muted-foreground mt-1">
                                   +{contract.addons.length} add-on(s)
                                 </p>
                               )}
+                              {(() => {
+                                const partner = partners.find(p => 
+                                  p.id === contract.partner_id || 
+                                  p.settings?.affiliate_token === contract.affiliate_token
+                                );
+                                if (partner && contract.origin === 'PLG') {
+                                  return (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Via: {partner.settings?.company_name || partner.company || partner.name}
+                                    </p>
+                                  );
+                                }
+                                if (contract.origin === 'SLG') {
+                                  return (
+                                    <Badge variant="secondary" className="text-xs mt-1">
+                                      SLG
+                                    </Badge>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </TableCell>
                             <TableCell>
                               <p className="font-medium">

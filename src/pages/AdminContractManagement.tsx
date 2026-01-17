@@ -498,13 +498,8 @@ export default function AdminContractManagement() {
                     <TableRow>
                       <TableHead>Nº Contrato</TableHead>
                       <TableHead>Cliente</TableHead>
-                      <TableHead>CNPJ</TableHead>
-                      <TableHead>Plano</TableHead>
-                      <TableHead>Valor Mensal</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Origem</TableHead>
-                      <TableHead>Data Criação</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead className="text-right w-[140px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -521,92 +516,28 @@ export default function AdminContractManagement() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{contract.client_document}</TableCell>
-                        <TableCell>{contract.plan_name}</TableCell>
                         <TableCell>
-                          R$ {contract.monthly_value.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(contract.status)}</TableCell>
-                        <TableCell>
-                          <Badge variant={contract.origin === "PLG" ? "default" : "secondary"}>
-                            {contract.origin}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(contract.created_at), "dd/MM/yyyy", {
-                            locale: ptBR,
-                          })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {contract.status === "draft" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedContract(contract);
-                                  setShowSendModal(true);
-                                }}
-                              >
-                                <Send className="h-4 w-4 mr-1" />
-                                Enviar
-                              </Button>
-                            )}
-                            {contract.status === "pending_signature" && (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => copySignatureLink(contract)}
-                                  title="Copiar link de assinatura"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleResendContract(contract)}
-                                >
-                                  <RefreshCw className="h-4 w-4 mr-1" />
-                                  Reenviar
-                                </Button>
-                              </>
-                            )}
-                            {contract.client_signed_at && !contract.password_email_sent_at && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedContract(contract);
-                                  setShowPasswordModal(true);
-                                }}
-                                className="text-green-600 hover:text-green-700"
-                              >
-                                <Key className="h-4 w-4 mr-1" />
-                                Enviar Senha
-                              </Button>
-                            )}
-                            {contract.password_email_sent_at && (
-                              <Badge variant="outline" className="text-xs">
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                Senha enviada
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(contract.status)}
+                            {contract.origin && (
+                              <Badge variant={contract.origin === "PLG" ? "default" : "secondary"} className="text-xs">
+                                {contract.origin}
                               </Badge>
                             )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedContract(contract);
-                                setShowDetailsModal(true);
-                              }}
-                              title="Visualizar contrato"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
                           </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedContract(contract);
+                              setShowDetailsModal(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Detalhes
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -887,20 +818,57 @@ export default function AdminContractManagement() {
                 )}
               </div>
             )}
-            <DialogFooter>
+            <DialogFooter className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => setShowDetailsModal(false)}>
                 Fechar
               </Button>
-              {selectedContract?.client_signature_token && (
+              {selectedContract?.status === "draft" && (
                 <Button
-                  variant="outline"
+                  variant="default"
                   onClick={() => {
-                    copySignatureLink(selectedContract);
-                    toast.success("Link copiado!");
+                    setShowDetailsModal(false);
+                    setShowSendModal(true);
                   }}
                 >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar Link
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar para Assinatura
+                </Button>
+              )}
+              {selectedContract?.status === "pending_signature" && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      copySignatureLink(selectedContract);
+                      toast.success("Link copiado!");
+                    }}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copiar Link
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      handleResendContract(selectedContract);
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Reenviar
+                  </Button>
+                </>
+              )}
+              {selectedContract?.client_signed_at && !selectedContract?.password_email_sent_at && (
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setShowPasswordModal(true);
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Key className="h-4 w-4 mr-2" />
+                  Enviar Email de Senha
                 </Button>
               )}
             </DialogFooter>

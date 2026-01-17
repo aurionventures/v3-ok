@@ -120,8 +120,13 @@ const ADMIN_MENU_SECTIONS = [
       { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
       { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
       { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões Parceiros" },
-      { icon: Share2, href: "/admin/parceiros/conteudo", name: "Conteúdo Parceiros" },
       { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
+    ]
+  },
+  {
+    label: "Academy e Afiliados",
+    items: [
+      { icon: Share2, href: "/admin/parceiros/conteudo", name: "Gestão de Conteúdo" },
     ]
   },
   {

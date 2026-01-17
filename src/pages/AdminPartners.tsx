@@ -42,7 +42,8 @@ const PARTNER_TYPES = [
   { value: 'revenda', label: 'Revenda' },
   { value: 'consultoria', label: 'Consultoria' },
   { value: 'integrador', label: 'Integrador' },
-  { value: 'afiliado', label: 'Afiliado' }
+  { value: 'afiliado', label: 'Afiliado' },
+  { value: 'parceiro', label: 'Parceiro' }
 ];
 
 const AdminPartners = () => {
@@ -58,6 +59,7 @@ const AdminPartners = () => {
   const [newPartnerToken, setNewPartnerToken] = useState<string | null>(null);
   const [partnerCommissions, setPartnerCommissions] = useState<Record<string, { total: number; pending: number }>>({});
   const [loadingCommissions, setLoadingCommissions] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   
   // Partner Details Modal
   const [partnerDetailsOpen, setPartnerDetailsOpen] = useState(false);
@@ -443,8 +445,25 @@ const AdminPartners = () => {
           {/* Partners Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Parceiros Cadastrados</CardTitle>
-              <CardDescription>Lista de todos os parceiros da plataforma</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Parceiros Cadastrados</CardTitle>
+                  <CardDescription>Lista de todos os parceiros da plataforma</CardDescription>
+                </div>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filtrar por tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    {PARTNER_TYPES.map(type => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -473,7 +492,9 @@ const AdminPartners = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {partners.map((partner) => (
+                    {partners
+                      .filter(partner => typeFilter === 'all' || partner.settings?.partner_type === typeFilter)
+                      .map((partner) => (
                       <TableRow key={partner.id}>
                         <TableCell>
                           <div>
