@@ -52,6 +52,7 @@ import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ContractPDF, ContractData } from "@/components/contracts/ContractPDF";
+import { usePartners } from "@/hooks/usePartners";
 
 interface Contract {
   id: string;
@@ -76,6 +77,10 @@ interface Contract {
   counter_signed_at: string | null;
   client_signature_token: string | null;
   created_at: string;
+  // PLG Tracking
+  partner_id?: string | null;
+  affiliate_token?: string | null;
+  origin?: 'PLG' | 'SLG' | 'DIRECT';
 }
 
 interface ContractMetrics {
@@ -100,6 +105,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 };
 
 export default function AdminContracts() {
+  const { partners } = usePartners();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [metrics, setMetrics] = useState<ContractMetrics>({
     total: 0, draft: 0, pending_signature: 0, pending_counter_signature: 0,
@@ -108,6 +114,7 @@ export default function AdminContracts() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedPartner, setSelectedPartner] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("all");
   
   // Modal de detalhes
@@ -280,7 +287,12 @@ export default function AdminContracts() {
     const matchesStatus = statusFilter === 'all' || contract.status === statusFilter;
     const matchesTab = activeTab === 'all' || contract.status === activeTab;
     
-    return matchesSearch && matchesStatus && matchesTab;
+    // Filtrar por parceiro afiliado
+    const matchesPartner = selectedPartner === 'all' || 
+      contract.partner_id === selectedPartner ||
+      contract.affiliate_token === partners.find(p => p.id === selectedPartner)?.settings?.affiliate_token;
+    
+    return matchesSearch && matchesStatus && matchesTab && matchesPartner;
   });
 
   return (
@@ -388,6 +400,19 @@ export default function AdminContracts() {
                       <SelectItem value="cancelled">Cancelado</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Select value={selectedPartner} onValueChange={setSelectedPartner}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectValue placeholder="Todos os parceiros" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Parceiros</SelectItem>
+                      {partners.map(partner => (
+                        <SelectItem key={partner.id} value={partner.id}>
+                          {partner.settings?.company_name || partner.company || partner.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -416,13 +441,13 @@ export default function AdminContracts() {
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
+                        <TableCell colSpan={8} className="text-center py-8">
                           <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                         </TableCell>
                       </TableRow>
                     ) : filteredContracts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           Nenhum contrato encontrado
                         </TableCell>
                       </TableRow>
@@ -449,6 +474,30 @@ export default function AdminContracts() {
                                   <p className="text-xs text-muted-foreground">{contract.client_document}</p>
                                 </div>
                               </div>
+                            </TableCell>
+                            <TableCell>
+                              {(() => {
+                                const partner = partners.find(p => 
+                                  p.id === contract.partner_id || 
+                                  p.settings?.affiliate_token === contract.affiliate_token
+                                );
+                                return partner ? (
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {partner.settings?.company_name || partner.company || partner.name}
+                                    </p>
+                                    {contract.origin === 'PLG' && (
+                                      <Badge variant="outline" className="text-xs mt-1">
+                                        PLG
+                                      </Badge>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">
+                                    {contract.origin === 'PLG' ? 'PLG (N/A)' : contract.origin || 'DIRECT'}
+                                  </span>
+                                );
+                              })()}
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">{contract.plan_name}</Badge>

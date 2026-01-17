@@ -76,6 +76,9 @@ interface Contract {
   password_email_sent_at?: string;
   origin: "PLG" | "SLG";
   organization_id?: string;
+  // PLG Tracking
+  partner_id?: string | null;
+  affiliate_token?: string | null;
 }
 
 // Mock de contratos (substituir por dados reais)

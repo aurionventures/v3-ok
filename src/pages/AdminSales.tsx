@@ -27,6 +27,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   TrendingUp,
   Users,
   DollarSign,
@@ -141,6 +148,8 @@ const AdminSales = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOrigin, setFilterOrigin] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [selectedActivation, setSelectedActivation] = useState<Activation | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const getOriginBadge = (origin: string) => {
     const config = {
@@ -326,54 +335,16 @@ const AdminSales = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Empresa</TableHead>
-                    <TableHead>Origem</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Add-ons</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Data</TableHead>
                     <TableHead className="text-right">MRR</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="text-right w-[120px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredActivations.map((activation) => (
                     <TableRow key={activation.id}>
                       <TableCell className="font-medium">{activation.company}</TableCell>
-                      <TableCell>{getOriginBadge(activation.origin)}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{activation.plan}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {activation.addons.length > 0 ? (
-                            activation.addons.slice(0, 2).map((addon, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {addon}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
-                          )}
-                          {activation.addons.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{activation.addons.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
                       <TableCell>{getStatusBadge(activation.status)}</TableCell>
-                      <TableCell>
-                        {activation.responsible || (
-                          <span className="text-muted-foreground">Automático</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {format(activation.date, "dd/MM/yy", { locale: ptBR })}
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right font-semibold">
                         {activation.mrr > 0 ? (
                           `R$ ${activation.mrr.toLocaleString("pt-BR")}`
@@ -382,23 +353,17 @@ const AdminSales = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Mail className="h-4 w-4 mr-2" />
-                              Enviar Email
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedActivation(activation);
+                            setDetailsOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Detalhes
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -409,6 +374,82 @@ const AdminSales = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de Detalhes */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Ativação</DialogTitle>
+            <DialogDescription>
+              Informações completas sobre a ativação
+            </DialogDescription>
+          </DialogHeader>
+          {selectedActivation && (
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
+                  <p className="text-base font-semibold">{selectedActivation.company}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <div className="mt-1">{getStatusBadge(selectedActivation.status)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Origem</label>
+                  <div className="mt-1">{getOriginBadge(selectedActivation.origin)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Plano</label>
+                  <div className="mt-1">
+                    <Badge variant="secondary">{selectedActivation.plan}</Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Responsável</label>
+                  <p className="text-base">
+                    {selectedActivation.responsible || (
+                      <span className="text-muted-foreground">Automático</span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Data de Ativação</label>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-base">
+                      {format(selectedActivation.date, "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">MRR</label>
+                  <p className="text-base font-semibold">
+                    {selectedActivation.mrr > 0 ? (
+                      `R$ ${selectedActivation.mrr.toLocaleString("pt-BR")}`
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              
+              {selectedActivation.addons.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Add-ons</label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedActivation.addons.map((addon, idx) => (
+                      <Badge key={idx} variant="outline">
+                        {addon}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

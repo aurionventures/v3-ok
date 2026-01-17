@@ -21,7 +21,6 @@ import {
   Plus, 
   Building2, 
   User, 
-  Palette, 
   CheckCircle, 
   MoreHorizontal, 
   Edit, 
@@ -62,16 +61,7 @@ const AdminPartners = () => {
   
   // Partner Details Modal
   const [partnerDetailsOpen, setPartnerDetailsOpen] = useState(false);
-  
-  // Edit Whitelabel Modal
-  const [editWhitelabelOpen, setEditWhitelabelOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
-  const [whitelabelForm, setWhitelabelForm] = useState({
-    primaryColor: '#3B82F6',
-    secondaryColor: '#1E40AF',
-    customDomain: '',
-    commission: 15
-  });
   
   // Form state
   const [partnerForm, setPartnerForm] = useState<PartnerFormData>({
@@ -167,34 +157,6 @@ const AdminPartners = () => {
     }
   };
 
-  const handleEditWhitelabel = (partner: Partner) => {
-    setSelectedPartner(partner);
-    setWhitelabelForm({
-      primaryColor: partner.settings?.primary_color || '#3B82F6',
-      secondaryColor: partner.settings?.secondary_color || '#1E40AF',
-      customDomain: partner.settings?.custom_domain || '',
-      commission: partner.settings?.commission || 15
-    });
-    setEditWhitelabelOpen(true);
-  };
-
-  const handleSaveWhitelabel = async () => {
-    if (!selectedPartner) return;
-    
-    setSaving(true);
-    const result = await updatePartnerSettings(selectedPartner.id, {
-      primary_color: whitelabelForm.primaryColor,
-      secondary_color: whitelabelForm.secondaryColor,
-      custom_domain: whitelabelForm.customDomain || null,
-      commission: whitelabelForm.commission,
-    });
-    setSaving(false);
-    
-    if (result.success) {
-      setEditWhitelabelOpen(false);
-      toast.success("Configurações whitelabel atualizadas!");
-    }
-  };
 
   const handleToggleStatus = async (partner: Partner) => {
     const newStatus = partner.settings?.status === 'active' ? 'suspended' : 'active';
@@ -552,13 +514,6 @@ const AdminPartners = () => {
                                   Copiar Link de Afiliado
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem 
-                                className="gap-2"
-                                onClick={() => handleEditWhitelabel(partner)}
-                              >
-                                <Palette className="h-4 w-4" />
-                                Editar Whitelabel
-                              </DropdownMenuItem>
                               {partner.settings?.status === 'active' ? (
                                 <DropdownMenuItem 
                                   className="gap-2 text-amber-600"
@@ -596,115 +551,6 @@ const AdminPartners = () => {
         </main>
       </div>
 
-      {/* Edit Whitelabel Modal */}
-      <Dialog open={editWhitelabelOpen} onOpenChange={setEditWhitelabelOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" />
-              Editar Whitelabel
-            </DialogTitle>
-            <DialogDescription>
-              Configurações visuais para {selectedPartner?.settings?.company_name || selectedPartner?.company}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-primaryColor">Cor Primária</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="edit-primaryColor"
-                  type="color"
-                  className="w-14 h-10 p-1 cursor-pointer"
-                  value={whitelabelForm.primaryColor}
-                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, primaryColor: e.target.value })}
-                />
-                <Input
-                  value={whitelabelForm.primaryColor}
-                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, primaryColor: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-secondaryColor">Cor Secundária</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="edit-secondaryColor"
-                  type="color"
-                  className="w-14 h-10 p-1 cursor-pointer"
-                  value={whitelabelForm.secondaryColor}
-                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, secondaryColor: e.target.value })}
-                />
-                <Input
-                  value={whitelabelForm.secondaryColor}
-                  onChange={(e) => setWhitelabelForm({ ...whitelabelForm, secondaryColor: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-customDomain" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Domínio Personalizado
-              </Label>
-              <Input
-                id="edit-customDomain"
-                placeholder="parceiro.legacy.app"
-                value={whitelabelForm.customDomain}
-                onChange={(e) => setWhitelabelForm({ ...whitelabelForm, customDomain: e.target.value })}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-commission" className="flex items-center gap-2">
-                <Percent className="h-4 w-4" />
-                Comissão (%)
-              </Label>
-              <Input
-                id="edit-commission"
-                type="number"
-                min="0"
-                max="100"
-                value={whitelabelForm.commission}
-                onChange={(e) => setWhitelabelForm({ ...whitelabelForm, commission: Number(e.target.value) })}
-              />
-            </div>
-
-            {/* Preview */}
-            <div className="p-4 rounded-lg border bg-muted/30">
-              <p className="text-sm font-medium mb-3">Preview</p>
-              <div className="flex gap-4">
-                <div 
-                  className="w-16 h-16 rounded-lg shadow-sm flex items-center justify-center text-white text-xs"
-                  style={{ backgroundColor: whitelabelForm.primaryColor }}
-                >
-                  Primária
-                </div>
-                <div 
-                  className="w-16 h-16 rounded-lg shadow-sm flex items-center justify-center text-white text-xs"
-                  style={{ backgroundColor: whitelabelForm.secondaryColor }}
-                >
-                  Secundária
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditWhitelabelOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveWhitelabel} disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Partner Registration Dialog */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>

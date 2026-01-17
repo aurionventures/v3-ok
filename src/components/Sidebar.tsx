@@ -116,12 +116,12 @@ const ADMIN_MENU_SECTIONS = [
   {
     label: "Comercial",
     items: [
-      { icon: Building2, href: "/admin/empresas", name: "Empresas" },
       { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
       { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
       { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
       { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões Parceiros" },
       { icon: Share2, href: "/admin/parceiros/conteudo", name: "Conteúdo Parceiros" },
+      { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
     ]
   },
   {
@@ -129,7 +129,6 @@ const ADMIN_MENU_SECTIONS = [
     items: [
       { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
       { icon: ScrollText, href: "/admin/contract-templates", name: "Minutas de Contrato" },
-      { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
     ]
   },
   {
