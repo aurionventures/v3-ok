@@ -105,7 +105,7 @@ const ADDON_ITEMS = [
   { key: "scenario_simulator", label: "Simulador de Cenários", path: "/simulador-cenarios", icon: Calculator },
 ];
 
-// Admin menu items organized by sections
+// Admin menu items organized by sections (PLG/Hyper-automation structure)
 const ADMIN_MENU_SECTIONS = [
   {
     label: "Visão Geral",
@@ -114,34 +114,38 @@ const ADMIN_MENU_SECTIONS = [
     ]
   },
   {
-    label: "Comercial",
+    label: "Aquisição PLG",
     items: [
-      { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
       { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
-      { icon: Handshake, href: "/admin/parceiros", name: "Parceiros" },
-      { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões Parceiros" },
-      { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
+      { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
     ]
   },
   {
-    label: "Academy e Afiliados",
+    label: "Parceiros & Afiliados",
     items: [
+      { icon: Handshake, href: "/admin/parceiros", name: "Cadastro de Parceiros" },
+      { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões de Parceiros" },
       { icon: Share2, href: "/admin/parceiros/conteudo", name: "Gestão de Conteúdo" },
     ]
   },
   {
-    label: "Catálogo",
+    label: "Contratos",
     items: [
-      { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
-      { icon: ScrollText, href: "/admin/contract-templates", name: "Minutas de Contrato" },
+      { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
+      // Esta página possui abas: "Contratos de Clientes" e "Contratos de Parceiros"
     ]
   },
   {
     label: "Financeiro",
     items: [
-      { icon: FileSignature, href: "/admin/contracts", name: "Contratos" },
-      { icon: Receipt, href: "/admin/faturas", name: "Faturas" },
-      { icon: DollarSign, href: "/admin/finances", name: "Financeiro" },
+      { icon: Receipt, href: "/admin/faturas", name: "Gestão de Faturas" },
+      { icon: DollarSign, href: "/admin/finances", name: "Finanças" },
+    ]
+  },
+  {
+    label: "Planos",
+    items: [
+      { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
     ]
   },
   {
@@ -219,22 +223,31 @@ const Sidebar = () => {
     }
   };
   
-  // Gerenciar estado do sidebar baseado em mobile/desktop
+  // Gerenciar estado inicial do sidebar baseado em mobile/desktop
+  // IMPORTANTE: Não fechar o sidebar em desktop ao mudar isMobile
+  // Apenas inicializar o estado no primeiro render
   useEffect(() => {
-    // Apenas ajustar quando isMobile mudar, não quando pathname mudar
-    // Em desktop, manter o estado atual do sidebar (aberto/fechado)
-    if (isMobile) {
-      // Em mobile, fechar sidebar ao navegar
-      setOpen(false);
+    // Apenas ajustar o estado inicial uma vez no mount
+    // Em desktop, manter o sidebar aberto por padrão
+    // Não re-executar quando isMobile mudar para evitar fechar em desktop
+    if (typeof window !== 'undefined') {
+      const isMobileCheck = window.innerWidth < 768;
+      if (isMobileCheck) {
+        // Em mobile, começar com sidebar fechado
+        setOpen(false);
+      }
+      // Em desktop, manter o estado atual (não forçar)
     }
-    // Em desktop, não forçar o estado - deixar o usuário controlar via toggle
-  }, [isMobile]);
+  }, []); // Array vazio = executa apenas no mount
   
   // Fechar sidebar apenas em mobile quando navegar
+  // IMPORTANTE: Não fechar em desktop ao navegar - deixar o usuário controlar
   useEffect(() => {
     if (isMobile && pathname) {
+      // Apenas fechar em mobile quando navegar
       setOpen(false);
     }
+    // Em desktop, não fazer nada - manter o estado atual (aberto/fechado)
   }, [pathname, isMobile]);
   
   const toggleSidebar = () => {
@@ -302,22 +315,39 @@ const Sidebar = () => {
           {/* Section Items */}
           {section.items.map(item => {
             const Icon = item.icon;
-            // Verificar se é exatamente igual
+            // Verificar se é exatamente igual (prioridade máxima)
             let isActive = pathname === item.href;
             
-            // Se não for exatamente igual, verificar se é um subcaminho direto
-            // Mas só marcar se não houver outro item com href mais longo que também match
+            // Se não for exatamente igual, verificar se há match exato em outros itens da mesma seção
             if (!isActive && item.href !== "/admin") {
-              const isSubPath = pathname.startsWith(item.href + "/");
+              // Verificar se existe outro item com match exato na mesma seção
+              const hasExactMatch = section.items.some(otherItem => 
+                otherItem.href !== item.href && 
+                pathname === otherItem.href
+              );
               
-              if (isSubPath) {
-                // Verificar se existe outro item com href mais longo que também faz match
-                const hasLongerMatch = section.items.some(otherItem => 
-                  otherItem.href !== item.href && 
-                  otherItem.href.length > item.href.length &&
-                  pathname.startsWith(otherItem.href)
-                );
-                isActive = !hasLongerMatch;
+              // Se há match exato em outro item, não marcar este como ativo
+              if (!hasExactMatch) {
+                const isSubPath = pathname.startsWith(item.href + "/");
+                
+                if (isSubPath) {
+                  // Verificar se existe outro item com href mais longo que também faz match exato
+                  const hasLongerExactMatch = section.items.some(otherItem => 
+                    otherItem.href !== item.href && 
+                    otherItem.href.length > item.href.length &&
+                    pathname === otherItem.href
+                  );
+                  
+                  // Verificar se existe outro item com href mais longo que faz match como subcaminho
+                  const hasLongerSubPathMatch = section.items.some(otherItem => 
+                    otherItem.href !== item.href && 
+                    otherItem.href.length > item.href.length &&
+                    pathname.startsWith(otherItem.href)
+                  );
+                  
+                  // Só marcar como ativo se não houver match exato ou subcaminho mais específico
+                  isActive = !hasLongerExactMatch && !hasLongerSubPathMatch;
+                }
               }
             }
             

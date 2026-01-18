@@ -141,6 +141,17 @@ serve(async (req) => {
             updateData.affiliate_token = event_data.affiliate_token;
           }
           
+          // Definir origem do lead (ISCA/DIRECT/AFFILIATE)
+          if (!updateData.origin) {
+            if (event_type === 'isca_started' || event_type === 'isca_completed') {
+              updateData.origin = 'ISCA';
+            } else if (event_data.affiliate_token || partnerId) {
+              updateData.origin = 'AFFILIATE';
+            } else {
+              updateData.origin = 'DIRECT';
+            }
+          }
+          
           // Adicionar dados específicos baseados no evento
           if (event_type === 'isca_completed' && event_data.govmetrix) {
             const govmetrix = event_data.govmetrix as GovMetrixData;
@@ -215,6 +226,15 @@ serve(async (req) => {
         }
         if (event_data.affiliate_token) {
           insertData.affiliate_token = event_data.affiliate_token;
+        }
+        
+        // Definir origem do lead (ISCA/DIRECT/AFFILIATE)
+        if (event_type === 'isca_started' || event_type === 'isca_completed') {
+          insertData.origin = 'ISCA';
+        } else if (event_data.affiliate_token || partnerId) {
+          insertData.origin = 'AFFILIATE';
+        } else {
+          insertData.origin = 'DIRECT';
         }
 
         const { data: newLead, error: createError } = await supabase

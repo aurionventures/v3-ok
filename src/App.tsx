@@ -157,6 +157,7 @@ const AdminContracts = lazy(() => import("./pages/AdminContracts"));
 const AdminContractTemplates = lazy(() => import("./pages/AdminContractTemplates"));
 const AdminContractManagement = lazy(() => import("./pages/AdminContractManagement"));
 const ContractSign = lazy(() => import("./pages/ContractSign"));
+const PartnerSignup = lazy(() => import("./pages/PartnerSignup"));
 const AdminInvoices = lazy(() => import("./pages/AdminInvoices"));
 const AdminSales = lazy(() => import("./pages/AdminSales"));
 const AdminPLGFunnel = lazy(() => import("./pages/AdminPLGFunnel"));
@@ -226,6 +227,8 @@ const App = () => (
           <Route path="/blog/:slug" element={<LazyRouteWrapper><BlogArticle /></LazyRouteWrapper>} />
           <Route path="/signup" element={<LazyRouteWrapper><Signup /></LazyRouteWrapper>} />
           <Route path="/contract/sign/:token" element={<LazyRouteWrapper><ContractSign /></LazyRouteWrapper>} />
+          <Route path="/parceiros/cadastro" element={<LazyRouteWrapper><PartnerSignup /></LazyRouteWrapper>} />
+          <Route path="/parceiros/contrato/assinatura/:token" element={<LazyRouteWrapper><ContractSign /></LazyRouteWrapper>} />
           <Route path="/welcome" element={<LazyRouteWrapper><WelcomeNewUser /></LazyRouteWrapper>} />
           <Route path="/onboarding-wizard" element={<LazyRouteWrapper><OnboardingWizard /></LazyRouteWrapper>} />
           <Route path="/invite/accept" element={<LazyRouteWrapper><AcceptInvite /></LazyRouteWrapper>} />

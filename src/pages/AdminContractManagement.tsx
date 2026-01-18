@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 import {
   FileText,
   Send,
@@ -79,6 +80,28 @@ interface Contract {
   // PLG Tracking
   partner_id?: string | null;
   affiliate_token?: string | null;
+}
+
+interface PartnerContract {
+  id: string;
+  contract_number: string;
+  partner_name: string;
+  partner_email: string;
+  partner_company_name: string;
+  partner_cnpj?: string;
+  partner_phone?: string;
+  contract_level: "afiliado_basico" | "afiliado_avancado" | "parceiro";
+  status: "draft" | "pending_signature" | "partner_signed" | "counter_signed" | "expired" | "terminated" | "cancelled";
+  created_at: string;
+  partner_signed_at?: string;
+  counter_signed_at?: string;
+  partner_signature_token?: string;
+  partner_signature_token_expires_at?: string;
+  start_date: string;
+  end_date?: string;
+  commission_setup?: number;
+  commission_recurring?: number;
+  recurring_commission_months?: number;
 }
 
 // Mock de contratos (substituir por dados reais)
@@ -194,21 +217,30 @@ const getMockContracts = (): Contract[] => {
 
 export default function AdminContractManagement() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Abrir na aba de parceiros se o parâmetro tab=partners estiver na URL
+  const initialTab = searchParams.get("tab") === "partners" ? "partners" : "clients";
+  const [activeTab, setActiveTab] = useState<"clients" | "partners">(initialTab);
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [partnerContracts, setPartnerContracts] = useState<PartnerContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingPartners, setLoadingPartners] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [selectedPartnerContract, setSelectedPartnerContract] = useState<PartnerContract | null>(null);
   
   // Modals
   const [showSendModal, setShowSendModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPartnerDetailsModal, setShowPartnerDetailsModal] = useState(false);
   const [sending, setSending] = useState(false);
 
   // Carregar contratos
   useEffect(() => {
     loadContracts();
+    loadPartnerContracts();
   }, []);
 
   const loadContracts = () => {
@@ -222,6 +254,71 @@ export default function AdminContractManagement() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadPartnerContracts = async () => {
+    setLoadingPartners(true);
+    try {
+      // Buscar contratos de parceiros do Supabase
+      const { data, error } = await supabase
+        .from("partner_contracts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar contratos de parceiros:", error);
+        // Usar dados mockados como fallback
+        const mockPartnerContracts = getMockPartnerContracts();
+        setPartnerContracts(mockPartnerContracts);
+      } else {
+        setPartnerContracts(data || getMockPartnerContracts());
+      }
+    } catch (error) {
+      console.error("Erro ao carregar contratos de parceiros:", error);
+      const mockPartnerContracts = getMockPartnerContracts();
+      setPartnerContracts(mockPartnerContracts);
+    } finally {
+      setLoadingPartners(false);
+    }
+  };
+
+  // Mock de contratos de parceiros
+  const getMockPartnerContracts = (): PartnerContract[] => {
+    return [
+      {
+        id: "pc-1",
+        contract_number: "PC-2026-0001",
+        partner_name: "João Silva",
+        partner_email: "joao@parceiro.com.br",
+        partner_company_name: "Parceiro Demo LTDA",
+        partner_cnpj: "12.345.678/0001-90",
+        partner_phone: "(11) 99999-9999",
+        contract_level: "parceiro",
+        status: "counter_signed",
+        created_at: new Date(2026, 0, 10).toISOString(),
+        partner_signed_at: new Date(2026, 0, 12).toISOString(),
+        counter_signed_at: new Date(2026, 0, 13).toISOString(),
+        start_date: new Date(2026, 0, 13).toISOString().split('T')[0],
+        commission_setup: 15,
+        commission_recurring: 15,
+        recurring_commission_months: 3,
+      },
+      {
+        id: "pc-2",
+        contract_number: "PC-2026-0002",
+        partner_name: "Maria Santos",
+        partner_email: "maria@afiliado.com.br",
+        partner_company_name: "Afiliado Qualificado S.A.",
+        partner_cnpj: "98.765.432/0001-10",
+        contract_level: "afiliado_avancado",
+        status: "pending_signature",
+        created_at: new Date(2026, 0, 15).toISOString(),
+        start_date: new Date(2026, 0, 15).toISOString().split('T')[0],
+        commission_setup: 10,
+        commission_recurring: 5,
+        recurring_commission_months: 3,
+      },
+    ];
   };
 
   // Filtrar contratos
@@ -393,6 +490,15 @@ export default function AdminContractManagement() {
         <Header title="Gestão de Contratos" />
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
+            {/* Tabs para separar Contratos de Clientes e Parceiros */}
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "clients" | "partners")}>
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="clients">Contratos de Clientes</TabsTrigger>
+                <TabsTrigger value="partners">Contratos de Parceiros</TabsTrigger>
+              </TabsList>
+
+              {/* Tab: Contratos de Clientes */}
+              <TabsContent value="clients" className="space-y-6 mt-6">
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card>
@@ -874,6 +980,323 @@ export default function AdminContractManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+              </TabsContent>
+
+              {/* Tab: Contratos de Parceiros */}
+              <TabsContent value="partners" className="space-y-6 mt-6">
+                {/* Estatísticas de Contratos de Parceiros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">{partnerContracts.length}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Total</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">
+                        {partnerContracts.filter((c) => c.status === "draft").length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Rascunhos</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {partnerContracts.filter((c) => c.status === "pending_signature").length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Aguardando</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {partnerContracts.filter((c) => c.status === "partner_signed").length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Parceiro Assinou</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-green-600">
+                        {partnerContracts.filter((c) => c.status === "counter_signed").length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Ativos</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold text-red-600">
+                        {partnerContracts.filter((c) => c.status === "expired" || c.status === "cancelled").length}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Expirados/Cancelados</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Filtros para Contratos de Parceiros */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar por número, parceiro, email ou CNPJ..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full md:w-[200px]">
+                          <Filter className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os Status</SelectItem>
+                          <SelectItem value="draft">Rascunho</SelectItem>
+                          <SelectItem value="pending_signature">Aguardando Assinatura</SelectItem>
+                          <SelectItem value="partner_signed">Parceiro Assinou</SelectItem>
+                          <SelectItem value="counter_signed">Ativo</SelectItem>
+                          <SelectItem value="expired">Expirado</SelectItem>
+                          <SelectItem value="cancelled">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Lista de Contratos de Parceiros */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Contratos de Parceiros ({partnerContracts.length})</CardTitle>
+                        <CardDescription>
+                          Gerencie contratos de parceiros e afiliados
+                        </CardDescription>
+                      </div>
+                      <Button variant="outline" onClick={loadPartnerContracts} disabled={loadingPartners}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loadingPartners ? 'animate-spin' : ''}`} />
+                        Atualizar
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingPartners ? (
+                      <div className="flex items-center justify-center py-12">
+                        <p className="text-muted-foreground">Carregando contratos...</p>
+                      </div>
+                    ) : partnerContracts.filter(c => 
+                      (statusFilter === "all" || c.status === statusFilter) &&
+                      (!searchTerm || 
+                        c.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        c.partner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        c.partner_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        c.partner_company_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                    ).length === 0 ? (
+                      <div className="text-center py-12">
+                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">Nenhum contrato de parceiro encontrado</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Nº Contrato</TableHead>
+                              <TableHead>Parceiro</TableHead>
+                              <TableHead>Nível</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="text-right w-[140px]">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {partnerContracts
+                              .filter(c => 
+                                (statusFilter === "all" || c.status === statusFilter) &&
+                                (!searchTerm || 
+                                  c.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                  c.partner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                  c.partner_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                  c.partner_company_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                              )
+                              .map((contract) => (
+                                <TableRow key={contract.id}>
+                                  <TableCell className="font-medium">
+                                    {contract.contract_number}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div>
+                                      <div className="font-medium">{contract.partner_company_name}</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {contract.partner_email}
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline">
+                                      {contract.contract_level === "parceiro" ? "Parceiro" :
+                                       contract.contract_level === "afiliado_avancado" ? "Afiliado Avançado" :
+                                       "Afiliado Básico"}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    {(() => {
+                                      const statusConfigs = {
+                                        draft: { label: "Rascunho", color: "bg-gray-500" },
+                                        pending_signature: { label: "Aguardando Assinatura", color: "bg-yellow-500" },
+                                        partner_signed: { label: "Parceiro Assinou", color: "bg-blue-500" },
+                                        counter_signed: { label: "Ativo", color: "bg-green-500" },
+                                        expired: { label: "Expirado", color: "bg-red-500" },
+                                        cancelled: { label: "Cancelado", color: "bg-gray-400" },
+                                        terminated: { label: "Terminado", color: "bg-gray-400" },
+                                      };
+                                      const config = statusConfigs[contract.status] || statusConfigs.draft;
+                                      return (
+                                        <Badge className={`${config.color} text-white`}>
+                                          {config.label}
+                                        </Badge>
+                                      );
+                                    })()}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedPartnerContract(contract);
+                                        setShowPartnerDetailsModal(true);
+                                      }}
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Ver Detalhes
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Modal: Detalhes do Contrato de Parceiro */}
+                <Dialog open={showPartnerDetailsModal} onOpenChange={setShowPartnerDetailsModal}>
+                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Contrato {selectedPartnerContract?.contract_number}
+                      </DialogTitle>
+                      <DialogDescription>
+                        Detalhes completos do contrato de parceiro
+                      </DialogDescription>
+                    </DialogHeader>
+                    {selectedPartnerContract && (
+                      <div className="space-y-4 py-4">
+                        {/* Status e Comissões */}
+                        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Status</p>
+                            {(() => {
+                              const statusConfigs = {
+                                draft: { label: "Rascunho", color: "bg-gray-500" },
+                                pending_signature: { label: "Aguardando Assinatura", color: "bg-yellow-500" },
+                                partner_signed: { label: "Parceiro Assinou", color: "bg-blue-500" },
+                                counter_signed: { label: "Ativo", color: "bg-green-500" },
+                                expired: { label: "Expirado", color: "bg-red-500" },
+                                cancelled: { label: "Cancelado", color: "bg-gray-400" },
+                                terminated: { label: "Terminado", color: "bg-gray-400" },
+                              };
+                              const config = statusConfigs[selectedPartnerContract.status] || statusConfigs.draft;
+                              return (
+                                <Badge className={`${config.color} text-white`}>
+                                  {config.label}
+                                </Badge>
+                              );
+                            })()}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground mb-1">Comissão Setup</p>
+                            <p className="text-xl font-bold">
+                              {selectedPartnerContract.commission_setup || 0}%
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Informações do Parceiro */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-4 border rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">Parceiro</p>
+                            <p className="font-medium">{selectedPartnerContract.partner_name}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{selectedPartnerContract.partner_company_name}</p>
+                            {selectedPartnerContract.partner_cnpj && (
+                              <p className="text-sm text-muted-foreground">{selectedPartnerContract.partner_cnpj}</p>
+                            )}
+                            <p className="text-sm text-muted-foreground">{selectedPartnerContract.partner_email}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-1">Contrato</p>
+                            <p className="font-medium">
+                              {selectedPartnerContract.contract_level === "parceiro" ? "Parceiro Comercial" :
+                               selectedPartnerContract.contract_level === "afiliado_avancado" ? "Afiliado Qualificado" :
+                               "Afiliado Simples"}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Setup: {selectedPartnerContract.commission_setup || 0}%
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Recorrente: {selectedPartnerContract.commission_recurring || 0}% ({selectedPartnerContract.recurring_commission_months || 0} meses)
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Datas */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Data de Criação</Label>
+                            <p className="text-sm font-medium">
+                              {format(new Date(selectedPartnerContract.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </p>
+                          </div>
+                          {selectedPartnerContract.start_date && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Início</Label>
+                              <p className="text-sm font-medium">
+                                {format(new Date(selectedPartnerContract.start_date), "dd/MM/yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                          )}
+                          {selectedPartnerContract.partner_signed_at && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Assinado pelo Parceiro</Label>
+                              <p className="text-sm font-medium text-green-600">
+                                {format(new Date(selectedPartnerContract.partner_signed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </p>
+                            </div>
+                          )}
+                          {selectedPartnerContract.counter_signed_at && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Contra-assinado</Label>
+                              <p className="text-sm font-medium text-green-600">
+                                {format(new Date(selectedPartnerContract.counter_signed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowPartnerDetailsModal(false)}>
+                        Fechar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>

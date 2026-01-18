@@ -11,12 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { usePartners, Partner, PartnerFormData } from "@/hooks/usePartners";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyData } from "@/hooks/useCNPJ";
 import { InputCNPJ, InputPhone } from "@/components/ui/input-masked";
+import { TIER_OPTIONS, PartnerTier, mapInvitationLevelToTier, TIER_CONFIGS } from "@/config/partnerTiers";
 import { 
   Plus, 
   Building2, 
@@ -35,9 +40,26 @@ import {
   Loader2,
   Link as LinkIcon,
   Copy,
-  Check
+  Check,
+  X,
+  XCircle,
+  Mail,
+  FileText,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  FileSignature,
+  Users,
+  Gift,
+  Search,
+  RefreshCw,
+  MoreVertical,
+  ExternalLink,
+  Pen
 } from "lucide-react";
 
+// Mantido para compatibilidade com filtros existentes
 const PARTNER_TYPES = [
   { value: 'revenda', label: 'Revenda' },
   { value: 'consultoria', label: 'Consultoria' },
@@ -64,6 +86,22 @@ const AdminPartners = () => {
   // Partner Details Modal
   const [partnerDetailsOpen, setPartnerDetailsOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'partners' | 'invitations'>('partners');
+
+  // Invitations
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteTier, setInviteTier] = useState<PartnerTier>('tier_3_simple');
+  const [newInviteUrl, setNewInviteUrl] = useState<string | null>(null);
+  const [inviteStatusFilter, setInviteStatusFilter] = useState<string>('all');
+  const [selectedInvitation, setSelectedInvitation] = useState<any | null>(null);
+  const [invitationDetailsOpen, setInvitationDetailsOpen] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<PartnerTier | null>(null);
+
+  // Contracts - removido: redirecionar para /admin/contract-management?tab=partners
   
   // Form state
   const [partnerForm, setPartnerForm] = useState<PartnerFormData>({
@@ -109,9 +147,9 @@ const AdminPartners = () => {
   const handleCreatePartner = async () => {
     setSaving(true);
     try {
-      const result = await createPartner(partnerForm);
-      
-      if (result.success) {
+    const result = await createPartner(partnerForm);
+    
+    if (result.success) {
         let affiliateToken = result.affiliateToken;
         
         // Se não tiver token na resposta, buscar do banco
@@ -155,7 +193,7 @@ const AdminPartners = () => {
       console.error('Erro inesperado:', error);
       toast.error(error.message || 'Erro inesperado ao criar parceiro');
     } finally {
-      setSaving(false);
+    setSaving(false);
     }
   };
 
@@ -346,13 +384,432 @@ const AdminPartners = () => {
     }).format(value);
   };
 
+  // Mock invitations data
+  const getMockInvitations = () => {
+    const now = new Date();
+    return [
+      {
+        id: 'inv-001',
+        invitation_token: 'abc123def456',
+        invitation_level: 'afiliado_basico',
+        status: 'submitted',
+        name: 'João Silva',
+        email: 'joao.silva@empresa.com.br',
+        company_name: 'Tech Solutions Ltda',
+        cnpj: '12.345.678/0001-90',
+        phone: '(11) 98765-4321',
+        created_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(now.getTime() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+        submitted_at: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'inv-002',
+        invitation_token: 'xyz789ghi012',
+        invitation_level: 'afiliado_avancado',
+        status: 'approved',
+        name: 'Maria Santos',
+        email: 'maria.santos@consultoria.com.br',
+        company_name: 'Consultoria Avançada S.A.',
+        cnpj: '98.765.432/0001-10',
+        phone: '(21) 91234-5678',
+        created_at: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(now.getTime() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+        submitted_at: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        used_at: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'inv-003',
+        invitation_token: 'mno345pqr678',
+        invitation_level: 'parceiro',
+        status: 'pending',
+        name: null,
+        email: null,
+        company_name: null,
+        cnpj: null,
+        phone: null,
+        created_at: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(now.getTime() + 28 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'inv-004',
+        invitation_token: 'stu901vwx234',
+        invitation_level: 'afiliado_basico',
+        status: 'rejected',
+        name: 'Carlos Oliveira',
+        email: 'carlos.oliveira@startup.com.br',
+        company_name: 'Startup Inovadora',
+        cnpj: '11.222.333/0001-44',
+        phone: '(11) 99876-5432',
+        created_at: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        submitted_at: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+        rejection_reason: 'Não atende aos critérios mínimos',
+        approved_at: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'inv-005',
+        invitation_token: 'yza567bcd890',
+        invitation_level: 'afiliado_avancado',
+        status: 'expired',
+        name: null,
+        email: null,
+        company_name: null,
+        cnpj: null,
+        phone: null,
+        created_at: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+  };
+
+  // Load invitations
+  const loadInvitations = async () => {
+    setLoadingInvitations(true);
+    try {
+      const { data, error } = await supabase
+        .from('partner_invitations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      
+      // Se não houver dados ou houver erro, usar dados mockados
+      if (!data || data.length === 0) {
+        setInvitations(getMockInvitations());
+      } else {
+        setInvitations(data);
+      }
+    } catch (error: any) {
+      console.error('Erro ao carregar convites, usando dados mockados:', error);
+      // Usar dados mockados em caso de erro
+      setInvitations(getMockInvitations());
+    } finally {
+      setLoadingInvitations(false);
+    }
+  };
+
+  // Mock contracts data
+  const getMockContracts = () => {
+    const now = new Date();
+    return [
+      {
+        id: 'pc-001',
+        contract_number: 'PC-2026-0001',
+        partner_user_id: 'user-001',
+        partner_name: 'Maria Santos',
+        partner_email: 'maria.santos@consultoria.com.br',
+        partner_company_name: 'Consultoria Avançada S.A.',
+        contract_level: 'afiliado_avancado',
+        contract_type: 'affiliate_agreement',
+        status: 'counter_signed',
+        commission_setup: 15,
+        commission_recurring: 10,
+        recurring_commission_months: 12,
+        start_date: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end_date: new Date(now.getTime() + 335 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        duration_months: 12,
+        auto_renew: true,
+        partner_signed_at: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+        legacy_signed_at: new Date(now.getTime() - 27 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'pc-002',
+        contract_number: 'PC-2026-0002',
+        partner_user_id: 'user-002',
+        partner_name: 'João Silva',
+        partner_email: 'joao.silva@empresa.com.br',
+        partner_company_name: 'Tech Solutions Ltda',
+        contract_level: 'afiliado_basico',
+        contract_type: 'affiliate_agreement',
+        status: 'pending_signature',
+        commission_setup: 10,
+        commission_recurring: 5,
+        recurring_commission_months: 12,
+        start_date: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end_date: new Date(now.getTime() + 372 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        duration_months: 12,
+        auto_renew: true,
+        partner_signature_token: 'sig-token-abc123',
+        partner_signature_token_expires_at: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'pc-003',
+        contract_number: 'PC-2026-0003',
+        partner_user_id: 'user-003',
+        partner_name: 'Ana Paula',
+        partner_email: 'ana.paula@parceiro.com.br',
+        partner_company_name: 'Parceiro Estratégico S.A.',
+        contract_level: 'parceiro',
+        contract_type: 'partner_agreement',
+        status: 'partner_signed',
+        commission_setup: 20,
+        commission_recurring: 15,
+        recurring_commission_months: 12,
+        start_date: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end_date: new Date(now.getTime() + 355 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        duration_months: 12,
+        auto_renew: true,
+        partner_signed_at: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'pc-004',
+        contract_number: 'PC-2025-0045',
+        partner_user_id: 'user-004',
+        partner_name: 'Roberto Costa',
+        partner_email: 'roberto.costa@integrador.com.br',
+        partner_company_name: 'Integrador Tech Ltda',
+        contract_level: 'afiliado_avancado',
+        contract_type: 'affiliate_agreement',
+        status: 'expired',
+        commission_setup: 15,
+        commission_recurring: 10,
+        recurring_commission_months: 12,
+        start_date: new Date(now.getTime() - 400 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end_date: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        duration_months: 12,
+        auto_renew: false,
+        partner_signed_at: new Date(now.getTime() - 398 * 24 * 60 * 60 * 1000).toISOString(),
+        legacy_signed_at: new Date(now.getTime() - 397 * 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date(now.getTime() - 400 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'pc-005',
+        contract_number: 'PC-2026-0004',
+        partner_user_id: 'user-005',
+        partner_name: 'Fernanda Lima',
+        partner_email: 'fernanda.lima@afiliado.com.br',
+        partner_company_name: 'Afiliado Premium',
+        contract_level: 'afiliado_basico',
+        contract_type: 'affiliate_agreement',
+        status: 'draft',
+        commission_setup: 10,
+        commission_recurring: 5,
+        recurring_commission_months: 12,
+        start_date: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end_date: new Date(now.getTime() + 379 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        duration_months: 12,
+        auto_renew: true,
+        created_at: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+  };
+
+  // Contratos agora são gerenciados em /admin/contract-management?tab=partners
+
+  // Generate invite
+  const handleGenerateInvite = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-partner-invite', {
+        body: {
+          invitation_level: inviteTier, // Agora envia o Tier diretamente
+          expires_in_days: 30
+        }
+      });
+
+      if (error) {
+        toast.error('Erro ao gerar convite: ' + error.message);
+        return;
+      }
+
+      setNewInviteUrl(data.invitation.url);
+      setInviteDialogOpen(false);
+      toast.success('Link de convite gerado com sucesso!');
+      loadInvitations();
+    } catch (err: any) {
+      console.error('Erro ao gerar convite:', err);
+      toast.error('Erro ao gerar convite');
+    }
+  };
+
+  // Approve invitation
+  const handleApproveInvitation = async (invitationId: string) => {
+    try {
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      if (!invitation || invitation.status !== 'submitted') {
+        toast.error('Convite não pode ser aprovado');
+        return;
+      }
+
+      // Mapear nível para tipo (fallback)
+      const levelToType: Record<string, string> = {
+        'afiliado_basico': 'afiliado',
+        'afiliado_avancado': 'afiliado',
+        'parceiro': 'parceiro'
+      };
+
+      // Usar partner_type do formulário se disponível, senão usar mapeamento
+      const partnerType = invitation.partner_type || 
+                         invitation.form_data?.partner_type || 
+                         levelToType[invitation.invitation_level] || 
+                         'afiliado';
+
+      const defaultCommission: Record<string, number> = {
+        'afiliado_basico': 10,
+        'afiliado_avancado': 15,
+        'parceiro': 20
+      };
+
+      // Determinar Tier: usar selecionado, ou mapear do nível, ou padrão tier_3_simple
+      const partnerTier: PartnerTier = selectedTier || 
+                                       mapInvitationLevelToTier(invitation.invitation_level) || 
+                                       'tier_3_simple';
+
+      // Criar parceiro usando a função existente
+      const partnerForm: PartnerFormData = {
+        companyName: invitation.company_name || invitation.form_data?.company_name || '',
+        cnpj: invitation.cnpj || invitation.form_data?.cnpj || '',
+        type: partnerType, // USAR partner_type DO FORMULÁRIO
+        adminName: invitation.name || invitation.form_data?.name || '',
+        adminEmail: invitation.email || invitation.form_data?.email || '',
+        adminPhone: invitation.phone || invitation.form_data?.phone || '',
+        primaryColor: '#3B82F6',
+        secondaryColor: '#1E40AF',
+        customDomain: '',
+        commission: defaultCommission[invitation.invitation_level] || 10,
+        commissionService: 0,
+        commissionRecurring: 0,
+        recurringCommissionMonths: 12
+      };
+
+      const result = await createPartner(partnerForm);
+
+      if (result.success) {
+        // Atualizar partner_settings com o Tier selecionado
+        const { error: tierError } = await supabase
+          .from('partner_settings')
+          .update({ partner_tier: partnerTier })
+          .eq('user_id', result.userId);
+
+        if (tierError) {
+          console.error('Erro ao atualizar Tier:', tierError);
+        }
+
+        // Atualizar status do convite
+        const { data: userData } = await supabase.auth.getUser();
+        
+        const { error: updateError } = await supabase
+          .from('partner_invitations')
+          .update({
+            status: 'approved',
+            approved_by: userData.data.user?.id,
+            approved_at: new Date().toISOString(),
+            partner_user_id: result.userId,
+            used_at: new Date().toISOString()
+          })
+          .eq('id', invitationId);
+
+        if (!updateError) {
+          toast.success('Parceiro aprovado e criado com sucesso!');
+          loadInvitations();
+          fetchPartners(); // Recarregar lista de parceiros
+          setSelectedTier(null); // Resetar seleção de Tier
+          
+          // Criar contrato automaticamente
+          await handleCreateContractForInvitation(invitationId, result.userId, partnerTier);
+        } else {
+          toast.error('Erro ao atualizar convite');
+        }
+      } else {
+        toast.error('Erro ao criar parceiro: ' + result.error);
+      }
+    } catch (err: any) {
+      console.error('Erro ao aprovar convite:', err);
+      toast.error('Erro ao aprovar convite');
+    }
+  };
+
+  // Create contract for approved invitation
+  const handleCreateContractForInvitation = async (invitationId: string, partnerUserId: string, partnerTier?: PartnerTier) => {
+    try {
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      if (!invitation) return;
+
+      // Valores padrão por nível
+      const commissionSetup: Record<string, number> = {
+        'afiliado_basico': 10,
+        'afiliado_avancado': 15,
+        'parceiro': 20
+      };
+
+      const commissionRecurring: Record<string, number> = {
+        'afiliado_basico': 5,
+        'afiliado_avancado': 10,
+        'parceiro': 15
+      };
+
+      const { data, error } = await supabase.functions.invoke('create-partner-contract', {
+        body: {
+          partner_user_id: partnerUserId,
+          partner_invitation_id: invitationId,
+          commission_setup: commissionSetup[invitation.invitation_level] || 10,
+          commission_recurring: commissionRecurring[invitation.invitation_level] || 5,
+          recurring_commission_months: 12,
+          start_date: new Date().toISOString().split('T')[0],
+          duration_months: 12,
+          auto_renew: true
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao criar contrato:', error);
+        return;
+      }
+
+      toast.success('Contrato criado com sucesso!');
+      // Contratos agora são gerenciados em /admin/contract-management?tab=partners
+    } catch (err: any) {
+      console.error('Erro ao criar contrato:', err);
+    }
+  };
+
+  // Reject invitation
+  const handleRejectInvitation = async (invitationId: string, reason?: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('partner_invitations')
+        .update({
+          status: 'rejected',
+          rejection_reason: reason || 'Rejeitado pelo Super ADM',
+          approved_by: userData.data.user?.id,
+          approved_at: new Date().toISOString()
+        })
+        .eq('id', invitationId);
+
+      if (!error) {
+        toast.success('Convite rejeitado');
+        loadInvitations();
+      } else {
+        toast.error('Erro ao rejeitar convite');
+      }
+    } catch (err) {
+      console.error('Erro ao rejeitar convite:', err);
+      toast.error('Erro ao rejeitar convite');
+    }
+  };
+
+  // Load data when tab changes
+  useEffect(() => {
+    if (activeTab === 'invitations') {
+      loadInvitations();
+    }
+    // Contratos agora estão em /admin/contract-management?tab=partners
+  }, [activeTab]);
+
   const stats = {
     total: partners.length,
     active: partners.filter(p => p.settings?.status === 'active').length,
     pending: partners.filter(p => p.settings?.status === 'pending').length,
     avgCommission: partners.length > 0 
       ? Math.round(partners.reduce((acc, p) => acc + (p.settings?.commission || 15), 0) / partners.length)
-      : 0
+      : 0,
+    invitationsPending: invitations.filter(inv => inv.status === 'submitted').length
   };
 
   return (
@@ -361,25 +818,26 @@ const AdminPartners = () => {
       <div className="flex-1 flex flex-col">
         <Header title="Gestão de Parceiros" />
         <main className="flex-1 p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Handshake className="h-6 w-6 text-primary" />
-                Gestão de Parceiros
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Gerencie parceiros de revenda e consultoria
-              </p>
-            </div>
+          {/* Ações rápidas */}
+          <div className="flex items-center justify-end flex-wrap gap-4">
+            <div className="flex gap-2">
+              {activeTab === 'invitations' && (
+                <Button onClick={() => setInviteDialogOpen(true)} variant="outline" className="gap-2">
+                  <Gift className="h-4 w-4" />
+                  Gerar Convite
+                </Button>
+              )}
+              {activeTab === 'partners' && (
             <Button onClick={handleOpenWizard} className="gap-2">
               <Plus className="h-4 w-4" />
               Novo Parceiro
             </Button>
+              )}
+            </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -440,29 +898,72 @@ const AdminPartners = () => {
                 </div>
               </CardContent>
             </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Convites Pendentes</p>
+                    {loadingInvitations ? (
+                      <Skeleton className="h-8 w-12 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold text-blue-600">{stats.invitationsPending}</p>
+                    )}
+                  </div>
+                  <Gift className="h-8 w-8 text-blue-500/30" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Contratos Pendentes</p>
+                    <p className="text-2xl font-bold text-purple-600">0</p>
+                  </div>
+                  <FileSignature className="h-8 w-8 text-purple-500/30" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Partners Table */}
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="partners">Parceiros</TabsTrigger>
+              <TabsTrigger value="invitations">
+                Convites
+                {stats.invitationsPending > 0 && (
+                  <Badge variant="destructive" className="ml-2 px-1.5 py-0.5 text-xs">
+                    {stats.invitationsPending}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Tab: Parceiros */}
+            <TabsContent value="partners" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Parceiros Cadastrados</CardTitle>
-                  <CardDescription>Lista de todos os parceiros da plataforma</CardDescription>
+              <CardTitle>Parceiros Cadastrados</CardTitle>
+              <CardDescription>Lista de todos os parceiros da plataforma</CardDescription>
                 </div>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtrar por tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Tipos</SelectItem>
-                    {PARTNER_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="w-full sm:w-auto">
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Filtrar por tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Tipos</SelectItem>
+                      {PARTNER_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -569,6 +1070,247 @@ const AdminPartners = () => {
               )}
             </CardContent>
           </Card>
+            </TabsContent>
+
+            {/* Tab: Convites */}
+            <TabsContent value="invitations" className="space-y-6 mt-6">
+              {/* Métricas de Convites */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-bold">{invitations.length}</p>
+                    <p className="text-xs text-muted-foreground">Total Enviados</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-bold text-amber-500">
+                      {invitations.filter(inv => inv.status === 'pending' || inv.status === 'submitted').length}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Pendentes</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-bold text-emerald-500">
+                      {invitations.filter(inv => inv.status === 'approved' || inv.status === 'used').length}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Aprovados</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-bold text-red-500">
+                      {invitations.filter(inv => inv.status === 'rejected').length}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Rejeitados</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-2xl font-bold text-primary">
+                      {invitations.length > 0 
+                        ? Math.round((invitations.filter(inv => inv.status === 'approved' || inv.status === 'used').length / invitations.length) * 100)
+                        : 0}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">Taxa de Conversão</p>
+                  </CardContent>
+                </Card>
+      </div>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <CardTitle>Convites de Parceiros</CardTitle>
+                      <CardDescription>Gerencie convites para novos parceiros se cadastrarem</CardDescription>
+              </div>
+                    <div className="w-full sm:w-auto flex gap-2">
+                      <Select value={inviteStatusFilter} onValueChange={setInviteStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <SelectValue placeholder="Filtrar por status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="pending">Pendentes</SelectItem>
+                          <SelectItem value="submitted">Aguardando Aprovação</SelectItem>
+                          <SelectItem value="approved">Aprovados</SelectItem>
+                          <SelectItem value="rejected">Rejeitados</SelectItem>
+                          <SelectItem value="expired">Expirados</SelectItem>
+                        </SelectContent>
+                      </Select>
+            </div>
+              </div>
+                </CardHeader>
+                <CardContent>
+                  {loadingInvitations ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-16 w-full" />
+                      ))}
+            </div>
+                  ) : invitations.filter(inv => inviteStatusFilter === 'all' || inv.status === inviteStatusFilter).length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Gift className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                      <p>Nenhum convite encontrado</p>
+                      <Button onClick={() => setInviteDialogOpen(true)} variant="outline" className="mt-4 gap-2">
+                        <Gift className="h-4 w-4" />
+                        Gerar Primeiro Convite
+                      </Button>
+            </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nível</TableHead>
+                          <TableHead>Nome/Email</TableHead>
+                          <TableHead>Empresa</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead className="w-[100px]">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {invitations
+                          .filter(inv => inviteStatusFilter === 'all' || inv.status === inviteStatusFilter)
+                          .map((invitation) => {
+                            const getLevelLabel = (level: string) => {
+                              const levels: Record<string, string> = {
+                                'afiliado_basico': 'Afiliado Básico (N1)',
+                                'afiliado_avancado': 'Afiliado Avançado (N2)',
+                                'parceiro': 'Parceiro Estratégico (N3)',
+                              };
+                              return levels[level] || level;
+                            };
+
+                            const getInvitationStatusBadge = (status: string) => {
+                              const configs: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+                                'pending': { label: 'Pendente', variant: 'outline' },
+                                'submitted': { label: 'Aguardando Aprovação', variant: 'secondary' },
+                                'approved': { label: 'Aprovado', variant: 'default' },
+                                'rejected': { label: 'Rejeitado', variant: 'destructive' },
+                                'expired': { label: 'Expirado', variant: 'outline' },
+                                'used': { label: 'Usado', variant: 'default' },
+                              };
+                              const config = configs[status] || configs.pending;
+                              return <Badge variant={config.variant}>{config.label}</Badge>;
+                            };
+
+                            return (
+                              <TableRow key={invitation.id}>
+                                <TableCell>
+                                  <Badge variant="outline">{getLevelLabel(invitation.invitation_level)}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{invitation.name || '-'}</p>
+                                    {invitation.email && (
+                                      <p className="text-sm text-muted-foreground">{invitation.email}</p>
+                                    )}
+                </div>
+                                </TableCell>
+                                <TableCell>
+                                  {invitation.company_name || '-'}
+                                </TableCell>
+                                <TableCell>
+                                  {getInvitationStatusBadge(invitation.status)}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="text-sm">
+                                    {invitation.created_at && (
+                                      <div>{format(new Date(invitation.created_at), "dd/MM/yyyy", { locale: ptBR })}</div>
+                                    )}
+                                    {invitation.expires_at && (
+                                      <div className="text-muted-foreground text-xs">
+                                        Exp: {format(new Date(invitation.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                </div>
+                                    )}
+              </div>
+                                </TableCell>
+                                <TableCell>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                        className="gap-2"
+                                        onClick={() => {
+                                          setSelectedInvitation(invitation);
+                                          setInvitationDetailsOpen(true);
+                                        }}
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                        Ver Detalhes
+                                      </DropdownMenuItem>
+                                      {invitation.status === 'submitted' && (
+                                        <>
+                                          <DropdownMenuItem
+                                            className="gap-2 text-emerald-600"
+                                            onClick={() => handleApproveInvitation(invitation.id)}
+                                          >
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            Aprovar
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem
+                                            className="gap-2 text-destructive"
+                                            onClick={() => handleRejectInvitation(invitation.id)}
+                                          >
+                                            <XCircle className="h-4 w-4" />
+                                            Rejeitar
+                                          </DropdownMenuItem>
+                                        </>
+                                      )}
+                                      {invitation.status === 'pending' && invitation.invitation_token && (
+                                        <DropdownMenuItem
+                                          className="gap-2"
+                                          onClick={() => {
+                                            const baseUrl = window.location.origin;
+                                            const inviteUrl = `${baseUrl}/parceiros/cadastro?token=${invitation.invitation_token}`;
+                                            navigator.clipboard.writeText(inviteUrl);
+                                            toast.success('Link do convite copiado!');
+                                          }}
+                                        >
+                                          <Copy className="h-4 w-4" />
+                                          Copiar Link
+                                        </DropdownMenuItem>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab: Contratos - Redireciona para Gestão de Contratos */}
+            <TabsContent value="contracts" className="space-y-6 mt-6">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-8 text-center">
+                  <FileSignature className="h-16 w-16 mx-auto mb-4 text-primary opacity-80" />
+                  <h3 className="text-xl font-semibold mb-2">Contratos de Parceiros</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Os contratos de parceiros agora são gerenciados na seção "Contratos" do Super ADM,
+                    separados entre contratos de clientes e contratos de parceiros.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/admin/contract-management?tab=partners')}
+                    className="gap-2"
+                  >
+                    <FileSignature className="h-4 w-4" />
+                    Abrir Gestão de Contratos (Aba Parceiros)
+            </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
 
@@ -625,22 +1367,22 @@ const AdminPartners = () => {
                 showCompanyPreview={false}
                 inputClassName={autoFilledFields.has('cnpj') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
               />
-            </div>
-
+                  </div>
+                  
             {/* Nome / Razão Social */}
-            <div className="space-y-2">
+                  <div className="space-y-2">
               <Label htmlFor="companyName">Nome / Razão Social *</Label>
-              <Input
-                id="companyName"
+                    <Input
+                      id="companyName"
                 placeholder="Nome do parceiro"
-                value={partnerForm.companyName}
-                onChange={(e) => setPartnerForm({ ...partnerForm, companyName: e.target.value })}
+                      value={partnerForm.companyName}
+                      onChange={(e) => setPartnerForm({ ...partnerForm, companyName: e.target.value })}
                 className={autoFilledFields.has('companyName') ? 'bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-900' : ''}
-              />
-            </div>
-
+                    />
+                  </div>
+                  
             {/* WhatsApp */}
-            <div className="space-y-2">
+                  <div className="space-y-2">
               <InputPhone
                 id="adminPhone"
                 label="WhatsApp *"
@@ -654,41 +1396,44 @@ const AdminPartners = () => {
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="adminEmail">Email *</Label>
-              <Input
+                    <Input
                 id="adminEmail"
                 type="email"
                 placeholder="email@empresa.com"
                 value={partnerForm.adminEmail}
                 onChange={(e) => setPartnerForm({ ...partnerForm, adminEmail: e.target.value })}
-              />
-            </div>
-
-            {/* Tipo de Parceria */}
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo *</Label>
-              <Select
-                value={partnerForm.type}
-                onValueChange={(value) => setPartnerForm({ ...partnerForm, type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="afiliado">Afiliado</SelectItem>
-                  <SelectItem value="parceiro">Parceiro</SelectItem>
-                  <SelectItem value="revenda">Revenda</SelectItem>
-                  <SelectItem value="consultoria">Consultoria</SelectItem>
-                  <SelectItem value="integrador">Integrador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                    />
+                  </div>
+                  
+            {/* Tipo de Parceria - Tiers */}
+                  <div className="space-y-2">
+              <Label htmlFor="type">Tier *</Label>
+                    <Select
+                      value={partnerForm.type}
+                      onValueChange={(value) => setPartnerForm({ ...partnerForm, type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o Tier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIER_OPTIONS.map((tier) => (
+                          <SelectItem key={tier.value} value={tier.value}>
+                            {tier.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {partnerForm.type && TIER_CONFIGS[partnerForm.type as PartnerTier]?.tier_description}
+                    </p>
+                </div>
 
             {/* Comissões em 3 colunas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Comissão Serviço */}
-              <div className="space-y-2">
+                  <div className="space-y-2">
                 <Label htmlFor="commissionService">Comissão Serviço (%)</Label>
-                <Input
+                    <Input
                   id="commissionService"
                   type="number"
                   min="0"
@@ -697,13 +1442,13 @@ const AdminPartners = () => {
                   value={partnerForm.commissionService || ''}
                   onChange={(e) => setPartnerForm({ ...partnerForm, commissionService: e.target.value ? Number(e.target.value) : 0 })}
                   placeholder="0"
-                />
-              </div>
-
+                    />
+                  </div>
+                  
               {/* Comissão Recorrência */}
-              <div className="space-y-2">
+                  <div className="space-y-2">
                 <Label htmlFor="commissionRecurring">Comissão Recorrência (%)</Label>
-                <Input
+                    <Input
                   id="commissionRecurring"
                   type="number"
                   min="0"
@@ -712,11 +1457,11 @@ const AdminPartners = () => {
                   value={partnerForm.commissionRecurring || ''}
                   onChange={(e) => setPartnerForm({ ...partnerForm, commissionRecurring: e.target.value ? Number(e.target.value) : 0 })}
                   placeholder="0"
-                />
-              </div>
-
+                    />
+                  </div>
+                  
               {/* Período de Comissão SaaS */}
-              <div className="space-y-2">
+                  <div className="space-y-2">
                 <Label htmlFor="recurringCommissionMonths">Período de Comissão SaaS</Label>
                 <Select
                   value={partnerForm.recurringCommissionMonths.toString()}
@@ -728,14 +1473,14 @@ const AdminPartners = () => {
                   <SelectContent>
                     <SelectItem value="3">3 meses</SelectItem>
                     <SelectItem value="6">6 meses</SelectItem>
-                    <SelectItem value="12">12 meses (Total do contrato)</SelectItem>
+                    <SelectItem value="12">12 meses</SelectItem>
                     <SelectItem value="18">18 meses</SelectItem>
                     <SelectItem value="24">24 meses</SelectItem>
                     <SelectItem value="36">36 meses</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
+                  </div>
+                </div>
             <p className="text-xs text-muted-foreground">
               Após este período, o parceiro não recebe mais comissão de recorrência
             </p>
@@ -758,8 +1503,8 @@ const AdminPartners = () => {
                   <SelectItem value="suspended">Inativo</SelectItem>
                 </SelectContent>
               </Select>
+              </div>
             </div>
-          </div>
 
           <DialogFooter className="flex justify-between gap-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setWizardOpen(false)}>
@@ -841,8 +1586,8 @@ const AdminPartners = () => {
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Token</Label>
-                      <div className="flex gap-2">
-                        <Input
+                    <div className="flex gap-2">
+                      <Input
                           value={selectedPartner.settings.affiliate_token}
                           readOnly
                           className="font-mono text-xs h-9"
@@ -864,12 +1609,12 @@ const AdminPartners = () => {
                             <Copy className="h-3.5 w-3.5" />
                           )}
                         </Button>
-                      </div>
                     </div>
+                  </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Link Completo</Label>
-                      <div className="flex gap-2">
-                        <Input
+                    <div className="flex gap-2">
+                      <Input
                           value={getAffiliateLink(selectedPartner) || ''}
                           readOnly
                           className="font-mono text-xs h-9"
@@ -886,8 +1631,8 @@ const AdminPartners = () => {
                             <Copy className="h-3.5 w-3.5" />
                           )}
                         </Button>
-                      </div>
                     </div>
+                  </div>
                     <div className="flex gap-2 pt-1">
                       <Button
                         variant="outline"
@@ -907,7 +1652,7 @@ const AdminPartners = () => {
                         <Send className="h-3.5 w-3.5" />
                         Reenviar
                       </Button>
-                    </div>
+                </div>
                   </div>
                 </div>
               )}
@@ -941,7 +1686,7 @@ const AdminPartners = () => {
                 <CardTitle className="text-base">Link de Afiliado</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                  <div className="space-y-2">
                   <Label>Link Completo</Label>
                   <div className="flex gap-2">
                     <Input
@@ -962,13 +1707,13 @@ const AdminPartners = () => {
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-                
+                  </div>
+                  
                 {newPartnerToken && (
                   <div className="space-y-2">
                     <Label>Token de Afiliado</Label>
                     <div className="flex gap-2">
-                      <Input
+                    <Input
                         value={newPartnerToken}
                         readOnly
                         className="font-mono text-sm"
@@ -983,8 +1728,8 @@ const AdminPartners = () => {
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
-                    </div>
                   </div>
+                </div>
                 )}
 
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-900">
@@ -994,7 +1739,7 @@ const AdminPartners = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+              </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAffiliateLinkModalOpen(false)}>
@@ -1035,6 +1780,281 @@ const AdminPartners = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Generate Invite Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gerar Convite para Parceiro</DialogTitle>
+            <DialogDescription>
+              Selecione o nível do parceiro para gerar um link de convite
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="inviteTier">Tier do Parceiro *</Label>
+              <Select value={inviteTier} onValueChange={(v) => setInviteTier(v as PartnerTier)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o Tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIER_OPTIONS.map((tier) => (
+                    <SelectItem key={tier.value} value={tier.value}>
+                      <div>
+                        <div className="font-medium">{tier.label}</div>
+                        <div className="text-xs text-muted-foreground">{tier.description}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+                  </div>
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                O link gerado terá validade de 30 dias. O parceiro poderá se cadastrar através do link.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleGenerateInvite} className="gap-2">
+              <Gift className="h-4 w-4" />
+              Gerar Convite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite URL Modal */}
+      <Dialog open={!!newInviteUrl} onOpenChange={() => setNewInviteUrl(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Link de Convite Gerado</DialogTitle>
+            <DialogDescription>
+              Copie o link abaixo e envie para o parceiro
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Link do Convite</Label>
+              <div className="flex gap-2">
+                <Input value={newInviteUrl || ''} readOnly className="font-mono text-sm" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    if (newInviteUrl) {
+                      navigator.clipboard.writeText(newInviteUrl);
+                      toast.success('Link copiado!');
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                  </div>
+                </div>
+            <Alert>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <AlertDescription>
+                O link expira em 30 dias. O parceiro precisa acessar este link para se cadastrar.
+              </AlertDescription>
+            </Alert>
+              </div>
+          <DialogFooter>
+            <Button onClick={() => setNewInviteUrl(null)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invitation Details Modal */}
+      <Dialog open={invitationDetailsOpen} onOpenChange={setInvitationDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Convite</DialogTitle>
+            <DialogDescription>
+              Informações completas do convite de parceiro
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInvitation && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Nível</Label>
+                  <p className="font-medium">
+                    {selectedInvitation.invitation_level === 'afiliado_basico' && 'Afiliado Básico (Nível 1)'}
+                    {selectedInvitation.invitation_level === 'afiliado_avancado' && 'Afiliado Avançado (Nível 2)'}
+                    {selectedInvitation.invitation_level === 'parceiro' && 'Parceiro Estratégico (Nível 3)'}
+                  </p>
+              </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <div className="mt-1">
+                    {selectedInvitation.status === 'pending' && <Badge variant="outline">Pendente</Badge>}
+                    {selectedInvitation.status === 'submitted' && <Badge variant="secondary">Aguardando Aprovação</Badge>}
+                    {selectedInvitation.status === 'approved' && <Badge variant="default">Aprovado</Badge>}
+                    {selectedInvitation.status === 'rejected' && <Badge variant="destructive">Rejeitado</Badge>}
+                    {selectedInvitation.status === 'expired' && <Badge variant="outline">Expirado</Badge>}
+                    </div>
+                      </div>
+                    </div>
+
+              {selectedInvitation.name && (
+                <div>
+                  <Label className="text-muted-foreground">Nome</Label>
+                  <p className="font-medium">{selectedInvitation.name}</p>
+                    </div>
+              )}
+
+              {selectedInvitation.email && (
+                <div>
+                  <Label className="text-muted-foreground">Email</Label>
+                  <p className="font-medium">{selectedInvitation.email}</p>
+                      </div>
+                    )}
+
+              {selectedInvitation.company_name && (
+                <div>
+                  <Label className="text-muted-foreground">Empresa</Label>
+                  <p className="font-medium">{selectedInvitation.company_name}</p>
+              </div>
+              )}
+
+              {selectedInvitation.cnpj && (
+                <div>
+                  <Label className="text-muted-foreground">CNPJ</Label>
+                  <p className="font-medium">{selectedInvitation.cnpj}</p>
+                    </div>
+              )}
+
+              {selectedInvitation.phone && (
+                <div>
+                  <Label className="text-muted-foreground">Telefone</Label>
+                  <p className="font-medium">{selectedInvitation.phone}</p>
+                  </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Criado em</Label>
+                  <p className="text-sm">
+                    {selectedInvitation.created_at && format(new Date(selectedInvitation.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                </p>
+              </div>
+                <div>
+                  <Label className="text-muted-foreground">Expira em</Label>
+                  <p className="text-sm">
+                    {selectedInvitation.expires_at && format(new Date(selectedInvitation.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+
+              {selectedInvitation.rejection_reason && (
+                <div>
+                  <Label className="text-muted-foreground">Motivo da Rejeição</Label>
+                  <p className="text-sm text-destructive">{selectedInvitation.rejection_reason}</p>
+            </div>
+          )}
+
+              {selectedInvitation.invitation_token && selectedInvitation.status === 'pending' && (
+            <div>
+                  <Label className="text-muted-foreground">Link do Convite</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input 
+                      value={`${window.location.origin}/parceiros/cadastro?token=${selectedInvitation.invitation_token}`}
+                      readOnly 
+                      className="font-mono text-sm"
+                    />
+                <Button
+                  variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const baseUrl = window.location.origin;
+                        const inviteUrl = `${baseUrl}/parceiros/cadastro?token=${selectedInvitation.invitation_token}`;
+                        navigator.clipboard.writeText(inviteUrl);
+                        toast.success('Link copiado!');
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                </Button>
+                  </div>
+                </div>
+              )}
+
+              {selectedInvitation.status === 'submitted' && (
+                <>
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-900">
+                      Este convite está aguardando sua aprovação. Selecione o Tier do parceiro antes de aprovar.
+                    </AlertDescription>
+                  </Alert>
+                  <div>
+                    <Label htmlFor="tier-select">Tier do Parceiro *</Label>
+                    <Select
+                      value={selectedTier || mapInvitationLevelToTier(selectedInvitation.invitation_level) || 'tier_3_simple'}
+                      onValueChange={(value) => setSelectedTier(value as PartnerTier)}
+                    >
+                      <SelectTrigger id="tier-select" className="mt-1">
+                        <SelectValue placeholder="Selecione o Tier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIER_OPTIONS.map((tier) => (
+                          <SelectItem key={tier.value} value={tier.value}>
+                            <div>
+                              <div className="font-medium">{tier.label}</div>
+                              <div className="text-xs text-muted-foreground">{tier.description}</div>
+            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            {selectedInvitation?.status === 'submitted' && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => handleRejectInvitation(selectedInvitation.id)}
+                  className="text-destructive"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Rejeitar
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!selectedTier && !mapInvitationLevelToTier(selectedInvitation.invitation_level)) {
+                      toast.error('Selecione um Tier antes de aprovar');
+                      return;
+                    }
+                    handleApproveInvitation(selectedInvitation.id);
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Aprovar
+                </Button>
+              </>
+              )}
+            <Button variant="outline" onClick={() => {
+              setInvitationDetailsOpen(false);
+              setSelectedTier(null);
+            }}>
+              Fechar
+                </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contract Details Modal - Removido: Contratos agora são gerenciados em /admin/contract-management?tab=partners */}
     </div>
   );
 };

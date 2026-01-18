@@ -377,12 +377,6 @@ export default function AdminClientManagement() {
         <Header title="Gestão de Empresas" />
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
-            {/* Header */}
-            <div>
-              <h1 className="text-2xl font-bold">Gestão de Empresas</h1>
-              <p className="text-muted-foreground">Cadastre empresas, configure planos e gerencie acessos</p>
-            </div>
-
             {/* Main Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 max-w-md">

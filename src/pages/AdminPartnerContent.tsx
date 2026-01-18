@@ -454,14 +454,6 @@ Link na bio ou acesse: [LINK_DO_AFILIADO]
         <Header title="Gestão de Conteúdo para Parceiros" />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Gestão de Conteúdo para Parceiros</h1>
-              <p className="text-gray-600 mt-1">
-                Gerencie materiais de divulgação, banners e conteúdo da Academy
-              </p>
-            </div>
-
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
               <div className="flex items-center justify-between">

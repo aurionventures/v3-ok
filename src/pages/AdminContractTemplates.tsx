@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -56,6 +57,7 @@ interface ContractTemplate {
   witness_count: number;
   is_active: boolean;
   is_default: boolean;
+  contract_type?: 'client' | 'partner'; // Tipo de contrato: Cliente ou Parceiro
   created_at: string;
   updated_at: string;
 }
@@ -247,17 +249,8 @@ export default function AdminContractTemplates() {
         <Header title="Configurador de Minutas" />
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-primary" />
-                  Minutas de Contrato
-                </h1>
-                <p className="text-muted-foreground">
-                  Configure templates de contrato com variáveis dinâmicas
-                </p>
-              </div>
+            {/* Ações rápidas */}
+            <div className="flex flex-col sm:flex-row justify-end gap-4">
               <div className="flex gap-2">
                 <Button variant="outline" onClick={fetchTemplates} disabled={isLoading}>
                   <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />

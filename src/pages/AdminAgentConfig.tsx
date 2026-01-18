@@ -460,17 +460,8 @@ const AdminAgentConfig = () => {
         <Header title="Configuracao de Agentes" />
         
         <main className="flex-1 overflow-auto p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Settings className="h-6 w-6 text-primary" />
-                Configuracao do Motor de IA
-              </h1>
-              <p className="text-muted-foreground">
-                Gerencie copilotos, agentes e servicos do MOAT Engine
-              </p>
-            </div>
+          {/* Stats */}
+          <div className="flex items-center justify-end mb-6">
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-2xl font-bold">{stats.totalAgents}</p>

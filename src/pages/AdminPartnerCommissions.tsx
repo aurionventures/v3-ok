@@ -288,19 +288,6 @@ const AdminPartnerCommissions = () => {
       <div className="flex-1 flex flex-col">
         <Header title="Comissões de Parceiros" />
         <main className="flex-1 p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <DollarSign className="h-6 w-6 text-primary" />
-                Gestão de Comissões
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Gerencie comissões de vendas por parceiros afiliados
-              </p>
-            </div>
-          </div>
-
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>

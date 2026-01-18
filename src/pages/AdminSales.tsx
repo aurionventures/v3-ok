@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +47,10 @@ import {
   Globe,
   Handshake,
   Building2,
+  Zap,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { calculateCommission, PartnerTier } from "@/config/partnerTiers";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -143,6 +146,15 @@ const mockActivations: Activation[] = [
   },
 ];
 
+interface OriginSalesMetrics {
+  origin: string;
+  totalSales: number;
+  totalMRR: number;
+  totalCommissions: number;
+  averageTicket: number;
+  cac: number;
+}
+
 const AdminSales = () => {
   const [activations] = useState<Activation[]>(mockActivations);
   const [searchTerm, setSearchTerm] = useState("");
@@ -150,6 +162,99 @@ const AdminSales = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedActivation, setSelectedActivation] = useState<Activation | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [originMetrics, setOriginMetrics] = useState<OriginSalesMetrics[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
+  
+  useEffect(() => {
+    loadContractsAndMetrics();
+  }, []);
+  
+  const loadContractsAndMetrics = async () => {
+    try {
+      // Buscar contratos ativos
+      const { data: contractsData, error } = await supabase
+        .from('contracts')
+        .select('*, partner:partner_id(id, settings)')
+        .in('status', ['active', 'trial']);
+      
+      if (error) {
+        console.error('Erro ao buscar contratos:', error);
+        setContracts([]);
+        return;
+      }
+      
+      setContracts(contractsData || []);
+      calculateOriginSalesMetrics(contractsData || []);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    }
+  };
+  
+  const calculateOriginSalesMetrics = (contractsData: any[]) => {
+    const origins = ['landing', 'direct', 'partner'];
+    const metrics: OriginSalesMetrics[] = [];
+    
+    for (const origin of origins) {
+      const originContracts = contractsData.filter(c => {
+        if (origin === 'partner') {
+          return c.partner_id || c.affiliate_token;
+        } else if (origin === 'direct') {
+          return c.origin === 'SLG' || (!c.partner_id && !c.affiliate_token);
+        } else {
+          return c.origin === 'PLG' && !c.partner_id;
+        }
+      });
+      
+      const totalMRR = originContracts.reduce((sum, c) => sum + (c.monthly_value || 0), 0);
+      const averageTicket = originContracts.length > 0 ? totalMRR / originContracts.length : 0;
+      
+      // Calcular comissões devidas (apenas para partner)
+      let totalCommissions = 0;
+      if (origin === 'partner') {
+        for (const contract of originContracts) {
+          if (contract.partner_id && contract.partner) {
+            const partner = contract.partner;
+            const tier = partner.settings?.partner_tier || 'tier_3_simple';
+            // Vendas via parceiro são 'originated' (geradas pelo parceiro via link de afiliado)
+            const saleOrigin = 'originated';
+            const planValue = (contract.monthly_value || 0) * 12;
+            
+            const commission = calculateCommission(
+              tier as PartnerTier,
+              saleOrigin as 'originated' | 'received',
+              planValue,
+              0,
+              12
+            );
+            
+            totalCommissions += commission.totalCommission;
+          }
+        }
+      }
+      
+      // Calcular CAC
+      const marketingSpend: Record<string, number> = {
+        'landing': 5000,
+        'direct': 3000,
+        'partner': 0
+      };
+      
+      const cac = originContracts.length > 0 
+        ? marketingSpend[origin] / originContracts.length 
+        : 0;
+      
+      metrics.push({
+        origin,
+        totalSales: originContracts.length,
+        totalMRR,
+        totalCommissions,
+        averageTicket,
+        cac
+      });
+    }
+    
+    setOriginMetrics(metrics);
+  };
 
   const getOriginBadge = (origin: string) => {
     const config = {
@@ -287,6 +392,77 @@ const AdminSales = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Métricas por Origem */}
+          {originMetrics.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Métricas por Origem de Venda</CardTitle>
+                <CardDescription>
+                  Acompanhe vendas, MRR, comissões devidas e CAC por tipo de origem
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {originMetrics.map((metric) => {
+                    const originConfig: Record<string, { label: string; icon: any; color: string }> = {
+                      'landing': { label: 'Landing (ISCA)', icon: Globe, color: 'bg-blue-500' },
+                      'direct': { label: 'Venda Direta', icon: Building2, color: 'bg-purple-500' },
+                      'partner': { label: 'Parceiro/Afiliado', icon: Handshake, color: 'bg-amber-500' }
+                    };
+                    
+                    const config = originConfig[metric.origin] || originConfig['landing'];
+                    const Icon = config.icon;
+                    
+                    return (
+                      <Card key={metric.origin} className="border-2">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-8 h-8 ${config.color} rounded-lg flex items-center justify-center`}>
+                              <Icon className="h-4 w-4 text-white" />
+                            </div>
+                            <CardTitle className="text-base">{config.label}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-muted-foreground text-xs">Vendas</p>
+                              <p className="font-bold text-lg">{metric.totalSales}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">MRR Total</p>
+                              <p className="font-bold text-lg text-primary">
+                                R$ {metric.totalMRR.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">Ticket Médio</p>
+                              <p className="font-bold text-lg">
+                                R$ {metric.averageTicket.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs">Comissões Devidas</p>
+                              <p className="font-bold text-lg text-amber-600">
+                                R$ {metric.totalCommissions.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            <div className="col-span-2">
+                              <p className="text-muted-foreground text-xs">CAC (Custo de Aquisição)</p>
+                              <p className="font-bold text-lg text-blue-600">
+                                R$ {metric.cac.toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Filters */}
           <Card>

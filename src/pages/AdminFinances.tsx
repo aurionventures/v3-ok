@@ -332,11 +332,6 @@ const AdminFinances = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Finanças" />
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">Gestão Financeira</h1>
-            <p className="text-gray-500">Gerencie assinaturas, faturas e relatórios financeiros</p>
-          </div>
-
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
             <div className="flex items-center justify-between mb-6">
               <TabsList>

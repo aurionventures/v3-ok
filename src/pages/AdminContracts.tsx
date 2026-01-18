@@ -44,7 +44,7 @@ import {
 import {
   FileText, Plus, MoreVertical, Send, Download, Eye,
   CheckCircle, Clock, AlertCircle, XCircle, RefreshCw,
-  Search, Building2, Pen, Mail, Copy, ExternalLink
+  Search, Building2, Pen, Mail, Copy, ExternalLink, Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -123,6 +123,8 @@ export default function AdminContracts() {
   
   // Estado de ações
   const [isSending, setIsSending] = useState(false);
+  const [editingPartner, setEditingPartner] = useState(false);
+  const [selectedPartnerForContract, setSelectedPartnerForContract] = useState<string>('');
 
   useEffect(() => {
     fetchContracts();
@@ -302,17 +304,8 @@ export default function AdminContracts() {
         <Header title="Gestão de Contratos" />
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-primary" />
-                  Contratos
-                </h1>
-                <p className="text-muted-foreground">
-                  Gerencie todos os contratos da plataforma
-                </p>
-              </div>
+            {/* Ações rápidas */}
+            <div className="flex flex-col sm:flex-row justify-end gap-4">
               <div className="flex gap-2">
                 <Button variant="outline" onClick={fetchContracts} disabled={isLoading}>
                   <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
@@ -672,6 +665,114 @@ export default function AdminContracts() {
                     <p className="text-xs text-muted-foreground">Prazo</p>
                     <p className="font-medium">{selectedContract.duration_months} meses</p>
                   </div>
+                </div>
+                
+                {/* Atrelamento de Parceiro */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium">Parceiro Afiliado (PLG)</p>
+                    {!editingPartner && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingPartner(true);
+                          setSelectedPartnerForContract(selectedContract.partner_id || 'none');
+                        }}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        {selectedContract.partner_id ? 'Editar' : 'Associar'}
+                      </Button>
+                    )}
+                  </div>
+                  {editingPartner ? (
+                    <div className="space-y-3">
+                      <Select
+                        value={selectedPartnerForContract}
+                        onValueChange={setSelectedPartnerForContract}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um parceiro" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum (Sem parceiro)</SelectItem>
+                          {partners.map(partner => (
+                            <SelectItem key={partner.id} value={partner.id}>
+                              {partner.settings?.company_name || partner.company || partner.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const selectedPartnerObj = partners.find(p => p.id === selectedPartnerForContract);
+                              const partnerId = selectedPartnerForContract === 'none' ? null : selectedPartnerForContract;
+                              const affiliateToken = selectedPartnerObj?.settings?.affiliate_token || null;
+                              const origin = partnerId ? 'PLG' : (selectedContract.origin || 'DIRECT');
+
+                              // Atualizar contrato localmente para demonstração
+                              setContracts(prev => prev.map(c => 
+                                c.id === selectedContract.id 
+                                  ? { ...c, partner_id: partnerId, affiliate_token: affiliateToken, origin }
+                                  : c
+                              ));
+
+                              toast.success(partnerId ? 'Parceiro associado com sucesso!' : 'Associação de parceiro removida');
+                              setEditingPartner(false);
+                              setSelectedContract({ ...selectedContract, partner_id: partnerId, affiliate_token: affiliateToken, origin });
+                              setShowDetailsModal(false);
+                              await fetchContracts();
+                            } catch (err) {
+                              console.error('Erro ao atualizar parceiro:', err);
+                              toast.error('Erro ao atualizar parceiro');
+                            }
+                          }}
+                        >
+                          Salvar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPartner(false);
+                            setSelectedPartnerForContract('');
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {(() => {
+                        const partner = partners.find(p => 
+                          p.id === selectedContract.partner_id ||
+                          p.settings?.affiliate_token === selectedContract.affiliate_token
+                        );
+                        if (partner) {
+                          return (
+                            <div>
+                              <p className="font-medium">
+                                {partner.settings?.company_name || partner.company || partner.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {partner.email} • {partner.settings?.affiliate_token && `Token: ${partner.settings.affiliate_token}`}
+                              </p>
+                              <Badge variant="outline" className="mt-1">Via PLG</Badge>
+                            </div>
+                          );
+                        }
+                        return (
+                          <p className="text-sm text-muted-foreground italic">
+                            Nenhum parceiro associado. Use "Associar" para atrelar manualmente um parceiro a este contrato.
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="p-4 bg-muted/50 rounded-lg">
