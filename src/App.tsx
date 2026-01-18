@@ -160,6 +160,7 @@ const ContractSign = lazy(() => import("./pages/ContractSign"));
 const PartnerSignup = lazy(() => import("./pages/PartnerSignup"));
 const PartnerCreatePassword = lazy(() => import("./pages/PartnerCreatePassword"));
 const PartnerContractSign = lazy(() => import("./pages/PartnerContractSign"));
+const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
 const AdminInvoices = lazy(() => import("./pages/AdminInvoices"));
 const AdminSales = lazy(() => import("./pages/AdminSales"));
 const AdminPLGFunnel = lazy(() => import("./pages/AdminPLGFunnel"));
@@ -787,6 +788,14 @@ const App = () => (
           />
           
           {/* Parceiro Routes */}
+          <Route 
+            path="/parceiro" 
+            element={
+              <ProtectedRoute>
+                <LazyRouteWrapper><PartnerDashboard /></LazyRouteWrapper>
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/afiliado" 
             element={

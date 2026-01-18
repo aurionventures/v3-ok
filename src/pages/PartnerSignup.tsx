@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle2, AlertCircle, Clock, Building2, User, Mail, Phone, Handshake } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Clock, Building2, User, Mail, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { InputCNPJ, InputPhone } from '@/components/ui/input-masked';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import PartnerOnboardingProgress from '@/components/PartnerOnboardingProgress';
 
 interface PartnerInvitation {
   id: string;
@@ -77,7 +78,7 @@ export default function PartnerSignup() {
         
         setInvitation(testInvitation);
         setLoading(false);
-        toast.success('🎭 Modo de Teste: Usando dados simulados');
+        toast.success('Modo de Teste: Usando dados simulados');
         return;
       }
 
@@ -148,9 +149,9 @@ export default function PartnerSignup() {
           invitation_token: token,
         }));
         
-        toast.success('✅ Cadastro concluído! Redirecionando para criação de senha...');
+        toast.success('Cadastro concluído! Redirecionando para o contrato...');
         setTimeout(() => {
-          navigate('/parceiros/criar-senha?token=' + token);
+          navigate('/parceiros/contrato?token=' + token);
         }, 1500);
         return;
       }
@@ -250,6 +251,11 @@ export default function PartnerSignup() {
               <span>Expira em {daysUntilExpiry} dia{daysUntilExpiry !== 1 ? 's' : ''}</span>
             </div>
           </div>
+          
+          {/* Barra de Progresso */}
+          <div className="mt-6">
+            <PartnerOnboardingProgress currentStep={1} />
+          </div>
         </CardHeader>
         <CardContent className="pt-6">
           <Alert className="mb-6">
@@ -260,6 +266,92 @@ export default function PartnerSignup() {
           </Alert>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* CNPJ - Primeiro campo */}
+            <div className="space-y-2">
+              <InputCNPJ
+                id="cnpj"
+                label={`CNPJ ${invitation.invitation_level !== 'parceiro' ? '(Opcional)' : '*'}`}
+                value={formData.cnpj}
+                onChange={(value, company) => {
+                  setFormData(prev => ({ ...prev, cnpj: value }));
+                  // Preencher automaticamente os dados da empresa quando disponível
+                  if (company) {
+                    // Formatar telefone: a API pode retornar apenas DDD ou telefone completo
+                    let formattedPhone = '';
+                    if (company.telefone1) {
+                      const cleanPhone = company.telefone1.replace(/\D/g, '');
+                      // Se tiver mais de 2 dígitos, é um telefone completo
+                      if (cleanPhone.length >= 10) {
+                        if (cleanPhone.length === 10) {
+                          // Telefone fixo: (11) 3333-4444
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 6)}-${cleanPhone.substring(6)}`;
+                        } else if (cleanPhone.length === 11) {
+                          // Celular: (11) 98765-4321
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+                        }
+                      }
+                      // Se for apenas DDD (2 dígitos), não preenche o telefone
+                    }
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      cnpj: value,
+                      company_name: company.nomeFantasia || company.razaoSocial,
+                      phone: formattedPhone || prev.phone,
+                    }));
+                  }
+                }}
+                onCompanyLoaded={(company) => {
+                  // Preencher automaticamente os dados da empresa
+                  if (company) {
+                    // Formatar telefone: a API pode retornar apenas DDD ou telefone completo
+                    let formattedPhone = '';
+                    if (company.telefone1) {
+                      const cleanPhone = company.telefone1.replace(/\D/g, '');
+                      // Se tiver mais de 2 dígitos, é um telefone completo
+                      if (cleanPhone.length >= 10) {
+                        if (cleanPhone.length === 10) {
+                          // Telefone fixo: (11) 3333-4444
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 6)}-${cleanPhone.substring(6)}`;
+                        } else if (cleanPhone.length === 11) {
+                          // Celular: (11) 98765-4321
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+                        }
+                      }
+                      // Se for apenas DDD (2 dígitos), não preenche o telefone
+                    }
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      company_name: company.nomeFantasia || company.razaoSocial,
+                      phone: formattedPhone || prev.phone,
+                    }));
+                    toast.success('Dados da empresa preenchidos automaticamente!');
+                  }
+                }}
+                required={invitation.invitation_level === 'parceiro'}
+                placeholder="00.000.000/0000-00"
+                autoFetch={true}
+                showSearchButton={true}
+              />
+            </div>
+
+            {/* Nome da Empresa - Preenchido automaticamente pelo CNPJ */}
+            <div className="space-y-2">
+              <Label htmlFor="company_name" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Nome da Empresa *
+              </Label>
+              <Input
+                id="company_name"
+                value={formData.company_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                required
+                placeholder="Nome da sua empresa (será preenchido automaticamente ao consultar o CNPJ)"
+              />
+            </div>
+
+            {/* Email e Nome Completo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
@@ -292,65 +384,16 @@ export default function PartnerSignup() {
               </div>
             </div>
 
+            {/* Telefone - Preenchido automaticamente pelo CNPJ */}
             <div className="space-y-2">
-              <Label htmlFor="company_name" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Nome da Empresa *
-              </Label>
-              <Input
-                id="company_name"
-                value={formData.company_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                required
-                placeholder="Nome da sua empresa"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputCNPJ
-                id="cnpj"
-                label={`CNPJ ${invitation.invitation_level !== 'parceiro' ? '(Opcional)' : '*'}`}
-                value={formData.cnpj}
-                onChange={(e) => setFormData(prev => ({ ...prev, cnpj: e.target.value }))}
-                required={invitation.invitation_level === 'parceiro'}
-                placeholder="00.000.000/0000-00"
-              />
-
               <InputPhone
                 id="phone"
                 label="Telefone *"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 required
-                placeholder="(11) 99999-9999"
+                placeholder="(11) 99999-9999 (será preenchido automaticamente ao consultar o CNPJ)"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="partner_type" className="flex items-center gap-2">
-                <Handshake className="h-4 w-4" />
-                Tipo de Parceiro *
-              </Label>
-              <Select
-                id="partner_type"
-                value={formData.partner_type}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, partner_type: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo de parceiro" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="revenda">Revenda</SelectItem>
-                  <SelectItem value="consultoria">Consultoria</SelectItem>
-                  <SelectItem value="integrador">Integrador</SelectItem>
-                  <SelectItem value="afiliado">Afiliado</SelectItem>
-                  <SelectItem value="parceiro">Parceiro</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Selecione o tipo de atuação do seu negócio
-              </p>
             </div>
 
             <Alert className="bg-blue-50 border-blue-200">

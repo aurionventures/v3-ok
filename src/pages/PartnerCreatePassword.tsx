@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle2, AlertCircle, Lock, Eye, EyeOff } from 'lucide-react';
+import PartnerOnboardingProgress from '@/components/PartnerOnboardingProgress';
 
 export default function PartnerCreatePassword() {
   const navigate = useNavigate();
@@ -25,6 +26,14 @@ export default function PartnerCreatePassword() {
     if (!token) {
       toast.error('Token não fornecido');
       navigate('/parceiros/cadastro');
+      return;
+    }
+
+    // Verificar se o contrato foi assinado
+    const storedContract = sessionStorage.getItem('partner_contract_signed');
+    if (!storedContract) {
+      toast.error('Contrato não assinado. Por favor, assine o contrato primeiro.');
+      navigate('/parceiros/contrato?token=' + token);
       return;
     }
 
@@ -63,16 +72,24 @@ export default function PartnerCreatePassword() {
     setSubmitting(true);
 
     try {
-      // Simular criação de senha (em produção, isso seria feito via Edge Function)
+      // Simular criação de senha de acesso (em produção, isso seria feito via Edge Function)
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Salvar senha no sessionStorage para o próximo passo
+      // Salvar senha no sessionStorage
       sessionStorage.setItem('partner_password', password);
       
-      toast.success('✅ Senha criada com sucesso! Redirecionando para assinatura do contrato...');
+      toast.success('Senha criada com sucesso! Redirecionando para o painel...');
       
       setTimeout(() => {
-        navigate('/parceiros/contrato?token=' + token);
+        // Salvar indicador de onboarding completo
+        sessionStorage.setItem('partner_onboarding_complete', 'true');
+        
+        // Limpar dados temporários (exceto contrato assinado e senha)
+        // sessionStorage.removeItem('partner_signup_data');
+        
+        // Redirecionar para o painel de parceiro
+        // Em produção, faria login automático e redirecionaria para /parceiro
+        navigate('/parceiro');
       }, 1500);
     } catch (err: any) {
       console.error('Erro ao criar senha:', err);
@@ -99,11 +116,16 @@ export default function PartnerCreatePassword() {
         <CardHeader className="border-b">
           <CardTitle className="text-2xl flex items-center gap-2">
             <Lock className="h-6 w-6" />
-            Criar Senha
+            Criar Senha de Acesso
           </CardTitle>
           <CardDescription className="mt-2">
             Crie uma senha segura para acessar sua conta de parceiro
           </CardDescription>
+          
+          {/* Barra de Progresso */}
+          <div className="mt-6">
+            <PartnerOnboardingProgress currentStep={3} />
+          </div>
         </CardHeader>
         <CardContent className="pt-6">
           {signupData && (
@@ -180,7 +202,7 @@ export default function PartnerCreatePassword() {
             <Alert className="bg-blue-50 border-blue-200">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-900">
-                Após criar a senha, você será redirecionado para assinar o contrato de parceiro.
+                Após criar a senha, você será redirecionado para o painel de parceiro.
               </AlertDescription>
             </Alert>
 
@@ -189,7 +211,7 @@ export default function PartnerCreatePassword() {
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => navigate('/parceiros/cadastro?token=' + token)}
+                onClick={() => navigate('/parceiros/contrato?token=' + token)}
               >
                 Voltar
               </Button>
