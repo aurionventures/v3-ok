@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, RotateCw } from 'lucide-react';
 import { validatePasswordStrength } from '@/data/signupData';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +50,35 @@ export function CreatePasswordModal({
   const passwordsMatch = password === confirmPassword && password.length > 0;
 
   const canCreate = passwordValidation.isValid && passwordsMatch;
+
+  // Gerador de senha forte
+  const generateStrongPassword = () => {
+    const length = 16;
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const allChars = uppercase + lowercase + numbers + special;
+    
+    let password = '';
+    
+    // Garantir pelo menos um de cada tipo
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+    
+    // Preencher o restante com caracteres aleatórios
+    for (let i = password.length; i < length; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+    
+    // Embaralhar a senha
+    password = password.split('').sort(() => Math.random() - 0.5).join('');
+    
+    setPassword(password);
+    setConfirmPassword(password);
+  };
 
   const handleCreatePassword = async () => {
     if (!canCreate) {
@@ -195,9 +224,21 @@ export function CreatePasswordModal({
 
           {/* Campo de senha */}
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-semibold">
-              Senha *
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-sm font-semibold">
+                Senha *
+              </Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={generateStrongPassword}
+                className="h-7 text-xs gap-1 text-primary hover:text-primary"
+              >
+                <RotateCw className="h-3 w-3" />
+                Gerar senha forte
+              </Button>
+            </div>
             <div className="relative">
               <Input
                 id="password"

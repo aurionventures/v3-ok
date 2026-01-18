@@ -50,8 +50,8 @@ export default function WelcomeNewUser() {
     localStorage.removeItem('just_created_password');
     localStorage.removeItem('from_contract_sign');
     
-    // Redirecionar para checklist para iniciar preenchimento dos dados
-    navigate('/document-checklist?tab=empresa&subtab=fase-1');
+    // Redirecionar para checklist na aba "Cadastro da Empresa"
+    navigate('/document-checklist?tab=cadastro-empresa');
   }, [navigate]);
 
   useEffect(() => {
@@ -65,17 +65,8 @@ export default function WelcomeNewUser() {
       return;
     }
 
-    // Redirecionar automaticamente para o Checklist após 2 segundos (passo 1/4)
-    // Isso permite que o usuário veja a página de boas-vindas brevemente antes de ser direcionado
-    const autoRedirectTimer = setTimeout(() => {
-      // Verificar se o usuário ainda está no passo 1 (welcome)
-      if (currentStep === 0) {
-        handleStartChecklist();
-      }
-    }, 2000);
-
-    return () => clearTimeout(autoRedirectTimer);
-  }, [navigate, currentStep, handleStartChecklist]);
+    // Removido redirecionamento automático - usuário deve navegar manualmente pelo carrossel
+  }, [navigate]);
 
   const welcomeSteps: WelcomeStep[] = [
     {
@@ -119,8 +110,8 @@ export default function WelcomeNewUser() {
     localStorage.removeItem('just_created_password');
     localStorage.removeItem('from_contract_sign');
     
-    // Redirecionar para checklist para iniciar preenchimento dos dados
-    navigate('/document-checklist?tab=empresa&subtab=fase-1');
+    // Redirecionar para checklist na aba "Cadastro da Empresa"
+    navigate('/document-checklist?tab=cadastro-empresa');
   };
 
   const handleSkipToDashboard = () => {
@@ -166,11 +157,11 @@ export default function WelcomeNewUser() {
               )}
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" onClick={handleStartChecklist} className="gap-2">
-                Começar <ArrowRight className="h-4 w-4" />
+              <Button size="lg" onClick={() => handleCompleteStep(step.id)} className="gap-2">
+                Próximo <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" onClick={handleSkipToDashboard}>
-                Pular e ir para o Dashboard
+              <Button size="lg" variant="outline" onClick={handleStartChecklist}>
+                Pular Boas vindas
               </Button>
             </div>
           </div>
@@ -376,8 +367,8 @@ export default function WelcomeNewUser() {
                 <Rocket className="h-4 w-4" />
                 Começar Configuração Guiada
               </Button>
-              <Button size="lg" variant="ghost" onClick={handleSkipToDashboard}>
-                Pular e ir para o Dashboard
+              <Button size="lg" variant="ghost" onClick={handleStartChecklist}>
+                Pular Boas vindas
               </Button>
             </div>
           </div>

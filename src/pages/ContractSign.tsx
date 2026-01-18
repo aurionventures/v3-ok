@@ -97,7 +97,64 @@ export default function ContractSign() {
 
       if (!data) {
         // Use mock for development
-        setContract(getMockContract());
+        const mockContract = getMockContract();
+        // Garantir que content_html esteja preenchido
+        if (!mockContract.content_html || mockContract.content_html.trim() === '' || mockContract.content_html.includes('Conteúdo do contrato...')) {
+          // Recarregar template e substituir variáveis
+          const storedTemplates = localStorage.getItem('contract_templates');
+          let templateContent = DEFAULT_CONTRACT_CONTENT;
+          
+          if (storedTemplates) {
+            try {
+              const templates = JSON.parse(storedTemplates);
+              const defaultTemplate = templates.find((t: any) => 
+                t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
+              ) || templates.find((t: any) => t.is_default && t.is_active);
+              if (defaultTemplate?.content) {
+                templateContent = defaultTemplate.content;
+              }
+            } catch (e) {
+              console.error('Erro ao carregar template:', e);
+            }
+          }
+          
+          // Substituir variáveis do template
+          let content = templateContent;
+          const variables: Record<string, string> = {
+            'contrato_numero': mockContract.contract_number || '',
+            'cliente_nome': mockContract.client_name || '',
+            'cliente_cnpj': mockContract.client_document || '',
+            'cliente_endereco': 'Rua Exemplo, 123 - Centro - São Paulo/SP - CEP: 01234-567',
+            'cliente_email': mockContract.client_email || '',
+            'cliente_telefone': '(11) 98765-4321',
+            'signatario_nome': mockContract.signatory_name || '',
+            'signatario_cargo': mockContract.signatory_role || '',
+            'signatario_cpf': mockContract.signatory_cpf || '',
+            'plano_nome': mockContract.plan_name || '',
+            'plano_tipo': mockContract.plan_type || '',
+            'modulos_inclusos': mockContract.plan_name || '',
+            'addons_inclusos': (mockContract.addons || []).join(', ') || 'Nenhum',
+            'duracao_meses': mockContract.duration_months?.toString() || '',
+            'duracao_extenso': mockContract.duration_months === 12 ? 'doze' : mockContract.duration_months === 24 ? 'vinte e quatro' : mockContract.duration_months === 36 ? 'trinta e seis' : mockContract.duration_months?.toString() || '',
+            'data_inicio': mockContract.start_date ? format(new Date(mockContract.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+            'data_fim': mockContract.end_date ? format(new Date(mockContract.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+            'plano_valor': mockContract.monthly_value ? mockContract.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+            'plano_valor_extenso': mockContract.monthly_value ? `R$ ${mockContract.monthly_value.toFixed(2).replace('.', ',')}` : '',
+            'forma_pagamento': 'Boleto Bancário',
+            'dia_vencimento': '05',
+            'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
+            'cidade_assinatura': 'São Paulo - SP',
+            'valor_mensal': mockContract.monthly_value ? mockContract.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+          };
+          
+          Object.entries(variables).forEach(([key, value]) => {
+            const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+            content = content.replace(regex, value);
+          });
+          
+          mockContract.content_html = content;
+        }
+        setContract(mockContract);
         return;
       }
 
@@ -114,13 +171,16 @@ export default function ContractSign() {
         return;
       }
 
-      // Se o contrato não tiver content_html ou estiver vazio, carregar do template padrão
+      // Se o contrato não tiver content_html ou estiver vazio, carregar do template padrão do tipo 'client'
       if (!data.content_html || data.content_html.trim() === '' || data.content_html.includes('Conteúdo do contrato...')) {
         const storedTemplates = localStorage.getItem('contract_templates');
         if (storedTemplates) {
           try {
             const templates = JSON.parse(storedTemplates);
-            const defaultTemplate = templates.find((t: any) => t.is_default && t.is_active);
+            // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
+            const defaultTemplate = templates.find((t: any) => 
+              t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
+            ) || templates.find((t: any) => t.is_default && t.is_active);
             if (defaultTemplate?.content) {
               // Substituir variáveis do template com dados do contrato
               let content = defaultTemplate.content;
@@ -463,12 +523,23 @@ export default function ContractSign() {
                 <FileText className="h-4 w-4" />
                 Termos do Contrato
               </h3>
-              <ScrollArea className="h-[600px] border rounded-lg p-6 bg-white">
-                <div
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: contract.content_html || '<p>Carregando conteúdo do contrato...</p>' }}
-                />
-              </ScrollArea>
+              <div className="border rounded-lg bg-white overflow-hidden">
+                <ScrollArea className="h-[600px] p-6">
+                  {contract?.content_html ? (
+                    <div
+                      className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:list-disc prose-ol:list-decimal"
+                      dangerouslySetInnerHTML={{ __html: contract.content_html }}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>Carregando conteúdo do contrato...</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Role a página para ler todo o conteúdo do contrato antes de assinar
+              </p>
             </div>
 
             <Separator />
@@ -576,9 +647,9 @@ export default function ContractSign() {
           </CardContent>
 
           <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between">
-            {pdfData && (
+            {contract && (
               <PDFDownloadLink
-                document={<ContractPDF data={pdfData} showWatermark={true} />}
+                document={<ContractPDF data={getPDFData()!} showWatermark={true} />}
                 fileName={`contrato-${contract.contract_number}.pdf`}
               >
                 {({ loading }) => (
@@ -736,14 +807,17 @@ export default function ContractSign() {
 
 // Mock data
 function getMockContract(): Contract {
-  // Carregar template padrão do localStorage ou usar DEFAULT_CONTRACT_CONTENT
+  // Carregar template padrão do tipo 'client' do localStorage ou usar DEFAULT_CONTRACT_CONTENT
   const storedTemplates = localStorage.getItem('contract_templates');
   let templateContent = DEFAULT_CONTRACT_CONTENT;
   
   if (storedTemplates) {
     try {
       const templates = JSON.parse(storedTemplates);
-      const defaultTemplate = templates.find((t: any) => t.is_default && t.is_active);
+      // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
+      const defaultTemplate = templates.find((t: any) => 
+        t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
+      ) || templates.find((t: any) => t.is_default && t.is_active);
       if (defaultTemplate?.content) {
         templateContent = defaultTemplate.content;
       }
