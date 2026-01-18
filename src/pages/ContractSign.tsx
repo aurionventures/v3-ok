@@ -54,6 +54,7 @@ interface Contract {
   duration_months: number;
   content_html: string;
   status: string;
+  client_signature_token?: string;
   client_signature_token_expires_at: string;
   client_signed_at: string | null;
 }
@@ -96,64 +97,14 @@ export default function ContractSign() {
       const data = contracts.find((c: any) => c.client_signature_token === token);
 
       if (!data) {
-        // Use mock for development
+        // Use mock for development - getMockContract já carrega o template corretamente
         const mockContract = getMockContract();
-        // Garantir que content_html esteja preenchido
-        if (!mockContract.content_html || mockContract.content_html.trim() === '' || mockContract.content_html.includes('Conteúdo do contrato...')) {
-          // Recarregar template e substituir variáveis
-          const storedTemplates = localStorage.getItem('contract_templates');
-          let templateContent = DEFAULT_CONTRACT_CONTENT;
-          
-          if (storedTemplates) {
-            try {
-              const templates = JSON.parse(storedTemplates);
-              const defaultTemplate = templates.find((t: any) => 
-                t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
-              ) || templates.find((t: any) => t.is_default && t.is_active);
-              if (defaultTemplate?.content) {
-                templateContent = defaultTemplate.content;
-              }
-            } catch (e) {
-              console.error('Erro ao carregar template:', e);
-            }
-          }
-          
-          // Substituir variáveis do template
-          let content = templateContent;
-          const variables: Record<string, string> = {
-            'contrato_numero': mockContract.contract_number || '',
-            'cliente_nome': mockContract.client_name || '',
-            'cliente_cnpj': mockContract.client_document || '',
-            'cliente_endereco': 'Rua Exemplo, 123 - Centro - São Paulo/SP - CEP: 01234-567',
-            'cliente_email': mockContract.client_email || '',
-            'cliente_telefone': '(11) 98765-4321',
-            'signatario_nome': mockContract.signatory_name || '',
-            'signatario_cargo': mockContract.signatory_role || '',
-            'signatario_cpf': mockContract.signatory_cpf || '',
-            'plano_nome': mockContract.plan_name || '',
-            'plano_tipo': mockContract.plan_type || '',
-            'modulos_inclusos': mockContract.plan_name || '',
-            'addons_inclusos': (mockContract.addons || []).join(', ') || 'Nenhum',
-            'duracao_meses': mockContract.duration_months?.toString() || '',
-            'duracao_extenso': mockContract.duration_months === 12 ? 'doze' : mockContract.duration_months === 24 ? 'vinte e quatro' : mockContract.duration_months === 36 ? 'trinta e seis' : mockContract.duration_months?.toString() || '',
-            'data_inicio': mockContract.start_date ? format(new Date(mockContract.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
-            'data_fim': mockContract.end_date ? format(new Date(mockContract.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
-            'plano_valor': mockContract.monthly_value ? mockContract.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-            'plano_valor_extenso': mockContract.monthly_value ? `R$ ${mockContract.monthly_value.toFixed(2).replace('.', ',')}` : '',
-            'forma_pagamento': 'Boleto Bancário',
-            'dia_vencimento': '05',
-            'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
-            'cidade_assinatura': 'São Paulo - SP',
-            'valor_mensal': mockContract.monthly_value ? mockContract.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-          };
-          
-          Object.entries(variables).forEach(([key, value]) => {
-            const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-            content = content.replace(regex, value);
-          });
-          
-          mockContract.content_html = content;
+        // Garantir que o token do mock corresponda ao token da URL
+        if (token) {
+          mockContract.client_signature_token = token;
         }
+        console.log('Usando contrato mockado:', mockContract.contract_number);
+        console.log('Content HTML:', mockContract.content_html ? 'Preenchido' : 'Vazio', mockContract.content_html?.substring(0, 100));
         setContract(mockContract);
         return;
       }
@@ -171,84 +122,101 @@ export default function ContractSign() {
         return;
       }
 
-      // Se o contrato não tiver content_html ou estiver vazio, carregar do template padrão do tipo 'client'
-      if (!data.content_html || data.content_html.trim() === '' || data.content_html.includes('Conteúdo do contrato...')) {
-        const storedTemplates = localStorage.getItem('contract_templates');
-        let templateContent = DEFAULT_CONTRACT_CONTENT;
-        
-        // Se não houver templates, garantir que sejam inicializados
-        let templatesToUse: any[] = [];
-        if (!storedTemplates) {
-          // Tentar inicializar templates como no AdminContractManagement
-          const defaultTemplates = [
-            {
-              id: '1',
-              name: 'Contrato de Prestação de Serviços SaaS - Padrão',
-              description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
-              version: '1.0',
-              content: DEFAULT_CONTRACT_CONTENT,
-              is_active: true,
-              is_default: true,
-              contract_type: 'client',
-            }
-          ];
-          localStorage.setItem('contract_templates', JSON.stringify(defaultTemplates));
-          templatesToUse = defaultTemplates;
-        } else {
-          try {
-            templatesToUse = JSON.parse(storedTemplates);
-          } catch (e) {
-            console.error('Erro ao parsear templates:', e);
+      // SEMPRE carregar o template ativo do tipo 'client' do Super ADM para garantir conteúdo atualizado
+      // Mesmo que o contrato já tenha content_html, vamos sempre usar o template mais recente do Super ADM
+      const storedTemplates = localStorage.getItem('contract_templates');
+      let templateContent = DEFAULT_CONTRACT_CONTENT;
+      
+      // Se não houver templates, garantir que sejam inicializados
+      let templatesToUse: any[] = [];
+      if (!storedTemplates) {
+        console.warn('Templates não encontrados no localStorage. Inicializando com template padrão.');
+        // Tentar inicializar templates como no AdminContractManagement
+        const defaultTemplates = [
+          {
+            id: '1',
+            name: 'Contrato de Prestação de Serviços SaaS - Padrão',
+            description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
+            version: '1.0',
+            content: DEFAULT_CONTRACT_CONTENT,
+            is_active: true,
+            is_default: true,
+            contract_type: 'client',
           }
-        }
-        
-        // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
-        if (templatesToUse.length > 0) {
+        ];
+        localStorage.setItem('contract_templates', JSON.stringify(defaultTemplates));
+        templatesToUse = defaultTemplates;
+        templateContent = DEFAULT_CONTRACT_CONTENT;
+      } else {
+        try {
+          templatesToUse = JSON.parse(storedTemplates);
+          console.log('Templates encontrados no localStorage:', templatesToUse.length);
+          
+          // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
           const defaultTemplate = templatesToUse.find((t: any) => 
             t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
           ) || templatesToUse.find((t: any) => t.is_default && t.is_active);
+          
           if (defaultTemplate?.content) {
             templateContent = defaultTemplate.content;
+            console.log('Template ativo encontrado:', defaultTemplate.name);
+          } else if (defaultTemplate?.content === '' || !defaultTemplate) {
+            console.warn('Template não encontrado ou vazio. Usando DEFAULT_CONTRACT_CONTENT.');
+            templateContent = DEFAULT_CONTRACT_CONTENT;
           }
+        } catch (e) {
+          console.error('Erro ao parsear templates:', e);
+          templateContent = DEFAULT_CONTRACT_CONTENT;
         }
-        
-        // Usar o conteúdo do template (ou DEFAULT_CONTRACT_CONTENT como fallback)
-        // Substituir variáveis do template com dados do contrato
-        let content = templateContent;
-        const variables: Record<string, string> = {
-          'contrato_numero': data.contract_number || '',
-          'cliente_nome': data.client_name || '',
-          'cliente_cnpj': data.client_document || '',
-          'cliente_endereco': (data as any).client_address || '',
-          'cliente_email': data.client_email || '',
-          'cliente_telefone': (data as any).client_phone || '',
-          'signatario_nome': data.signatory_name || '',
-          'signatario_cargo': data.signatory_role || '',
-          'signatario_cpf': data.signatory_cpf || '',
-          'plano_nome': data.plan_name || '',
-          'plano_tipo': data.plan_type || '',
-          'modulos_inclusos': data.plan_name || '',
-          'addons_inclusos': (data.addons || []).join(', ') || 'Nenhum',
-          'duracao_meses': data.duration_months?.toString() || '',
-          'duracao_extenso': data.duration_months === 12 ? 'doze' : data.duration_months === 24 ? 'vinte e quatro' : data.duration_months === 36 ? 'trinta e seis' : data.duration_months?.toString() || '',
-          'data_inicio': data.start_date ? format(new Date(data.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
-          'data_fim': data.end_date ? format(new Date(data.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
-          'plano_valor': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-          'plano_valor_extenso': data.monthly_value ? `R$ ${data.monthly_value.toFixed(2).replace('.', ',')}` : '',
-          'forma_pagamento': 'Boleto Bancário',
-          'dia_vencimento': '05',
-          'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
-          'cidade_assinatura': 'São Paulo - SP',
-          'valor_mensal': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-        };
-        
-        Object.entries(variables).forEach(([key, value]) => {
-          const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-          content = content.replace(regex, value);
-        });
-        
-        data.content_html = content;
       }
+      
+      // Usar o conteúdo do template (ou DEFAULT_CONTRACT_CONTENT como fallback)
+      // Substituir variáveis do template com dados do contrato
+      let content = templateContent;
+      const variables: Record<string, string> = {
+        'contrato_numero': data.contract_number || '',
+        'cliente_nome': data.client_name || '',
+        'cliente_cnpj': data.client_document || '',
+        'cliente_endereco': (data as any).client_address || '',
+        'cliente_email': data.client_email || '',
+        'cliente_telefone': (data as any).client_phone || '',
+        'signatario_nome': data.signatory_name || '',
+        'signatario_cargo': data.signatory_role || '',
+        'signatario_cpf': data.signatory_cpf || '',
+        'plano_nome': data.plan_name || '',
+        'plano_tipo': data.plan_type || '',
+        'modulos_inclusos': data.plan_name || '',
+        'addons_inclusos': (data.addons || []).join(', ') || 'Nenhum',
+        'duracao_meses': data.duration_months?.toString() || '',
+        'duracao_extenso': data.duration_months === 12 ? 'doze' : data.duration_months === 24 ? 'vinte e quatro' : data.duration_months === 36 ? 'trinta e seis' : data.duration_months?.toString() || '',
+        'data_inicio': data.start_date ? format(new Date(data.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+        'data_fim': data.end_date ? format(new Date(data.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+        'plano_valor': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+        'plano_valor_extenso': data.monthly_value ? `R$ ${data.monthly_value.toFixed(2).replace('.', ',')}` : '',
+        'forma_pagamento': 'Boleto Bancário',
+        'dia_vencimento': '05',
+        'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
+        'cidade_assinatura': 'São Paulo - SP',
+        'valor_mensal': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+      };
+      
+      Object.entries(variables).forEach(([key, value]) => {
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+        content = content.replace(regex, value);
+      });
+      
+      // SEMPRE atualizar content_html com o template mais recente do Super ADM
+      data.content_html = content;
+      
+      // Debug: verificar se o conteúdo foi carregado
+      console.log('=== DEBUG CONTRATO ===');
+      console.log('Contrato encontrado:', data.contract_number);
+      console.log('Template carregado:', templateContent ? 'Sim (' + templateContent.length + ' caracteres)' : 'Não');
+      console.log('Content HTML após substituição:', data.content_html ? 'Sim (' + data.content_html.length + ' caracteres)' : 'Não');
+      if (data.content_html) {
+        console.log('Preview do content_html:', data.content_html.substring(0, 200));
+      }
+      console.log('========================');
 
       setContract(data);
     } catch (error) {
@@ -371,8 +339,8 @@ export default function ContractSign() {
     }
   };
 
-  // Preparar dados para PDF
-  const getPDFData = (): ContractData | null => {
+  // Preparar dados para PDF - usar useMemo para garantir que os dados estejam sempre atualizados
+  const pdfData = useMemo((): ContractData | null => {
     if (!contract) return null;
 
     return {
@@ -394,6 +362,10 @@ export default function ContractSign() {
       clientSignedAt: contract.client_signed_at || undefined,
       generatedAt: new Date().toISOString(),
     };
+  }, [contract]);
+
+  const getPDFData = (): ContractData | null => {
+    return pdfData;
   };
 
   if (isLoading) {
@@ -442,8 +414,6 @@ export default function ContractSign() {
   }
 
   if (!contract) return null;
-
-  const pdfData = getPDFData();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 py-8 px-4">
@@ -732,25 +702,41 @@ export default function ContractSign() {
                 <strong>Importante:</strong> Recomendamos baixar uma cópia do contrato assinado em PDF antes de continuar.
               </p>
             </div>
-            {contract && getPDFData() ? (
+            {contract && contract.client_signed_at && getPDFData() ? (
               <PDFDownloadLink
                 document={<ContractPDF data={getPDFData()!} showWatermark={false} />}
                 fileName={`contrato-assinado-${contract?.contract_number}.pdf`}
                 className="block"
               >
-                {({ loading }) => (
-                  <Button 
-                    variant="outline" 
-                    disabled={loading}
-                    className="w-full"
-                    size="lg"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    {loading ? "Gerando PDF..." : "Baixar Contrato em PDF"}
-                  </Button>
-                )}
+                {({ loading, blob, url, error }) => {
+                  if (error) {
+                    console.error('Erro ao gerar PDF:', error);
+                    return (
+                      <Button 
+                        variant="outline" 
+                        disabled
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Erro ao gerar PDF
+                      </Button>
+                    );
+                  }
+                  return (
+                    <Button 
+                      variant="outline" 
+                      disabled={loading}
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      {loading ? "Gerando PDF..." : "Baixar Contrato em PDF"}
+                    </Button>
+                  );
+                }}
               </PDFDownloadLink>
-            ) : (
+            ) : contract ? (
               <Button 
                 variant="outline" 
                 disabled
@@ -760,7 +746,7 @@ export default function ContractSign() {
                 <Download className="h-4 w-4 mr-2" />
                 Baixar Contrato em PDF
               </Button>
-            )}
+            ) : null}
           </div>
           <DialogFooter className="flex-col gap-2 justify-center">
             <Button
@@ -822,7 +808,7 @@ export default function ContractSign() {
   );
 }
 
-// Mock data
+// Mock data - Retorna contrato mockado similar ao Super ADM
 function getMockContract(): Contract {
   // Carregar template padrão do tipo 'client' do localStorage ou usar DEFAULT_CONTRACT_CONTENT
   const storedTemplates = localStorage.getItem('contract_templates');
@@ -843,52 +829,67 @@ function getMockContract(): Contract {
     }
   }
   
-  // Substituir variáveis básicas para o mock
-  let content = templateContent
-    .replace(/\{\{contrato_numero\}\}/g, 'CONT-2026-0001')
-    .replace(/\{\{cliente_nome\}\}/g, 'Empresa ABC Ltda')
-    .replace(/\{\{cliente_cnpj\}\}/g, '12.345.678/0001-90')
-    .replace(/\{\{cliente_endereco\}\}/g, 'Rua Exemplo, 123 - Centro - São Paulo/SP - CEP: 01234-567')
-    .replace(/\{\{cliente_email\}\}/g, 'contato@empresaabc.com.br')
-    .replace(/\{\{cliente_telefone\}\}/g, '(11) 98765-4321')
-    .replace(/\{\{signatario_nome\}\}/g, 'João Silva')
-    .replace(/\{\{signatario_cargo\}\}/g, 'Diretor de Governança')
-    .replace(/\{\{signatario_cpf\}\}/g, '123.456.789-00')
-    .replace(/\{\{plano_nome\}\}/g, 'Profissional')
-    .replace(/\{\{plano_tipo\}\}/g, 'governance_plus')
-    .replace(/\{\{modulos_inclusos\}\}/g, 'Módulos do plano Profissional')
-    .replace(/\{\{addons_inclusos\}\}/g, 'ESG, Inteligência de Mercado')
-    .replace(/\{\{duracao_meses\}\}/g, '24')
-    .replace(/\{\{duracao_extenso\}\}/g, 'vinte e quatro')
-    .replace(/\{\{data_inicio\}\}/g, '31/12/2025')
-    .replace(/\{\{data_fim\}\}/g, '30/12/2027')
-    .replace(/\{\{plano_valor\}\}/g, 'R$ 8.497,00')
-    .replace(/\{\{plano_valor_extenso\}\}/g, 'R$ 8497,00')
-    .replace(/\{\{forma_pagamento\}\}/g, 'Boleto Bancário')
-    .replace(/\{\{dia_vencimento\}\}/g, '05')
-    .replace(/\{\{data_contrato\}\}/g, new Date().toLocaleDateString('pt-BR'))
-    .replace(/\{\{cidade_assinatura\}\}/g, 'São Paulo - SP')
-    .replace(/\{\{valor_mensal\}\}/g, 'R$ 8.497,00');
-  
-  return {
+  // Dados mockados baseados no Super ADM (similar ao getMockContracts)
+  const contractData = {
     id: "1",
-    contract_number: "CONT-2026-0001",
-    client_name: "Empresa ABC Ltda",
-    client_document: "12.345.678/0001-90",
-    client_email: "contato@empresaabc.com.br",
-    signatory_name: "João Silva",
+    contract_number: "CTR-1768758911100",
+    client_name: "AURION VENTURES LTDA",
+    client_document: "63657780000167",
+    client_email: "contato@aurion.com.br",
+    signatory_name: "roger",
     signatory_cpf: "123.456.789-00",
-    signatory_role: "Diretor de Governança",
+    signatory_role: "cfo",
     plan_name: "Profissional",
     plan_type: "governance_plus",
     addons: ["ESG", "Inteligência de Mercado"],
-    monthly_value: 8497,
-    total_value: 203928,
-    start_date: "2025-12-31",
-    end_date: "2027-12-30",
+    monthly_value: 3597.30,
+    total_value: 86335.20,
+    start_date: "2026-01-17",
+    end_date: "2028-01-17",
     duration_months: 24,
+    client_address: "Rua Exemplo, 123 - Centro - São Paulo/SP - CEP: 01234-567",
+    client_phone: "(11) 98765-4321",
+  };
+  
+  // Substituir variáveis do template com os dados mockados
+  let content = templateContent;
+  const variables: Record<string, string> = {
+    'contrato_numero': contractData.contract_number,
+    'cliente_nome': contractData.client_name,
+    'cliente_cnpj': contractData.client_document,
+    'cliente_endereco': contractData.client_address || '',
+    'cliente_email': contractData.client_email,
+    'cliente_telefone': contractData.client_phone || '',
+    'signatario_nome': contractData.signatory_name,
+    'signatario_cargo': contractData.signatory_role,
+    'signatario_cpf': contractData.signatory_cpf,
+    'plano_nome': contractData.plan_name,
+    'plano_tipo': contractData.plan_type,
+    'modulos_inclusos': contractData.plan_name,
+    'addons_inclusos': (contractData.addons || []).join(', ') || 'Nenhum',
+    'duracao_meses': contractData.duration_months?.toString() || '',
+    'duracao_extenso': contractData.duration_months === 12 ? 'doze' : contractData.duration_months === 24 ? 'vinte e quatro' : contractData.duration_months === 36 ? 'trinta e seis' : contractData.duration_months?.toString() || '',
+    'data_inicio': contractData.start_date ? format(new Date(contractData.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+    'data_fim': contractData.end_date ? format(new Date(contractData.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+    'plano_valor': contractData.monthly_value ? contractData.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+    'plano_valor_extenso': contractData.monthly_value ? `R$ ${contractData.monthly_value.toFixed(2).replace('.', ',')}` : '',
+    'forma_pagamento': 'Boleto Bancário',
+    'dia_vencimento': '05',
+    'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
+    'cidade_assinatura': 'São Paulo - SP',
+    'valor_mensal': contractData.monthly_value ? contractData.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+  };
+  
+  Object.entries(variables).forEach(([key, value]) => {
+    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+    content = content.replace(regex, value);
+  });
+  
+  return {
+    ...contractData,
     content_html: content,
     status: "pending_signature",
+    client_signature_token: "2f5e2ec0-aa58-4c2a-a151-fddd14553f25b6c5303bd9a7486d80266fc3e3b9b7f4",
     client_signature_token_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     client_signed_at: null,
   };
