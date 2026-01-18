@@ -140,15 +140,15 @@ export default function WelcomeNewUser() {
     switch (step.id) {
       case 'welcome':
         return (
-          <div className="text-center space-y-6 py-8">
+          <div className="text-center space-y-4 py-4 h-full flex flex-col justify-center">
             <div className="flex justify-center">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
-                <StepIcon className="h-12 w-12 text-primary" />
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <StepIcon className="h-8 w-8 text-primary" />
               </div>
             </div>
             <div>
-              <h2 className="text-3xl font-bold mb-2">{step.title}</h2>
-              <p className="text-lg text-muted-foreground mb-4">{step.description}</p>
+              <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
+              <p className="text-base text-muted-foreground mb-3">{step.description}</p>
               {user && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted rounded-lg">
                   <span className="text-sm font-medium">{user.name}</span>
@@ -169,56 +169,56 @@ export default function WelcomeNewUser() {
 
       case 'what-is':
         return (
-          <div className="space-y-6 py-8">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <StepIcon className="h-8 w-8 text-primary" />
+          <div className="space-y-4 py-2 h-full flex flex-col justify-center">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <StepIcon className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-              <p className="text-muted-foreground">{step.description}</p>
+              <h2 className="text-xl font-bold mb-2">{step.title}</h2>
+              <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <Shield className="h-8 w-8 text-primary mb-2" />
-                  <CardTitle className="text-lg">Governança Completa</CardTitle>
+            <div className="grid md:grid-cols-3 gap-3">
+              <Card className="h-full">
+                <CardHeader className="pb-3">
+                  <Shield className="h-6 w-6 text-primary mb-2" />
+                  <CardTitle className="text-base">Governança Completa</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">
                     Gerencie conselhos, reuniões, documentos e compliance em uma única plataforma.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <Target className="h-8 w-8 text-primary mb-2" />
-                  <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
+              <Card className="h-full">
+                <CardHeader className="pb-3">
+                  <Target className="h-6 w-6 text-primary mb-2" />
+                  <CardTitle className="text-base">Inteligência Artificial</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Inteligência Artificial atua com estrutura de multi-agentes que atuam para trazer governança e inteligência preditiva.
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">
+                    Inteligência Artificial atua com estrutura de multi-agentes que trazem governança e inteligência preditiva.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <TrendingUp className="h-8 w-8 text-primary mb-2" />
-                  <CardTitle className="text-lg">Crescimento Sustentável</CardTitle>
+              <Card className="h-full">
+                <CardHeader className="pb-3">
+                  <TrendingUp className="h-6 w-6 text-primary mb-2" />
+                  <CardTitle className="text-base">Crescimento Sustentável</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
+                <CardContent className="pt-0">
+                  <p className="text-xs text-muted-foreground">
                     Ferramentas para escalar sua governança e preparar sua empresa para o futuro.
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="flex justify-center gap-3 pt-4">
+            <div className="flex justify-center gap-3 pt-2 mt-auto">
               <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)}>
                 Voltar
               </Button>
@@ -231,62 +231,62 @@ export default function WelcomeNewUser() {
 
       case 'features':
         return (
-          <div className="space-y-6 py-8">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <StepIcon className="h-8 w-8 text-primary" />
+          <div className="space-y-4 py-2 h-full flex flex-col justify-center">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <StepIcon className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-              <p className="text-muted-foreground">{step.description}</p>
+              <h2 className="text-xl font-bold mb-2">{step.title}</h2>
+              <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-3">
               <Card className="border-2">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                      <Zap className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
+                      <Zap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Inteligência Artificial</CardTitle>
-                      <CardDescription>Multi-agentes que trazem governança e inteligência preditiva</CardDescription>
+                      <CardTitle className="text-base">Inteligência Artificial</CardTitle>
+                      <CardDescription className="text-xs">Multi-agentes que trazem governança e inteligência preditiva</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
 
               <Card className="border-2">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                      <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Conselhos e Reuniões</CardTitle>
-                      <CardDescription>Gerencie conselhos, membros e atas de reuniões</CardDescription>
+                      <CardTitle className="text-base">Conselhos e Reuniões</CardTitle>
+                      <CardDescription className="text-xs">Gerencie conselhos, membros e atas de reuniões</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
 
-              <Card className="border-2">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <Card className="border-2 md:col-span-2">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+                      <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Documentos e Compliance</CardTitle>
-                      <CardDescription>Centralize documentos e gerencie checklists</CardDescription>
+                      <CardTitle className="text-base">Documentos e Compliance</CardTitle>
+                      <CardDescription className="text-xs">Centralize documentos e gerencie checklists</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
             </div>
 
-            <div className="flex justify-center gap-3 pt-4">
+            <div className="flex justify-center gap-3 pt-2 mt-auto">
               <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)}>
                 Voltar
               </Button>
@@ -299,59 +299,59 @@ export default function WelcomeNewUser() {
 
       case 'get-started':
         return (
-          <div className="space-y-6 py-8">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <StepIcon className="h-8 w-8 text-primary" />
+          <div className="space-y-4 py-2 h-full flex flex-col justify-center">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <StepIcon className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-              <p className="text-muted-foreground">{step.description}</p>
+              <h2 className="text-xl font-bold mb-2">{step.title}</h2>
+              <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
 
             <Card className="border-2 border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PlayCircle className="h-5 w-5 text-primary" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <PlayCircle className="h-4 w-4 text-primary" />
                   Guia de Início Rápido
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   Configure sua empresa em 3 etapas simples e comece a usar a plataforma
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold flex-shrink-0">
+              <CardContent className="space-y-3 pt-0">
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0">
                     1
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">Configurar Empresa</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold mb-0.5 text-sm">Configurar Empresa</h3>
+                    <p className="text-xs text-muted-foreground">
                       Adicione informações básicas da sua empresa e estrutura organizacional
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold flex-shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0">
                     2
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">Criar Conselho</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold mb-0.5 text-sm">Criar Conselho</h3>
+                    <p className="text-xs text-muted-foreground">
                       Configure seu primeiro conselho e adicione membros da equipe
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold flex-shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm flex-shrink-0">
                     3
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">Primeira Reunião</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold mb-0.5 text-sm">Primeira Reunião</h3>
+                    <p className="text-xs text-muted-foreground">
                       Agende sua primeira reunião e comece a usar todas as funcionalidades
                     </p>
                   </div>
@@ -359,7 +359,7 @@ export default function WelcomeNewUser() {
               </CardContent>
             </Card>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-2 pt-2 mt-auto">
               <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)}>
                 Voltar
               </Button>
@@ -384,17 +384,17 @@ export default function WelcomeNewUser() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Bem-vindo à Legacy OS" />
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-          <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex-1 overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+          <div className="container mx-auto px-4 py-4 max-w-4xl h-full flex flex-col">
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-3 flex-shrink-0">
               <Badge variant="secondary" className="mb-2">
                 Novo Usuário
               </Badge>
             </div>
 
             {/* Progress Bar */}
-            <div className="mb-8">
+            <div className="mb-4 flex-shrink-0">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">
                   Passo {currentStep + 1} de {welcomeSteps.length}
@@ -407,14 +407,14 @@ export default function WelcomeNewUser() {
             </div>
 
             {/* Main Card */}
-            <Card className="shadow-lg">
-              <CardContent className="p-6 md:p-8">
+            <Card className="shadow-lg flex-1 flex flex-col min-h-0">
+              <CardContent className="p-4 md:p-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
                 {renderStepContent()}
               </CardContent>
             </Card>
 
             {/* Step Indicators */}
-            <div className="flex justify-center gap-2 mt-6">
+            <div className="flex justify-center gap-2 mt-4 flex-shrink-0">
               {welcomeSteps.map((step, index) => (
                 <button
                   key={step.id}
@@ -432,7 +432,7 @@ export default function WelcomeNewUser() {
             </div>
 
             {/* Help Link */}
-            <div className="text-center mt-8">
+            <div className="text-center mt-4 flex-shrink-0">
               <Button variant="ghost" size="sm" className="gap-2" onClick={handleSkipToDashboard}>
                 <BookOpen className="h-4 w-4" />
                 Acessar Dashboard Diretamente

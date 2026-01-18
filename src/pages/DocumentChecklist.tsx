@@ -294,6 +294,17 @@ export default function DocumentChecklist() {
 
   // Load documents from localStorage on mount
   useEffect(() => {
+    // Verificar se é um novo usuário (primeiro acesso)
+    const justCreatedPassword = localStorage.getItem('just_created_password');
+    const fromContractSign = localStorage.getItem('from_contract_sign');
+    
+    // Se for novo usuário, começar com lista vazia
+    if (justCreatedPassword || fromContractSign) {
+      setDocuments([]);
+      return;
+    }
+    
+    // Para usuários existentes, carregar documentos salvos ou iniciais
     const saved = localStorage.getItem('uploaded-documents');
     if (saved) {
       setDocuments(JSON.parse(saved));

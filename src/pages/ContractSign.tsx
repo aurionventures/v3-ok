@@ -174,63 +174,80 @@ export default function ContractSign() {
       // Se o contrato não tiver content_html ou estiver vazio, carregar do template padrão do tipo 'client'
       if (!data.content_html || data.content_html.trim() === '' || data.content_html.includes('Conteúdo do contrato...')) {
         const storedTemplates = localStorage.getItem('contract_templates');
-        if (storedTemplates) {
-          try {
-            const templates = JSON.parse(storedTemplates);
-            // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
-            const defaultTemplate = templates.find((t: any) => 
-              t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
-            ) || templates.find((t: any) => t.is_default && t.is_active);
-            if (defaultTemplate?.content) {
-              // Substituir variáveis do template com dados do contrato
-              let content = defaultTemplate.content;
-              const variables: Record<string, string> = {
-                'contrato_numero': data.contract_number || '',
-                'cliente_nome': data.client_name || '',
-                'cliente_cnpj': data.client_document || '',
-                'cliente_endereco': (data as any).client_address || '',
-                'cliente_email': data.client_email || '',
-                'cliente_telefone': (data as any).client_phone || '',
-                'signatario_nome': data.signatory_name || '',
-                'signatario_cargo': data.signatory_role || '',
-                'signatario_cpf': data.signatory_cpf || '',
-                'plano_nome': data.plan_name || '',
-                'plano_tipo': data.plan_type || '',
-                'modulos_inclusos': data.plan_name || '',
-                'addons_inclusos': (data.addons || []).join(', ') || 'Nenhum',
-                'duracao_meses': data.duration_months?.toString() || '',
-                'duracao_extenso': data.duration_months === 12 ? 'doze' : data.duration_months === 24 ? 'vinte e quatro' : data.duration_months === 36 ? 'trinta e seis' : data.duration_months?.toString() || '',
-                'data_inicio': data.start_date ? format(new Date(data.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
-                'data_fim': data.end_date ? format(new Date(data.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
-                'plano_valor': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-                'plano_valor_extenso': data.monthly_value ? `R$ ${data.monthly_value.toFixed(2).replace('.', ',')}` : '',
-                'forma_pagamento': 'Boleto Bancário',
-                'dia_vencimento': '05',
-                'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
-                'cidade_assinatura': 'São Paulo - SP',
-                'valor_mensal': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
-              };
-              
-              Object.entries(variables).forEach(([key, value]) => {
-                const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-                content = content.replace(regex, value);
-              });
-              
-              data.content_html = content;
+        let templateContent = DEFAULT_CONTRACT_CONTENT;
+        
+        // Se não houver templates, garantir que sejam inicializados
+        let templatesToUse: any[] = [];
+        if (!storedTemplates) {
+          // Tentar inicializar templates como no AdminContractManagement
+          const defaultTemplates = [
+            {
+              id: '1',
+              name: 'Contrato de Prestação de Serviços SaaS - Padrão',
+              description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
+              version: '1.0',
+              content: DEFAULT_CONTRACT_CONTENT,
+              is_active: true,
+              is_default: true,
+              contract_type: 'client',
             }
-          } catch (e) {
-            console.error('Erro ao carregar template:', e);
-            // Se não conseguir carregar do template, usar DEFAULT_CONTRACT_CONTENT
-            if (!data.content_html || data.content_html.trim() === '') {
-              data.content_html = DEFAULT_CONTRACT_CONTENT;
-            }
-          }
+          ];
+          localStorage.setItem('contract_templates', JSON.stringify(defaultTemplates));
+          templatesToUse = defaultTemplates;
         } else {
-          // Se não houver templates no localStorage, usar DEFAULT_CONTRACT_CONTENT
-          if (!data.content_html || data.content_html.trim() === '') {
-            data.content_html = DEFAULT_CONTRACT_CONTENT;
+          try {
+            templatesToUse = JSON.parse(storedTemplates);
+          } catch (e) {
+            console.error('Erro ao parsear templates:', e);
           }
         }
+        
+        // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
+        if (templatesToUse.length > 0) {
+          const defaultTemplate = templatesToUse.find((t: any) => 
+            t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
+          ) || templatesToUse.find((t: any) => t.is_default && t.is_active);
+          if (defaultTemplate?.content) {
+            templateContent = defaultTemplate.content;
+          }
+        }
+        
+        // Usar o conteúdo do template (ou DEFAULT_CONTRACT_CONTENT como fallback)
+        // Substituir variáveis do template com dados do contrato
+        let content = templateContent;
+        const variables: Record<string, string> = {
+          'contrato_numero': data.contract_number || '',
+          'cliente_nome': data.client_name || '',
+          'cliente_cnpj': data.client_document || '',
+          'cliente_endereco': (data as any).client_address || '',
+          'cliente_email': data.client_email || '',
+          'cliente_telefone': (data as any).client_phone || '',
+          'signatario_nome': data.signatory_name || '',
+          'signatario_cargo': data.signatory_role || '',
+          'signatario_cpf': data.signatory_cpf || '',
+          'plano_nome': data.plan_name || '',
+          'plano_tipo': data.plan_type || '',
+          'modulos_inclusos': data.plan_name || '',
+          'addons_inclusos': (data.addons || []).join(', ') || 'Nenhum',
+          'duracao_meses': data.duration_months?.toString() || '',
+          'duracao_extenso': data.duration_months === 12 ? 'doze' : data.duration_months === 24 ? 'vinte e quatro' : data.duration_months === 36 ? 'trinta e seis' : data.duration_months?.toString() || '',
+          'data_inicio': data.start_date ? format(new Date(data.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+          'data_fim': data.end_date ? format(new Date(data.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+          'plano_valor': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+          'plano_valor_extenso': data.monthly_value ? `R$ ${data.monthly_value.toFixed(2).replace('.', ',')}` : '',
+          'forma_pagamento': 'Boleto Bancário',
+          'dia_vencimento': '05',
+          'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
+          'cidade_assinatura': 'São Paulo - SP',
+          'valor_mensal': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+        };
+        
+        Object.entries(variables).forEach(([key, value]) => {
+          const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+          content = content.replace(regex, value);
+        });
+        
+        data.content_html = content;
       }
 
       setContract(data);

@@ -187,9 +187,17 @@ const Sidebar = () => {
   
   // Verificar quais add-ons o cliente tem ativados
   const getEnabledAddons = () => {
-    // Para demonstração: todos os add-ons estão desbloqueados
-    // Em produção, usar: return ADDON_ITEMS.filter(item => hasAccess(item.key));
-    return ADDON_ITEMS;
+    // Verificar se é um novo usuário (primeiro acesso)
+    const justCreatedPassword = localStorage.getItem('just_created_password');
+    const fromContractSign = localStorage.getItem('from_contract_sign');
+    
+    // Se for novo usuário, não mostrar add-ons (todos bloqueados)
+    if (justCreatedPassword || fromContractSign) {
+      return [];
+    }
+    
+    // Para usuários existentes, usar hasAccess para verificar
+    return ADDON_ITEMS.filter(item => hasAccess(item.key));
   };
   
   const enabledAddons = getEnabledAddons();
@@ -476,7 +484,7 @@ const Sidebar = () => {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Add-ons ({enabledAddons.length} ativos)</p>
+                <p>Add-ons ({enabledAddons.length} {enabledAddons.length === 1 ? 'ativo' : 'ativos'})</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -521,8 +529,55 @@ const Sidebar = () => {
               </>
             )}
 
-            {/* Nota: Para ambiente de demonstração, todos os add-ons estão desbloqueados */}
-            {/* Em produção, adicionar a seção de "Disponíveis" com cadeado aqui */}
+            {/* Mostrar add-ons bloqueados (sem acesso) */}
+            {(() => {
+              const lockedAddons = ADDON_ITEMS.filter(item => !hasAccess(item.key));
+              const justCreatedPassword = localStorage.getItem('just_created_password');
+              const fromContractSign = localStorage.getItem('from_contract_sign');
+              
+              // Se for novo usuário, mostrar todos os add-ons como bloqueados
+              const addonsToShow = (justCreatedPassword || fromContractSign) ? ADDON_ITEMS : lockedAddons;
+              
+              return addonsToShow.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-white/10">
+                  {addonsToShow.map(item => {
+                    const Icon = item.icon;
+                    
+                    return (
+                      <TooltipProvider key={item.path} delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => {
+                                setSelectedAddon({ key: item.key, label: item.label });
+                                setUpgradeModalOpen(true);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all opacity-50 hover:opacity-70 cursor-pointer",
+                                "text-white/60 hover:text-white/80 hover:bg-white/5"
+                              )}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              {open && (
+                                <>
+                                  <span className="flex-1 text-left">{item.label}</span>
+                                  <Lock className="h-3.5 w-3.5 text-amber-500/70 shrink-0" />
+                                </>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          {!open && (
+                            <TooltipContent side="right">
+                              <p>{item.label} (Bloqueado)</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>

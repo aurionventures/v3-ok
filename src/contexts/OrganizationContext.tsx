@@ -218,7 +218,26 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        // Default organization for demo
+        // Verificar se é um novo usuário vindo do fluxo de criação de senha
+        const justCreatedPassword = localStorage.getItem('just_created_password');
+        const fromContractSign = localStorage.getItem('from_contract_sign');
+        
+        // Se for novo usuário (vindo do fluxo PLG), criar organização vazia
+        if (user && (justCreatedPassword || fromContractSign)) {
+          const defaultOrg: Organization = {
+            id: 'org-' + crypto.randomUUID().slice(0, 8),
+            name: user.company || user.name || 'Minha Empresa',
+            companySize: 'medium',
+            plan: 'core',
+            enabledModules: [], // Novo usuário começa sem módulos/add-ons
+            onboardingCompleted: false
+          };
+          setOrganization(defaultOrg);
+          setLoading(false);
+          return;
+        }
+        
+        // Default organization for demo (para usuários que não são novos)
         if (user) {
           const defaultOrg: Organization = {
             id: 'org-demo',

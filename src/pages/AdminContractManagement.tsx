@@ -556,7 +556,7 @@ export default function AdminContractManagement() {
         const mockTemplates: ContractTemplate[] = [
           {
             id: '1',
-            name: 'Contrato de Prestação de Serviços SaaS - Cliente',
+            name: 'Contrato de Prestação de Serviços SaaS - Padrão',
             description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
             version: '1.0',
             content: DEFAULT_CONTRACT_CONTENT,
