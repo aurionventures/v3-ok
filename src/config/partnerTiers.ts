@@ -121,7 +121,7 @@ export function calculateCommission(
   totalCommission: number;
   recurringMonths: number;
 } {
-  const config = TIER_CONFIGS[tier];
+  const config = getTierConfig(tier);
   if (!config) {
     return {
       setupCommission: 0,
@@ -210,4 +210,53 @@ export function mapInvitationLevelToTier(level: string): PartnerTier {
   };
   
   return mapping[level] || 'tier_3_simple';
+}
+
+/**
+ * Carrega configurações de Tier do localStorage ou retorna as configurações padrão
+ */
+export function getTierConfig(tier: PartnerTier): TierConfig {
+  try {
+    const stored = localStorage.getItem('partner_tier_configs');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed[tier]) {
+        // Merge com configurações padrão para garantir que todos os campos existam
+        return {
+          ...TIER_CONFIGS[tier],
+          ...parsed[tier]
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações de Tier do localStorage:', error);
+  }
+  
+  return TIER_CONFIGS[tier];
+}
+
+/**
+ * Retorna todas as configurações de Tier (do localStorage ou padrão)
+ */
+export function getAllTierConfigs(): Record<PartnerTier, TierConfig> {
+  try {
+    const stored = localStorage.getItem('partner_tier_configs');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Merge com configurações padrão
+      const merged: Record<PartnerTier, TierConfig> = {} as Record<PartnerTier, TierConfig>;
+      Object.keys(TIER_CONFIGS).forEach((key) => {
+        const tierKey = key as PartnerTier;
+        merged[tierKey] = {
+          ...TIER_CONFIGS[tierKey],
+          ...(parsed[tierKey] || {})
+        };
+      });
+      return merged;
+    }
+  } catch (error) {
+    console.error('Erro ao carregar configurações de Tier do localStorage:', error);
+  }
+  
+  return TIER_CONFIGS;
 }

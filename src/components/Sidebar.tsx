@@ -125,6 +125,7 @@ const ADMIN_MENU_SECTIONS = [
     items: [
       { icon: Handshake, href: "/admin/parceiros", name: "Cadastro de Parceiros" },
       { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões de Parceiros" },
+      { icon: Settings, href: "/admin/tier-config", name: "Configuração de Tiers" },
       { icon: Share2, href: "/admin/parceiros/conteudo", name: "Gestão de Conteúdo" },
     ]
   },

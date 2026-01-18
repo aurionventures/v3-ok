@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2, AlertCircle, FileSignature, Building2, User, Mail, Phone } from 'lucide-react';
 import PartnerOnboardingProgress from '@/components/PartnerOnboardingProgress';
+import { getTierConfig, mapInvitationLevelToTier, PartnerTier } from '@/config/partnerTiers';
 
 export default function PartnerContractSign() {
   const navigate = useNavigate();
@@ -40,6 +41,10 @@ export default function PartnerContractSign() {
       const signup = JSON.parse(storedSignup);
       setSignupData(signup);
 
+      // Determinar o Tier do parceiro
+      const partnerTier = mapInvitationLevelToTier(signup.invitation_level || 'tier_3_simple') as PartnerTier;
+      const tierConfig = getTierConfig(partnerTier);
+      
       // Carregar template ativo do tipo 'partner' do localStorage
       const storedTemplates = localStorage.getItem('contract_templates');
       let templateContent = '';
@@ -51,6 +56,7 @@ export default function PartnerContractSign() {
           );
           if (partnerTemplate?.content) {
             templateContent = partnerTemplate.content;
+            
             // Substituir variáveis básicas
             templateContent = templateContent
               .replace(/\{\{parceiro_nome\}\}/g, signup.name)
@@ -58,7 +64,38 @@ export default function PartnerContractSign() {
               .replace(/\{\{parceiro_cnpj\}\}/g, signup.cnpj || 'Não informado')
               .replace(/\{\{parceiro_email\}\}/g, signup.email)
               .replace(/\{\{parceiro_telefone\}\}/g, signup.phone || '')
-              .replace(/\{\{parceiro_tier\}\}/g, signup.invitation_level || 'tier_3_simple');
+              .replace(/\{\{parceiro_tier\}\}/g, tierConfig.tier_name);
+            
+            // Substituir variáveis de comissões baseadas no Tier configurado
+            templateContent = templateContent
+              .replace(/\{\{comissao_setup\}\}/g, tierConfig.originated_setup_commission.toString())
+              .replace(/\{\{comissao_recorrente\}\}/g, tierConfig.originated_recurring_commission.toString())
+              .replace(/\{\{meses_comissao\}\}/g, tierConfig.originated_recurring_months.toString())
+              // Variáveis de referência dos tiers (mantidas no template para informação)
+              .replace(/\{\{comissao_setup_tier1\}\}/g, getTierConfig('tier_1_commercial').originated_setup_commission.toString())
+              .replace(/\{\{comissao_recorrente_tier1\}\}/g, getTierConfig('tier_1_commercial').originated_recurring_commission.toString())
+              .replace(/\{\{meses_comissao_tier1\}\}/g, getTierConfig('tier_1_commercial').originated_recurring_months.toString())
+              .replace(/\{\{comissao_setup_tier2\}\}/g, getTierConfig('tier_2_qualified').originated_setup_commission.toString())
+              .replace(/\{\{comissao_recorrente_tier2\}\}/g, getTierConfig('tier_2_qualified').originated_recurring_commission.toString())
+              .replace(/\{\{meses_comissao_tier2\}\}/g, getTierConfig('tier_2_qualified').originated_recurring_months.toString())
+              .replace(/\{\{comissao_setup_tier3\}\}/g, getTierConfig('tier_3_simple').originated_setup_commission.toString())
+              .replace(/\{\{comissao_recorrente_tier3\}\}/g, getTierConfig('tier_3_simple').originated_recurring_commission.toString())
+              .replace(/\{\{meses_comissao_tier3\}\}/g, getTierConfig('tier_3_simple').originated_recurring_months.toString())
+              .replace(/\{\{comissao_setup_tier4\}\}/g, getTierConfig('tier_4_premium').custom_contract_percentage.toString())
+              // Variáveis adicionais que podem estar no template
+              .replace(/\{\{contrato_numero\}\}/g, `CTR-PART-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`)
+              .replace(/\{\{data_inicio\}\}/g, new Date().toLocaleDateString('pt-BR'))
+              .replace(/\{\{data_fim\}\}/g, new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'))
+              .replace(/\{\{duracao_meses\}\}/g, '12')
+              .replace(/\{\{duracao_extenso\}\}/g, 'doze')
+              .replace(/\{\{periodo_rastreamento\}\}/g, '30')
+              .replace(/\{\{dia_pagamento_comissao\}\}/g, '10')
+              .replace(/\{\{cidade_assinatura\}\}/g, 'São Paulo')
+              .replace(/\{\{data_contrato\}\}/g, new Date().toLocaleDateString('pt-BR'))
+              .replace(/\{\{parceiro_representante\}\}/g, signup.name)
+              .replace(/\{\{parceiro_cargo\}\}/g, 'Representante Legal')
+              .replace(/\{\{parceiro_cpf\}\}/g, signup.cpf || 'Não informado')
+              .replace(/\{\{parceiro_endereco\}\}/g, signup.address || 'Não informado');
           }
         } catch (e) {
           console.error('Erro ao carregar template:', e);

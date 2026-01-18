@@ -550,7 +550,267 @@ export default function AdminContractManagement() {
     try {
       const storedTemplates = localStorage.getItem('contract_templates');
       if (storedTemplates) {
-        setTemplates(JSON.parse(storedTemplates));
+        const existingTemplates = JSON.parse(storedTemplates);
+        
+        // Verificar se ambos os templates (cliente e parceiro) existem
+        const hasClientTemplate = existingTemplates.some((t: any) => t.contract_type === 'client');
+        const hasPartnerTemplate = existingTemplates.some((t: any) => t.contract_type === 'partner');
+        
+        // Se faltar algum template, adicionar
+        if (!hasClientTemplate || !hasPartnerTemplate) {
+          const templatesToAdd: ContractTemplate[] = [];
+          
+          if (!hasClientTemplate) {
+            templatesToAdd.push({
+              id: '1',
+              name: 'Contrato de Prestação de Serviços SaaS - Padrão',
+              description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
+              version: '1.0',
+              content: DEFAULT_CONTRACT_CONTENT,
+              available_variables: [],
+              plan_types: ['core', 'governance_plus', 'people_esg', 'legacy_360'],
+              requires_witness: false,
+              witness_count: 0,
+              is_active: true,
+              is_default: true,
+              contract_type: 'client',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
+          
+          if (!hasPartnerTemplate) {
+            templatesToAdd.push({
+              id: '3',
+              name: 'Contrato de Parceiro/Afiliado - Padrão',
+              description: 'Modelo padrão de contrato para parceiros e afiliados do programa de indicação',
+              version: '1.0',
+              content: `<div style="font-family: 'Times New Roman', Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.7; color: #222;">
+
+  <!-- CABEÇALHO -->
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #1a365d;">
+      CONTRATO DE PARCERIA E AFILIADOS
+    </h1>
+    <h2 style="font-size: 14px; font-weight: normal; margin-bottom: 20px; color: #4a5568;">
+      PROGRAMA DE INDICAÇÃO LEGACY OS - GOVERNANÇA CORPORATIVA
+    </h2>
+    <p style="font-size: 13px;">
+      <strong>Contrato nº {{contrato_numero}}</strong>
+    </p>
+  </div>
+
+  <!-- PARTES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">PARTES</h3>
+  
+  <p><strong>CONTRATADA:</strong> LEGACY GOVERNANÇA LTDA., pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 00.000.000/0001-00, com sede na cidade de São Paulo, Estado de São Paulo, neste ato representada na forma de seu Contrato Social, doravante denominada simplesmente <strong>"LEGACY"</strong>.</p>
+  
+  <p><strong>PARCEIRO/AFILIADO:</strong> <strong>{{parceiro_nome}}</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº <strong>{{parceiro_cnpj}}</strong>, com sede em <strong>{{parceiro_endereco}}</strong>, neste ato representada por <strong>{{parceiro_representante}}</strong>, <strong>{{parceiro_cargo}}</strong>, portador(a) do CPF nº <strong>{{parceiro_cpf}}</strong>, doravante denominada simplesmente <strong>"PARCEIRO"</strong>.</p>
+  
+  <p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Parceria e Afiliados para participação no Programa de Indicação da plataforma LEGACY OS, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.</p>
+
+  <!-- CLÁUSULA 1 - DO OBJETO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 1ª - DO OBJETO</h3>
+  
+  <p>1.1. O presente contrato tem por objeto a participação do PARCEIRO no Programa de Indicação da LEGACY OS, mediante divulgação da plataforma através de link de afiliado único fornecido pela LEGACY, com direito a comissões sobre vendas originadas através desse link.</p>
+  
+  <p>1.2. <strong>Nível do Parceiro:</strong> {{parceiro_tier}}</p>
+  
+  <p>1.3. O PARCEIRO receberá um link de afiliado único e exclusivo para divulgação da plataforma LEGACY OS, através do qual poderá indicar clientes potenciais.</p>
+  
+  <p>1.4. A LEGACY se compromete a rastrear todas as vendas originadas através do link de afiliado fornecido ao PARCEIRO e a pagar as comissões devidas conforme estabelecido nas cláusulas seguintes.</p>
+
+  <!-- CLÁUSULA 2 - DO PRAZO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 2ª - DO PRAZO</h3>
+  
+  <p>2.1. O presente contrato terá vigência de <strong>{{duracao_meses}} ({{duracao_extenso}}) meses</strong>, com início em <strong>{{data_inicio}}</strong> e término em <strong>{{data_fim}}</strong>.</p>
+  
+  <p>2.2. O contrato será renovado automaticamente por períodos iguais e sucessivos, salvo manifestação contrária de qualquer das partes, por escrito, com antecedência mínima de 30 (trinta) dias do término da vigência ou de qualquer período de renovação.</p>
+  
+  <p>2.3. Qualquer alteração nas condições do programa será comunicada ao PARCEIRO com 30 (trinta) dias de antecedência.</p>
+
+  <!-- CLÁUSULA 3 - DAS COMISSÕES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 3ª - DAS COMISSÕES E PAGAMENTOS</h3>
+  
+  <p>3.1. O PARCEIRO terá direito a receber comissões sobre as vendas originadas através de seu link de afiliado único, conforme o nível (Tier) do parceiro:</p>
+  
+  <ul style="margin-left: 20px;">
+    <li><strong>Tier 1 - Parceiro Premium:</strong> Comissão inicial de {{comissao_setup_tier1}}% sobre o valor da primeira mensalidade e comissão recorrente de {{comissao_recorrente_tier1}}% por {{meses_comissao_tier1}} meses;</li>
+    <li><strong>Tier 2 - Parceiro Avançado:</strong> Comissão inicial de {{comissao_setup_tier2}}% sobre o valor da primeira mensalidade e comissão recorrente de {{comissao_recorrente_tier2}}% por {{meses_comissao_tier2}} meses;</li>
+    <li><strong>Tier 3 - Afiliado Qualificado:</strong> Comissão inicial de {{comissao_setup_tier3}}% sobre o valor da primeira mensalidade e comissão recorrente de {{comissao_recorrente_tier3}}% por {{meses_comissao_tier3}} meses;</li>
+    <li><strong>Tier 4 - Afiliado Simples:</strong> Comissão única de {{comissao_setup_tier4}}% sobre o valor da primeira mensalidade.</li>
+  </ul>
+  
+  <p>3.2. <strong>Comissões Configuradas para este Parceiro:</strong></p>
+  <ul style="margin-left: 20px;">
+    <li>Comissão Inicial (Setup): {{comissao_setup}}%</li>
+    <li>Comissão Recorrente: {{comissao_recorrente}}% por {{meses_comissao}} meses</li>
+  </ul>
+  
+  <p>3.3. O pagamento das comissões será efetuado mensalmente, até o dia {{dia_pagamento_comissao}} de cada mês, referente às vendas confirmadas e ativadas no mês anterior, mediante transferência bancária (PIX/TED) para conta indicada pelo PARCEIRO.</p>
+  
+  <p>3.4. A comissão será calculada sobre o valor líquido recebido pela LEGACY (após descontos, cancelamentos ou chargebacks), considerando apenas clientes que ativarem seus contratos e pagarem a primeira mensalidade.</p>
+  
+  <p>3.5. O PARCEIRO será responsável por manter seus dados bancários atualizados na plataforma. A falta de informações bancárias corretas poderá resultar no atraso do pagamento.</p>
+
+  <!-- CLÁUSULA 4 - OBRIGAÇÕES DA LEGACY -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 4ª - DAS OBRIGAÇÕES DA LEGACY</h3>
+  
+  <p>4.1. A LEGACY se obriga a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Fornecer ao PARCEIRO um link de afiliado único e exclusivo;</li>
+    <li>b) Rastrear todas as vendas originadas através do link de afiliado;</li>
+    <li>c) Fornecer relatórios mensais de vendas e comissões através do painel do parceiro;</li>
+    <li>d) Pagar as comissões devidas nos prazos estabelecidos;</li>
+    <li>e) Fornecer materiais de marketing e suporte para divulgação da plataforma;</li>
+    <li>f) Manter o PARCEIRO informado sobre novidades e atualizações da plataforma;</li>
+    <li>g) Respeitar os termos deste contrato e as políticas do programa de afiliados.</li>
+  </ul>
+
+  <!-- CLÁUSULA 5 - OBRIGAÇÕES DO PARCEIRO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 5ª - DAS OBRIGAÇÕES DO PARCEIRO</h3>
+  
+  <p>5.1. O PARCEIRO se obriga a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Divulgar a plataforma LEGACY OS de forma ética e profissional, utilizando apenas materiais oficiais fornecidos pela LEGACY;</li>
+    <li>b) Não fazer promessas ou garantias não autorizadas sobre a plataforma;</li>
+    <li>c) Manter seus dados cadastrais atualizados na plataforma;</li>
+    <li>d) Não utilizar práticas de spam, marketing agressivo ou ações que possam prejudicar a imagem da LEGACY;</li>
+    <li>e) Não criar sites ou materiais que imitem ou copiem a marca LEGACY OS;</li>
+    <li>f) Seguir todas as diretrizes de marketing e comunicação fornecidas pela LEGACY;</li>
+    <li>g) Não vender ou transferir seu link de afiliado sem autorização prévia da LEGACY;</li>
+    <li>h) Manter sigilo sobre informações confidenciais a que tiver acesso;</li>
+    <li>i) Informar imediatamente a LEGACY sobre qualquer violação de segurança ou uso indevido do link.</li>
+  </ul>
+
+  <!-- CLÁUSULA 6 - RASTREAMENTO E COMISSÕES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 6ª - DO RASTREAMENTO E ATRIBUIÇÃO DE VENDAS</h3>
+  
+  <p>6.1. As vendas serão atribuídas ao PARCEIRO quando o cliente acessar a plataforma através do link de afiliado único fornecido e efetivar a contratação dentro do período de rastreamento de {{periodo_rastreamento}} dias.</p>
+  
+  <p>6.2. Uma venda será considerada confirmada apenas quando:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) O cliente efetuar o pagamento da primeira mensalidade;</li>
+    <li>b) O contrato estiver ativo e não cancelado;</li>
+    <li>c) Não houver chargeback ou estorno dentro do período de garantia;</li>
+    <li>d) O rastreamento for realizado corretamente através do link de afiliado.</li>
+  </ul>
+  
+  <p>6.3. A LEGACY não se responsabiliza por vendas que não sejam atribuídas ao PARCEIRO devido a falhas no rastreamento causadas por bloqueadores de cookies, configurações do navegador do cliente ou outras circunstâncias fora do controle da LEGACY.</p>
+  
+  <p>6.4. O PARCEIRO terá acesso a um painel administrativo onde poderá acompanhar em tempo real suas indicações, vendas e comissões calculadas.</p>
+
+  <!-- CLÁUSULA 7 - PROPRIEDADE INTELECTUAL -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 7ª - PROPRIEDADE INTELECTUAL E USO DA MARCA</h3>
+  
+  <p>7.1. A marca LEGACY OS, incluindo seu logo, nome comercial e materiais de marketing, são de propriedade exclusiva da LEGACY.</p>
+  
+  <p>7.2. O PARCEIRO recebe uma licença limitada, não exclusiva, revogável e intransferível para usar a marca LEGACY OS apenas para fins de divulgação da plataforma, conforme diretrizes fornecidas pela LEGACY.</p>
+  
+  <p>7.3. O PARCEIRO não poderá alterar, modificar ou criar variações da marca LEGACY OS sem autorização prévia e por escrito.</p>
+  
+  <p>7.4. O PARCEIRO reconhece que não adquire qualquer direito de propriedade sobre a marca LEGACY OS através deste contrato.</p>
+
+  <!-- CLÁUSULA 8 - RESCISÃO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 8ª - RESCISÃO</h3>
+  
+  <p>8.1. O presente contrato poderá ser rescindido:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Por acordo mútuo entre as partes;</li>
+    <li>b) Por inadimplemento de qualquer obrigação contratual, após notificação e prazo de 15 dias para regularização;</li>
+    <li>c) Por violação das diretrizes de marketing ou uso indevido da marca;</li>
+    <li>d) Por solicitação de qualquer das partes, mediante aviso prévio de 30 dias;</li>
+    <li>e) Por práticas fraudulentas ou que violem a legislação vigente.</li>
+  </ul>
+  
+  <p>8.2. Em caso de rescisão, o PARCEIRO continuará tendo direito às comissões de vendas já confirmadas e pagas anteriormente à data de rescisão.</p>
+  
+  <p>8.3. Após a rescisão, o PARCEIRO deverá cessar imediatamente o uso do link de afiliado e de todos os materiais de marketing da LEGACY.</p>
+  
+  <p>8.4. A LEGACY se reserva o direito de suspender ou cancelar imediatamente o acesso do PARCEIRO ao programa em caso de violação grave dos termos deste contrato.</p>
+
+  <!-- CLÁUSULA 9 - CONFIDENCIALIDADE -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 9ª - CONFIDENCIALIDADE</h3>
+  
+  <p>9.1. O PARCEIRO se compromete a manter sigilo sobre todas as informações confidenciais a que tiver acesso em razão deste contrato, incluindo, mas não se limitando a: estratégias comerciais, valores de comissões de outros parceiros, informações técnicas não públicas e dados de clientes.</p>
+  
+  <p>9.2. A obrigação de confidencialidade permanecerá válida mesmo após o término deste contrato.</p>
+
+  <!-- CLÁUSULA 10 - DISPOSIÇÕES GERAIS -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 10ª - DISPOSIÇÕES GERAIS</h3>
+  
+  <p>10.1. Este contrato representa o acordo integral entre as partes sobre o programa de afiliados.</p>
+  
+  <p>10.2. Qualquer alteração nas condições de comissões ou políticas do programa será comunicada ao PARCEIRO com 30 dias de antecedência.</p>
+  
+  <p>10.3. Este contrato não cria relação de trabalho, sociedade, representação comercial ou qualquer outro vínculo além do estabelecido nas cláusulas acima.</p>
+  
+  <p>10.4. O PARCEIRO é um prestador de serviços independente e não possui vínculo empregatício com a LEGACY.</p>
+  
+  <p>10.5. Este contrato é celebrado eletronicamente, com validade jurídica nos termos da Medida Provisória nº 2.200-2/2001 e Lei nº 14.063/2020.</p>
+  
+  <p>10.6. As comunicações entre as partes serão realizadas preferencialmente por e-mail:</p>
+  <ul style="margin-left: 20px;">
+    <li>LEGACY: parceiros@legacyos.com.br</li>
+    <li>PARCEIRO: {{parceiro_email}}</li>
+  </ul>
+
+  <!-- CLÁUSULA 11 - FORO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 11ª - FORO</h3>
+  
+  <p>11.1. Fica eleito o foro da Comarca de São Paulo, Estado de São Paulo, para dirimir quaisquer questões oriundas do presente contrato.</p>
+
+  <!-- ASSINATURAS -->
+  <div style="margin-top: 50px;">
+    <p>E, por estarem assim justos e acordados, as partes assinam o presente instrumento eletronicamente.</p>
+    
+    <p style="text-align: center; margin-top: 30px;">
+      <strong>{{cidade_assinatura}}, {{data_contrato}}</strong>
+    </p>
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 60px;">
+      <div style="width: 45%; text-align: center;">
+        <div style="border-top: 1px solid #333; padding-top: 10px;">
+          <strong>LEGACY GOVERNANÇA LTDA.</strong><br/>
+          <span style="font-size: 12px;">CNPJ: 00.000.000/0001-00</span><br/>
+          <span style="font-size: 11px; color: #666;">CONTRATADA</span>
+        </div>
+      </div>
+      <div style="width: 45%; text-align: center;">
+        <div style="border-top: 1px solid #333; padding-top: 10px;">
+          <strong>{{parceiro_nome}}</strong><br/>
+          <span style="font-size: 12px;">CNPJ: {{parceiro_cnpj}}</span><br/>
+          <span style="font-size: 12px;">{{parceiro_representante}} - {{parceiro_cargo}}</span><br/>
+          <span style="font-size: 11px; color: #666;">PARCEIRO/AFILIADO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>`,
+              available_variables: [],
+              plan_types: [],
+              requires_witness: false,
+              witness_count: 0,
+              is_active: true,
+              is_default: true,
+              contract_type: 'partner',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
+          
+          if (templatesToAdd.length > 0) {
+            const updatedTemplates = [...existingTemplates, ...templatesToAdd];
+            setTemplates(updatedTemplates);
+            localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+            toast.success(`${templatesToAdd.length} template(s) padrão adicionado(s)`);
+          } else {
+            setTemplates(existingTemplates);
+          }
+        } else {
+          setTemplates(existingTemplates);
+        }
       } else {
         // Inicializar com templates padrão se não houver no localStorage
         const mockTemplates: ContractTemplate[] = [
