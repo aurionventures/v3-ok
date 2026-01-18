@@ -604,25 +604,66 @@ const AdminPartners = () => {
   // Generate invite
   const handleGenerateInvite = async () => {
     try {
+      console.log('🔍 Gerando convite com tier:', inviteTier);
+      console.log('🔍 Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      
+      if (!inviteTier) {
+        toast.error('Por favor, selecione um Tier');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-partner-invite', {
         body: {
-          invitation_level: inviteTier, // Agora envia o Tier diretamente
+          invitation_level: inviteTier,
           expires_in_days: 30
         }
       });
 
+      console.log('📥 Resposta da Edge Function:', { data, error });
+
       if (error) {
-        toast.error('Erro ao gerar convite: ' + error.message);
+        console.error('❌ Erro na Edge Function:', error);
+        
+        // Mensagens mais específicas baseadas no tipo de erro
+        let errorMessage = 'Erro ao gerar convite';
+        if (error.message?.includes('Failed to send')) {
+          errorMessage = 'Erro de conexão. Verifique se a Edge Function está deployada no Supabase.';
+        } else if (error.message?.includes('Function not found')) {
+          errorMessage = 'Edge Function não encontrada. Verifique se está deployada.';
+        } else {
+          errorMessage = error.message || error.error || 'Erro desconhecido';
+        }
+        
+        toast.error(errorMessage);
         return;
       }
 
-      setNewInviteUrl(data.invitation.url);
-      setInviteDialogOpen(false);
-      toast.success('Link de convite gerado com sucesso!');
-      loadInvitations();
+      // Verificar se data tem success e invitation
+      if (data?.success && data?.invitation?.url) {
+        console.log('✅ Convite gerado com sucesso:', data.invitation.url);
+        setNewInviteUrl(data.invitation.url);
+        setInviteDialogOpen(false);
+        toast.success('Link de convite gerado com sucesso!');
+        loadInvitations();
+      } else if (data?.error) {
+        console.error('❌ Erro na resposta:', data.error);
+        toast.error('Erro: ' + data.error);
+      } else {
+        console.error('⚠️ Resposta inválida da Edge Function:', data);
+        toast.error('Erro: Resposta inválida do servidor');
+      }
     } catch (err: any) {
-      console.error('Erro ao gerar convite:', err);
-      toast.error('Erro ao gerar convite');
+      console.error('❌ Erro ao gerar convite (catch):', err);
+      console.error('❌ Stack trace:', err.stack);
+      
+      let errorMessage = 'Erro de conexão';
+      if (err.message?.includes('Failed to send')) {
+        errorMessage = 'Não foi possível conectar à Edge Function. Verifique:\n1. Se a função está deployada\n2. Sua conexão com a internet\n3. As configurações do Supabase';
+      } else {
+        errorMessage = err.message || err.toString() || 'Erro desconhecido';
+      }
+      
+      toast.error('Erro ao gerar convite: ' + errorMessage);
     }
   };
 
@@ -1803,7 +1844,7 @@ const AdminPartners = () => {
                       <div>
                         <div className="font-medium">{tier.label}</div>
                         <div className="text-xs text-muted-foreground">{tier.description}</div>
-                      </div>
+                  </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1815,7 +1856,7 @@ const AdminPartners = () => {
                 O link gerado terá validade de 30 dias. O parceiro poderá se cadastrar através do link.
               </AlertDescription>
             </Alert>
-          </div>
+                </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
               Cancelar
@@ -1823,6 +1864,20 @@ const AdminPartners = () => {
             <Button onClick={handleGenerateInvite} className="gap-2">
               <Gift className="h-4 w-4" />
               Gerar Convite
+            </Button>
+            <Button 
+              onClick={() => {
+                // Link de teste simulado
+                const testToken = `test-demo-${Date.now()}`;
+                const testUrl = `${window.location.origin}/parceiros/cadastro?token=${testToken}`;
+                setNewInviteUrl(testUrl);
+                toast.success('Link de teste gerado! Use este link para simular o fluxo completo.');
+              }} 
+              variant="outline" 
+              className="gap-2"
+            >
+              <LinkIcon className="h-4 w-4" />
+              Gerar Link de Teste
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1854,8 +1909,8 @@ const AdminPartners = () => {
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                  </div>
-                </div>
+              </div>
+            </div>
             <Alert>
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               <AlertDescription>
@@ -1890,7 +1945,7 @@ const AdminPartners = () => {
                     {selectedInvitation.invitation_level === 'afiliado_avancado' && 'Afiliado Avançado (Nível 2)'}
                     {selectedInvitation.invitation_level === 'parceiro' && 'Parceiro Estratégico (Nível 3)'}
                   </p>
-              </div>
+                    </div>
                 <div>
                   <Label className="text-muted-foreground">Status</Label>
                   <div className="mt-1">
@@ -1899,8 +1954,8 @@ const AdminPartners = () => {
                     {selectedInvitation.status === 'approved' && <Badge variant="default">Aprovado</Badge>}
                     {selectedInvitation.status === 'rejected' && <Badge variant="destructive">Rejeitado</Badge>}
                     {selectedInvitation.status === 'expired' && <Badge variant="outline">Expirado</Badge>}
-                    </div>
                       </div>
+                    </div>
                     </div>
 
               {selectedInvitation.name && (

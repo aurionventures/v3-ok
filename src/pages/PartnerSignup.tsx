@@ -16,13 +16,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface PartnerInvitation {
   id: string;
   invitation_token: string;
-  invitation_level: 'afiliado_basico' | 'afiliado_avancado' | 'parceiro';
+  invitation_level: 'afiliado_basico' | 'afiliado_avancado' | 'parceiro' | 'tier_1_commercial' | 'tier_2_qualified' | 'tier_3_simple' | 'tier_4_premium';
   status: string;
   expires_at: string;
   email?: string;
   name?: string;
   company_name?: string;
+  partner_type?: string;
 }
+
+// Tokens de teste para simulação
+const TEST_TOKENS: Record<string, PartnerInvitation> = {
+  'test-demo': {
+    id: 'test-demo-123',
+    invitation_token: 'test-demo',
+    invitation_level: 'tier_3_simple',
+    status: 'pending',
+    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+  },
+};
 
 export default function PartnerSignup() {
   const navigate = useNavigate();
@@ -53,6 +65,23 @@ export default function PartnerSignup() {
 
   const validateInvitation = async () => {
     try {
+      // Verificar se é um token de teste
+      if (token && token.startsWith('test-')) {
+        const testInvitation = TEST_TOKENS[token] || {
+          id: `test-${Date.now()}`,
+          invitation_token: token || 'test-demo',
+          invitation_level: (token.includes('tier') ? token.split('-')[2] : 'tier_3_simple') as any,
+          status: 'pending',
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        };
+        
+        setInvitation(testInvitation);
+        setLoading(false);
+        toast.success('🎭 Modo de Teste: Usando dados simulados');
+        return;
+      }
+
+      // Validar token real do Supabase
       const { data, error } = await supabase
         .from('partner_invitations')
         .select('*')
@@ -94,6 +123,7 @@ export default function PartnerSignup() {
         company_name: data.company_name || '',
         cnpj: data.cnpj || '',
         phone: data.phone || '',
+        partner_type: data.partner_type || '',
       }));
     } catch (err) {
       console.error('Erro ao validar convite:', err);
@@ -109,6 +139,23 @@ export default function PartnerSignup() {
     setSubmitting(true);
 
     try {
+      // Se for token de teste, simular sucesso e redirecionar para criação de senha
+      if (token && token.startsWith('test-')) {
+        // Salvar dados do cadastro no sessionStorage para o próximo passo
+        sessionStorage.setItem('partner_signup_data', JSON.stringify({
+          ...formData,
+          invitation_level: invitation?.invitation_level || 'tier_3_simple',
+          invitation_token: token,
+        }));
+        
+        toast.success('✅ Cadastro concluído! Redirecionando para criação de senha...');
+        setTimeout(() => {
+          navigate('/parceiros/criar-senha?token=' + token);
+        }, 1500);
+        return;
+      }
+
+      // Fluxo real: enviar para Edge Function
       const { data, error } = await supabase.functions.invoke('submit-partner-invitation', {
         body: {
           token,
@@ -163,6 +210,10 @@ export default function PartnerSignup() {
       'afiliado_basico': 'Afiliado Básico (Nível 1)',
       'afiliado_avancado': 'Afiliado Avançado (Nível 2)',
       'parceiro': 'Parceiro Estratégico (Nível 3)',
+      'tier_1_commercial': 'Tier 1 - Parceiro Comercial',
+      'tier_2_qualified': 'Tier 2 - Afiliado Qualificado',
+      'tier_3_simple': 'Tier 3 - Afiliado Simples',
+      'tier_4_premium': 'Tier 4 - Parceiro Premium',
     };
     return levels[level] || level;
   };
@@ -172,6 +223,10 @@ export default function PartnerSignup() {
       'afiliado_basico': 'Você será responsável apenas por indicar clientes através do seu link de afiliado.',
       'afiliado_avancado': 'Você indicará clientes e acompanhará o onboarding básico.',
       'parceiro': 'Você fará a implantação completa e pode indicar clientes através do link de afiliado.',
+      'tier_1_commercial': 'Atuação completa no ciclo de vendas',
+      'tier_2_qualified': 'Prospecção ativa e qualificação inicial',
+      'tier_3_simple': 'Indicação e validação básica',
+      'tier_4_premium': 'Posicionamento de mercado e abertura de portas',
     };
     return descriptions[level] || '';
   };
@@ -252,33 +307,23 @@ export default function PartnerSignup() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cnpj">
-                  CNPJ {invitation.invitation_level === 'parceiro' && '*'}
-                  {invitation.invitation_level !== 'parceiro' && <span className="text-muted-foreground text-xs">(Opcional)</span>}
-                </Label>
-                <InputCNPJ
-                  id="cnpj"
-                  value={formData.cnpj}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cnpj: e.target.value }))}
-                  required={invitation.invitation_level === 'parceiro'}
-                  placeholder="00.000.000/0000-00"
-                />
-              </div>
+              <InputCNPJ
+                id="cnpj"
+                label={`CNPJ ${invitation.invitation_level !== 'parceiro' ? '(Opcional)' : '*'}`}
+                value={formData.cnpj}
+                onChange={(e) => setFormData(prev => ({ ...prev, cnpj: e.target.value }))}
+                required={invitation.invitation_level === 'parceiro'}
+                placeholder="00.000.000/0000-00"
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Telefone *
-                </Label>
-                <InputPhone
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  required
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
+              <InputPhone
+                id="phone"
+                label="Telefone *"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                required
+                placeholder="(11) 99999-9999"
+              />
             </div>
 
             <div className="space-y-2">

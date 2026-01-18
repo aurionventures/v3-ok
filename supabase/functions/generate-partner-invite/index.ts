@@ -55,11 +55,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { invitation_level, expires_in_days = 30 } = await req.json();
-
-    if (!invitation_level || !['afiliado_basico', 'afiliado_avancado', 'parceiro'].includes(invitation_level)) {
+    // Parse do body JSON com tratamento de erro
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (parseError) {
+      console.error('Erro ao parsear JSON:', parseError);
       return new Response(
-        JSON.stringify({ error: 'Nível de convite inválido' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Erro ao processar requisição: Body JSON inválido'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { invitation_level, expires_in_days = 30 } = requestBody || {};
+
+    // Aceitar tanto os níveis antigos quanto os novos Tiers
+    const validLevels = [
+      'afiliado_basico', 'afiliado_avancado', 'parceiro', // Níveis antigos (compatibilidade)
+      'tier_1_commercial', 'tier_2_qualified', 'tier_3_simple', 'tier_4_premium' // Novos Tiers
+    ];
+
+    if (!invitation_level || !validLevels.includes(invitation_level)) {
+      return new Response(
+        JSON.stringify({ error: 'Nível de convite inválido. Use um Tier válido (tier_1_commercial, tier_2_qualified, tier_3_simple, tier_4_premium)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -98,7 +119,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const baseUrl = req.headers.get('origin') || Deno.env.get('PUBLIC_SITE_URL') || 'https://legacy.rogermedke.com';
+    // Obter URL base do header origin ou variável de ambiente
+    const origin = req.headers.get('origin');
+    const publicSiteUrl = Deno.env.get('PUBLIC_SITE_URL');
+    const baseUrl = origin || publicSiteUrl || 'http://localhost:5173';
     const invitationUrl = `${baseUrl}/parceiros/cadastro?token=${invitation.invitation_token}`;
 
     return new Response(
