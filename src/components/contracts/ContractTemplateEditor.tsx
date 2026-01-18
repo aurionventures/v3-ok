@@ -114,7 +114,7 @@ const PREVIEW_VALUES: Record<string, string> = {
 };
 
 // Modelo padrão de contrato - Completo e Profissional
-const DEFAULT_CONTRACT_CONTENT = `<div style="font-family: 'Times New Roman', Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.7; color: #222;">
+export const DEFAULT_CONTRACT_CONTENT = `<div style="font-family: 'Times New Roman', Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.7; color: #222;">
 
   <!-- CABEÇALHO -->
   <div style="text-align: center; margin-bottom: 40px;">

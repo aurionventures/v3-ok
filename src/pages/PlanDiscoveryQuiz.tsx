@@ -20,6 +20,7 @@ import {
   Loader2,
   BarChart3
 } from 'lucide-react';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import {
   QuizAnswers,
   ContactInfo,
@@ -467,8 +468,21 @@ export default function PlanDiscoveryQuiz() {
   };
   
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-xl">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header Fixo */}
+      <header className="border-b bg-white dark:bg-gray-900 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-primary">Legacy Governança</h1>
+            </div>
+            <WhatsAppButton variant="default" size="sm" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" />
+          </div>
+        </div>
+      </header>
+
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-xl">
         {/* Indicador de dados da ISCA carregados */}
         {hasISCAData && govMetrixScore !== undefined && (
           <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
@@ -489,10 +503,10 @@ export default function PlanDiscoveryQuiz() {
           </div>
         )}
 
-        {/* Header */}
+        {/* Título e Descrição */}
         <div className="text-center mb-8">
-          <h1 className="text-xl font-bold text-primary mb-2">Legacy Governança</h1>
-          <p className="text-muted-foreground">Descubra o plano ideal para sua empresa</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">Descubra o Plano Ideal</h1>
+          <p className="text-base text-muted-foreground">Responda as perguntas abaixo para encontrarmos o melhor plano para sua empresa</p>
         </div>
         
         {/* Progress */}
@@ -521,10 +535,11 @@ export default function PlanDiscoveryQuiz() {
         
         {/* Navigation */}
         {!isSubmitting && (
-          <div className="flex justify-between mt-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6">
             <Button 
               variant="ghost" 
               onClick={handleBack}
+              className="w-full sm:w-auto"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
@@ -533,6 +548,7 @@ export default function PlanDiscoveryQuiz() {
             <Button 
               onClick={handleNext}
               disabled={!canProceed() || isSubmitting}
+              className="w-full sm:w-auto"
             >
               {isSubmitting ? (
                 'Calculando...'

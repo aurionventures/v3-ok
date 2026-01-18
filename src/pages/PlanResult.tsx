@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { getRecommendedPlan, PLAN_DATA } from '@/utils/planRecommendation';
 import legacyLogo from "@/assets/legacy-logo-new.png";
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 export default function PlanResult() {
   const navigate = useNavigate();
@@ -57,10 +58,10 @@ export default function PlanResult() {
             <Check className="h-5 w-5" />
             <span className="font-medium">Análise Concluída!</span>
           </div>
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
             O plano ideal para {quizData?.empresaNome || 'sua empresa'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Com base nas suas respostas, recomendamos:
           </p>
         </div>
@@ -72,8 +73,8 @@ export default function PlanResult() {
               <Crown className="h-8 w-8 text-primary" />
             </div>
             <Badge variant="secondary" className="mb-2">Recomendado</Badge>
-            <CardTitle className="text-2xl">{plan.nome}</CardTitle>
-            <p className="text-muted-foreground text-sm">{plan.descricao}</p>
+            <CardTitle className="text-2xl md:text-3xl">{plan.nome}</CardTitle>
+            <p className="text-muted-foreground text-base">{plan.descricao}</p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Price */}
@@ -96,7 +97,7 @@ export default function PlanResult() {
                     <div className="mt-0.5 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       {getIconForFeature(index)}
                     </div>
-                    <span className="text-sm">{bullet}</span>
+                    <span className="text-base">{bullet}</span>
                   </li>
                 ))}
               </ul>
@@ -122,6 +123,7 @@ export default function PlanResult() {
           >
             Refazer Quiz
           </Button>
+          <WhatsAppButton variant="outline" />
           <Button 
             variant="ghost"
             onClick={() => navigate('/')}

@@ -61,6 +61,7 @@ import {
 } from 'lucide-react';
 import legacyLogo from '@/assets/legacy-logo-new.png';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 import {
   PLANS,
@@ -94,48 +95,54 @@ function ComplexityCircle({
   const normalizedScore = Math.max(score, 10);
   const displayScore = score; // Valor real para exibição
   
-  const circumference = 2 * Math.PI * 40; // raio 40
+  const radius = 45; // Aumentado de 40 para 45
+  const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - ((normalizedScore / 100) * circumference);
   
   const getScoreColor = () => {
-    if (level.level === 'Baixa') return 'text-green-600';
-    if (level.level === 'Moderada') return 'text-yellow-600';
-    if (level.level === 'Alta') return 'text-orange-600';
-    return 'text-red-600';
+    if (level.level === 'Baixa') return { text: 'text-green-600', stroke: 'stroke-green-600', bg: 'bg-green-50' };
+    if (level.level === 'Moderada') return { text: 'text-yellow-600', stroke: 'stroke-yellow-600', bg: 'bg-yellow-50' };
+    if (level.level === 'Alta') return { text: 'text-orange-600', stroke: 'stroke-orange-600', bg: 'bg-orange-50' };
+    return { text: 'text-red-600', stroke: 'stroke-red-600', bg: 'bg-red-50' };
   };
+  
+  const colors = getScoreColor();
   
   return (
     <div className="relative flex items-center justify-center">
-      <svg className="w-24 h-24 transform -rotate-90 sm:w-28 sm:h-28">
-        {/* Círculo de fundo */}
+      {/* Círculo de fundo com gradiente sutil */}
+      <svg className="w-32 h-32 transform -rotate-90 sm:w-36 sm:h-36 drop-shadow-sm">
+        {/* Círculo de fundo - mais sutil */}
         <circle
           cx="50"
           cy="50"
-          r="40"
+          r={radius}
           stroke="currentColor"
-          strokeWidth="8"
+          strokeWidth="10"
           fill="none"
-          className="text-muted/30"
+          className="text-muted/20"
         />
-        {/* Círculo de progresso */}
+        {/* Círculo de progresso - mais grosso e destacado */}
         <circle
           cx="50"
           cy="50"
-          r="40"
+          r={radius}
           stroke="currentColor"
-          strokeWidth="8"
+          strokeWidth="10"
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className={cn('transition-all duration-1000', getScoreColor())}
+          className={cn('transition-all duration-1000 ease-out drop-shadow-sm', colors.stroke)}
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
         />
       </svg>
-      <div className="absolute text-center">
-        <span className={cn('text-2xl sm:text-3xl font-bold block leading-none', getScoreColor())}>
+      {/* Conteúdo central - mais destacado */}
+      <div className={cn('absolute text-center rounded-full p-2', colors.bg)}>
+        <span className={cn('text-3xl sm:text-4xl font-bold block leading-none', colors.text)}>
           {displayScore.toFixed(1)}
         </span>
-        <span className={cn('text-[9px] sm:text-[10px] font-medium mt-0.5 block', getScoreColor())}>
+        <span className={cn('text-xs sm:text-sm font-semibold mt-1 block uppercase tracking-wide', colors.text)}>
           {level.level}
         </span>
       </div>
@@ -691,20 +698,25 @@ export default function Pricing() {
           {!calculatorResult ? (
             <>
               <DialogHeader className="pb-2">
-                <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
-                  <Calculator className="h-5 w-5 text-primary" />
-                  Descubra Seu Plano Ideal
-                </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm">
-                  Responda as perguntas abaixo (leva 2 minutos).
-                </DialogDescription>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
+                      <Calculator className="h-5 w-5 text-primary" />
+                      Descubra Seu Plano Ideal
+                    </DialogTitle>
+                    <DialogDescription className="text-sm">
+                      Responda as perguntas abaixo (leva 2 minutos).
+                    </DialogDescription>
+                  </div>
+                  <WhatsAppButton variant="default" size="sm" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200 ml-4" />
+                </div>
               </DialogHeader>
 
               <div className="space-y-3 py-2">
                 {/* Faturamento e Maturidade - Row 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="faturamento" className="text-xs sm:text-sm">
+                    <Label htmlFor="faturamento" className="text-sm">
                       Faturamento anual *
                     </Label>
                     <Select
@@ -730,7 +742,7 @@ export default function Pricing() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="maturidade" className="text-xs sm:text-sm">
+                    <Label htmlFor="maturidade" className="text-sm">
                       Maturidade da governança *
                     </Label>
                     <Select
@@ -759,7 +771,7 @@ export default function Pricing() {
                 {/* Campos numéricos em grid compacto */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="numEmpresas" className="text-xs">Empresas *</Label>
+                    <Label htmlFor="numEmpresas" className="text-sm">Empresas *</Label>
                     <Input
                       id="numEmpresas"
                       type="number"
@@ -779,7 +791,7 @@ export default function Pricing() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="numConselhos" className="text-xs">Conselhos</Label>
+                    <Label htmlFor="numConselhos" className="text-sm">Conselhos</Label>
                     <Input
                       id="numConselhos"
                       type="number"
@@ -798,7 +810,7 @@ export default function Pricing() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="numComites" className="text-xs">Comitês</Label>
+                    <Label htmlFor="numComites" className="text-sm">Comitês</Label>
                     <Input
                       id="numComites"
                       type="number"
@@ -817,7 +829,7 @@ export default function Pricing() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="reunioesAno" className="text-xs">Reuniões/ano</Label>
+                    <Label htmlFor="reunioesAno" className="text-sm">Reuniões/ano</Label>
                     <Input
                       id="reunioesAno"
                       type="number"
@@ -836,7 +848,7 @@ export default function Pricing() {
                   </div>
 
                   <div className="space-y-1 col-span-2 sm:col-span-2">
-                    <Label htmlFor="numUsuarios" className="text-xs">
+                    <Label htmlFor="numUsuarios" className="text-sm">
                       Usuários esperados
                       <span className="text-muted-foreground ml-1">(ilimitados)</span>
                     </Label>
@@ -870,11 +882,11 @@ export default function Pricing() {
                 </Button>
 
                 {/* Instruções de preenchimento */}
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-2 font-medium">
                     Como preencher:
                   </p>
-                  <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                     <li>Campos marcados com <span className="text-destructive">*</span> são obrigatórios</li>
                     <li>Preencha o número de empresas que você possui ou administra</li>
                     <li>Informe a quantidade de conselhos, comitês e reuniões anuais (opcional)</li>
@@ -886,8 +898,8 @@ export default function Pricing() {
           ) : (
             <>
               <DialogHeader className="pb-2">
-                <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
-                  <Target className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                  <Target className="h-6 w-6 text-green-600 flex-shrink-0" />
                   <span className="truncate">Seu Plano Ideal</span>
                 </DialogTitle>
               </DialogHeader>
@@ -903,58 +915,58 @@ export default function Pricing() {
                           <Crown className="h-5 w-5 text-accent" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-lg font-bold truncate">
+                          <h3 className="text-xl sm:text-2xl font-bold truncate">
                             {
                               PLANS.find((p) => p.id === calculatorResult.planoId)
                                 ?.nome
                             }
                           </h3>
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-sm">
                             Ideal para sua empresa
                           </Badge>
                         </div>
                       </div>
 
-                      <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                        <p className="text-xs text-muted-foreground mb-3 text-center font-medium">
+                      <div className="bg-muted/50 rounded-lg p-4 mb-3">
+                        <p className="text-base sm:text-lg font-semibold text-foreground mb-4 text-center">
                           Índice de Complexidade
                         </p>
                         
                         {/* Visualização Circular da Complexidade */}
-                        <div className="flex flex-col items-center gap-3 mb-2">
+                        <div className="flex flex-col items-center gap-4 mb-3">
                           {/* Círculo Progressivo */}
                           <ComplexityCircle 
                             score={calculatorResult.complexityScore}
                             level={calculatorResult.complexityLevel}
                           />
                           
-                          {/* Barra de Progresso com Marcadores */}
+                          {/* Barra de Progresso com Marcadores - Destacada */}
                           <div className="w-full">
                             <div className="relative">
-                              {/* Normalizar: mínimo 10% visualmente, mas manter escala 0-100 */}
-                              <div className="border border-border rounded-full overflow-hidden mb-2">
+                              {/* Barra de progresso destacada */}
+                              <div className="border-2 border-primary/30 rounded-full overflow-hidden mb-3 shadow-sm bg-background/50">
                                 <Progress 
                                   value={Math.min(Math.max((Math.max(calculatorResult.complexityScore, 10) / 100) * 100, 10), 100)} 
-                                  className="h-3"
+                                  className="h-4 sm:h-5"
                                 />
                               </div>
-                              {/* Marcadores de Níveis */}
+                              {/* Marcadores de Níveis - Maiores e mais visíveis */}
                               <div className="relative flex justify-between px-1 mt-1">
                                 <div className="flex flex-col items-center">
-                                  <div className="w-1 h-1 rounded-full bg-green-600"></div>
-                                  <span className="text-[8px] text-muted-foreground mt-0.5">Baixa</span>
+                                  <div className="w-2 h-2 rounded-full bg-green-600 shadow-sm"></div>
+                                  <span className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">Baixa</span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                  <div className="w-1 h-1 rounded-full bg-yellow-600"></div>
-                                  <span className="text-[8px] text-muted-foreground mt-0.5">Moderada</span>
+                                  <div className="w-2 h-2 rounded-full bg-yellow-600 shadow-sm"></div>
+                                  <span className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">Moderada</span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                  <div className="w-1 h-1 rounded-full bg-orange-600"></div>
-                                  <span className="text-[8px] text-muted-foreground mt-0.5">Alta</span>
+                                  <div className="w-2 h-2 rounded-full bg-orange-600 shadow-sm"></div>
+                                  <span className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">Alta</span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                  <div className="w-1 h-1 rounded-full bg-red-600"></div>
-                                  <span className="text-[8px] text-muted-foreground mt-0.5">Muito Alta</span>
+                                  <div className="w-2 h-2 rounded-full bg-red-600 shadow-sm"></div>
+                                  <span className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">Muito Alta</span>
                                 </div>
                               </div>
                             </div>
@@ -962,7 +974,7 @@ export default function Pricing() {
                         </div>
                       </div>
 
-                      <p className="text-xs text-muted-foreground line-clamp-3">
+                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                         {calculatorResult.justificativa}
                       </p>
                     </CardContent>
@@ -973,7 +985,7 @@ export default function Pricing() {
                     <CardContent className="pt-3 pb-3 sm:pt-4 sm:pb-4">
                       <div className="flex items-center gap-2 mb-3">
                         <TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <h4 className="font-semibold text-green-800 text-sm">
+                        <h4 className="font-semibold text-green-800 text-base">
                           SEU INVESTIMENTO
                         </h4>
                       </div>
@@ -983,21 +995,21 @@ export default function Pricing() {
                           {/* Preço Mensal e Anual - Anual alinhado à direita */}
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="text-[10px] text-muted-foreground mb-0.5">Mensal</p>
+                              <p className="text-sm font-medium text-muted-foreground mb-1">Mensal</p>
                               <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-bold text-foreground">
+                                <span className="text-2xl sm:text-3xl font-bold text-foreground">
                                   {calculatorResult.pricing.mensalFormatted}
                                 </span>
-                                <span className="text-xs text-muted-foreground">/mês</span>
+                                <span className="text-sm text-muted-foreground">/mês</span>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-[10px] text-muted-foreground mb-0.5">Anual</p>
+                              <p className="text-sm font-medium text-muted-foreground mb-1">Anual</p>
                               <div className="flex items-baseline gap-1 justify-end">
-                                <span className="text-xl font-bold text-foreground">
+                                <span className="text-2xl sm:text-3xl font-bold text-foreground">
                                   {calculatorResult.pricing.anualFormatted}
                                 </span>
-                                <span className="text-xs text-muted-foreground">/ano</span>
+                                <span className="text-sm text-muted-foreground">/ano</span>
                               </div>
                             </div>
                           </div>
@@ -1019,14 +1031,34 @@ export default function Pricing() {
                                   </p>
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  <span className="text-base font-bold">{calculatorResult.pricing.setupFormatted}</span>
-                                  <p className="text-[10px] text-green-600">
+                                  <span className="text-lg font-bold">{calculatorResult.pricing.setupFormatted}</span>
+                                  <p className="text-xs text-green-600">
                                     50% OFF anual
                                   </p>
                                 </div>
                               </div>
                             </div>
                           )}
+
+                          {/* Botão Contratar Plano - Dentro do card de investimento */}
+                          <div className="pt-3 space-y-2">
+                            <Button
+                              onClick={handleContractCheckout}
+                              className="w-full bg-green-600 hover:bg-green-700 text-white"
+                              size="lg"
+                            >
+                              <ShoppingCart className="h-5 w-5 mr-2" />
+                              Contratar Plano
+                              <ArrowRight className="h-5 w-5 ml-2" />
+                            </Button>
+                            
+                            {/* Botão Falar com Especialista - WhatsApp */}
+                            <WhatsAppButton 
+                              variant="outline" 
+                              className="w-full"
+                              text="Falar com Especialista"
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className="text-center py-3">
@@ -1042,14 +1074,18 @@ export default function Pricing() {
                   </Card>
                 </div>
 
-                {/* Add-ons Sugeridos - Grid compacto */}
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm">
-                    <Crown className="h-3.5 w-3.5 text-accent" />
-                    Add-ons Sugeridos
-                  </h4>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Selecione os add-ons para adicionar ao seu plano:
+                {/* TODO: Add-ons Opcionais - Seção removida temporariamente, mas mantida comentada para uso futuro */}
+                {/* 
+                <div className="mt-4 pt-4 border-t border-dashed border-muted-foreground/20 opacity-75">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1">
+                      <Crown className="h-2.5 w-2.5 text-amber-500/50" />
+                      Add-ons Opcionais
+                    </h4>
+                    <span className="text-[10px] text-muted-foreground/70 italic">(opcional)</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/80 mb-2.5 leading-relaxed">
+                    Todos os planos já incluem os 13 módulos core. Você pode adicionar módulos extras se desejar:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {calculatorResult.addOnsSugeridos.map((addon) => {
@@ -1079,15 +1115,15 @@ export default function Pricing() {
                             <div className="w-6 h-6 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
                               {renderAddonIcon(addon.icone)}
                             </div>
-                            <span className="font-medium text-xs truncate">
+                            <span className="font-medium text-[11px] truncate">
                               {addon.nome}
                             </span>
                           </div>
                           <div className="text-right flex-shrink-0 ml-2">
-                            <p className="font-semibold text-xs whitespace-nowrap">
+                            <p className="font-semibold text-[11px] whitespace-nowrap">
                               R$ {addon.precoMensal.toLocaleString('pt-BR')}/mês
                             </p>
-                            <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            <p className="text-[9px] text-muted-foreground/70 whitespace-nowrap">
                               R$ {addon.precoAnual.toLocaleString('pt-BR')}/ano
                             </p>
                           </div>
@@ -1096,7 +1132,6 @@ export default function Pricing() {
                     })}
                   </div>
 
-                  {/* Total com Add-ons - Compacto */}
                   {selectedAddons.length > 0 && calculateTotalWithAddons && (
                     <div className="mt-3 p-3 bg-accent/10 rounded-lg border border-accent/30">
                       <div className="flex justify-between items-center mb-1">
@@ -1122,32 +1157,23 @@ export default function Pricing() {
                     </div>
                   )}
                 </div>
+                */}
 
-                {/* CTA - Botão único */}
+                {/* Botão Refazer */}
                 <div className="pt-2">
                   <Button
-                    onClick={handleContractCheckout}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    size="lg"
+                    variant="ghost"
+                    onClick={() => {
+                      setCalculatorResult(null);
+                      setSelectedAddons([]);
+                    }}
+                    className="w-full text-sm"
+                    size="sm"
                   >
-                    <ShoppingCart className="h-5 w-5 mr-2" />
-                    Contratar Plano
-                    <ArrowRight className="h-5 w-5 ml-2" />
+                    <ArrowRight className="h-3 w-3 mr-2 rotate-180" />
+                    Refazer cálculo
                   </Button>
                 </div>
-
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setCalculatorResult(null);
-                    setSelectedAddons([]);
-                  }}
-                  className="w-full text-xs"
-                  size="sm"
-                >
-                  <ArrowRight className="h-3 w-3 mr-2 rotate-180" />
-                  Refazer cálculo
-                </Button>
               </div>
             </>
           )}

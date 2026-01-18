@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ContractTemplateEditor from "@/components/contracts/ContractTemplateEditor";
+import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/ContractTemplateEditor";
 
 interface ContractTemplate {
   id: string;
@@ -486,16 +487,33 @@ function getMockTemplates(): ContractTemplate[] {
   return [
     {
       id: '1',
-      name: 'Contrato de Prestação de Serviços SaaS - Padrão',
-      description: 'Modelo padrão de contrato para assinatura de planos Legacy OS',
+      name: 'Contrato de Prestação de Serviços SaaS - Cliente',
+      description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
       version: '1.0',
-      content: '<div>Conteúdo do contrato...</div>',
+      content: DEFAULT_CONTRACT_CONTENT,
       available_variables: [],
       plan_types: ['core', 'governance_plus', 'people_esg', 'legacy_360'],
       requires_witness: false,
       witness_count: 0,
       is_active: true,
       is_default: true,
+      contract_type: 'client',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      name: 'Contrato de Parceiro/Afiliado - Padrão',
+      description: 'Modelo padrão de contrato para parceiros e afiliados',
+      version: '1.0',
+      content: DEFAULT_CONTRACT_CONTENT.replace(/CLIENTE|CONTRATANTE/g, 'PARCEIRO').replace(/cliente/g, 'parceiro'),
+      available_variables: [],
+      plan_types: [],
+      requires_witness: false,
+      witness_count: 0,
+      is_active: true,
+      is_default: true,
+      contract_type: 'partner',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },

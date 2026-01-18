@@ -33,6 +33,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -51,12 +68,20 @@ import {
   AlertCircle,
   Key,
   Copy,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Star,
+  CheckCircle,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/ContractTemplateEditor";
+import ContractTemplateEditor from "@/components/contracts/ContractTemplateEditor";
 
 interface Contract {
   id: string;
@@ -102,6 +127,23 @@ interface PartnerContract {
   commission_setup?: number;
   commission_recurring?: number;
   recurring_commission_months?: number;
+}
+
+interface ContractTemplate {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  content: string;
+  available_variables: any[];
+  plan_types: string[];
+  requires_witness: boolean;
+  witness_count: number;
+  is_active: boolean;
+  is_default: boolean;
+  contract_type?: 'client' | 'partner';
+  created_at: string;
+  updated_at: string;
 }
 
 // Mock de contratos (substituir por dados reais)
@@ -218,9 +260,10 @@ const getMockContracts = (): Contract[] => {
 export default function AdminContractManagement() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // Abrir na aba de parceiros se o parâmetro tab=partners estiver na URL
-  const initialTab = searchParams.get("tab") === "partners" ? "partners" : "clients";
-  const [activeTab, setActiveTab] = useState<"clients" | "partners">(initialTab);
+  // Abrir na aba correta baseado na URL
+  const tabParam = searchParams.get("tab");
+  const initialTab = tabParam === "partners" ? "partners" : tabParam === "templates" ? "templates" : "clients";
+  const [activeTab, setActiveTab] = useState<"clients" | "partners" | "templates">(initialTab);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [partnerContracts, setPartnerContracts] = useState<PartnerContract[]>([]);
   const [loading, setLoading] = useState(true);
@@ -236,12 +279,30 @@ export default function AdminContractManagement() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showPartnerDetailsModal, setShowPartnerDetailsModal] = useState(false);
   const [sending, setSending] = useState(false);
+  
+  // Templates state
+  const [templates, setTemplates] = useState<ContractTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templateTypeFilter, setTemplateTypeFilter] = useState<string>("all");
+  const [templateSearchTerm, setTemplateSearchTerm] = useState("");
+  const [deleteTemplateDialogOpen, setDeleteTemplateDialogOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<ContractTemplate | null>(null);
+  const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ContractTemplate | null>(null);
 
   // Carregar contratos
   useEffect(() => {
     loadContracts();
     loadPartnerContracts();
   }, []);
+
+  // Carregar templates quando a aba estiver ativa
+  useEffect(() => {
+    if (activeTab === 'templates') {
+      loadTemplates();
+    }
+  }, [activeTab]);
 
   const loadContracts = () => {
     setLoading(true);
@@ -483,6 +544,446 @@ export default function AdminContractManagement() {
     toast.success("Link copiado para a área de transferência!");
   };
 
+  // Templates functions
+  const loadTemplates = async () => {
+    setTemplatesLoading(true);
+    try {
+      const storedTemplates = localStorage.getItem('contract_templates');
+      if (storedTemplates) {
+        setTemplates(JSON.parse(storedTemplates));
+      } else {
+        // Inicializar com templates padrão se não houver no localStorage
+        const mockTemplates: ContractTemplate[] = [
+          {
+            id: '1',
+            name: 'Contrato de Prestação de Serviços SaaS - Cliente',
+            description: 'Modelo padrão de contrato para assinatura de planos Legacy OS (Clientes)',
+            version: '1.0',
+            content: DEFAULT_CONTRACT_CONTENT,
+            available_variables: [],
+            plan_types: ['core', 'governance_plus', 'people_esg', 'legacy_360'],
+            requires_witness: false,
+            witness_count: 0,
+            is_active: true,
+            is_default: true,
+            contract_type: 'client',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          {
+            id: '3',
+            name: 'Contrato de Parceiro/Afiliado - Padrão',
+            description: 'Modelo padrão de contrato para parceiros e afiliados do programa de indicação',
+            version: '1.0',
+            content: `<div style="font-family: 'Times New Roman', Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.7; color: #222;">
+
+  <!-- CABEÇALHO -->
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #1a365d;">
+      CONTRATO DE PARCERIA E AFILIADOS
+    </h1>
+    <h2 style="font-size: 14px; font-weight: normal; margin-bottom: 20px; color: #4a5568;">
+      PROGRAMA DE INDICAÇÃO LEGACY OS - GOVERNANÇA CORPORATIVA
+    </h2>
+    <p style="font-size: 13px;">
+      <strong>Contrato nº {{contrato_numero}}</strong>
+    </p>
+  </div>
+
+  <!-- PARTES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">PARTES</h3>
+  
+  <p><strong>CONTRATADA:</strong> LEGACY GOVERNANÇA LTDA., pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 00.000.000/0001-00, com sede na cidade de São Paulo, Estado de São Paulo, neste ato representada na forma de seu Contrato Social, doravante denominada simplesmente <strong>"LEGACY"</strong>.</p>
+  
+  <p><strong>PARCEIRO/AFILIADO:</strong> <strong>{{parceiro_nome}}</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº <strong>{{parceiro_cnpj}}</strong>, com sede em <strong>{{parceiro_endereco}}</strong>, neste ato representada por <strong>{{parceiro_representante}}</strong>, <strong>{{parceiro_cargo}}</strong>, portador(a) do CPF nº <strong>{{parceiro_cpf}}</strong>, doravante denominada simplesmente <strong>"PARCEIRO"</strong>.</p>
+  
+  <p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Parceria e Afiliados para participação no Programa de Indicação da plataforma LEGACY OS, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.</p>
+
+  <!-- CLÁUSULA 1 - DO OBJETO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 1ª - DO OBJETO</h3>
+  
+  <p>1.1. O presente contrato tem por objeto a participação do PARCEIRO no Programa de Indicação da LEGACY OS, mediante divulgação da plataforma através de link de afiliado único fornecido pela LEGACY, com direito a comissões sobre vendas originadas através desse link.</p>
+  
+  <p>1.2. <strong>Nível do Parceiro:</strong> {{parceiro_tier}}</p>
+  
+  <p>1.3. O PARCEIRO receberá um link de afiliado único e exclusivo para divulgação da plataforma LEGACY OS, através do qual poderá indicar clientes potenciais.</p>
+  
+  <p>1.4. A LEGACY se compromete a rastrear todas as vendas originadas através do link de afiliado fornecido ao PARCEIRO e a pagar as comissões devidas conforme estabelecido nas cláusulas seguintes.</p>
+
+  <!-- CLÁUSULA 2 - DO PRAZO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 2ª - DO PRAZO</h3>
+  
+  <p>2.1. O presente contrato terá vigência de <strong>{{duracao_meses}} ({{duracao_extenso}}) meses</strong>, com início em <strong>{{data_inicio}}</strong> e término em <strong>{{data_fim}}</strong>.</p>
+  
+  <p>2.2. O contrato será renovado automaticamente por períodos iguais e sucessivos, salvo manifestação contrária de qualquer das partes, por escrito, com antecedência mínima de 30 (trinta) dias do término da vigência ou de qualquer período de renovação.</p>
+  
+  <p>2.3. Qualquer alteração nas condições do programa será comunicada ao PARCEIRO com 30 (trinta) dias de antecedência.</p>
+
+  <!-- CLÁUSULA 3 - DAS COMISSÕES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 3ª - DAS COMISSÕES E PAGAMENTOS</h3>
+  
+  <p>3.1. O PARCEIRO terá direito a receber comissões sobre as vendas originadas através de seu link de afiliado único, conforme o nível (Tier) do parceiro:</p>
+  
+  <ul style="margin-left: 20px;">
+    <li><strong>Tier 1 - Parceiro Premium:</strong> Comissão inicial de {{comissao_setup_tier1}}% sobre o valor da primeira mensalidade e comissão recorrente de {{comissao_recorrente_tier1}}% por {{meses_comissao_tier1}} meses;</li>
+    <li><strong>Tier 2 - Parceiro Avançado:</strong> Comissão inicial de {{comissao_setup_tier2}}% sobre o valor da primeira mensalidade e comissão recorrente de {{comissao_recorrente_tier2}}% por {{meses_comissao_tier2}} meses;</li>
+    <li><strong>Tier 3 - Afiliado Qualificado:</strong> Comissão inicial de {{comissao_setup_tier3}}% sobre o valor da primeira mensalidade e comissão recorrente de {{comissao_recorrente_tier3}}% por {{meses_comissao_tier3}} meses;</li>
+    <li><strong>Tier 4 - Afiliado Simples:</strong> Comissão única de {{comissao_setup_tier4}}% sobre o valor da primeira mensalidade.</li>
+  </ul>
+  
+  <p>3.2. <strong>Comissões Configuradas para este Parceiro:</strong></p>
+  <ul style="margin-left: 20px;">
+    <li>Comissão Inicial (Setup): {{comissao_setup}}%</li>
+    <li>Comissão Recorrente: {{comissao_recorrente}}% por {{meses_comissao}} meses</li>
+  </ul>
+  
+  <p>3.3. O pagamento das comissões será efetuado mensalmente, até o dia {{dia_pagamento_comissao}} de cada mês, referente às vendas confirmadas e ativadas no mês anterior, mediante transferência bancária (PIX/TED) para conta indicada pelo PARCEIRO.</p>
+  
+  <p>3.4. A comissão será calculada sobre o valor líquido recebido pela LEGACY (após descontos, cancelamentos ou chargebacks), considerando apenas clientes que ativarem seus contratos e pagarem a primeira mensalidade.</p>
+  
+  <p>3.5. O PARCEIRO será responsável por manter seus dados bancários atualizados na plataforma. A falta de informações bancárias corretas poderá resultar no atraso do pagamento.</p>
+
+  <!-- CLÁUSULA 4 - OBRIGAÇÕES DA LEGACY -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 4ª - DAS OBRIGAÇÕES DA LEGACY</h3>
+  
+  <p>4.1. A LEGACY se obriga a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Fornecer ao PARCEIRO um link de afiliado único e exclusivo;</li>
+    <li>b) Rastrear todas as vendas originadas através do link de afiliado;</li>
+    <li>c) Fornecer relatórios mensais de vendas e comissões através do painel do parceiro;</li>
+    <li>d) Pagar as comissões devidas nos prazos estabelecidos;</li>
+    <li>e) Fornecer materiais de marketing e suporte para divulgação da plataforma;</li>
+    <li>f) Manter o PARCEIRO informado sobre novidades e atualizações da plataforma;</li>
+    <li>g) Respeitar os termos deste contrato e as políticas do programa de afiliados.</li>
+  </ul>
+
+  <!-- CLÁUSULA 5 - OBRIGAÇÕES DO PARCEIRO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 5ª - DAS OBRIGAÇÕES DO PARCEIRO</h3>
+  
+  <p>5.1. O PARCEIRO se obriga a:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Divulgar a plataforma LEGACY OS de forma ética e profissional, utilizando apenas materiais oficiais fornecidos pela LEGACY;</li>
+    <li>b) Não fazer promessas ou garantias não autorizadas sobre a plataforma;</li>
+    <li>c) Manter seus dados cadastrais atualizados na plataforma;</li>
+    <li>d) Não utilizar práticas de spam, marketing agressivo ou ações que possam prejudicar a imagem da LEGACY;</li>
+    <li>e) Não criar sites ou materiais que imitem ou copiem a marca LEGACY OS;</li>
+    <li>f) Seguir todas as diretrizes de marketing e comunicação fornecidas pela LEGACY;</li>
+    <li>g) Não vender ou transferir seu link de afiliado sem autorização prévia da LEGACY;</li>
+    <li>h) Manter sigilo sobre informações confidenciais a que tiver acesso;</li>
+    <li>i) Informar imediatamente a LEGACY sobre qualquer violação de segurança ou uso indevido do link.</li>
+  </ul>
+
+  <!-- CLÁUSULA 6 - RASTREAMENTO E COMISSÕES -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 6ª - DO RASTREAMENTO E ATRIBUIÇÃO DE VENDAS</h3>
+  
+  <p>6.1. As vendas serão atribuídas ao PARCEIRO quando o cliente acessar a plataforma através do link de afiliado único fornecido e efetivar a contratação dentro do período de rastreamento de {{periodo_rastreamento}} dias.</p>
+  
+  <p>6.2. Uma venda será considerada confirmada apenas quando:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) O cliente efetuar o pagamento da primeira mensalidade;</li>
+    <li>b) O contrato estiver ativo e não cancelado;</li>
+    <li>c) Não houver chargeback ou estorno dentro do período de garantia;</li>
+    <li>d) O rastreamento for realizado corretamente através do link de afiliado.</li>
+  </ul>
+  
+  <p>6.3. A LEGACY não se responsabiliza por vendas que não sejam atribuídas ao PARCEIRO devido a falhas no rastreamento causadas por bloqueadores de cookies, configurações do navegador do cliente ou outras circunstâncias fora do controle da LEGACY.</p>
+  
+  <p>6.4. O PARCEIRO terá acesso a um painel administrativo onde poderá acompanhar em tempo real suas indicações, vendas e comissões calculadas.</p>
+
+  <!-- CLÁUSULA 7 - PROPRIEDADE INTELECTUAL -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 7ª - PROPRIEDADE INTELECTUAL E USO DA MARCA</h3>
+  
+  <p>7.1. A marca LEGACY OS, incluindo seu logo, nome comercial e materiais de marketing, são de propriedade exclusiva da LEGACY.</p>
+  
+  <p>7.2. O PARCEIRO recebe uma licença limitada, não exclusiva, revogável e intransferível para usar a marca LEGACY OS apenas para fins de divulgação da plataforma, conforme diretrizes fornecidas pela LEGACY.</p>
+  
+  <p>7.3. O PARCEIRO não poderá alterar, modificar ou criar variações da marca LEGACY OS sem autorização prévia e por escrito.</p>
+  
+  <p>7.4. O PARCEIRO reconhece que não adquire qualquer direito de propriedade sobre a marca LEGACY OS através deste contrato.</p>
+
+  <!-- CLÁUSULA 8 - RESCISÃO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 8ª - RESCISÃO</h3>
+  
+  <p>8.1. O presente contrato poderá ser rescindido:</p>
+  <ul style="margin-left: 20px;">
+    <li>a) Por acordo mútuo entre as partes;</li>
+    <li>b) Por inadimplemento de qualquer obrigação contratual, após notificação e prazo de 15 dias para regularização;</li>
+    <li>c) Por violação das diretrizes de marketing ou uso indevido da marca;</li>
+    <li>d) Por solicitação de qualquer das partes, mediante aviso prévio de 30 dias;</li>
+    <li>e) Por práticas fraudulentas ou que violem a legislação vigente.</li>
+  </ul>
+  
+  <p>8.2. Em caso de rescisão, o PARCEIRO continuará tendo direito às comissões de vendas já confirmadas e pagas anteriormente à data de rescisão.</p>
+  
+  <p>8.3. Após a rescisão, o PARCEIRO deverá cessar imediatamente o uso do link de afiliado e de todos os materiais de marketing da LEGACY.</p>
+  
+  <p>8.4. A LEGACY se reserva o direito de suspender ou cancelar imediatamente o acesso do PARCEIRO ao programa em caso de violação grave dos termos deste contrato.</p>
+
+  <!-- CLÁUSULA 9 - CONFIDENCIALIDADE -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 9ª - CONFIDENCIALIDADE</h3>
+  
+  <p>9.1. O PARCEIRO se compromete a manter sigilo sobre todas as informações confidenciais a que tiver acesso em razão deste contrato, incluindo, mas não se limitando a: estratégias comerciais, valores de comissões de outros parceiros, informações técnicas não públicas e dados de clientes.</p>
+  
+  <p>9.2. A obrigação de confidencialidade permanecerá válida mesmo após o término deste contrato.</p>
+
+  <!-- CLÁUSULA 10 - DISPOSIÇÕES GERAIS -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 10ª - DISPOSIÇÕES GERAIS</h3>
+  
+  <p>10.1. Este contrato representa o acordo integral entre as partes sobre o programa de afiliados.</p>
+  
+  <p>10.2. Qualquer alteração nas condições de comissões ou políticas do programa será comunicada ao PARCEIRO com 30 dias de antecedência.</p>
+  
+  <p>10.3. Este contrato não cria relação de trabalho, sociedade, representação comercial ou qualquer outro vínculo além do estabelecido nas cláusulas acima.</p>
+  
+  <p>10.4. O PARCEIRO é um prestador de serviços independente e não possui vínculo empregatício com a LEGACY.</p>
+  
+  <p>10.5. Este contrato é celebrado eletronicamente, com validade jurídica nos termos da Medida Provisória nº 2.200-2/2001 e Lei nº 14.063/2020.</p>
+  
+  <p>10.6. As comunicações entre as partes serão realizadas preferencialmente por e-mail:</p>
+  <ul style="margin-left: 20px;">
+    <li>LEGACY: parceiros@legacyos.com.br</li>
+    <li>PARCEIRO: {{parceiro_email}}</li>
+  </ul>
+
+  <!-- CLÁUSULA 11 - FORO -->
+  <h3 style="font-size: 14px; color: #1a365d; border-bottom: 2px solid #c9a227; padding-bottom: 5px; margin-top: 30px;">CLÁUSULA 11ª - FORO</h3>
+  
+  <p>11.1. Fica eleito o foro da Comarca de São Paulo, Estado de São Paulo, para dirimir quaisquer questões oriundas do presente contrato.</p>
+
+  <!-- ASSINATURAS -->
+  <div style="margin-top: 50px;">
+    <p>E, por estarem assim justos e acordados, as partes assinam o presente instrumento eletronicamente.</p>
+    
+    <p style="text-align: center; margin-top: 30px;">
+      <strong>{{cidade_assinatura}}, {{data_contrato}}</strong>
+    </p>
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 60px;">
+      <div style="width: 45%; text-align: center;">
+        <div style="border-top: 1px solid #333; padding-top: 10px;">
+          <strong>LEGACY GOVERNANÇA LTDA.</strong><br/>
+          <span style="font-size: 12px;">CNPJ: 00.000.000/0001-00</span><br/>
+          <span style="font-size: 11px; color: #666;">CONTRATADA</span>
+        </div>
+      </div>
+      <div style="width: 45%; text-align: center;">
+        <div style="border-top: 1px solid #333; padding-top: 10px;">
+          <strong>{{parceiro_nome}}</strong><br/>
+          <span style="font-size: 12px;">CNPJ: {{parceiro_cnpj}}</span><br/>
+          <span style="font-size: 12px;">{{parceiro_representante}} - {{parceiro_cargo}}</span><br/>
+          <span style="font-size: 11px; color: #666;">PARCEIRO/AFILIADO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>`,
+            available_variables: [],
+            plan_types: [],
+            requires_witness: false,
+            witness_count: 0,
+            is_active: true,
+            is_default: true,
+            contract_type: 'partner',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ];
+        setTemplates(mockTemplates);
+        localStorage.setItem('contract_templates', JSON.stringify(mockTemplates));
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast.error('Erro ao carregar templates');
+    } finally {
+      setTemplatesLoading(false);
+    }
+  };
+
+  const handleSaveTemplate = async (template: Omit<ContractTemplate, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const now = new Date().toISOString();
+      let updatedTemplates: ContractTemplate[];
+      
+      if (selectedTemplate?.id) {
+        // Update existing
+        updatedTemplates = templates.map(t => 
+          t.id === selectedTemplate.id 
+            ? { ...t, ...template, updated_at: now }
+            : t
+        );
+      } else {
+        // Create new
+        const newTemplate: ContractTemplate = {
+          id: crypto.randomUUID(),
+          ...template,
+          created_at: now,
+          updated_at: now,
+        };
+        updatedTemplates = [newTemplate, ...templates];
+      }
+
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+      setShowTemplateEditor(false);
+      setSelectedTemplate(null);
+      toast.success(selectedTemplate ? 'Template atualizado' : 'Template criado');
+      loadTemplates(); // Reload to refresh filtered list
+    } catch (error) {
+      console.error('Error saving template:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!templateToDelete) return;
+
+    try {
+      const updatedTemplates = templates.filter(t => t.id !== templateToDelete.id);
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+      toast.success('Template excluído');
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast.error('Erro ao excluir template');
+    } finally {
+      setDeleteTemplateDialogOpen(false);
+      setTemplateToDelete(null);
+    }
+  };
+
+  const handleDuplicateTemplate = (template: ContractTemplate) => {
+    try {
+      const now = new Date().toISOString();
+      const newTemplate: ContractTemplate = {
+        id: crypto.randomUUID(),
+        name: `${template.name} (Cópia)`,
+        description: template.description,
+        version: '1.0',
+        content: template.content,
+        available_variables: template.available_variables,
+        plan_types: template.plan_types,
+        requires_witness: template.requires_witness,
+        witness_count: template.witness_count,
+        is_active: false,
+        is_default: false,
+        contract_type: template.contract_type,
+        created_at: now,
+        updated_at: now,
+      };
+
+      const updatedTemplates = [newTemplate, ...templates];
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+      toast.success('Template duplicado');
+    } catch (error) {
+      console.error('Error duplicating template:', error);
+      toast.error('Erro ao duplicar template');
+    }
+  };
+
+  const handleSetDefaultTemplate = (template: ContractTemplate) => {
+    try {
+      const updatedTemplates = templates.map(t => ({
+        ...t,
+        is_default: t.id === template.id && t.contract_type === template.contract_type
+      }));
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+      toast.success('Template definido como padrão');
+    } catch (error) {
+      console.error('Error setting default template:', error);
+      toast.error('Erro ao definir template padrão');
+    }
+  };
+
+  const handleToggleTemplateActive = (template: ContractTemplate) => {
+    try {
+      const updatedTemplates = templates.map(t => 
+        t.id === template.id ? { ...t, is_active: !t.is_active } : t
+      );
+      setTemplates(updatedTemplates);
+      localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+      toast.success(template.is_active ? 'Template desativado' : 'Template ativado');
+    } catch (error) {
+      console.error('Error toggling template active:', error);
+      toast.error('Erro ao alterar status');
+    }
+  };
+
+  const handleUploadContractFile = async (file: File) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const now = new Date().toISOString();
+        
+        // Extrair nome do arquivo sem extensão
+        const fileName = file.name.replace(/\.[^/.]+$/, '');
+        
+        const newTemplate: ContractTemplate = {
+          id: crypto.randomUUID(),
+          name: fileName || 'Template Importado',
+          description: `Template importado de ${file.name}`,
+          version: '1.0',
+          content: content || '<div>Conteúdo do contrato importado...</div>',
+          available_variables: [],
+          plan_types: [],
+          requires_witness: false,
+          witness_count: 0,
+          is_active: false,
+          is_default: false,
+          created_at: now,
+          updated_at: now,
+        };
+
+        const updatedTemplates = [newTemplate, ...templates];
+        setTemplates(updatedTemplates);
+        localStorage.setItem('contract_templates', JSON.stringify(updatedTemplates));
+        toast.success('Template importado com sucesso!');
+        setUploadFileDialogOpen(false);
+      };
+      
+      reader.readAsText(file);
+    } catch (error) {
+      console.error('Error uploading template:', error);
+      toast.error('Erro ao importar template');
+    }
+  };
+
+  // Filtrar templates
+  const filteredTemplates = useMemo(() => {
+    return templates.filter(t => {
+      const matchesType = templateTypeFilter === 'all' || t.contract_type === templateTypeFilter;
+      const matchesSearch = !templateSearchTerm || 
+        t.name.toLowerCase().includes(templateSearchTerm.toLowerCase()) ||
+        t.description.toLowerCase().includes(templateSearchTerm.toLowerCase());
+      return matchesType && matchesSearch;
+    });
+  }, [templates, templateTypeFilter, templateSearchTerm]);
+
+  // Renderizar editor de templates se necessário
+  if (showTemplateEditor && activeTab === 'templates') {
+    return (
+      <div className="flex h-screen bg-background">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header title="Gestão de Contratos" />
+          <main className="flex-1 overflow-auto p-6">
+            <ContractTemplateEditor
+              template={selectedTemplate}
+              onSave={handleSaveTemplate}
+              onCancel={() => {
+                setShowTemplateEditor(false);
+                setSelectedTemplate(null);
+              }}
+            />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
@@ -490,11 +991,12 @@ export default function AdminContractManagement() {
         <Header title="Gestão de Contratos" />
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Tabs para separar Contratos de Clientes e Parceiros */}
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "clients" | "partners")}>
-              <TabsList className="grid w-full max-w-md grid-cols-2">
+            {/* Tabs para separar Contratos de Clientes, Parceiros e Minutas */}
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "clients" | "partners" | "templates")}>
+              <TabsList className="grid w-full max-w-2xl grid-cols-3">
                 <TabsTrigger value="clients">Contratos de Clientes</TabsTrigger>
                 <TabsTrigger value="partners">Contratos de Parceiros</TabsTrigger>
+                <TabsTrigger value="templates">Minutas de Contratos</TabsTrigger>
               </TabsList>
 
               {/* Tab: Contratos de Clientes */}
@@ -1291,6 +1793,292 @@ export default function AdminContractManagement() {
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setShowPartnerDetailsModal(false)}>
                         Fechar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </TabsContent>
+
+              {/* Tab: Minutas de Contratos */}
+              <TabsContent value="templates" className="space-y-6 mt-6">
+                {/* Ações rápidas */}
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={loadTemplates} disabled={templatesLoading}>
+                      <RefreshCw className={`h-4 w-4 mr-2 ${templatesLoading ? 'animate-spin' : ''}`} />
+                      Atualizar
+                    </Button>
+                    <Button onClick={() => { setSelectedTemplate(null); setShowTemplateEditor(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Minuta
+                    </Button>
+                    <Button variant="outline" onClick={() => setUploadFileDialogOpen(true)}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Importar Template
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Buscar template..."
+                      value={templateSearchTerm}
+                      onChange={(e) => setTemplateSearchTerm(e.target.value)}
+                      className="w-[200px]"
+                    />
+                    <Select value={templateTypeFilter} onValueChange={setTemplateTypeFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os Tipos</SelectItem>
+                        <SelectItem value="client">Cliente</SelectItem>
+                        <SelectItem value="partner">Parceiro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Cards de Métricas */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold">{filteredTemplates.length}</p>
+                          <p className="text-xs text-muted-foreground">Total de Templates</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                          <CheckCircle className="h-5 w-5 text-emerald-500" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold">{filteredTemplates.filter(t => t.is_active).length}</p>
+                          <p className="text-xs text-muted-foreground">Ativos</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                          <Star className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold">{filteredTemplates.filter(t => t.is_default).length}</p>
+                          <p className="text-xs text-muted-foreground">Padrão</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-500/20 rounded-lg flex items-center justify-center">
+                          <XCircle className="h-5 w-5 text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold">{filteredTemplates.filter(t => !t.is_active).length}</p>
+                          <p className="text-xs text-muted-foreground">Inativos</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Tabela de Templates */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Templates Disponíveis</CardTitle>
+                    <CardDescription>
+                      Templates são usados para gerar contratos automaticamente
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Template</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Versão</TableHead>
+                          <TableHead>Planos</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Atualizado</TableHead>
+                          <TableHead className="w-12"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {templatesLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8">
+                              <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                            </TableCell>
+                          </TableRow>
+                        ) : filteredTemplates.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                              Nenhum template encontrado
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredTemplates.map((template) => (
+                            <TableRow key={template.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4 text-muted-foreground" />
+                                  <div>
+                                    <p className="font-medium flex items-center gap-2">
+                                      {template.name}
+                                      {template.is_default && (
+                                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                                      )}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {template.description || 'Sem descrição'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {template.contract_type === 'client' ? 'Cliente' : template.contract_type === 'partner' ? 'Parceiro' : 'N/A'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">v{template.version}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-wrap gap-1">
+                                  {template.plan_types.slice(0, 2).map((plan) => (
+                                    <Badge key={plan} variant="secondary" className="text-xs">
+                                      {plan}
+                                    </Badge>
+                                  ))}
+                                  {template.plan_types.length > 2 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{template.plan_types.length - 2}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {template.is_active ? (
+                                  <Badge className="bg-emerald-500">Ativo</Badge>
+                                ) : (
+                                  <Badge variant="secondary">Inativo</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {format(new Date(template.updated_at), "dd/MM/yyyy", { locale: ptBR })}
+                              </TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => { setSelectedTemplate(template); setShowTemplateEditor(true); }}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Editar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDuplicateTemplate(template)}>
+                                      <Copy className="h-4 w-4 mr-2" />
+                                      Duplicar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {!template.is_default && (
+                                      <DropdownMenuItem onClick={() => handleSetDefaultTemplate(template)}>
+                                        <Star className="h-4 w-4 mr-2" />
+                                        Definir como Padrão
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem onClick={() => handleToggleTemplateActive(template)}>
+                                      {template.is_active ? (
+                                        <>
+                                          <XCircle className="h-4 w-4 mr-2" />
+                                          Desativar
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Ativar
+                                        </>
+                                      )}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() => { setTemplateToDelete(template); setDeleteTemplateDialogOpen(true); }}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Excluir
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                {/* Dialog de confirmação de exclusão */}
+                <AlertDialog open={deleteTemplateDialogOpen} onOpenChange={setDeleteTemplateDialogOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir Template</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir o template "{templateToDelete?.name}"?
+                        Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteTemplate} className="bg-destructive text-destructive-foreground">
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Dialog de upload de arquivo */}
+                <Dialog open={uploadFileDialogOpen} onOpenChange={setUploadFileDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Importar Template de Contrato</DialogTitle>
+                      <DialogDescription>
+                        Faça upload de um arquivo HTML ou texto com o conteúdo do template
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        type="file"
+                        accept=".html,.txt"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleUploadContractFile(file);
+                          }
+                        }}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setUploadFileDialogOpen(false)}>
+                        Cancelar
                       </Button>
                     </DialogFooter>
                   </DialogContent>

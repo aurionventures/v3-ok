@@ -40,6 +40,31 @@ export default function PartnerContractSign() {
       const signup = JSON.parse(storedSignup);
       setSignupData(signup);
 
+      // Carregar template ativo do tipo 'partner' do localStorage
+      const storedTemplates = localStorage.getItem('contract_templates');
+      let templateContent = '';
+      if (storedTemplates) {
+        try {
+          const templates = JSON.parse(storedTemplates);
+          const partnerTemplate = templates.find((t: any) => 
+            t.is_active && t.contract_type === 'partner'
+          );
+          if (partnerTemplate?.content) {
+            templateContent = partnerTemplate.content;
+            // Substituir variáveis básicas
+            templateContent = templateContent
+              .replace(/\{\{parceiro_nome\}\}/g, signup.name)
+              .replace(/\{\{parceiro_empresa\}\}/g, signup.company_name)
+              .replace(/\{\{parceiro_cnpj\}\}/g, signup.cnpj || 'Não informado')
+              .replace(/\{\{parceiro_email\}\}/g, signup.email)
+              .replace(/\{\{parceiro_telefone\}\}/g, signup.phone || '')
+              .replace(/\{\{parceiro_tier\}\}/g, signup.invitation_level || 'tier_3_simple');
+          }
+        } catch (e) {
+          console.error('Erro ao carregar template:', e);
+        }
+      }
+
       // Mock do contrato com mais termos para permitir scroll
       const contract = {
         id: `CONTRACT-${Date.now()}`,
@@ -52,6 +77,7 @@ export default function PartnerContractSign() {
         tier: signup.invitation_level || 'tier_3_simple',
         created_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 ano
+        content_html: templateContent, // Template HTML se disponível
         terms: [
           'O parceiro receberá comissões conforme o Tier selecionado no momento do convite',
           'A comissão será calculada sobre vendas originadas através do link de afiliado único gerado para o parceiro',
@@ -198,15 +224,24 @@ export default function PartnerContractSign() {
           {/* Termos do contrato - Scrollável */}
           <div className="border-t pt-6">
             <h3 className="font-semibold mb-4 text-lg">Termos e Condições</h3>
-            <div className="space-y-4 max-h-[400px] overflow-y-auto bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <div className="space-y-4">
-                {contractData.terms.map((term: string, index: number) => (
-                  <div key={index} className="flex gap-3">
-                    <span className="text-primary font-semibold mt-0.5">{index + 1}.</span>
-                    <p className="text-sm text-gray-700 leading-relaxed">{term}</p>
-                  </div>
-                ))}
-              </div>
+            <div className="max-h-[600px] overflow-y-auto bg-gray-50 p-6 rounded-lg border border-gray-200">
+              {contractData.content_html ? (
+                // Exibir conteúdo HTML do template
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: contractData.content_html }}
+                />
+              ) : (
+                // Fallback: exibir array de termos
+                <div className="space-y-4">
+                  {contractData.terms?.map((term: string, index: number) => (
+                    <div key={index} className="flex gap-3">
+                      <span className="text-primary font-semibold mt-0.5">{index + 1}.</span>
+                      <p className="text-sm text-gray-700 leading-relaxed">{term}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

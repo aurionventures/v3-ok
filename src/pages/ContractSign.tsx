@@ -3,7 +3,7 @@
  * Permite que o cliente visualize e assine o contrato eletronicamente
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   FileText, CheckCircle, AlertCircle, Clock, Download,
-  Shield, Lock, Pen, Building2, Calendar, DollarSign, User
+  Shield, Lock, Pen, Building2, Calendar, DollarSign, User, ArrowRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ContractPDF, ContractData } from "@/components/contracts/ContractPDF";
 import { CreatePasswordModal } from "@/components/modals/CreatePasswordModal";
 import { formatCPF, isValidCPF, onlyNumbers } from "@/utils/masks";
+import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/ContractTemplateEditor";
 
 interface Contract {
   id: string;
@@ -75,6 +76,8 @@ export default function ContractSign() {
   // Modal de sucesso e criação de senha
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [contractSigned, setContractSigned] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -109,6 +112,65 @@ export default function ContractSign() {
         setError("Este contrato já foi assinado.");
         setContract(data);
         return;
+      }
+
+      // Se o contrato não tiver content_html ou estiver vazio, carregar do template padrão
+      if (!data.content_html || data.content_html.trim() === '' || data.content_html.includes('Conteúdo do contrato...')) {
+        const storedTemplates = localStorage.getItem('contract_templates');
+        if (storedTemplates) {
+          try {
+            const templates = JSON.parse(storedTemplates);
+            const defaultTemplate = templates.find((t: any) => t.is_default && t.is_active);
+            if (defaultTemplate?.content) {
+              // Substituir variáveis do template com dados do contrato
+              let content = defaultTemplate.content;
+              const variables: Record<string, string> = {
+                'contrato_numero': data.contract_number || '',
+                'cliente_nome': data.client_name || '',
+                'cliente_cnpj': data.client_document || '',
+                'cliente_endereco': (data as any).client_address || '',
+                'cliente_email': data.client_email || '',
+                'cliente_telefone': (data as any).client_phone || '',
+                'signatario_nome': data.signatory_name || '',
+                'signatario_cargo': data.signatory_role || '',
+                'signatario_cpf': data.signatory_cpf || '',
+                'plano_nome': data.plan_name || '',
+                'plano_tipo': data.plan_type || '',
+                'modulos_inclusos': data.plan_name || '',
+                'addons_inclusos': (data.addons || []).join(', ') || 'Nenhum',
+                'duracao_meses': data.duration_months?.toString() || '',
+                'duracao_extenso': data.duration_months === 12 ? 'doze' : data.duration_months === 24 ? 'vinte e quatro' : data.duration_months === 36 ? 'trinta e seis' : data.duration_months?.toString() || '',
+                'data_inicio': data.start_date ? format(new Date(data.start_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+                'data_fim': data.end_date ? format(new Date(data.end_date), 'dd/MM/yyyy', { locale: ptBR }) : '',
+                'plano_valor': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+                'plano_valor_extenso': data.monthly_value ? `R$ ${data.monthly_value.toFixed(2).replace('.', ',')}` : '',
+                'forma_pagamento': 'Boleto Bancário',
+                'dia_vencimento': '05',
+                'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
+                'cidade_assinatura': 'São Paulo - SP',
+                'valor_mensal': data.monthly_value ? data.monthly_value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '',
+              };
+              
+              Object.entries(variables).forEach(([key, value]) => {
+                const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+                content = content.replace(regex, value);
+              });
+              
+              data.content_html = content;
+            }
+          } catch (e) {
+            console.error('Erro ao carregar template:', e);
+            // Se não conseguir carregar do template, usar DEFAULT_CONTRACT_CONTENT
+            if (!data.content_html || data.content_html.trim() === '') {
+              data.content_html = DEFAULT_CONTRACT_CONTENT;
+            }
+          }
+        } else {
+          // Se não houver templates no localStorage, usar DEFAULT_CONTRACT_CONTENT
+          if (!data.content_html || data.content_html.trim() === '') {
+            data.content_html = DEFAULT_CONTRACT_CONTENT;
+          }
+        }
       }
 
       setContract(data);
@@ -189,8 +251,21 @@ export default function ContractSign() {
         actor_email: contract.client_email,
       });
 
-      // Mostrar modal de criação de senha (fluxo PLG automatizado)
-      setShowPasswordModal(true);
+      // Simular envio de email com cópia do contrato
+      try {
+        console.log(`[EMAIL] Enviando cópia do contrato assinado para ${contract.client_email}`);
+        console.log(`[EMAIL] Contrato nº ${contract.contract_number} assinado com sucesso`);
+        // Aqui seria feita a chamada para o serviço de email (Edge Function ou API)
+      } catch (emailErr) {
+        console.error('Erro ao enviar e-mail:', emailErr);
+      }
+
+      // Atualizar estado do contrato local
+      setContract(prev => prev ? { ...prev, client_signed_at: new Date().toISOString(), status: "pending_counter_signature" } : null);
+      setContractSigned(true);
+
+      // Mostrar modal de download PDF antes de avançar para senha
+      setShowDownloadModal(true);
     } catch (error) {
       console.error("Error signing contract:", error);
       toast.error("Erro ao assinar contrato. Tente novamente.");
@@ -388,10 +463,10 @@ export default function ContractSign() {
                 <FileText className="h-4 w-4" />
                 Termos do Contrato
               </h3>
-              <ScrollArea className="h-[400px] border rounded-lg p-4 bg-white">
+              <ScrollArea className="h-[600px] border rounded-lg p-6 bg-white">
                 <div
                   className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: contract.content_html }}
+                  dangerouslySetInnerHTML={{ __html: contract.content_html || '<p>Carregando conteúdo do contrato...</p>' }}
                 />
               </ScrollArea>
             </div>
@@ -551,6 +626,70 @@ export default function ContractSign() {
         </div>
       </div>
 
+      {/* Modal de Download PDF após Assinatura */}
+      <Dialog open={showDownloadModal} onOpenChange={setShowDownloadModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <DialogTitle className="text-xl text-center">Contrato Assinado com Sucesso!</DialogTitle>
+            <DialogDescription className="text-base mt-2 text-center">
+              Seu contrato foi assinado eletronicamente e uma cópia foi enviada para o email <strong>{contract?.client_email}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4 text-center">
+            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Importante:</strong> Recomendamos baixar uma cópia do contrato assinado em PDF antes de continuar.
+              </p>
+            </div>
+            {contract && getPDFData() ? (
+              <PDFDownloadLink
+                document={<ContractPDF data={getPDFData()!} showWatermark={false} />}
+                fileName={`contrato-assinado-${contract?.contract_number}.pdf`}
+                className="block"
+              >
+                {({ loading }) => (
+                  <Button 
+                    variant="outline" 
+                    disabled={loading}
+                    className="w-full"
+                    size="lg"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {loading ? "Gerando PDF..." : "Baixar Contrato em PDF"}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            ) : (
+              <Button 
+                variant="outline" 
+                disabled
+                className="w-full"
+                size="lg"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Baixar Contrato em PDF
+              </Button>
+            )}
+          </div>
+          <DialogFooter className="flex-col gap-2 justify-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDownloadModal(false);
+                setShowPasswordModal(true);
+              }}
+              className="w-full"
+            >
+              Continuar para Criação de Senha
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal de Criação de Senha (fluxo PLG automatizado) */}
       {contract && (
         <CreatePasswordModal
@@ -597,6 +736,49 @@ export default function ContractSign() {
 
 // Mock data
 function getMockContract(): Contract {
+  // Carregar template padrão do localStorage ou usar DEFAULT_CONTRACT_CONTENT
+  const storedTemplates = localStorage.getItem('contract_templates');
+  let templateContent = DEFAULT_CONTRACT_CONTENT;
+  
+  if (storedTemplates) {
+    try {
+      const templates = JSON.parse(storedTemplates);
+      const defaultTemplate = templates.find((t: any) => t.is_default && t.is_active);
+      if (defaultTemplate?.content) {
+        templateContent = defaultTemplate.content;
+      }
+    } catch (e) {
+      console.error('Erro ao carregar template:', e);
+    }
+  }
+  
+  // Substituir variáveis básicas para o mock
+  let content = templateContent
+    .replace(/\{\{contrato_numero\}\}/g, 'CONT-2026-0001')
+    .replace(/\{\{cliente_nome\}\}/g, 'Empresa ABC Ltda')
+    .replace(/\{\{cliente_cnpj\}\}/g, '12.345.678/0001-90')
+    .replace(/\{\{cliente_endereco\}\}/g, 'Rua Exemplo, 123 - Centro - São Paulo/SP - CEP: 01234-567')
+    .replace(/\{\{cliente_email\}\}/g, 'contato@empresaabc.com.br')
+    .replace(/\{\{cliente_telefone\}\}/g, '(11) 98765-4321')
+    .replace(/\{\{signatario_nome\}\}/g, 'João Silva')
+    .replace(/\{\{signatario_cargo\}\}/g, 'Diretor de Governança')
+    .replace(/\{\{signatario_cpf\}\}/g, '123.456.789-00')
+    .replace(/\{\{plano_nome\}\}/g, 'Profissional')
+    .replace(/\{\{plano_tipo\}\}/g, 'governance_plus')
+    .replace(/\{\{modulos_inclusos\}\}/g, 'Módulos do plano Profissional')
+    .replace(/\{\{addons_inclusos\}\}/g, 'ESG, Inteligência de Mercado')
+    .replace(/\{\{duracao_meses\}\}/g, '24')
+    .replace(/\{\{duracao_extenso\}\}/g, 'vinte e quatro')
+    .replace(/\{\{data_inicio\}\}/g, '31/12/2025')
+    .replace(/\{\{data_fim\}\}/g, '30/12/2027')
+    .replace(/\{\{plano_valor\}\}/g, 'R$ 8.497,00')
+    .replace(/\{\{plano_valor_extenso\}\}/g, 'R$ 8497,00')
+    .replace(/\{\{forma_pagamento\}\}/g, 'Boleto Bancário')
+    .replace(/\{\{dia_vencimento\}\}/g, '05')
+    .replace(/\{\{data_contrato\}\}/g, new Date().toLocaleDateString('pt-BR'))
+    .replace(/\{\{cidade_assinatura\}\}/g, 'São Paulo - SP')
+    .replace(/\{\{valor_mensal\}\}/g, 'R$ 8.497,00');
+  
   return {
     id: "1",
     contract_number: "CONT-2026-0001",
@@ -614,16 +796,7 @@ function getMockContract(): Contract {
     start_date: "2025-12-31",
     end_date: "2027-12-30",
     duration_months: 24,
-    content_html: `
-      <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h2>
-      <p>Este contrato é celebrado entre as partes...</p>
-      <h3>CLÁUSULA 1ª - DO OBJETO</h3>
-      <p>O presente contrato tem por objeto a prestação de serviços de acesso à plataforma LEGACY OS...</p>
-      <h3>CLÁUSULA 2ª - DO PRAZO</h3>
-      <p>O contrato terá vigência de 24 meses...</p>
-      <h3>CLÁUSULA 3ª - DO VALOR</h3>
-      <p>O valor mensal é de R$ 8.497,00...</p>
-    `,
+    content_html: content,
     status: "pending_signature",
     client_signature_token_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     client_signed_at: null,

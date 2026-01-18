@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputCNPJ, InputCEP, InputPhone } from '@/components/ui/input-masked';
-import { isCorporateEmail } from '@/data/signupData';
 import { isValidPhone, isValidCEP, isValidCNPJ } from '@/utils/masks';
 import { 
   Building2, 
@@ -46,6 +45,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { CompanyData } from '@/hooks/useCNPJ';
 import type { AddressData } from '@/hooks/useCEP';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 type Step = 'dados' | 'contrato' | 'confirmacao';
 type BillingType = 'BOLETO' | 'PIX';
@@ -211,7 +213,7 @@ export default function ContractCheckout() {
     }));
 
     setAutoFilledFields(filledFields);
-    toast.success('Dados da empresa carregados automaticamente! Você pode revisar e editar se necessário.');
+    toast.success('Dados da empresa carregados automaticamente! Você pode revisar e editar se necessário.', { duration: 2000 });
   };
 
   const handleCEPLoaded = (address: AddressData) => {
@@ -251,11 +253,14 @@ export default function ContractCheckout() {
       return newSet;
     });
     
-    toast.success('Endereço preenchido automaticamente! Você pode revisar e editar se necessário.');
+    toast.success('Endereço preenchido automaticamente! Você pode revisar e editar se necessário.', { duration: 2000 });
   };
 
   // Validações melhoradas
-  const isValidEmail = formData.contactEmail ? isCorporateEmail(formData.contactEmail) : false;
+  // Validação de email: apenas formato válido (sem restrição de domínio)
+  const isValidEmail = formData.contactEmail 
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail) 
+    : false;
   const isValidPhoneNumber = formData.contactPhone ? isValidPhone(formData.contactPhone) : false;
   const isValidCNPJNumber = formData.cnpj ? isValidCNPJ(formData.cnpj) : false;
   const isValidCEPNumber = formData.zip ? isValidCEP(formData.zip) : false;
@@ -362,19 +367,61 @@ export default function ContractCheckout() {
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + contractConfig.term);
 
-      // Load template from localStorage
+      // Load template from localStorage - usar template ativo do tipo 'client'
       const storedTemplates = localStorage.getItem('contract_templates');
       const templates = storedTemplates ? JSON.parse(storedTemplates) : [];
-      const defaultTemplate = templates.find((t: any) => t.is_default && t.is_active);
+      // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
+      const defaultTemplate = templates.find((t: any) => 
+        t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
+      ) || templates.find((t: any) => t.is_default && t.is_active);
 
-      // Gerar conteúdo do contrato (placeholder - será substituído pelo template)
+      // Gerar conteúdo do contrato usando template completo ou fallback
       let contractContent = defaultTemplate?.content || '<p>Contrato de Prestação de Serviços SaaS</p>';
-      contractContent = contractContent
-        .replace(/\{\{cliente_nome\}\}/g, formData.companyName)
-        .replace(/\{\{cliente_cnpj\}\}/g, formData.cnpj)
-        .replace(/\{\{plano_nome\}\}/g, plan.nome)
-        .replace(/\{\{valor_mensal\}\}/g, discountedMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
-        .replace(/\{\{duracao_meses\}\}/g, contractConfig.term.toString());
+      
+      // Preparar dados para substituição de variáveis
+      const contractNumber = `CTR-${Date.now()}`;
+      const clientAddress = `${formData.street}, ${formData.number}${formData.complement ? ` - ${formData.complement}` : ''}, ${formData.neighborhood} - ${formData.city}/${formData.state} - CEP: ${formData.zip}`;
+      const signatoryRole = formData.contactRole || 'Representante Legal';
+      const planValueFormatted = discountedMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const planValueExtenso = `R$ ${discountedMonthly.toFixed(2).replace('.', ',')}`; // Simplificado
+      const durationExtenso = contractConfig.term === 12 ? 'doze' : contractConfig.term === 24 ? 'vinte e quatro' : contractConfig.term === 36 ? 'trinta e seis' : contractConfig.term.toString();
+      const addonsInclusos = selectedAddons.length > 0 ? selectedAddons.map(a => a.nome).join(', ') : 'Nenhum add-on contratado';
+      const modulosInclusos = plan.descricao || 'Módulos do plano contratado';
+      
+      // Substituir todas as variáveis do template
+      const variables: Record<string, string> = {
+        'contrato_numero': contractNumber,
+        'cliente_nome': formData.companyName,
+        'cliente_cnpj': formData.cnpj,
+        'cliente_endereco': clientAddress,
+        'cliente_email': formData.contactEmail,
+        'cliente_telefone': formData.contactPhone || '',
+        'signatario_nome': formData.contactName,
+        'signatario_cargo': signatoryRole,
+        'signatario_cpf': '', // Será coletado na página de assinatura
+        'plano_nome': plan.nome,
+        'plano_tipo': plan.id,
+        'modulos_inclusos': modulosInclusos,
+        'addons_inclusos': addonsInclusos,
+        'duracao_meses': contractConfig.term.toString(),
+        'duracao_extenso': durationExtenso,
+        'data_inicio': format(startDate, 'dd/MM/yyyy', { locale: ptBR }),
+        'data_fim': format(endDate, 'dd/MM/yyyy', { locale: ptBR }),
+        'plano_valor': planValueFormatted,
+        'plano_valor_extenso': planValueExtenso,
+        'forma_pagamento': contractConfig.billingType === 'PIX' ? 'PIX' : 'Boleto Bancário',
+        'dia_vencimento': '05',
+        'data_contrato': format(new Date(), 'dd/MM/yyyy', { locale: ptBR }),
+        'cidade_assinatura': `${formData.city} - ${formData.state}`,
+        // Variáveis antigas para compatibilidade
+        'valor_mensal': planValueFormatted,
+      };
+      
+      // Substituir todas as variáveis no conteúdo
+      Object.entries(variables).forEach(([key, value]) => {
+        const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+        contractContent = contractContent.replace(regex, value);
+      });
 
       // Gerar token de assinatura para o cliente
       const signatureToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
@@ -384,7 +431,7 @@ export default function ContractCheckout() {
       // Create contract in localStorage
       const newContract = {
         id: crypto.randomUUID(),
-        contract_number: `CTR-${Date.now()}`,
+        contract_number: contractNumber,
         template_id: defaultTemplate?.id || null,
         client_name: formData.companyName,
         client_document: formData.cnpj.replace(/\D/g, ''),
@@ -420,7 +467,7 @@ export default function ContractCheckout() {
       // 4. Simulate email sending
       try {
         console.log('Would send contract email to:', formData.contactEmail);
-        toast.success('Contrato gerado com sucesso!');
+        toast.success('Contrato gerado com sucesso!', { duration: 2000 });
       } catch (emailErr) {
         console.error('Erro ao enviar e-mail:', emailErr);
       }
@@ -437,7 +484,7 @@ export default function ContractCheckout() {
         signatureToken: signatureToken, // Token para assinatura
       }));
       
-      toast.success(`Cliente "${formData.companyName}" cadastrado com sucesso!`);
+      toast.success(`Cliente "${formData.companyName}" cadastrado com sucesso!`, { duration: 2000 });
       setCurrentStep('confirmacao');
       
     } catch (error: any) {
@@ -469,13 +516,16 @@ export default function ContractCheckout() {
               <Separator orientation="vertical" className="h-5" />
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-primary" />
-                <span className="font-semibold text-sm">Contratar Plano</span>
+                <span className="font-semibold text-base">Contratar Plano</span>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')} className="h-8">
-              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-              <span className="text-xs">Voltar</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <WhatsAppButton variant="default" size="sm" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" />
+              <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')} className="h-8">
+                <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                <span className="text-sm">Voltar</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -521,11 +571,11 @@ export default function ContractCheckout() {
             {currentStep === 'dados' && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Building2 className="h-4 w-4" />
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <Building2 className="h-5 w-5" />
                     Dados de Faturamento
                   </CardTitle>
-                  <CardDescription className="text-xs mt-1">
+                  <CardDescription className="text-sm mt-1">
                     Informações para emissão de NF e contrato
                   </CardDescription>
                 </CardHeader>
@@ -909,7 +959,7 @@ export default function ContractCheckout() {
                       <div className="space-y-1.5">
                         <Label htmlFor="contactEmail" className="flex items-center gap-1.5 text-xs">
                           <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                          Email Corporativo *
+                          Email *
                         </Label>
                         <div className="relative">
                           <Input 
@@ -940,13 +990,15 @@ export default function ContractCheckout() {
                         {formData.contactEmail && !isValidEmail && (
                           <p className="text-xs text-red-500 flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
-                            Email deve ser corporativo
+                            Email inválido
                           </p>
                         )}
-                        <p className="text-xs text-amber-600 dark:text-amber-500 flex items-center gap-1.5 mt-1">
-                          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                          <span>E-mail precisa ser válido para receber o contrato</span>
-                        </p>
+                        {formData.contactEmail && isValidEmail && (
+                          <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1.5 mt-1">
+                            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span>E-mail válido para receber o contrato</span>
+                          </p>
+                        )}
                       </div>
                       <InputPhone
                         id="contactPhone"
@@ -958,8 +1010,8 @@ export default function ContractCheckout() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="justify-end pt-4">
-                  <Button onClick={handleNext} disabled={!isStep1Valid} size="default">
+                <CardFooter className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4">
+                  <Button onClick={handleNext} disabled={!isStep1Valid} size="default" className="w-full sm:w-auto">
                     Continuar
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -971,19 +1023,19 @@ export default function ContractCheckout() {
             {currentStep === 'contrato' && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileSignature className="h-4 w-4" />
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <FileSignature className="h-5 w-5" />
                     Configuração do Contrato
                   </CardTitle>
-                  <CardDescription className="text-xs mt-1">
-                    Configure o prazo, ciclo de pagamento e forma de pagamento
+                  <CardDescription className="text-sm mt-1">
+                    Configure o prazo e forma de pagamento
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Prazo do Contrato */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold">Prazo do Contrato</Label>
+                      <Label className="text-base font-semibold">Prazo do Contrato</Label>
                       {termDiscount > 0 && (
                         <Badge variant="secondary" className="text-xs text-green-600 bg-green-50 dark:bg-green-950">
                           Desconto: {termDiscount}%
@@ -1033,27 +1085,6 @@ export default function ContractCheckout() {
                     <p className="text-xs text-muted-foreground">
                       Contratos de 24 e 36 meses oferecem descontos progressivos.
                     </p>
-                  </div>
-                  
-                  <Separator className="my-3" />
-                  
-                  {/* Ciclo de Pagamento - Fixo como Mensal */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Ciclo de Pagamento</Label>
-                    <div className="p-3 border rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-sm">Mensal</p>
-                          <p className="text-xs text-muted-foreground">1 fatura por mês</p>
-                        </div>
-                        <Badge variant="outline" className="text-muted-foreground">
-                          Padrão
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">
-                        Pagamento mensal garante previsibilidade de caixa
-                      </p>
-                    </div>
                   </div>
                   
                   <Separator className="my-3" />
@@ -1141,15 +1172,15 @@ export default function ContractCheckout() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="justify-between">
-                  <Button variant="outline" onClick={handleBack}>
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Voltar
                   </Button>
                   <Button 
                     onClick={handleFinalize} 
                     disabled={!acceptTerms || !acceptContract || isProcessing}
-                    className="min-w-[200px]"
+                    className="min-w-[200px] w-full sm:w-auto"
                   >
                     {isProcessing ? (
                       <>
@@ -1178,8 +1209,10 @@ export default function ContractCheckout() {
                     Contrato Gerado com Sucesso!
                   </h2>
                   <p className="text-green-700 dark:text-green-300 mb-6 max-w-md mx-auto">
-                    Enviamos os dados de pagamento para o email <strong>{formData.contactEmail}</strong>.
-                    Clique no botão abaixo para visualizar e assinar seu contrato eletronicamente.
+                    Enviamos uma cópia do contrato para o email <strong>{formData.contactEmail}</strong>.
+                  </p>
+                  <p className="text-green-700 dark:text-green-300 mb-6 max-w-md mx-auto">
+                    Clique no botão abaixo para visualizar e assinar seu contrato eletronicamente, e acessar a Legacy OS.
                   </p>
                   
                   <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto mt-8">

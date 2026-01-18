@@ -21,6 +21,7 @@ import {
 import { PLANS, ADDONS, revealPricing } from '@/data/pricingData';
 import { CONTRACT_TERM_OPTIONS, PAYMENT_CYCLE_OPTIONS } from '@/types/billing';
 import legacyLogo from "@/assets/legacy-logo-new.png";
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 type CheckoutStep = 'prazo' | 'pagamento';
 
@@ -130,13 +131,16 @@ export default function PlanCheckout() {
               <Separator orientation="vertical" className="h-5" />
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-primary" />
-                <span className="font-semibold text-sm">Contratar Plano</span>
+                <span className="font-semibold text-base">Contratar Plano</span>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')} className="h-8">
-              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-              <span className="text-xs">Voltar</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <WhatsAppButton variant="default" size="sm" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" />
+              <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')} className="h-8">
+                <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                <span className="text-sm">Voltar</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -169,10 +173,10 @@ export default function PlanCheckout() {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto grid lg:grid-cols-3 gap-6">
           {/* Left Column - Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {/* Step 1: Prazo do Contrato */}
             {currentStep === 'prazo' && (
               <Card>
@@ -185,10 +189,10 @@ export default function PlanCheckout() {
                     Escolha o prazo do seu contrato. Contratos mais longos oferecem descontos progressivos.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-base font-semibold">Selecione o Prazo</Label>
+                      <Label className="text-lg font-semibold">Selecione o Prazo</Label>
                       {termDiscount > 0 && (
                         <Badge variant="secondary" className="text-sm text-green-600 bg-green-50 dark:bg-green-950">
                           Desconto: {termDiscount}%
@@ -240,36 +244,34 @@ export default function PlanCheckout() {
                     </p>
                   </div>
 
-                  {/* Resumo de Valores */}
+                  {/* Resumo de Valores - Compacto */}
                   {totalDiscount > 0 && (
-                    <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-3">
-                          <Percent className="h-4 w-4" />
-                          <span className="font-medium text-sm">
-                            Desconto aplicado: {totalDiscount}%
-                          </span>
+                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-2">
+                        <Percent className="h-3.5 w-3.5" />
+                        <span className="font-medium text-xs">
+                          Desconto aplicado: {totalDiscount}%
+                        </span>
+                      </div>
+                      <div className="space-y-1.5 text-xs mb-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Valor mensal original</span>
+                          <span className="line-through">{formatCurrency(totalMonthly)}</span>
                         </div>
-                        <div className="space-y-2 text-sm mb-3">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Valor mensal original</span>
-                            <span className="line-through">{formatCurrency(totalMonthly)}</span>
-                          </div>
-                          <div className="flex justify-between font-bold">
-                            <span>Valor mensal com desconto</span>
-                            <span className="text-green-600">{formatCurrency(discountedMonthly)}</span>
-                          </div>
+                        <div className="flex justify-between font-bold">
+                          <span>Valor mensal com desconto</span>
+                          <span className="text-green-600">{formatCurrency(discountedMonthly)}</span>
                         </div>
-                        <div className="space-y-1 text-xs text-green-600 dark:text-green-400 border-t border-green-200 dark:border-green-800 pt-2">
-                          {termDiscount > 0 && (
-                            <p>• {termDiscount}% por contrato de {contractTerm} meses</p>
-                          )}
-                          {pixDiscount > 0 && (
-                            <p>• {pixDiscount}% por pagamento via PIX</p>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                      <div className="text-[10px] text-green-600 dark:text-green-400 border-t border-green-200 dark:border-green-800 pt-1.5">
+                        {termDiscount > 0 && (
+                          <p>• {termDiscount}% por contrato de {contractTerm} meses</p>
+                        )}
+                        {pixDiscount > 0 && (
+                          <p>• {pixDiscount}% por pagamento via PIX</p>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -436,12 +438,12 @@ export default function PlanCheckout() {
         </div>
 
         {/* Botões de Navegação */}
-        <div className="max-w-4xl mx-auto mt-6 flex items-center justify-between">
-          <Button variant="outline" onClick={handleBack}>
+        <div className="max-w-4xl mx-auto mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4 mr-2" />
             {currentStep === 'prazo' ? 'Voltar' : 'Anterior'}
           </Button>
-          <Button onClick={handleContinue} size="lg" className="min-w-[200px]">
+          <Button onClick={handleContinue} size="lg" className="min-w-[200px] w-full sm:w-auto">
             {currentStep === 'prazo' ? (
               <>
                 Continuar
