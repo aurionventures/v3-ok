@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf, Calendar, Users, Rocket } from "lucide-react";
+import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -140,7 +140,7 @@ const Dashboard = () => {
     navigate(path);
   };
 
-  // Se for novo usuário, mostrar tela vazia com call-to-action para onboarding
+  // Se for novo usuário, mostrar tela vazia (sem redirecionamento para onboarding-wizard)
   if (isNewUser) {
     return (
       <div className="flex h-screen bg-background overflow-hidden">
@@ -155,17 +155,8 @@ const Dashboard = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-2">Bem-vindo à Legacy OS!</h2>
                 <p className="text-muted-foreground mb-6">
-                  Para começar a usar a plataforma, você precisa configurar sua empresa e estrutura de governança.
+                  Use o menu lateral para acessar as funcionalidades da plataforma.
                 </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button size="lg" onClick={() => navigate('/onboarding-wizard')} className="gap-2">
-                  <Rocket className="h-4 w-4" />
-                  Começar Configuração
-                </Button>
-                <Button size="lg" variant="outline" onClick={() => navigate('/knowledge-base')}>
-                  Configurar Knowledge Base
-                </Button>
               </div>
             </div>
           </div>

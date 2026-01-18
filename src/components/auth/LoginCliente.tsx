@@ -62,24 +62,8 @@ export default function LoginCliente({ onBack }: LoginClienteProps) {
           localStorage.removeItem('just_created_password');
         }
         
-        // Check if onboarding is completed for admins/users
-        const storedOrg = localStorage.getItem('organization');
-        const quizResult = localStorage.getItem('quiz_result');
-        
-        if (quizResult && (!storedOrg || !JSON.parse(storedOrg).onboardingCompleted)) {
-          navigate('/plan-activation');
-        } else if (storedOrg) {
-          const org = JSON.parse(storedOrg);
-          if (!org.onboardingCompleted) {
-            navigate('/plan-activation');
-          } else {
-            // Se for primeiro acesso após criar senha, mostrar tour
-            navigate('/dashboard', { state: { showTour: isFirstAccess } });
-          }
-        } else {
-          // Se for primeiro acesso após criar senha, mostrar tour
-          navigate('/dashboard', { state: { showTour: isFirstAccess } });
-        }
+        // SEMPRE redirecionar para dashboard após login (removido redirecionamento para plan-activation e onboarding-wizard)
+        navigate('/dashboard', { state: { showTour: isFirstAccess } });
       } else {
         toast({ title: "Erro de Login", description: "Email ou senha incorretos.", variant: "destructive" });
       }

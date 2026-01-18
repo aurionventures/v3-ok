@@ -138,9 +138,9 @@ export default function Signup() {
 
       toast.success('Conta criada com sucesso!');
 
-      // Redirect para onboarding
+      // Redirect para dashboard
       setTimeout(() => {
-        navigate('/onboarding-wizard?step=1');
+        navigate('/dashboard');
       }, 500);
     } catch (error) {
       console.error('Erro ao criar conta:', error);

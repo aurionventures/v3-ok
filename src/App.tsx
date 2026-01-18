@@ -36,7 +36,6 @@ const Investors = lazy(() => import("./pages/Investors"));
 const LoginAdmin = lazy(() => import("./components/auth/LoginAdmin"));
 const DemoLogin = lazy(() => import("./pages/DemoLogin"));
 const InitialSetup = lazy(() => import("./pages/InitialSetup"));
-const OnboardingWizard = lazy(() => import("./pages/OnboardingWizard"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const EmailConfirmation = lazy(() => import("./pages/EmailConfirmation"));
 const WelcomeNewUser = lazy(() => import("./pages/WelcomeNewUser"));
@@ -236,7 +235,6 @@ const App = () => (
           <Route path="/parceiros/contrato" element={<LazyRouteWrapper><PartnerContractSign /></LazyRouteWrapper>} />
           <Route path="/parceiros/contrato/assinatura/:token" element={<LazyRouteWrapper><ContractSign /></LazyRouteWrapper>} />
           <Route path="/welcome" element={<LazyRouteWrapper><WelcomeNewUser /></LazyRouteWrapper>} />
-          <Route path="/onboarding-wizard" element={<LazyRouteWrapper><OnboardingWizard /></LazyRouteWrapper>} />
           <Route path="/invite/accept" element={<LazyRouteWrapper><AcceptInvite /></LazyRouteWrapper>} />
           <Route path="/empresas" element={<LazyRouteWrapper><EmpresasLanding /></LazyRouteWrapper>} />
           <Route path="/parceiros" element={<LazyRouteWrapper><ParceirosLanding /></LazyRouteWrapper>} />
