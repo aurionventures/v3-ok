@@ -260,6 +260,7 @@ export function ContractPDF({ data, showWatermark = false }: ContractPDFProps) {
     const labels: Record<string, string> = {
       draft: "Rascunho",
       pending_signature: "Aguardando Assinatura",
+      pending_counter_signature: "Aguardando Contrassinatura",
       active: "Ativo",
       expired: "Expirado",
       cancelled: "Cancelado",

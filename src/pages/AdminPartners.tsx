@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CompanyData } from "@/hooks/useCNPJ";
 import { InputCNPJ, InputPhone } from "@/components/ui/input-masked";
 import { TIER_OPTIONS, PartnerTier, mapInvitationLevelToTier, TIER_CONFIGS } from "@/config/partnerTiers";
+import { getTierCommissionConfig } from "@/utils/partnerContractGenerator";
 import { 
   Plus, 
   Building2, 
@@ -770,26 +771,16 @@ const AdminPartners = () => {
       const invitation = invitations.find(inv => inv.id === invitationId);
       if (!invitation) return;
 
-      // Valores padrão por nível
-      const commissionSetup: Record<string, number> = {
-        'afiliado_basico': 10,
-        'afiliado_avancado': 15,
-        'parceiro': 20
-      };
-
-      const commissionRecurring: Record<string, number> = {
-        'afiliado_basico': 5,
-        'afiliado_avancado': 10,
-        'parceiro': 15
-      };
+      // Obter configurações de comissão baseadas no Tier configurado
+      const commissionConfig = getTierCommissionConfig(invitation.invitation_level);
 
       const { data, error } = await supabase.functions.invoke('create-partner-contract', {
         body: {
           partner_user_id: partnerUserId,
           partner_invitation_id: invitationId,
-          commission_setup: commissionSetup[invitation.invitation_level] || 10,
-          commission_recurring: commissionRecurring[invitation.invitation_level] || 5,
-          recurring_commission_months: 12,
+          commission_setup: commissionConfig.setup,
+          commission_recurring: commissionConfig.recurring,
+          recurring_commission_months: commissionConfig.recurringMonths,
           start_date: new Date().toISOString().split('T')[0],
           duration_months: 12,
           auto_renew: true

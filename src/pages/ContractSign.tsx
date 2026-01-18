@@ -57,6 +57,9 @@ interface Contract {
   client_signature_token?: string;
   client_signature_token_expires_at: string;
   client_signed_at: string | null;
+  client_signature_ip?: string;
+  client_signature_hash?: string;
+  client_signature_user_agent?: string;
 }
 
 export default function ContractSign() {
@@ -272,20 +275,24 @@ export default function ContractSign() {
 
       // NOTE: contracts table doesn't exist yet, updating localStorage
       const clientIP = await getClientIP();
+      const signedAt = new Date().toISOString();
+      
+      // Criar objeto de contrato atualizado com todos os dados da assinatura
+      const updatedContract: Contract = {
+        ...contract,
+        status: "pending_counter_signature",
+        client_signed_at: signedAt,
+        client_signature_ip: clientIP,
+        client_signature_user_agent: navigator.userAgent,
+        client_signature_hash: signatureHash,
+        signatory_cpf_confirmed: signatoryCpfConfirm || contract.signatory_cpf || null,
+      };
+      
+      // Atualizar localStorage
       const storedContracts = localStorage.getItem('contracts') || '[]';
       const contracts = JSON.parse(storedContracts);
       const updatedContracts = contracts.map((c: any) => 
-        c.id === contract.id 
-          ? {
-              ...c,
-              status: "pending_counter_signature",
-              client_signed_at: new Date().toISOString(),
-              client_signature_ip: clientIP,
-              client_signature_user_agent: navigator.userAgent,
-              client_signature_hash: signatureHash,
-              signatory_cpf_confirmed: signatoryCpfConfirm || contract.signatory_cpf || null,
-            }
-          : c
+        c.id === contract.id ? updatedContract : c
       );
       localStorage.setItem('contracts', JSON.stringify(updatedContracts));
 
@@ -304,13 +311,15 @@ export default function ContractSign() {
       } catch (emailErr) {
         console.error('Erro ao enviar e-mail:', emailErr);
       }
-
-      // Atualizar estado do contrato local
-      setContract(prev => prev ? { ...prev, client_signed_at: new Date().toISOString(), status: "pending_counter_signature" } : null);
+      
+      // Atualizar estado do contrato
+      setContract(updatedContract);
       setContractSigned(true);
 
-      // Mostrar modal de download PDF antes de avançar para senha
-      setShowDownloadModal(true);
+      // Aguardar um tick para garantir que o estado foi atualizado antes de mostrar o modal
+      setTimeout(() => {
+        setShowDownloadModal(true);
+      }, 100);
     } catch (error) {
       console.error("Error signing contract:", error);
       toast.error("Erro ao assinar contrato. Tente novamente.");
@@ -351,6 +360,7 @@ export default function ContractSign() {
       clientEmail: contract.client_email,
       signatoryName: contract.signatory_name,
       signatoryRole: contract.signatory_role,
+      signatoryDocument: contract.signatory_cpf,
       planName: contract.plan_name,
       planType: contract.plan_type,
       addons: contract.addons || [],
@@ -360,6 +370,7 @@ export default function ContractSign() {
       endDate: contract.end_date,
       durationMonths: contract.duration_months,
       clientSignedAt: contract.client_signed_at || undefined,
+      clientSignatureIp: contract.client_signature_ip || undefined,
       generatedAt: new Date().toISOString(),
     };
   }, [contract]);
@@ -702,15 +713,17 @@ export default function ContractSign() {
                 <strong>Importante:</strong> Recomendamos baixar uma cópia do contrato assinado em PDF antes de continuar.
               </p>
             </div>
-            {contract && contract.client_signed_at && getPDFData() ? (
+            {contract && pdfData && (contract.client_signed_at || contractSigned) ? (
               <PDFDownloadLink
-                document={<ContractPDF data={getPDFData()!} showWatermark={false} />}
+                document={<ContractPDF data={pdfData} showWatermark={false} />}
                 fileName={`contrato-assinado-${contract?.contract_number}.pdf`}
-                className="block"
+                className="block w-full"
               >
                 {({ loading, blob, url, error }) => {
                   if (error) {
                     console.error('Erro ao gerar PDF:', error);
+                    console.log('PDF Data:', pdfData);
+                    console.log('Contract:', contract);
                     return (
                       <Button 
                         variant="outline" 
@@ -736,7 +749,7 @@ export default function ContractSign() {
                   );
                 }}
               </PDFDownloadLink>
-            ) : contract ? (
+            ) : (
               <Button 
                 variant="outline" 
                 disabled
@@ -746,7 +759,7 @@ export default function ContractSign() {
                 <Download className="h-4 w-4 mr-2" />
                 Baixar Contrato em PDF
               </Button>
-            ) : null}
+            )}
           </div>
           <DialogFooter className="flex-col gap-2 justify-center">
             <Button
