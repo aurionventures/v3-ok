@@ -44,6 +44,7 @@ import {
   GraduationCap,
   Share2,
   Filter,
+  Ticket,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -126,6 +127,7 @@ const ADMIN_MENU_SECTIONS = [
       { icon: Handshake, href: "/admin/parceiros", name: "Cadastro de Parceiros" },
       { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões de Parceiros" },
       { icon: Settings, href: "/admin/tier-config", name: "Configuração de Tiers" },
+      { icon: Ticket, href: "/admin/discount-coupons", name: "Cupons de Desconto" },
       { icon: Share2, href: "/admin/parceiros/conteudo", name: "Gestão de Conteúdo" },
     ]
   },

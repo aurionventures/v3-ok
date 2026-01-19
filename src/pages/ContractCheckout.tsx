@@ -36,6 +36,8 @@ import {
   CreditCard,
   Loader2,
   AlertCircle,
+  XCircle,
+  Ticket,
 } from 'lucide-react';
 import { PLANS, ADDONS, revealPricing, PRICING_MATRIX } from '@/data/pricingData';
 import { CONTRACT_TERM_OPTIONS, PAYMENT_CYCLE_OPTIONS, ClientBilling } from '@/types/billing';
@@ -48,6 +50,11 @@ import type { AddressData } from '@/hooks/useCEP';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+  DiscountCoupon,
+  calculateCouponDiscount,
+  validateCoupon,
+} from '@/types/discountCoupon';
 
 type Step = 'dados' | 'contrato' | 'confirmacao';
 type BillingType = 'BOLETO' | 'PIX';
@@ -139,6 +146,12 @@ export default function ContractCheckout() {
     billingType: (billingFromUrl || 'BOLETO') as BillingType,
   });
   
+  // Cupom de desconto
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
   // Aceites
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptContract, setAcceptContract] = useState(false);
@@ -147,12 +160,22 @@ export default function ContractCheckout() {
   const termDiscount = CONTRACT_TERM_OPTIONS.find(t => t.value === contractConfig.term)?.discount || 0;
   // Removido cycleDiscount - sempre mensal, sem desconto por ciclo
   const pixDiscount = contractConfig.billingType === 'PIX' ? 5 : 0; // 5% de desconto para PIX
-  const totalDiscount = termDiscount + pixDiscount;
   
   const baseMonthly = pricing.mensal || 0;
   const addonsMonthly = selectedAddons.reduce((sum, a) => sum + a.precoMensal, 0);
   const totalMonthly = baseMonthly + addonsMonthly;
-  const discountedMonthly = totalMonthly * (1 - totalDiscount / 100);
+  
+  // Aplicar descontos progressivos (primeiro termo e PIX, depois cupom)
+  const baseDiscount = termDiscount + pixDiscount;
+  const monthlyAfterBaseDiscount = totalMonthly * (1 - baseDiscount / 100);
+  
+  // Calcular desconto do cupom sobre o valor já com desconto base
+  const couponDiscountAmount = appliedCoupon
+    ? calculateCouponDiscount(appliedCoupon, monthlyAfterBaseDiscount)
+    : 0;
+  
+  const discountedMonthly = monthlyAfterBaseDiscount - couponDiscountAmount;
+  const totalDiscountPercentage = baseDiscount + (couponDiscountAmount > 0 ? (couponDiscountAmount / totalMonthly) * 100 : 0);
   
   // Sempre mensal (1 mês)
   const paymentValue = discountedMonthly;
@@ -162,6 +185,69 @@ export default function ContractCheckout() {
   
   // Estado para rastrear campos preenchidos automaticamente
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+
+  // Função para validar e aplicar cupom
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Digite um código de cupom');
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+
+    try {
+      // Buscar cupons do localStorage
+      const storedCoupons = localStorage.getItem('discount_coupons');
+      if (!storedCoupons) {
+        setCouponError('Cupom não encontrado');
+        setIsValidatingCoupon(false);
+        return;
+      }
+
+      const coupons: DiscountCoupon[] = JSON.parse(storedCoupons);
+      const coupon = coupons.find(
+        (c) => c.token.toUpperCase() === couponCode.trim().toUpperCase()
+      );
+
+      if (!coupon) {
+        setCouponError('Cupom não encontrado');
+        setIsValidatingCoupon(false);
+        return;
+      }
+
+      // Validar cupom (usar totalMonthly para validação de valor mínimo)
+      const validation = validateCoupon(
+        coupon,
+        totalMonthly,
+        plan.id,
+        porteParam
+      );
+
+      if (!validation.valid) {
+        setCouponError(validation.error || 'Cupom inválido');
+        setIsValidatingCoupon(false);
+        return;
+      }
+
+      // Aplicar cupom
+      setAppliedCoupon(coupon);
+      setCouponError(null);
+      toast.success('Cupom aplicado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao validar cupom:', error);
+      setCouponError('Erro ao validar cupom. Tente novamente.');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError(null);
+    toast.info('Cupom removido');
+  };
 
   // Handlers para auto-preenchimento
   const handleCNPJLoaded = (company: CompanyData) => {
@@ -463,6 +549,43 @@ export default function ContractCheckout() {
       const contracts = JSON.parse(storedContracts);
       contracts.push(newContract);
       localStorage.setItem('contracts', JSON.stringify(contracts));
+
+      // Registrar uso do cupom se aplicado
+      if (appliedCoupon) {
+        try {
+          // Atualizar contador de usos do cupom
+          const storedCoupons = localStorage.getItem('discount_coupons');
+          if (storedCoupons) {
+            const coupons: DiscountCoupon[] = JSON.parse(storedCoupons);
+            const updatedCoupons = coupons.map((c) =>
+              c.id === appliedCoupon.id
+                ? { ...c, currentUses: c.currentUses + 1, updatedAt: new Date().toISOString() }
+                : c
+            );
+            localStorage.setItem('discount_coupons', JSON.stringify(updatedCoupons));
+          }
+
+          // Registrar uso no histórico
+          const usageRecord = {
+            id: crypto.randomUUID(),
+            couponId: appliedCoupon.id,
+            couponToken: appliedCoupon.token,
+            usedBy: formData.cnpj.replace(/\D/g, ''),
+            usedAt: new Date().toISOString(),
+            orderValue: totalContractValue,
+            discountApplied: couponDiscountAmount * contractConfig.term,
+            contractId: newContract.id,
+          };
+
+          const storedUsage = localStorage.getItem('coupon_usage') || '[]';
+          const usage: any[] = JSON.parse(storedUsage);
+          usage.push(usageRecord);
+          localStorage.setItem('coupon_usage', JSON.stringify(usage));
+        } catch (error) {
+          console.error('Erro ao registrar uso do cupom:', error);
+          // Não bloquear o checkout se houver erro ao registrar o cupom
+        }
+      }
 
       // 4. Simulate email sending
       try {
@@ -1121,13 +1244,82 @@ export default function ContractCheckout() {
                     </RadioGroup>
                   </div>
                   
+                  <Separator className="my-3" />
+                  
+                  {/* Cupom de Desconto */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold flex items-center gap-2">
+                      <Ticket className="h-4 w-4" />
+                      Cupom de Desconto
+                    </Label>
+                    {!appliedCoupon ? (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Digite o código do cupom"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleApplyCoupon();
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleApplyCoupon}
+                          disabled={isValidatingCoupon || !couponCode.trim()}
+                        >
+                          {isValidatingCoupon ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Aplicar'
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                              Cupom: {appliedCoupon.token}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemoveCoupon}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <XCircle className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="text-sm text-green-600 dark:text-green-400">
+                          Desconto: {appliedCoupon.discountType === 'percentage' 
+                            ? `${appliedCoupon.discountValue}%` 
+                            : formatCurrency(appliedCoupon.discountValue)}
+                        </div>
+                      </div>
+                    )}
+                    {couponError && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {couponError}
+                      </p>
+                    )}
+                  </div>
+                  
                   {/* Resumo de Descontos */}
-                  {totalDiscount > 0 && (
+                  {totalDiscountPercentage > 0 && (
                     <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-2">
                         <Percent className="h-4 w-4" />
                         <span className="font-medium text-sm">
-                          Desconto total: {totalDiscount}%
+                          Desconto total: {totalDiscountPercentage.toFixed(1)}%
                         </span>
                       </div>
                       <div className="space-y-1 text-xs text-green-600 dark:text-green-400">
@@ -1136,6 +1328,11 @@ export default function ContractCheckout() {
                         )}
                         {pixDiscount > 0 && (
                           <p>• {pixDiscount}% por pagamento via PIX</p>
+                        )}
+                        {couponDiscountAmount > 0 && appliedCoupon && (
+                          <p>• Desconto cupom: {appliedCoupon.discountType === 'percentage' 
+                            ? `${appliedCoupon.discountValue}%` 
+                            : formatCurrency(appliedCoupon.discountValue)}</p>
                         )}
                       </div>
                     </div>
@@ -1273,16 +1470,88 @@ export default function ContractCheckout() {
                   </>
                 )}
                 
+                {/* Cupom de Desconto */}
+                <div className="space-y-2">
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Código do cupom"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleApplyCoupon();
+                          }
+                        }}
+                        className="h-8 text-xs"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleApplyCoupon}
+                        disabled={isValidatingCoupon || !couponCode.trim()}
+                        className="h-8 px-3"
+                      >
+                        {isValidatingCoupon ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          'Aplicar'
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="p-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                            Cupom: {appliedCoupon.token}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemoveCoupon}
+                          className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400">
+                        Desconto: {appliedCoupon.discountType === 'percentage' 
+                          ? `${appliedCoupon.discountValue}%` 
+                          : formatCurrency(appliedCoupon.discountValue)}
+                      </div>
+                    </div>
+                  )}
+                  {couponError && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {couponError}
+                    </p>
+                  )}
+                </div>
+
+                <Separator className="my-2" />
+
                 {/* Subtotal e Desconto - Compacto */}
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal mensal</span>
                     <span>{formatCurrency(totalMonthly)}</span>
                   </div>
-                  {totalDiscount > 0 && (
+                  {baseDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Desconto ({totalDiscount}%)</span>
-                      <span>-{formatCurrency(totalMonthly - discountedMonthly)}</span>
+                      <span>Desconto base ({baseDiscount.toFixed(1)}%)</span>
+                      <span>-{formatCurrency(totalMonthly - monthlyAfterBaseDiscount)}</span>
+                    </div>
+                  )}
+                  {couponDiscountAmount > 0 && (
+                    <div className="flex justify-between text-green-600 font-semibold">
+                      <span>Desconto cupom</span>
+                      <span>-{formatCurrency(couponDiscountAmount)}</span>
                     </div>
                   )}
                 </div>
@@ -1293,7 +1562,7 @@ export default function ContractCheckout() {
                 <div className="space-y-1">
                   <div className="flex justify-between items-baseline">
                     <span className="text-sm font-semibold">Valor mensal</span>
-                    {totalDiscount > 0 ? (
+                    {totalDiscountPercentage > 0 ? (
                       <div className="flex flex-col items-end">
                         <span className="text-xs text-muted-foreground line-through">
                           {formatCurrency(totalMonthly)}
@@ -1306,10 +1575,10 @@ export default function ContractCheckout() {
                       <span className="text-base font-bold text-primary">{formatCurrency(discountedMonthly)}</span>
                     )}
                   </div>
-                  {totalDiscount > 0 && (
+                  {totalDiscountPercentage > 0 && (
                     <div className="flex items-center gap-1 text-xs text-green-600">
                       <Percent className="h-3 w-3" />
-                      <span>Desconto de {totalDiscount}% aplicado</span>
+                      <span>Desconto de {totalDiscountPercentage.toFixed(1)}% aplicado</span>
                     </div>
                   )}
                 </div>

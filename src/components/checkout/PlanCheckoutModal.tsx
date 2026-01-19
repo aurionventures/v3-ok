@@ -14,11 +14,21 @@ import {
   CreditCard, 
   ArrowRight, 
   Percent,
-  CheckCircle2
+  CheckCircle2,
+  Ticket,
+  XCircle,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { PLANS, ADDONS, revealPricing, mapFaturamentoToPorte } from '@/data/pricingData';
 import { CONTRACT_TERM_OPTIONS, PAYMENT_CYCLE_OPTIONS } from '@/types/billing';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import {
+  DiscountCoupon,
+  calculateCouponDiscount,
+  validateCoupon,
+} from '@/types/discountCoupon';
 
 interface PlanCheckoutModalProps {
   open: boolean;
@@ -47,6 +57,12 @@ export function PlanCheckoutModal({
   const [paymentCycle, setPaymentCycle] = useState<'monthly' | 'quarterly' | 'semi_annual' | 'annual'>('monthly');
   const [billingType, setBillingType] = useState<'BOLETO' | 'PIX'>('BOLETO');
 
+  // Cupom de desconto
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
   // Dados do plano
   const plan = PLANS.find((p) => p.id === planId) || PLANS[1];
   const pricing = revealPricing(planId, porte, calculatedPrice);
@@ -55,12 +71,20 @@ export function PlanCheckoutModal({
   // Calcular valores
   const termDiscount = CONTRACT_TERM_OPTIONS.find(t => t.value === contractTerm)?.discount || 0;
   const cycleDiscount = PAYMENT_CYCLE_OPTIONS.find(c => c.value === paymentCycle)?.discount || 0;
-  const totalDiscount = termDiscount + cycleDiscount;
+  const baseDiscount = termDiscount + cycleDiscount;
 
   const baseMonthly = pricing.mensal || 0;
   const addonsMonthly = addons.reduce((sum, a) => sum + a.precoMensal, 0);
   const totalMonthly = baseMonthly + addonsMonthly;
-  const discountedMonthly = totalMonthly * (1 - totalDiscount / 100);
+  const monthlyAfterBaseDiscount = totalMonthly * (1 - baseDiscount / 100);
+  
+  // Calcular desconto do cupom
+  const couponDiscountAmount = appliedCoupon
+    ? calculateCouponDiscount(appliedCoupon, monthlyAfterBaseDiscount)
+    : 0;
+  
+  const discountedMonthly = monthlyAfterBaseDiscount - couponDiscountAmount;
+  const totalDiscount = baseDiscount + (couponDiscountAmount > 0 ? (couponDiscountAmount / totalMonthly) * 100 : 0);
 
   const cycleMonths = {
     monthly: 1,
@@ -119,6 +143,66 @@ export function PlanCheckoutModal({
     }
   };
 
+  // Função para validar e aplicar cupom
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Digite um código de cupom');
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+
+    try {
+      const storedCoupons = localStorage.getItem('discount_coupons');
+      if (!storedCoupons) {
+        setCouponError('Cupom não encontrado');
+        setIsValidatingCoupon(false);
+        return;
+      }
+
+      const coupons: DiscountCoupon[] = JSON.parse(storedCoupons);
+      const coupon = coupons.find(
+        (c) => c.token.toUpperCase() === couponCode.trim().toUpperCase()
+      );
+
+      if (!coupon) {
+        setCouponError('Cupom não encontrado');
+        setIsValidatingCoupon(false);
+        return;
+      }
+
+      const validation = validateCoupon(
+        coupon,
+        totalMonthly,
+        planId,
+        porte
+      );
+
+      if (!validation.valid) {
+        setCouponError(validation.error || 'Cupom inválido');
+        setIsValidatingCoupon(false);
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponError(null);
+      toast.success('Cupom aplicado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao validar cupom:', error);
+      setCouponError('Erro ao validar cupom. Tente novamente.');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError(null);
+    toast.info('Cupom removido');
+  };
+
   // Reset ao fechar
   useEffect(() => {
     if (!open) {
@@ -126,6 +210,9 @@ export function PlanCheckoutModal({
       setContractTerm(12);
       setPaymentCycle('monthly');
       setBillingType('BOLETO');
+      setCouponCode('');
+      setAppliedCoupon(null);
+      setCouponError(null);
     }
   }, [open]);
 
@@ -294,6 +381,73 @@ export function PlanCheckoutModal({
                 </div>
               </RadioGroup>
 
+              {/* Cupom de Desconto */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Ticket className="h-4 w-4" />
+                  Cupom de Desconto
+                </Label>
+                {!appliedCoupon ? (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Digite o código do cupom"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleApplyCoupon();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleApplyCoupon}
+                      disabled={isValidatingCoupon || !couponCode.trim()}
+                    >
+                      {isValidatingCoupon ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Aplicar'
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                          Cupom: {appliedCoupon.token}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveCoupon}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="text-sm text-green-600 dark:text-green-400">
+                      Desconto: {appliedCoupon.discountType === 'percentage' 
+                        ? `${appliedCoupon.discountValue}%` 
+                        : formatCurrency(appliedCoupon.discountValue)}
+                    </div>
+                  </div>
+                )}
+                {couponError && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {couponError}
+                  </p>
+                )}
+              </div>
+
               {/* Resumo Final */}
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="pt-4">
@@ -303,6 +457,22 @@ export function PlanCheckoutModal({
                       <span className="text-muted-foreground">Prazo</span>
                       <span className="font-medium">{contractTerm} meses</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal mensal</span>
+                      <span className="font-medium">{formatCurrency(totalMonthly)}</span>
+                    </div>
+                    {baseDiscount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span className="text-xs">Desconto base ({baseDiscount.toFixed(1)}%)</span>
+                        <span className="text-xs">-{formatCurrency(totalMonthly - monthlyAfterBaseDiscount)}</span>
+                      </div>
+                    )}
+                    {couponDiscountAmount > 0 && (
+                      <div className="flex justify-between text-green-600 font-semibold">
+                        <span className="text-xs">Desconto cupom</span>
+                        <span className="text-xs">-{formatCurrency(couponDiscountAmount)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Valor mensal</span>
                       <span className="font-medium">{formatCurrency(discountedMonthly)}</span>

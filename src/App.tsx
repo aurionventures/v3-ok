@@ -156,6 +156,7 @@ const AdminContracts = lazy(() => import("./pages/AdminContracts"));
 const AdminContractTemplates = lazy(() => import("./pages/AdminContractTemplates"));
 const AdminContractManagement = lazy(() => import("./pages/AdminContractManagement"));
 const AdminTierConfig = lazy(() => import("./pages/AdminTierConfig"));
+const AdminDiscountCoupons = lazy(() => import("./pages/AdminDiscountCoupons"));
 const ContractSign = lazy(() => import("./pages/ContractSign"));
 const PartnerSignup = lazy(() => import("./pages/PartnerSignup"));
 const PartnerCreatePassword = lazy(() => import("./pages/PartnerCreatePassword"));
@@ -749,6 +750,7 @@ const App = () => (
           <Route path="/admin/contract-templates" element={<LazyRouteWrapper><AdminContractTemplates /></LazyRouteWrapper>} />
           <Route path="/admin/contract-management" element={<LazyRouteWrapper><AdminContractManagement /></LazyRouteWrapper>} />
           <Route path="/admin/tier-config" element={<LazyRouteWrapper><AdminTierConfig /></LazyRouteWrapper>} />
+          <Route path="/admin/discount-coupons" element={<LazyRouteWrapper><AdminDiscountCoupons /></LazyRouteWrapper>} />
           <Route path="/admin/invoices" element={<LazyRouteWrapper><AdminInvoices /></LazyRouteWrapper>} />
           <Route path="/admin/sales" element={<LazyRouteWrapper><AdminSales /></LazyRouteWrapper>} />
           <Route path="/admin/plg-funnel" element={<LazyRouteWrapper><AdminPLGFunnel /></LazyRouteWrapper>} />
