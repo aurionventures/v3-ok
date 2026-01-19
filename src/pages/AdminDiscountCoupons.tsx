@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,7 +82,6 @@ const STORAGE_KEY = "discount_coupons";
 const USAGE_STORAGE_KEY = "coupon_usage";
 
 export default function AdminDiscountCoupons() {
-  const navigate = useNavigate();
   const [coupons, setCoupons] = useState<DiscountCoupon[]>([]);
   const [usage, setUsage] = useState<CouponUsage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -779,8 +777,14 @@ function CouponForm({
     { value: "enterprise", label: "Enterprise" },
   ];
 
+  // Sync selectedPlans and selectedPortes with formData when they change
   useEffect(() => {
-    setFormData({ ...formData, applicablePlans: selectedPlans, applicablePortes: selectedPortes });
+    setFormData((prev) => ({
+      ...prev,
+      applicablePlans: selectedPlans,
+      applicablePortes: selectedPortes,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlans, selectedPortes]);
 
   return (
@@ -791,7 +795,7 @@ function CouponForm({
           <Input
             id="name"
             value={formData.name || ""}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             placeholder="Ex: Black Friday 2024"
           />
         </div>
@@ -799,7 +803,7 @@ function CouponForm({
           <Label htmlFor="discountType">Tipo de Desconto *</Label>
           <Select
             value={formData.discountType}
-            onValueChange={(v) => setFormData({ ...formData, discountType: v as DiscountType })}
+            onValueChange={(v) => setFormData((prev) => ({ ...prev, discountType: v as DiscountType }))}
           >
             <SelectTrigger>
               <SelectValue />
@@ -825,7 +829,7 @@ function CouponForm({
             step={formData.discountType === "percentage" ? "1" : "0.01"}
             value={formData.discountValue || 0}
             onChange={(e) =>
-              setFormData({ ...formData, discountValue: parseFloat(e.target.value) || 0 })
+              setFormData((prev) => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))
             }
           />
         </div>
@@ -839,10 +843,10 @@ function CouponForm({
               step="0.01"
               value={formData.maxDiscountValue || ""}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
+                setFormData((prev) => ({
+                  ...prev,
                   maxDiscountValue: e.target.value ? parseFloat(e.target.value) : undefined,
-                })
+                }))
               }
               placeholder="Opcional"
             />
@@ -860,10 +864,10 @@ function CouponForm({
             step="0.01"
             value={formData.minPurchaseValue || ""}
             onChange={(e) =>
-              setFormData({
-                ...formData,
+              setFormData((prev) => ({
+                ...prev,
                 minPurchaseValue: e.target.value ? parseFloat(e.target.value) : undefined,
-              })
+              }))
             }
             placeholder="Opcional"
           />
@@ -876,10 +880,10 @@ function CouponForm({
             min="1"
             value={formData.maxUses || ""}
             onChange={(e) =>
-              setFormData({
-                ...formData,
+              setFormData((prev) => ({
+                ...prev,
                 maxUses: e.target.value ? parseInt(e.target.value) : undefined,
-              })
+              }))
             }
             placeholder="Ilimitado se vazio"
           />
@@ -893,7 +897,7 @@ function CouponForm({
             id="validFrom"
             type="date"
             value={formData.validFrom || ""}
-            onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })}
+            onChange={(e) => setFormData((prev) => ({ ...prev, validFrom: e.target.value }))}
           />
         </div>
         <div className="space-y-2">
@@ -902,7 +906,7 @@ function CouponForm({
             id="validUntil"
             type="date"
             value={formData.validUntil || ""}
-            onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })}
+            onChange={(e) => setFormData((prev) => ({ ...prev, validUntil: e.target.value }))}
           />
         </div>
       </div>
@@ -965,7 +969,7 @@ function CouponForm({
         <Label htmlFor="status">Status</Label>
         <Select
           value={formData.status}
-          onValueChange={(v) => setFormData({ ...formData, status: v as CouponStatus })}
+          onValueChange={(v) => setFormData((prev) => ({ ...prev, status: v as CouponStatus }))}
         >
           <SelectTrigger>
             <SelectValue />
