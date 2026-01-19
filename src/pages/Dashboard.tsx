@@ -72,6 +72,18 @@ const Dashboard = () => {
       return false;
     }
     
+    // Verificar se é um usuário que acabou de criar a senha (primeiro acesso)
+    const justCreatedPassword = localStorage.getItem('just_created_password');
+    const fromContractSign = localStorage.getItem('from_contract_sign');
+    
+    // Se não tem os flags temporários, significa que já passou do primeiro acesso
+    // Nesse caso, marcar como já visto e não mostrar a tela de boas-vindas
+    if (!justCreatedPassword && !fromContractSign) {
+      // Usuário já está usando a plataforma há algum tempo, não mostrar tela de boas-vindas
+      localStorage.setItem('welcome_screen_seen', 'true');
+      return false;
+    }
+    
     const onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
     const hasOnboardingData = localStorage.getItem('onboarding_data');
     const hasEmpresas = localStorage.getItem('empresas');
