@@ -46,6 +46,9 @@ export default function WelcomeNewUser() {
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
 
   const handleStartChecklist = useCallback(() => {
+    // Marcar que o usuário já viu a tela de boas-vindas (flag permanente)
+    localStorage.setItem('welcome_screen_seen', 'true');
+    
     // Limpar flags de novo usuário
     localStorage.removeItem('just_created_password');
     localStorage.removeItem('from_contract_sign');
@@ -55,6 +58,15 @@ export default function WelcomeNewUser() {
   }, [navigate]);
 
   useEffect(() => {
+    // Verificar se o usuário já viu a tela de boas-vindas
+    const hasSeenWelcome = localStorage.getItem('welcome_screen_seen') === 'true';
+    
+    // Se já viu a tela, redirecionar para dashboard
+    if (hasSeenWelcome) {
+      navigate('/dashboard');
+      return;
+    }
+    
     // Verificar se realmente é um novo usuário
     const justCreatedPassword = localStorage.getItem('just_created_password');
     const fromContractSign = localStorage.getItem('from_contract_sign');
@@ -106,6 +118,9 @@ export default function WelcomeNewUser() {
     // Marcar passo como completo
     setCompletedSteps(prev => new Set([...prev, 'get-started']));
     
+    // Marcar que o usuário já viu a tela de boas-vindas (flag permanente)
+    localStorage.setItem('welcome_screen_seen', 'true');
+    
     // Limpar flags de novo usuário
     localStorage.removeItem('just_created_password');
     localStorage.removeItem('from_contract_sign');
@@ -115,6 +130,9 @@ export default function WelcomeNewUser() {
   };
 
   const handleSkipToDashboard = () => {
+    // Marcar que o usuário já viu a tela de boas-vindas (flag permanente)
+    localStorage.setItem('welcome_screen_seen', 'true');
+    
     // Limpar flags
     localStorage.removeItem('just_created_password');
     localStorage.removeItem('from_contract_sign');

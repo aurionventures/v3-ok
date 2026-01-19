@@ -64,6 +64,14 @@ const Dashboard = () => {
 
   // Verificar se é um novo usuário (sem dados salvos)
   const isNewUser = React.useMemo(() => {
+    // Verificar se o usuário já viu a tela de boas-vindas
+    const hasSeenWelcome = localStorage.getItem('welcome_screen_seen') === 'true';
+    
+    // Se já viu a tela de boas-vindas, não é mais novo usuário
+    if (hasSeenWelcome) {
+      return false;
+    }
+    
     const onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true';
     const hasOnboardingData = localStorage.getItem('onboarding_data');
     const hasEmpresas = localStorage.getItem('empresas');
