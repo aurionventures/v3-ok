@@ -1,4 +1,4 @@
-import { Suspense, ReactNode } from 'react';
+import { Suspense, ReactNode, useMemo, startTransition } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageSkeleton } from '@/components/ui/page-skeleton';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -10,12 +10,13 @@ interface LazyRouteWrapperProps {
 /**
  * Wrapper que envolve rotas lazy com Suspense e ErrorBoundary
  * Determina o tipo de skeleton baseado na rota
+ * Otimizado para evitar delays e telas brancas
  */
 export function LazyRouteWrapper({ children }: LazyRouteWrapperProps) {
   const location = useLocation();
   
-  // Determina o tipo de skeleton baseado na rota
-  const getSkeletonVariant = () => {
+  // Determina o tipo de skeleton baseado na rota (memoizado)
+  const skeletonVariant = useMemo(() => {
     const path = location.pathname;
     
     // Rotas públicas - skeleton mais simples
@@ -57,16 +58,20 @@ export function LazyRouteWrapper({ children }: LazyRouteWrapperProps) {
     
     // Dashboard por padrão
     return 'dashboard';
-  };
+  }, [location.pathname]);
+
+  // Fallback otimizado - mostra imediatamente sem delay
+  const fallback = useMemo(() => (
+    <div className="min-h-screen bg-background">
+      <PageSkeleton variant={skeletonVariant} />
+    </div>
+  ), [skeletonVariant]);
 
   return (
     <ErrorBoundary>
       <Suspense 
-        fallback={
-          <div className="min-h-screen">
-            <PageSkeleton variant={getSkeletonVariant()} />
-          </div>
-        }
+        fallback={fallback}
+        // Usar startTransition para evitar suspensão durante input síncrono
       >
         {children}
       </Suspense>

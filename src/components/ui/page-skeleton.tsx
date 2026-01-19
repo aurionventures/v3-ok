@@ -9,7 +9,7 @@ interface PageSkeletonProps {
 export function PageSkeleton({ variant = "default", className }: PageSkeletonProps) {
   if (variant === "dashboard") {
     return (
-      <div className={cn("p-6 space-y-6", className)}>
+      <div className={cn("p-6 space-y-6 bg-background", className)}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-48" />
@@ -52,7 +52,7 @@ export function PageSkeleton({ variant = "default", className }: PageSkeletonPro
 
   if (variant === "form") {
     return (
-      <div className={cn("p-6 max-w-2xl mx-auto space-y-6", className)}>
+      <div className={cn("p-6 max-w-2xl mx-auto space-y-6 bg-background", className)}>
         <Skeleton className="h-8 w-48" />
         <div className="space-y-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -72,7 +72,7 @@ export function PageSkeleton({ variant = "default", className }: PageSkeletonPro
 
   if (variant === "list") {
     return (
-      <div className={cn("p-6 space-y-6", className)}>
+      <div className={cn("p-6 space-y-6 bg-background", className)}>
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-48" />
           <div className="flex gap-2">
@@ -123,7 +123,7 @@ export function PageSkeleton({ variant = "default", className }: PageSkeletonPro
 
   // Default variant
   return (
-    <div className={cn("p-6 space-y-6", className)}>
+    <div className={cn("p-6 space-y-6 bg-background", className)}>
       <Skeleton className="h-8 w-48" />
       <div className="space-y-4">
         <Skeleton className="h-4 w-full" />

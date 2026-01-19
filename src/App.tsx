@@ -407,8 +407,10 @@ const App = () => (
       <Route 
         path="/governance-config" 
         element={
-          <ProtectedRoute >
-            <GovernanceConfig />
+          <ProtectedRoute>
+            <LazyRouteWrapper>
+              <GovernanceConfig />
+            </LazyRouteWrapper>
           </ProtectedRoute>
         } 
       />

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -188,8 +188,8 @@ const Sidebar = () => {
   const isPartnerRoute = pathname.startsWith("/afiliado") || pathname.startsWith("/banca");
   const isPartner = user?.role === 'parceiro';
   
-  // Verificar quais add-ons o cliente tem ativados
-  const getEnabledAddons = () => {
+  // Verificar quais add-ons o cliente tem ativados (memoizado)
+  const enabledAddons = useMemo(() => {
     // Verificar se é um novo usuário (primeiro acesso)
     const justCreatedPassword = localStorage.getItem('just_created_password');
     const fromContractSign = localStorage.getItem('from_contract_sign');
@@ -201,9 +201,7 @@ const Sidebar = () => {
     
     // Para usuários existentes, usar hasAccess para verificar
     return ADDON_ITEMS.filter(item => hasAccess(item.key));
-  };
-  
-  const enabledAddons = getEnabledAddons();
+  }, [hasAccess]);
   
   // Verificar se a rota atual é um Add-on
   const isAddonRoute = ADDON_ITEMS.some(item => pathname === item.path);
