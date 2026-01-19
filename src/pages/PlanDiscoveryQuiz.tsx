@@ -566,6 +566,7 @@ export default function PlanDiscoveryQuiz() {
             </Button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
