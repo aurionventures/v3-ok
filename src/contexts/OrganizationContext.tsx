@@ -147,8 +147,9 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Inicializar do localStorage, quiz result, ISCA, ou criar default baseado no user
+  // Inicializar do localStorage, quiz result, ISCA, ou criar default baseado no user (otimizado)
   useEffect(() => {
+    // Usar requestAnimationFrame para evitar bloqueio durante renderização inicial
     const initializeOrg = () => {
       try {
         // First check if organization already exists
@@ -256,8 +257,9 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    initializeOrg();
-  }, [user]);
+    // Executar apenas se user mudou ou na inicialização
+    requestAnimationFrame(initializeOrg);
+  }, [user?.id]); // Usar apenas user.id para evitar re-renderizações desnecessárias
 
   return (
     <OrganizationContext.Provider value={{

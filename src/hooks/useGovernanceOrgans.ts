@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,8 +37,8 @@ export const useGovernanceOrgans = (type?: OrganType) => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  // Buscar órgãos por tipo
-  const fetchOrgans = async () => {
+  // Buscar órgãos por tipo (memoizado)
+  const fetchOrgans = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -124,7 +124,7 @@ export const useGovernanceOrgans = (type?: OrganType) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.company, type]);
 
   // Criar novo órgão
   const createOrgan = async (organData: {
@@ -275,11 +275,20 @@ export const useGovernanceOrgans = (type?: OrganType) => {
   };
 
 
+  // Usar ref para evitar múltiplas chamadas durante renderização
+  const isFetchingRef = useRef(false);
+  
   useEffect(() => {
-    if (user?.company) {
-      fetchOrgans();
+    if (user?.company && !isFetchingRef.current) {
+      isFetchingRef.current = true;
+      // Usar requestAnimationFrame para evitar bloqueio
+      requestAnimationFrame(() => {
+        fetchOrgans().finally(() => {
+          isFetchingRef.current = false;
+        });
+      });
     }
-  }, [user?.company, type]);
+  }, [user?.company, type, fetchOrgans]);
 
   return {
     organs,

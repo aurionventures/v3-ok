@@ -1,7 +1,8 @@
-import { Suspense, ReactNode, useMemo, startTransition } from 'react';
+import { Suspense, ReactNode, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageSkeleton } from '@/components/ui/page-skeleton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useNavigationContext } from '@/contexts/NavigationContext';
 
 interface LazyRouteWrapperProps {
   children: ReactNode;
@@ -14,6 +15,16 @@ interface LazyRouteWrapperProps {
  */
 export function LazyRouteWrapper({ children }: LazyRouteWrapperProps) {
   const location = useLocation();
+  const { setNavigating } = useNavigationContext();
+  
+  // Limpar estado de navegação quando componente carregar
+  useEffect(() => {
+    // Pequeno delay para garantir que o componente renderizou
+    const timer = setTimeout(() => {
+      setNavigating(false);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [location.pathname, setNavigating]);
   
   // Determina o tipo de skeleton baseado na rota (memoizado)
   const skeletonVariant = useMemo(() => {

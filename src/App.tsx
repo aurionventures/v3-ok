@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { LazyRouteWrapper } from "@/components/LazyRouteWrapper";
@@ -208,13 +209,14 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <OrganizationProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen">
-            <main>
-              <ErrorBoundary>
-                <Routes>
+          <NavigationProvider>
+            <Toaster />
+            <Sonner />
+            <div className="min-h-screen">
+              <main>
+                <ErrorBoundary>
+                  <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LazyRouteWrapper><Index /></LazyRouteWrapper>} />
           <Route path="/pricing" element={<LazyRouteWrapper><Pricing /></LazyRouteWrapper>} />
@@ -923,6 +925,7 @@ const App = () => (
               </ErrorBoundary>
             </main>
           </div>
+          </NavigationProvider>
         </BrowserRouter>
       </OrganizationProvider>
     </AuthProvider>

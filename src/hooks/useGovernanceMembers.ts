@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMockGovernanceData, MockMember } from '@/data/mockGovernanceData';
@@ -39,7 +39,7 @@ export const useGovernanceMembers = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  const fetchAllMembers = async () => {
+  const fetchAllMembers = useCallback(async () => {
     if (!user?.company) return;
 
     setLoading(true);
@@ -103,11 +103,22 @@ export const useGovernanceMembers = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchAllMembers();
   }, [user?.company]);
+
+  // Usar ref para evitar múltiplas chamadas durante renderização
+  const isFetchingRef = useRef(false);
+  
+  useEffect(() => {
+    if (user?.company && !isFetchingRef.current) {
+      isFetchingRef.current = true;
+      // Usar requestAnimationFrame para evitar bloqueio
+      requestAnimationFrame(() => {
+        fetchAllMembers().finally(() => {
+          isFetchingRef.current = false;
+        });
+      });
+    }
+  }, [user?.company, fetchAllMembers]);
 
   const createMember = async (data: MemberFormData, organId?: string) => {
     if (!user?.company || !organId) return;

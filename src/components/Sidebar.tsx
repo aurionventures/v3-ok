@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { PrefetchLink } from "@/components/PrefetchLink";
 import { cn } from "@/lib/utils";
 import { 
   BarChart3, 
@@ -203,25 +204,32 @@ const Sidebar = () => {
     return ADDON_ITEMS.filter(item => hasAccess(item.key));
   }, [hasAccess]);
   
-  // Verificar se a rota atual é um Add-on
-  const isAddonRoute = ADDON_ITEMS.some(item => pathname === item.path);
+  // Verificar se a rota atual é um Add-on (memoizado)
+  const isAddonRoute = useMemo(() => 
+    ADDON_ITEMS.some(item => pathname === item.path),
+    [pathname]
+  );
   
   // Estado da seção de Add-ons - começa expandido se estiver em uma rota de Add-on
   const [addonsExpanded, setAddonsExpanded] = useState(isAddonRoute);
   
-  // Manter a seção expandida quando navegar para um Add-on
+  // Manter a seção expandida quando navegar para um Add-on (otimizado)
   useEffect(() => {
-    if (isAddonRoute) {
+    if (isAddonRoute && !addonsExpanded) {
       setAddonsExpanded(true);
     }
-  }, [pathname, isAddonRoute]);
+  }, [isAddonRoute]); // Removido pathname e addonsExpanded das dependências
   
-  // Salvar posição do scroll antes de navegar
+  // Salvar posição do scroll antes de navegar (otimizado com requestAnimationFrame)
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
-      // Restaurar posição do scroll após navegação
-      container.scrollTop = scrollPositionRef.current;
+      // Usar requestAnimationFrame para evitar bloqueio
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollTop = scrollPositionRef.current;
+        }
+      });
     }
   }, [pathname]);
   
@@ -249,12 +257,14 @@ const Sidebar = () => {
     }
   }, []); // Array vazio = executa apenas no mount
   
-  // Fechar sidebar apenas em mobile quando navegar
+  // Fechar sidebar apenas em mobile quando navegar (otimizado)
   // IMPORTANTE: Não fechar em desktop ao navegar - deixar o usuário controlar
   useEffect(() => {
     if (isMobile && pathname) {
-      // Apenas fechar em mobile quando navegar
-      setOpen(false);
+      // Usar requestAnimationFrame para evitar bloqueio durante navegação
+      requestAnimationFrame(() => {
+        setOpen(false);
+      });
     }
     // Em desktop, não fazer nada - manter o estado atual (aberto/fechado)
   }, [pathname, isMobile]);
@@ -280,7 +290,7 @@ const Sidebar = () => {
             <TooltipProvider key={item.href} delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link 
+                  <PrefetchLink 
                     to={item.href} 
                     className={cn(
                       "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
@@ -291,7 +301,7 @@ const Sidebar = () => {
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     {open && <span>{item.name}</span>}
-                  </Link>
+                  </PrefetchLink>
                 </TooltipTrigger>
                 {!open && (
                   <TooltipContent side="right">
@@ -364,7 +374,7 @@ const Sidebar = () => {
               <TooltipProvider key={item.href} delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Link 
+                    <PrefetchLink 
                       to={item.href} 
                       className={cn(
                         "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
@@ -375,7 +385,7 @@ const Sidebar = () => {
                     >
                       <Icon className="h-4 w-4 shrink-0" />
                       {open && <span>{item.name}</span>}
-                    </Link>
+                    </PrefetchLink>
                   </TooltipTrigger>
                   {!open && (
                     <TooltipContent side="right">
@@ -416,7 +426,7 @@ const Sidebar = () => {
                   <TooltipProvider key={item.path} delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Link
+                        <PrefetchLink
                           to={item.path}
                           className={cn(
                             "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
@@ -427,7 +437,7 @@ const Sidebar = () => {
                         >
                           <Icon className="h-4 w-4 shrink-0" />
                           {open && <span>{item.label}</span>}
-                        </Link>
+                        </PrefetchLink>
                       </TooltipTrigger>
                       {!open && (
                         <TooltipContent side="right">
@@ -505,7 +515,7 @@ const Sidebar = () => {
                     <TooltipProvider key={item.path} delayDuration={0}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Link
+                          <PrefetchLink
                             to={item.path}
                             className={cn(
                               "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
@@ -516,7 +526,7 @@ const Sidebar = () => {
                           >
                             <Icon className="h-4 w-4 shrink-0" />
                             {open && <span className="flex-1 text-left">{item.label}</span>}
-                          </Link>
+                          </PrefetchLink>
                         </TooltipTrigger>
                         {!open && (
                           <TooltipContent side="right">

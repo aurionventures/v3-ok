@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useRoutePrefetch } from "@/hooks/useRoutePrefetch";
 import { BarChart3, FileText, AlertTriangle, Shield, ListTodo, Clock, FileSignature, Building2, Leaf, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,24 +29,30 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { actions, loading: loadingActions } = useAllMeetingActions();
   const [showTour, setShowTour] = useState(false);
+  
+  // Pré-carregar rotas mais usadas em background
+  useRoutePrefetch();
 
-  // Verificar se deve mostrar o tour guiado
+  // Verificar se deve mostrar o tour guiado (otimizado)
   useEffect(() => {
-    // Verificar parâmetro de teste na URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const testTour = urlParams.get('testTour') === 'true';
-    
-    const shouldShowTour = location.state?.showTour || testTour;
-    const hasCompletedTour = localStorage.getItem('guided_tour_completed');
-    const hasSkippedTour = localStorage.getItem('guided_tour_skipped');
-    
-    // Mostrar tour se veio do login, teste ou nunca foi completado/pulado
-    if (shouldShowTour && !hasCompletedTour && !hasSkippedTour) {
-      setShowTour(true);
-      // Limpar o state da navegação e parâmetro da URL
-      window.history.replaceState({}, document.title, '/dashboard');
-    }
-  }, [location]);
+    // Usar requestAnimationFrame para evitar bloqueio durante renderização
+    requestAnimationFrame(() => {
+      // Verificar parâmetro de teste na URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const testTour = urlParams.get('testTour') === 'true';
+      
+      const shouldShowTour = location.state?.showTour || testTour;
+      const hasCompletedTour = localStorage.getItem('guided_tour_completed');
+      const hasSkippedTour = localStorage.getItem('guided_tour_skipped');
+      
+      // Mostrar tour se veio do login, teste ou nunca foi completado/pulado
+      if (shouldShowTour && !hasCompletedTour && !hasSkippedTour) {
+        setShowTour(true);
+        // Limpar o state da navegação e parâmetro da URL
+        window.history.replaceState({}, document.title, '/dashboard');
+      }
+    });
+  }, [location.pathname, location.state]); // Usar pathname e state separadamente
 
   // Load latest assessments
   const [latestGovernanceAssessment, setLatestGovernanceAssessment] = React.useState<any>(null);
