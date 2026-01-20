@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useToast } from "@/hooks/use-toast";
 import { mockUsers, MockUser } from "@/utils/mockUsers";
 import { Organization, OrganizationUserRole } from "@/types/organization";
+import { preloadAllRoutes } from "@/utils/preloadRoutes";
 
 export interface AuthUser {
   id: string;
@@ -101,6 +102,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
       
       setUserWithPersistence(authUser);
+      
+      // Pré-carregar TODAS as rotas após login bem-sucedido
+      // Isso garante que todas as páginas estejam prontas, evitando lazy loading
+      setTimeout(() => {
+        preloadAllRoutes();
+      }, 500);
+      
       toast({
         title: 'Login realizado',
         description: `Bem-vindo, ${authUser.name}!`,
@@ -127,7 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Inicializar usuário do localStorage
+  // Inicializar usuário do localStorage - OTIMIZADO
   useEffect(() => {
     const initializeAuth = () => {
       try {
@@ -135,16 +143,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser) as AuthUser;
           setUser(parsedUser);
+          setLoading(false); // Set loading false IMEDIATAMENTE se já tem usuário
+          // Pré-carregar rotas em background (não bloquear)
+          setTimeout(() => {
+            preloadAllRoutes();
+          }, 100);
+          return; // Sair cedo se já tem usuário
         }
       } catch (error) {
         console.error('Erro ao inicializar auth:', error);
-      } finally {
-        setLoading(false);
       }
+      // Só chega aqui se não tem usuário
+      setLoading(false);
     };
 
+    // Executar imediatamente
     initializeAuth();
-  }, []);
+  }, []); // Array vazio - executa apenas uma vez
 
   return (
     <AuthContext.Provider value={{ 

@@ -33,6 +33,9 @@ export const useNotifications = () => {
       if (error) throw error;
       return data as Notification[];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutos - dados considerados "frescos"
+    gcTime: 10 * 60 * 1000, // 10 minutos - tempo de cache (antigo cacheTime)
+    refetchOnWindowFocus: false, // Não refazer fetch ao focar janela
   });
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;

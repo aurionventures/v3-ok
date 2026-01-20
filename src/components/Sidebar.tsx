@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PrefetchLink } from "@/components/PrefetchLink";
 import { cn } from "@/lib/utils";
+import { prefetchRoute } from "@/utils/routePrefetch";
 import { 
   BarChart3, 
   Calendar, 
@@ -220,18 +220,8 @@ const Sidebar = () => {
     }
   }, [isAddonRoute]); // Removido pathname e addonsExpanded das dependências
   
-  // Salvar posição do scroll antes de navegar (otimizado com requestAnimationFrame)
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      // Usar requestAnimationFrame para evitar bloqueio
-      requestAnimationFrame(() => {
-        if (container) {
-          container.scrollTop = scrollPositionRef.current;
-        }
-      });
-    }
-  }, [pathname]);
+  // Removido useEffect de scroll que causava re-render desnecessário
+  // O navegador mantém a posição do scroll automaticamente
   
   // Handler para salvar posição do scroll
   const handleScroll = () => {
@@ -290,8 +280,9 @@ const Sidebar = () => {
             <TooltipProvider key={item.href} delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <PrefetchLink 
-                    to={item.href} 
+                  <Link 
+                    to={item.href}
+                    onMouseEnter={() => prefetchRoute(item.href)}
                     className={cn(
                       "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
                       isActive
@@ -301,7 +292,7 @@ const Sidebar = () => {
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     {open && <span>{item.name}</span>}
-                  </PrefetchLink>
+                  </Link>
                 </TooltipTrigger>
                 {!open && (
                   <TooltipContent side="right">
@@ -374,7 +365,7 @@ const Sidebar = () => {
               <TooltipProvider key={item.href} delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <PrefetchLink 
+                    <Link 
                       to={item.href} 
                       className={cn(
                         "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
@@ -385,7 +376,7 @@ const Sidebar = () => {
                     >
                       <Icon className="h-4 w-4 shrink-0" />
                       {open && <span>{item.name}</span>}
-                    </PrefetchLink>
+                    </Link>
                   </TooltipTrigger>
                   {!open && (
                     <TooltipContent side="right">
@@ -426,8 +417,9 @@ const Sidebar = () => {
                   <TooltipProvider key={item.path} delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <PrefetchLink
+                        <Link
                           to={item.path}
+                          onMouseEnter={() => prefetchRoute(item.path)}
                           className={cn(
                             "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
                             isActive
@@ -437,7 +429,7 @@ const Sidebar = () => {
                         >
                           <Icon className="h-4 w-4 shrink-0" />
                           {open && <span>{item.label}</span>}
-                        </PrefetchLink>
+                        </Link>
                       </TooltipTrigger>
                       {!open && (
                         <TooltipContent side="right">
@@ -515,8 +507,9 @@ const Sidebar = () => {
                     <TooltipProvider key={item.path} delayDuration={0}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <PrefetchLink
+                          <Link
                             to={item.path}
+                            onMouseEnter={() => prefetchRoute(item.path)}
                             className={cn(
                               "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
                               isActive
@@ -526,7 +519,7 @@ const Sidebar = () => {
                           >
                             <Icon className="h-4 w-4 shrink-0" />
                             {open && <span className="flex-1 text-left">{item.label}</span>}
-                          </PrefetchLink>
+                          </Link>
                         </TooltipTrigger>
                         {!open && (
                           <TooltipContent side="right">

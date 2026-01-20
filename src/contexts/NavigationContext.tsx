@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { PageSkeleton } from '@/components/ui/page-skeleton';
 
@@ -15,6 +16,44 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const [isNavigating, setIsNavigating] = useState(false);
   const [targetPath, setTargetPath] = useState<string | null>(null);
   const location = useLocation();
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  
+  // Criar elemento de overlay uma vez - CRÍTICO: deve estar sempre pronto
+  useEffect(() => {
+    if (!overlayRef.current) {
+      overlayRef.current = document.createElement('div');
+      overlayRef.current.id = 'navigation-overlay';
+      overlayRef.current.style.cssText = `
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background-color: hsl(210, 50%, 98%);
+        pointer-events: auto;
+        opacity: 1;
+        width: 100%;
+        height: 100%;
+        display: none;
+        overflow: auto;
+      `;
+      // Adicionar ao body IMEDIATAMENTE
+      document.body.appendChild(overlayRef.current);
+    }
+    
+    return () => {
+      // Não remover no cleanup - manter sempre disponível
+    };
+  }, []);
+
+  // Atualizar overlay DOM diretamente quando isNavigating mudar
+  useEffect(() => {
+    if (overlayRef.current) {
+      if (isNavigating && targetPath) {
+        overlayRef.current.style.display = 'block';
+      } else {
+        overlayRef.current.style.display = 'none';
+      }
+    }
+  }, [isNavigating, targetPath]);
 
   // Limpar estado de navegação quando a rota mudar
   useEffect(() => {
@@ -74,23 +113,11 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   return (
     <NavigationContext.Provider value={{ isNavigating, setNavigating, targetPath, setTargetPath }}>
       {children}
-      {isNavigating && targetPath && (
-        <div 
-          className="fixed inset-0 z-[9999] bg-background overflow-auto"
-          style={{ 
-            pointerEvents: 'auto',
-            opacity: 1,
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            position: 'fixed',
-            width: '100%',
-            height: '100%'
-          }}
-        >
+      {isNavigating && targetPath && overlayRef.current && createPortal(
+        <div className="w-full h-full overflow-auto">
           <PageSkeleton variant={getSkeletonVariant(targetPath)} />
-        </div>
+        </div>,
+        overlayRef.current
       )}
     </NavigationContext.Provider>
   );

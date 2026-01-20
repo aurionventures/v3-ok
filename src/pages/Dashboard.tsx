@@ -15,6 +15,7 @@ import { getCurrentMaturityAssessment, convertStoredDataToRadarData } from "@/ut
 import { loadLatestESGAssessment } from "@/utils/esgMaturityCalculator";
 import { getLatestESGAssessment } from "@/data/mockESGHistoricalData";
 import { mockHistoricalAssessments } from "@/data/mockHistoricalData";
+import { preloadAllRoutes } from "@/utils/preloadRoutes";
 
 // Risk data imported from shared source
 import { governanceRisks } from "@/data/riskData";
@@ -32,6 +33,17 @@ const Dashboard = () => {
   
   // Pré-carregar rotas mais usadas em background
   useRoutePrefetch();
+  
+  // Pré-carregar TODAS as rotas quando o dashboard carregar
+  React.useEffect(() => {
+    // Carregar todas as rotas em background após um pequeno delay
+    // para não bloquear o carregamento inicial
+    const timer = setTimeout(() => {
+      preloadAllRoutes();
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Verificar se deve mostrar o tour guiado (otimizado)
   useEffect(() => {

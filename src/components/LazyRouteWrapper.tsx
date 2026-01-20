@@ -1,91 +1,26 @@
-import { Suspense, ReactNode, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { PageSkeleton } from '@/components/ui/page-skeleton';
+import { Suspense, ReactNode } from 'react';
+import { ScreenLoader } from '@/components/ScreenLoader';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useNavigationContext } from '@/contexts/NavigationContext';
 
 interface LazyRouteWrapperProps {
   children: ReactNode;
 }
 
 /**
- * Wrapper que envolve rotas lazy com Suspense e ErrorBoundary
- * Determina o tipo de skeleton baseado na rota
- * Otimizado para evitar delays e telas brancas
+ * Wrapper simplificado para rotas lazy
+ * Apenas Suspense + ErrorBoundary + background consistente
  */
 export function LazyRouteWrapper({ children }: LazyRouteWrapperProps) {
-  const location = useLocation();
-  const { setNavigating } = useNavigationContext();
-  
-  // Limpar estado de navegação quando componente carregar
-  useEffect(() => {
-    // Pequeno delay para garantir que o componente renderizou
-    const timer = setTimeout(() => {
-      setNavigating(false);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [location.pathname, setNavigating]);
-  
-  // Determina o tipo de skeleton baseado na rota (memoizado)
-  const skeletonVariant = useMemo(() => {
-    const path = location.pathname;
-    
-    // Rotas públicas - skeleton mais simples
-    if (
-      path === '/' ||
-      path.startsWith('/pricing') ||
-      path.startsWith('/blog') ||
-      path.startsWith('/sobre') ||
-      path.startsWith('/contato') ||
-      path.startsWith('/como-funciona') ||
-      path.startsWith('/plataforma') ||
-      path.startsWith('/governanca') ||
-      path.startsWith('/ai-engine') ||
-      path.startsWith('/login') ||
-      path.startsWith('/signup')
-    ) {
-      return 'default';
-    }
-    
-    // Rotas de formulário
-    if (
-      path.startsWith('/checkout') ||
-      path.startsWith('/plan-discovery') ||
-      path.startsWith('/onboarding') ||
-      path.startsWith('/settings')
-    ) {
-      return 'form';
-    }
-    
-    // Rotas de lista/tabela
-    if (
-      path.startsWith('/admin') ||
-      path.startsWith('/reunioes') ||
-      path.startsWith('/activities') ||
-      path.startsWith('/monitoring')
-    ) {
-      return 'list';
-    }
-    
-    // Dashboard por padrão
-    return 'dashboard';
-  }, [location.pathname]);
-
-  // Fallback otimizado - mostra imediatamente sem delay
-  const fallback = useMemo(() => (
-    <div className="min-h-screen bg-background">
-      <PageSkeleton variant={skeletonVariant} />
-    </div>
-  ), [skeletonVariant]);
+  // Fallback sempre renderiza algo, nunca null
+  const fallback = <ScreenLoader variant="default" />;
 
   return (
     <ErrorBoundary>
-      <Suspense 
-        fallback={fallback}
-        // Usar startTransition para evitar suspensão durante input síncrono
-      >
-        {children}
-      </Suspense>
+      <div style={{ minHeight: '100vh', backgroundColor: 'hsl(210, 50%, 98%)', width: '100%' }}>
+        <Suspense fallback={fallback}>
+          {children}
+        </Suspense>
+      </div>
     </ErrorBoundary>
   );
 }

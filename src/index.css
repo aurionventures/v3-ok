@@ -192,8 +192,21 @@
     @apply border-border;
   }
 
+  html {
+    @apply bg-background;
+    height: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-body;
+    min-height: 100vh;
+    height: 100%;
+  }
+
+  #root {
+    @apply bg-background;
+    min-height: 100vh;
+    height: 100%;
   }
   
   h1, h2, h3, h4, h5, h6 {
