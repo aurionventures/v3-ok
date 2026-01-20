@@ -1,128 +1,16 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import { 
-  ArrowRight, CheckCircle, Brain, Search, FileText, Target,
-  BarChart, Sparkles, Lightbulb, Zap, AlertTriangle, Users,
-  Globe, Clock, TrendingUp, ChevronRight, X
+  ArrowRight, Brain, Target,
+  BarChart, FileText, Users,
+  Clock, TrendingUp, CheckCircle
 } from "lucide-react";
 import { MegaFooter } from "@/components/footer";
 import { FAQSection, aiEngineFAQs } from "@/components/footer/FAQSection";
 import { MegaMenuHeader } from "@/components/header/MegaMenuHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-
-interface Capability {
-  id: string;
-  name: string;
-  description: string;
-  deliverables: string[];
-  category: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const capabilities: Capability[] = [
-  {
-    id: "doc_analysis",
-    name: "Análise de Documentos",
-    description: "Processamento inteligente de documentos estratégicos.",
-    deliverables: [
-      "Leitura contextual automática",
-      "Identificação de riscos e padrões",
-      "Base estruturada para decisões"
-    ],
-    category: "Documentos & Memória",
-    icon: FileText
-  },
-  {
-    id: "briefings",
-    name: "Briefings Personalizados",
-    description: "Resumos executivos contextualizados para cada membro.",
-    deliverables: [
-      "Contexto individual por conselheiro",
-      "Priorização inteligente de temas",
-      "Histórico de participação integrado"
-    ],
-    category: "Decisão & Conselho",
-    icon: Sparkles
-  },
-  {
-    id: "semantic_search",
-    name: "Busca Semântica",
-    description: "Encontre qualquer decisão ou documento em segundos.",
-    deliverables: [
-      "Busca por significado, não palavras",
-      "Conexão entre temas relacionados",
-      "Histórico completo acessível"
-    ],
-    category: "Documentos & Memória",
-    icon: Search
-  },
-  {
-    id: "risk_detection",
-    name: "Detecção de Riscos",
-    description: "Identificação proativa de ameaças e oportunidades.",
-    deliverables: [
-      "Monitoramento contínuo 24/7",
-      "Alertas contextualizados",
-      "Priorização por impacto"
-    ],
-    category: "Risco & Compliance",
-    icon: AlertTriangle
-  },
-  {
-    id: "ata_generation",
-    name: "Geração de ATAs",
-    description: "Transcrição e estruturação automática de deliberações.",
-    deliverables: [
-      "Transcrição inteligente",
-      "Action items identificados",
-      "Responsáveis e prazos definidos"
-    ],
-    category: "Documentos & Memória",
-    icon: FileText
-  },
-  {
-    id: "predictive_insights",
-    name: "Insights Preditivos",
-    description: "Identificação de padrões antes que virem problemas.",
-    deliverables: [
-      "Análise de tendências históricas",
-      "Previsão de cenários",
-      "Recomendações proativas"
-    ],
-    category: "Decisão & Conselho",
-    icon: Lightbulb
-  },
-  {
-    id: "market_intelligence",
-    name: "Inteligência de Mercado",
-    description: "Monitoramento de concorrentes e tendências setoriais.",
-    deliverables: [
-      "20+ fontes monitoradas",
-      "Alertas de mudanças regulatórias",
-      "Benchmark competitivo"
-    ],
-    category: "Mercado & Contexto",
-    icon: Globe
-  },
-  {
-    id: "performance_analysis",
-    name: "Análise de Performance",
-    description: "Avaliação contínua de efetividade do conselho.",
-    deliverables: [
-      "Métricas de engajamento",
-      "Evolução de maturidade",
-      "PDIs automatizados"
-    ],
-    category: "Pessoas & Performance",
-    icon: Users
-  }
-];
 
 const AIEngine = () => {
-  const [selectedCapability, setSelectedCapability] = useState<Capability>(capabilities[0]);
-  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const benefits = [
     { icon: Clock, stat: "-93%", label: "Tempo de Preparação", desc: "De 8 horas para 30 minutos" },
@@ -131,13 +19,6 @@ const AIEngine = () => {
     { icon: Users, stat: "50+", label: "Validações", desc: "Por líderes de governança" }
   ];
 
-  const handleCapabilityClick = (capability: Capability) => {
-    setSelectedCapability(capability);
-    // On mobile, open sheet
-    if (window.innerWidth < 1024) {
-      setMobileSheetOpen(true);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-corporate-dark">
@@ -263,206 +144,150 @@ const AIEngine = () => {
         </div>
       </section>
 
-      {/* Multi-Agent Architecture */}
-      <section className="py-20 bg-corporate-mid">
-        <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-8 md:mb-12 px-4">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 md:mb-4">
-                Arquitetura Multi-Agentes de Governança
+      {/* AI Core Visual - Orquestração Conceitual */}
+      <section className="py-20 bg-corporate-mid relative overflow-hidden">
+        {/* Background Particles Effect */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
+          <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-accent rounded-full animate-pulse" style={{ animationDelay: '1s', animationDuration: '4s' }}></div>
+          <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '2s', animationDuration: '3.5s' }}></div>
+          <div className="absolute bottom-1/3 right-1/3 w-1.5 h-1.5 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }}></div>
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-5xl mx-auto">
+            {/* Header Minimalista */}
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                O núcleo invisível que governa a governança
               </h2>
-              <p className="text-base sm:text-lg text-white/70 max-w-3xl mx-auto mb-4 md:mb-6 px-2">
-                Um ecossistema de inteligências especializadas operando de forma coordenada 
-                para apoiar decisões estratégicas, riscos, compliance e performance.
-              </p>
-              {/* Badges */}
-              <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-4">
-                <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-accent/20 border border-accent/30 text-xs md:text-sm font-medium text-accent">
-                  AI-First Core
-                </span>
-                <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/10 border border-white/20 text-xs md:text-sm font-medium text-white/80">
-                  Especialização Funcional
-                </span>
-                <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/10 border border-white/20 text-xs md:text-sm font-medium text-white/80">
-                  Decisão Assistida por IA
-                </span>
-              </div>
             </div>
 
-            {/* Desktop Layout */}
-            <div className="hidden lg:grid lg:grid-cols-3 gap-6 xl:gap-8 items-start">
-              {/* Capabilities Orbit (Left) */}
-              <div className="lg:col-span-2">
-                <div className="relative px-2">
-                  {/* Central Core */}
-                  <div className="flex justify-center mb-6 xl:mb-8">
-                    <div className="relative">
-                      <div className="w-24 h-24 xl:w-32 xl:h-32 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 border-2 border-accent/50 flex items-center justify-center shadow-[0_0_60px_rgba(192,160,98,0.3)]">
-                        <Brain className="w-12 h-12 xl:w-16 xl:h-16 text-accent" />
-                      </div>
-                      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-white/60 bg-corporate-dark/80 px-3 py-1 rounded-full">
-                          Orquestração Central
-                        </span>
-                      </div>
+            {/* Visualização Central - Núcleo + Anéis */}
+            <div className="relative flex items-center justify-center min-h-[500px] md:min-h-[600px]">
+              {/* Anéis Concêntricos de Influência */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                {/* Anel 1 - Decisão */}
+                <div className="absolute w-64 h-64 md:w-80 md:h-80 rounded-full border border-accent/20 animate-pulse" style={{ animationDuration: '4s' }}>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="bg-corporate-mid px-3 py-1 rounded-full border border-accent/30">
+                      <span className="text-xs text-accent font-medium">Decisão</span>
                     </div>
                   </div>
+                </div>
+                
+                {/* Anel 2 - Risco */}
+                <div className="absolute w-96 h-96 md:w-[28rem] md:h-[28rem] rounded-full border border-accent/15 animate-pulse" style={{ animationDuration: '5s', animationDelay: '0.5s' }}>
+                  <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2">
+                    <div className="bg-corporate-mid px-3 py-1 rounded-full border border-accent/30">
+                      <span className="text-xs text-accent font-medium">Risco</span>
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Capability Chips Grid */}
-                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 xl:gap-3 mt-8 xl:mt-12">
-                    {capabilities.map((cap) => {
-                      const isSelected = selectedCapability.id === cap.id;
-                      return (
-                        <button
-                          key={cap.id}
-                          onClick={() => handleCapabilityClick(cap)}
-                          className={`
-                            p-3 xl:p-4 rounded-xl border transition-all duration-200 text-left
-                            ${isSelected 
-                              ? 'border-accent bg-accent/20 shadow-[0_0_20px_rgba(192,160,98,0.2)]' 
-                              : 'border-white/10 bg-white/5 hover:border-accent/30 hover:bg-white/10'
-                            }
-                          `}
-                        >
-                          <div className={`w-8 h-8 xl:w-10 xl:h-10 rounded-lg flex items-center justify-center mb-2 xl:mb-3 ${isSelected ? 'bg-accent/30' : 'bg-white/10'}`}>
-                            <cap.icon className={`w-4 h-4 xl:w-5 xl:h-5 ${isSelected ? 'text-accent' : 'text-white/70'}`} />
-                          </div>
-                          <h4 className={`text-xs xl:text-sm font-semibold mb-1 ${isSelected ? 'text-white' : 'text-white/80'}`}>
-                            {cap.name}
-                          </h4>
-                          <span className="text-[10px] xl:text-xs text-white/50">{cap.category}</span>
-                        </button>
-                      );
-                    })}
+                {/* Anel 3 - Compliance */}
+                <div className="absolute w-[32rem] h-[32rem] md:w-[36rem] md:h-[36rem] rounded-full border border-accent/10 animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }}>
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
+                    <div className="bg-corporate-mid px-3 py-1 rounded-full border border-accent/30">
+                      <span className="text-xs text-accent font-medium">Compliance</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Anel 4 - Performance */}
+                <div className="absolute w-[40rem] h-[40rem] md:w-[44rem] md:h-[44rem] rounded-full border border-accent/8 animate-pulse" style={{ animationDuration: '7s', animationDelay: '1.5s' }}>
+                  <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2">
+                    <div className="bg-corporate-mid px-3 py-1 rounded-full border border-accent/30">
+                      <span className="text-xs text-accent font-medium">Performance</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Anel 5 - Memória Organizacional */}
+                <div className="absolute w-[48rem] h-[48rem] md:w-[52rem] md:h-[52rem] rounded-full border border-accent/5 animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }}>
+                  <div className="absolute top-1/4 right-1/4">
+                    <div className="bg-corporate-mid px-3 py-1 rounded-full border border-accent/30">
+                      <span className="text-xs text-accent font-medium">Memória</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Detail Panel (Right) */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-24 p-4 xl:p-6 rounded-2xl bg-gradient-to-b from-accent/10 to-transparent border border-accent/20">
-                  <div className="flex items-center gap-2 mb-3 xl:mb-4">
-                    <span className="text-xs font-medium text-accent/80 bg-accent/10 px-2 py-1 rounded">
-                      Agente Especializado
-                    </span>
+              {/* Núcleo Central - AI Core */}
+              <div className="relative z-10">
+                <div className="relative">
+                  {/* Núcleo Pulsante */}
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-accent via-accent/80 to-accent/60 flex items-center justify-center shadow-[0_0_80px_rgba(192,160,98,0.5)] animate-pulse" style={{ animationDuration: '2s' }}>
+                    <Brain className="w-16 h-16 md:w-20 md:h-20 text-primary" />
                   </div>
-                  <div className="w-12 h-12 xl:w-14 xl:h-14 rounded-xl bg-accent/20 flex items-center justify-center mb-3 xl:mb-4">
-                    <selectedCapability.icon className="w-6 h-6 xl:w-7 xl:h-7 text-accent" />
-                  </div>
-                  <h3 className="text-lg xl:text-xl font-bold text-white mb-2">{selectedCapability.name}</h3>
-                  <p className="text-xs xl:text-sm text-white/70 mb-4 xl:mb-6">{selectedCapability.description}</p>
                   
-                  <div className="space-y-2 xl:space-y-3">
-                    <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Entregas</span>
-                    {selectedCapability.deliverables.map((deliverable, index) => (
-                      <div key={index} className="flex items-start gap-2 xl:gap-3">
-                        <CheckCircle className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-accent mt-0.5 flex-shrink-0" />
-                        <span className="text-xs xl:text-sm text-white/80">{deliverable}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile/Tablet Layout */}
-            <div className="lg:hidden px-4">
-              {/* Compact Core */}
-              <div className="flex justify-center mb-6 md:mb-8">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 border-2 border-accent/50 flex items-center justify-center shadow-[0_0_40px_rgba(192,160,98,0.3)]">
-                  <Brain className="w-10 h-10 md:w-12 md:h-12 text-accent" />
-                </div>
-              </div>
-              <p className="text-center text-xs md:text-sm text-white/60 mb-6 md:mb-8 px-2">
-                Orquestração central de inteligências especializadas
-              </p>
-
-              {/* Horizontal Scroll Carousel */}
-              <div className="overflow-x-auto pb-4 -mx-4 md:-mx-6 px-4 md:px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                <div className="flex gap-3 md:gap-4" style={{ width: 'max-content' }}>
-                  {capabilities.map((cap) => {
-                    const isSelected = selectedCapability.id === cap.id;
-                    return (
-                      <button
-                        key={cap.id}
-                        onClick={() => handleCapabilityClick(cap)}
-                        className={`
-                          flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 rounded-xl border transition-all whitespace-nowrap min-w-[140px] md:min-w-[160px]
-                          ${isSelected
-                            ? 'border-accent bg-accent/20' 
-                            : 'border-white/10 bg-white/5'
-                          }
-                        `}
-                      >
-                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-accent/30' : 'bg-white/10'}`}>
-                          <cap.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isSelected ? 'text-accent' : 'text-white/70'}`} />
-                        </div>
-                        <span className={`text-xs md:text-sm font-medium ${isSelected ? 'text-white' : 'text-white/70'}`}>
-                          {cap.name}
-                        </span>
-                        <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/40 flex-shrink-0" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Indicator */}
-              <div className="text-center mt-4 md:mt-6">
-                <span className="inline-flex items-center gap-2 text-xs text-white/50 bg-white/5 px-3 py-1.5 rounded-full">
-                  <Zap className="w-3 h-3 text-accent" />
-                  Arquitetura Multi-Agentes Ativa
-                </span>
-              </div>
-            </div>
-
-            {/* Mobile Bottom Sheet */}
-            <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-              <SheetContent side="bottom" className="bg-corporate-dark border-t border-accent/20 rounded-t-3xl">
-                <SheetHeader className="text-left">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-medium text-accent/80 bg-accent/10 px-2 py-1 rounded">
-                      Agente Especializado
+                  {/* Ondas de Energia */}
+                  <div className="absolute inset-0 rounded-full border-2 border-accent/30 animate-ping" style={{ animationDuration: '3s' }}></div>
+                  <div className="absolute inset-0 rounded-full border-2 border-accent/20 animate-ping" style={{ animationDuration: '3s', animationDelay: '1s' }}></div>
+                  
+                  {/* Label */}
+                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                    <span className="text-sm md:text-base font-semibold text-accent bg-corporate-mid/90 px-4 py-2 rounded-full border border-accent/30">
+                      AI Core
                     </span>
-                    <button 
-                      onClick={() => setMobileSheetOpen(false)}
-                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                    >
-                      <X className="w-4 h-4 text-white/70" />
-                    </button>
                   </div>
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                      <selectedCapability.icon className="w-6 h-6 text-accent" />
-                    </div>
-                    <div>
-                      <SheetTitle className="text-lg font-bold text-white">{selectedCapability.name}</SheetTitle>
-                      <span className="text-xs text-white/50">{selectedCapability.category}</span>
-                    </div>
-                  </div>
-                </SheetHeader>
-                
-                <p className="text-sm text-white/70 mb-6">{selectedCapability.description}</p>
-                
-                <div className="space-y-3">
-                  <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Entregas</span>
-                  {selectedCapability.deliverables.map((deliverable, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-white/80">{deliverable}</span>
-                    </div>
-                  ))}
                 </div>
-              </SheetContent>
-            </Sheet>
+              </div>
+
+              {/* Elementos Orbitais - Conselhos, Conselheiros, Comitês */}
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Conselho de Administração */}
+                <div className="absolute top-12 left-1/2 -translate-x-1/2">
+                  <div className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                    <span className="text-xs text-white/80 font-medium">Conselho de Administração</span>
+                  </div>
+                </div>
+
+                {/* Conselheiros */}
+                <div className="absolute top-24 right-12 md:right-20">
+                  <div className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                    <span className="text-xs text-white/80 font-medium">Conselheiros</span>
+                  </div>
+                </div>
+
+                {/* Comitês */}
+                <div className="absolute bottom-24 left-12 md:left-20">
+                  <div className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                    <span className="text-xs text-white/80 font-medium">Comitês</span>
+                  </div>
+                </div>
+
+                {/* Comissões */}
+                <div className="absolute bottom-12 right-1/2 translate-x-1/2">
+                  <div className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+                    <span className="text-xs text-white/80 font-medium">Comissões</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Linhas de Conexão Energéticas (SVG) */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+                {/* Linhas do núcleo para os anéis */}
+                <line x1="50%" y1="50%" x2="50%" y2="20%" stroke="rgba(192,160,98,0.2)" strokeWidth="1" strokeDasharray="4,4" className="animate-pulse" style={{ animationDuration: '3s' }} />
+                <line x1="50%" y1="50%" x2="80%" y2="50%" stroke="rgba(192,160,98,0.2)" strokeWidth="1" strokeDasharray="4,4" className="animate-pulse" style={{ animationDuration: '3s', animationDelay: '0.5s' }} />
+                <line x1="50%" y1="50%" x2="50%" y2="80%" stroke="rgba(192,160,98,0.2)" strokeWidth="1" strokeDasharray="4,4" className="animate-pulse" style={{ animationDuration: '3s', animationDelay: '1s' }} />
+                <line x1="50%" y1="50%" x2="20%" y2="50%" stroke="rgba(192,160,98,0.2)" strokeWidth="1" strokeDasharray="4,4" className="animate-pulse" style={{ animationDuration: '3s', animationDelay: '1.5s' }} />
+              </svg>
+            </div>
+
+            {/* Texto Único Minimalista */}
+            <div className="text-center mt-12 md:mt-16">
+              <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto italic">
+                "A inteligência que sustenta todas as decisões"
+              </p>
+            </div>
 
             {/* CTA */}
-            <div className="text-center mt-8 md:mt-12 px-4">
-              <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold text-xs sm:text-sm md:text-base px-4 md:px-6 h-auto py-2.5 md:py-3 whitespace-normal w-full sm:w-auto" asChild>
+            <div className="text-center mt-12">
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary font-semibold text-base md:text-lg px-8" asChild>
                 <Link to="/governanca" className="flex items-center justify-center gap-2">
-                  <span className="text-center">Ver como a IA apoia decisões de governança</span>
-                  <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+                  <span>Ver como a IA apoia decisões de governança</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
             </div>

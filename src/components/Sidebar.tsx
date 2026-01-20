@@ -191,17 +191,22 @@ const Sidebar = () => {
   
   // Verificar quais add-ons o cliente tem ativados (memoizado)
   const enabledAddons = useMemo(() => {
+    // Módulos sempre desbloqueados para demo
+    const alwaysUnlocked = ['project_submission', 'board_performance', 'risks'];
+    
     // Verificar se é um novo usuário (primeiro acesso)
     const justCreatedPassword = localStorage.getItem('just_created_password');
     const fromContractSign = localStorage.getItem('from_contract_sign');
     
-    // Se for novo usuário, não mostrar add-ons (todos bloqueados)
+    // Se for novo usuário, mostrar apenas os sempre desbloqueados
     if (justCreatedPassword || fromContractSign) {
-      return [];
+      return ADDON_ITEMS.filter(item => alwaysUnlocked.includes(item.key));
     }
     
-    // Para usuários existentes, usar hasAccess para verificar
-    return ADDON_ITEMS.filter(item => hasAccess(item.key));
+    // Para usuários existentes, usar hasAccess para verificar + sempre desbloqueados
+    return ADDON_ITEMS.filter(item => 
+      hasAccess(item.key) || alwaysUnlocked.includes(item.key)
+    );
   }, [hasAccess]);
   
   // Verificar se a rota atual é um Add-on (memoizado)
@@ -535,12 +540,19 @@ const Sidebar = () => {
 
             {/* Mostrar add-ons bloqueados (sem acesso) */}
             {(() => {
-              const lockedAddons = ADDON_ITEMS.filter(item => !hasAccess(item.key));
+              // Módulos sempre desbloqueados para demo
+              const alwaysUnlocked = ['project_submission', 'board_performance', 'risks'];
+              
+              const lockedAddons = ADDON_ITEMS.filter(item => 
+                !hasAccess(item.key) && !alwaysUnlocked.includes(item.key)
+              );
               const justCreatedPassword = localStorage.getItem('just_created_password');
               const fromContractSign = localStorage.getItem('from_contract_sign');
               
-              // Se for novo usuário, mostrar todos os add-ons como bloqueados
-              const addonsToShow = (justCreatedPassword || fromContractSign) ? ADDON_ITEMS : lockedAddons;
+              // Se for novo usuário, mostrar todos os add-ons como bloqueados (exceto os sempre desbloqueados)
+              const addonsToShow = (justCreatedPassword || fromContractSign) 
+                ? ADDON_ITEMS.filter(item => !alwaysUnlocked.includes(item.key))
+                : lockedAddons;
               
               return addonsToShow.length > 0 && (
                 <div className="mt-2 pt-2 border-t border-white/10">
