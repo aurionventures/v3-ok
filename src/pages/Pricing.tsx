@@ -489,15 +489,15 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-corporate-dark">
       {/* Header */}
       <MegaMenuHeader />
 
       {/* Hero Section - com padding-top para compensar o header fixo */}
-      <section className="relative overflow-hidden bg-background pt-28">
+      <section className="relative overflow-hidden bg-corporate-dark pt-28">
 
         <div className="relative container mx-auto px-6 py-20 lg:py-28">
-          <div className="max-w-4xl mx-auto text-center text-foreground">
+          <div className="max-w-4xl mx-auto text-center text-white">
             <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight font-heading">
               Planos Personalizados.{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/80">
@@ -505,11 +505,11 @@ export default function Pricing() {
               </span>
             </h1>
 
-            <p className="text-xl lg:text-2xl mb-4 text-foreground/90 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-xl lg:text-2xl mb-4 text-white/90 leading-relaxed max-w-3xl mx-auto">
               Descubra o investimento ideal para sua empresa em 2 minutos.
             </p>
 
-            <p className="text-lg text-foreground/70 mb-8">
+            <p className="text-lg text-white/70 mb-8">
               "Cada empresa é única. Nosso preço também."
             </p>
 
@@ -527,16 +527,16 @@ export default function Pricing() {
       </section>
 
       {/* Planos e Add-ons Section - Visão Unificada */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-corporate-dark">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-foreground">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-white">
               Escolha o Plano Ideal para sua{' '}
               <span className="text-accent">Governança</span>
             </h2>
-            <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-              Todos os planos incluem usuários ilimitados e os 13 módulos core
-              da plataforma.
+            <p className="text-lg text-white/70 max-w-2xl mx-auto">
+              Todos os planos incluem usuários ilimitados e os 04 módulos core
+              da plataforma + AI assistida.
             </p>
           </div>
 
@@ -653,14 +653,14 @@ export default function Pricing() {
       />
 
       {/* CTA Final Section */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-corporate-dark">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center text-foreground">
+          <div className="max-w-3xl mx-auto text-center text-white">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
               Pronto para transformar sua{' '}
               <span className="text-accent">governança</span>?
             </h2>
-            <p className="text-xl text-foreground/90 mb-8">
+            <p className="text-xl text-white/90 mb-8">
               Descubra em 2 minutos qual plano é ideal para sua empresa.
             </p>
 
@@ -677,7 +677,7 @@ export default function Pricing() {
                 size="lg"
                 variant="outline"
                 onClick={handleContactSpecialist}
-                className="bg-transparent border-foreground text-foreground hover:bg-foreground/10 text-lg px-8 py-3 h-12 rounded-lg"
+                className="bg-transparent border-white text-white hover:bg-white/10 text-lg px-8 py-3 h-12 rounded-lg"
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
                 Falar com Especialista

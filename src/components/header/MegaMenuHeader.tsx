@@ -60,13 +60,19 @@ export const MegaMenuHeader = () => {
     return MODULOS_ITEMS.some(item => isActiveRoute(item.href));
   };
 
+  // Detectar se está na página /pricing para usar fundo sólido (igual /plataforma)
+  const isPricingPage = location.pathname === '/pricing' || location.pathname.startsWith('/pricing');
+  const headerBgClass = isPricingPage 
+    ? "bg-corporate-dark" // Fundo sólido para /pricing (igual /plataforma)
+    : (isScrolled ? "bg-corporate-dark/95" : "bg-corporate-dark/80"); // Fundo com opacidade para outras páginas
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Top Bar */}
       <div className={cn(
         "text-slate-400 text-sm py-2 border-b border-border/20 hidden md:block transition-all duration-300",
-        isScrolled ? "bg-corporate-dark/95" : "bg-corporate-dark/80",
-        "backdrop-blur-xl"
+        headerBgClass,
+        !isPricingPage && "backdrop-blur-xl" // Apenas blur se não for /pricing
       )}>
         <div className="container mx-auto px-6 flex justify-end items-center space-x-6">
           <nav className="flex items-center space-x-6">
@@ -89,8 +95,10 @@ export const MegaMenuHeader = () => {
 
       {/* Main Nav */}
       <div className={cn(
-        "border-b border-border/20 transition-all duration-300 relative backdrop-blur-xl",
-        isScrolled ? "py-2 bg-corporate-dark/95" : "py-3 bg-corporate-dark/80"
+        "border-b border-border/20 transition-all duration-300 relative",
+        headerBgClass,
+        !isPricingPage && "backdrop-blur-xl", // Apenas blur se não for /pricing
+        isScrolled ? "py-2" : "py-3"
       )}>
         <div className="container mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
