@@ -8,8 +8,6 @@ import {
   Building,
   FileText,
   MessageSquare,
-  Mail,
-  Phone,
   Linkedin
 } from "lucide-react";
 import { SocialIcons } from "./SocialIcons";
@@ -123,24 +121,6 @@ export function MegaFooter() {
           <div>
             <h3 className="text-base font-semibold text-white mb-5">Contato</h3>
             <div className="space-y-4">
-              {/* Email */}
-              <a 
-                href="mailto:contato@legacyos.com.br" 
-                className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 group"
-              >
-                <Mail className="h-4 w-4 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
-                <span>contato@legacyos.com.br</span>
-              </a>
-
-              {/* Telefone */}
-              <a 
-                href="tel:+551140028922" 
-                className="flex items-center gap-2.5 text-[13px] text-slate-400 hover:text-accent transition-all duration-200 group"
-              >
-                <Phone className="h-4 w-4 shrink-0 group-hover:text-accent transition-colors" aria-hidden="true" />
-                <span>+55 (11) 4002-8922</span>
-              </a>
-
               {/* LinkedIn */}
               <a 
                 href="https://linkedin.com/company/legacyos" 
