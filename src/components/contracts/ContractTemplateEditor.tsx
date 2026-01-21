@@ -32,6 +32,7 @@ import {
   Variable, Copy
 } from "lucide-react";
 import { toast } from "sonner";
+import ContractTemplateDocxUpload from "@/components/contracts/ContractTemplateDocxUpload";
 
 interface TemplateVariable {
   key: string;
@@ -689,6 +690,17 @@ export default function ContractTemplateEditor({
                     Ver todas...
                   </Badge>
                   <div className="flex-1" />
+                  <ContractTemplateDocxUpload
+                    onHtmlReady={(html) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        content: html,
+                        is_active: true,
+                        is_default: true,
+                      }));
+                      setActiveTab('editor');
+                    }}
+                  />
                   <Button size="sm" variant="outline" onClick={loadDefaultTemplate}>
                     Carregar Modelo Padrão
                   </Button>

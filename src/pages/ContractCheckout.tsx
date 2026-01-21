@@ -456,10 +456,16 @@ export default function ContractCheckout() {
       // Load template from localStorage - usar template ativo do tipo 'client'
       const storedTemplates = localStorage.getItem('contract_templates');
       const templates = storedTemplates ? JSON.parse(storedTemplates) : [];
-      // Buscar template ativo do tipo 'client' (ou padrão se não houver tipo especificado)
-      const defaultTemplate = templates.find((t: any) => 
-        t.is_active && (t.contract_type === 'client' || (!t.contract_type && t.is_default))
-      ) || templates.find((t: any) => t.is_default && t.is_active);
+      // Priorizar template padrão ativo do tipo 'client'
+      const defaultTemplate = templates.find((t: any) =>
+        t.is_default && t.is_active && (t.contract_type === 'client' || !t.contract_type)
+      ) || templates.find((t: any) =>
+        t.is_active && t.contract_type === 'client'
+      ) || templates.find((t: any) =>
+        t.is_default && t.is_active
+      ) || templates.find((t: any) =>
+        t.is_active
+      );
 
       // Gerar conteúdo do contrato usando template completo ou fallback
       let contractContent = defaultTemplate?.content || '<p>Contrato de Prestação de Serviços SaaS</p>';
