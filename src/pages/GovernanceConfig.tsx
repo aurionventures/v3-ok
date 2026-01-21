@@ -23,7 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const GovernanceConfig = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const isAdmin = user?.orgRole === 'org_admin';
+  const canManageMembers = user?.role === 'admin' || user?.orgRole === 'org_admin' || user?.orgRole === 'org_user';
   const [activeTab, setActiveTab] = useState<OrganType | 'membros'>('conselho');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -216,20 +216,20 @@ const GovernanceConfig = () => {
                 <MembersTable
                   members={members}
                   loading={membersLoading}
-                  onCreateMember={isAdmin ? () => {
+                  onCreateMember={canManageMembers ? () => {
                     setEditingMember(null);
                     setIsCreateMemberModalOpen(true);
                   } : () => {}}
-                  onEditMember={isAdmin ? (member) => {
+                  onEditMember={canManageMembers ? (member) => {
                     setEditingMember(member);
                     setIsCreateMemberModalOpen(true);
                   } : () => {}}
-                  onAllocateMember={isAdmin ? (member) => {
+                  onAllocateMember={canManageMembers ? (member) => {
                     setAllocatingMember(member);
                     setIsAllocateMemberModalOpen(true);
                   } : () => {}}
-                  onDeleteMember={isAdmin ? handleDeleteMember : () => {}}
-                  readOnly={!isAdmin}
+                  onDeleteMember={canManageMembers ? handleDeleteMember : () => {}}
+                  readOnly={!canManageMembers}
                 />
               </TabsContent>
 
@@ -237,7 +237,7 @@ const GovernanceConfig = () => {
               {(['conselho', 'comite', 'comissao'] as OrganType[]).map((type) => (
                 <TabsContent key={type} value={type} className="space-y-4">
                   {/* Create Button - Only for Admin */}
-                  {isAdmin && (
+                  {canManageMembers && (
                     <div className="flex justify-end gap-2">
                       <Dialog open={isCreateDialogOpen && activeTab === type} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
