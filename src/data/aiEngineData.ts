@@ -158,7 +158,7 @@ export const aiAgents: AIAgent[] = [
       avgQualityScore: 4.4,
     },
     dependsOn: [],
-    usedBy: ['copilot-governance', 'agent-c'],
+    usedBy: ['copilot-governance', 'agent-c', 'agent-h'],
   },
 
   // ========== AGENT B: Análise & Padrões ==========
@@ -210,7 +210,7 @@ export const aiAgents: AIAgent[] = [
       avgQualityScore: 4.3,
     },
     dependsOn: [],
-    usedBy: ['copilot-governance', 'agent-c'],
+    usedBy: ['copilot-governance', 'agent-c', 'agent-h'],
   },
 
   // ========== AGENT C: Scoring & Priorização ==========
@@ -262,7 +262,7 @@ export const aiAgents: AIAgent[] = [
       avgQualityScore: 4.55,
     },
     dependsOn: ['agent-a', 'agent-b'],
-    usedBy: ['agent-d'],
+    usedBy: ['agent-d', 'agent-h'],
   },
 
   // ========== AGENT D: Geração de Conteúdo ==========
@@ -314,7 +314,50 @@ export const aiAgents: AIAgent[] = [
       avgQualityScore: 4.55,
     },
     dependsOn: ['agent-c'],
-    usedBy: ['copilot-governance'],
+    usedBy: ['copilot-governance', 'agent-h'],
+  },
+
+  // ========== AGENT H: Orquestrador de Inteligência ==========
+  {
+    id: 'agent-h',
+    code: 'H',
+    name: 'Agent H',
+    shortName: 'Orquestrador de Inteligencia',
+    description: 'Orquestra dados de multiplos agentes para gerar insights estrategicos consolidados',
+    executiveDescription: 'Orquestrador central de inteligência. Sintetiza dados dos Agents A, B, C e D para produzir insights estratégicos acionáveis para o conselho.',
+    icon: 'Brain',
+    color: '#8b5cf6',
+    type: 'orchestrator',
+    scope: 'system',
+    impactLevel: 'critical',
+    status: 'active',
+    capabilities: [
+      'Correlacao de inteligencias de multiplas fontes',
+      'Geracao de insights estrategicos consolidados',
+      'Priorizacao baseada em dados de 4 agentes',
+      'Citacao de fontes para rastreabilidade',
+      'Producao de 6 insights estruturados (2 riscos, 2 ameacas, 2 oportunidades)',
+    ],
+    prompts: [
+      {
+        id: 'h1-orchestrator-001',
+        name: 'Intelligence Orchestrator',
+        type: 'system',
+        version: '2.0.0',
+        status: 'active',
+        impactLevel: 'critical',
+        metrics: { executions: 312, successRate: 97.5, avgQualityScore: 4.6 },
+      },
+    ],
+    integrations: ['Copiloto de Governanca', 'Dashboard Executivo', 'Alertas Proativos'],
+    metrics: {
+      totalExecutions: 312,
+      avgLatencyMs: 2450,
+      successRate: 97.5,
+      avgQualityScore: 4.6,
+    },
+    dependsOn: ['agent-a', 'agent-b', 'agent-c', 'agent-d'],
+    usedBy: ['copilot-governance', 'copilot-predictive'],
   },
 ];
 
