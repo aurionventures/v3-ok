@@ -52,7 +52,8 @@ export type AgentType =
   | 'scorer'         // Cálculo de scores
   | 'prioritizer'    // Priorização
   | 'generator'      // Geração de conteúdo
-  | 'advisor';       // Consultor especializado
+  | 'advisor'        // Consultor especializado
+  | 'orchestrator';  // Orquestrador de inteligência (Agent H)
 
 export type AgentScope = 'system' | 'council' | 'organization' | 'member';
 export type ImpactLevel = 'critical' | 'high' | 'medium' | 'low';

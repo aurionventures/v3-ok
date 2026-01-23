@@ -2,6 +2,18 @@ import { useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { usePrompts } from "@/hooks/usePrompts";
+import type {
+  AgentAData,
+  AgentBData,
+  AgentCData,
+  AgentDData,
+  AgentSource,
+  OrchestratorPayload,
+  createEmptyAgentAData,
+  createEmptyAgentBData,
+  createEmptyAgentCData,
+  createEmptyAgentDData,
+} from "@/types/agentIntelligence";
 
 export interface InsightAction {
   primary: string;
@@ -13,6 +25,7 @@ export interface StrategicRisk {
   context: string;
   priority: "critical" | "high" | "medium";
   actions: InsightAction;
+  sources?: AgentSource[];
 }
 
 export interface OperationalThreat {
@@ -21,18 +34,26 @@ export interface OperationalThreat {
   timeframe: "immediate" | "30_days" | "90_days";
   category: string;
   actions: InsightAction;
+  sources?: AgentSource[];
 }
 
 export interface StrategicOpportunity {
   title: string;
   context: string;
   actions: InsightAction;
+  sources?: AgentSource[];
 }
 
 export interface GovernanceInsights {
   strategicRisks: StrategicRisk[];
   operationalThreats: OperationalThreat[];
   strategicOpportunities: StrategicOpportunity[];
+  metadata?: {
+    generatedAt: string;
+    modelUsed: string;
+    executionTimeMs: number;
+    agentsUsed: string[];
+  };
 }
 
 // Legacy interface for backward compatibility
@@ -65,6 +86,14 @@ interface SystemData {
   criticalRisks: number;
 }
 
+// Extended system data with agent inputs
+interface ExtendedSystemData extends SystemData {
+  agentAData?: AgentAData;
+  agentBData?: AgentBData;
+  agentCData?: AgentCData;
+  agentDData?: AgentDData;
+}
+
 interface UsePredictiveInsightsResult {
   insights: PredictiveInsight[];
   governanceInsights: GovernanceInsights | null;
@@ -72,7 +101,16 @@ interface UsePredictiveInsightsResult {
   error: string | null;
   lastUpdated: Date | null;
   activePrompt: any | null;
-  fetchInsights: (data: SystemData) => Promise<void>;
+  fetchInsights: (data: SystemData | ExtendedSystemData) => Promise<void>;
+  fetchInsightsWithAgents: (
+    baseData: SystemData,
+    agentData?: {
+      agentA?: AgentAData;
+      agentB?: AgentBData;
+      agentC?: AgentCData;
+      agentD?: AgentDData;
+    }
+  ) => Promise<void>;
   clearInsights: () => void;
 }
 
@@ -105,14 +143,24 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
     return categoryPrompts.length > 0 ? categoryPrompts[0] : null;
   }, [getActivePromptForCategory, getPromptsByCategory]);
 
-  const fetchInsights = useCallback(async (data: SystemData) => {
+  const fetchInsights = useCallback(async (data: SystemData | ExtendedSystemData) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Preparar dados com o prompt ativo
-      const requestBody = {
-        ...data,
+      // Preparar payload para o orquestrador
+      const requestBody: OrchestratorPayload = {
+        risks: data.risks,
+        maturityScore: data.maturityScore,
+        esgScore: data.esgScore,
+        pendingTasks: data.pendingTasks,
+        overduesTasks: data.overduesTasks,
+        criticalRisks: data.criticalRisks,
+        // Incluir dados dos agentes se disponíveis
+        agentAData: (data as ExtendedSystemData).agentAData,
+        agentBData: (data as ExtendedSystemData).agentBData,
+        agentCData: (data as ExtendedSystemData).agentCData,
+        agentDData: (data as ExtendedSystemData).agentDData,
         // Incluir configurações do prompt ativo
         promptConfig: activePrompt ? {
           promptId: activePrompt.id,
@@ -153,7 +201,10 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
 
       // Handle new governance insights format
       if (responseData?.governanceInsights) {
-        setGovernanceInsights(responseData.governanceInsights);
+        setGovernanceInsights({
+          ...responseData.governanceInsights,
+          metadata: responseData.metadata
+        });
         setLastUpdated(new Date());
       }
       
@@ -178,6 +229,27 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
     }
   }, [activePrompt]);
 
+  // Nova função para buscar insights com dados de agentes separados
+  const fetchInsightsWithAgents = useCallback(async (
+    baseData: SystemData,
+    agentData?: {
+      agentA?: AgentAData;
+      agentB?: AgentBData;
+      agentC?: AgentCData;
+      agentD?: AgentDData;
+    }
+  ) => {
+    const extendedData: ExtendedSystemData = {
+      ...baseData,
+      agentAData: agentData?.agentA,
+      agentBData: agentData?.agentB,
+      agentCData: agentData?.agentC,
+      agentDData: agentData?.agentD,
+    };
+    
+    return fetchInsights(extendedData);
+  }, [fetchInsights]);
+
   const clearInsights = useCallback(() => {
     setInsights([]);
     setGovernanceInsights(null);
@@ -193,6 +265,7 @@ export function usePredictiveInsights(): UsePredictiveInsightsResult {
     lastUpdated,
     activePrompt,
     fetchInsights,
+    fetchInsightsWithAgents,
     clearInsights,
   };
 }
