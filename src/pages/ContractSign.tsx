@@ -515,24 +515,212 @@ export default function ContractSign() {
 
             <Separator />
 
-            {/* Conteúdo do Contrato */}
+            {/* Conteúdo do Contrato - Estilo PDF Reader */}
             <div>
               <h3 className="font-medium mb-3 flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Termos do Contrato
               </h3>
-              <div className="border rounded-lg bg-white overflow-hidden">
-                <ScrollArea className="h-[600px] p-6">
+              <div className="border rounded-lg bg-white overflow-hidden shadow-sm">
+                <ScrollArea className="h-[600px] p-0">
+                  <div className="p-6">
                   {contract?.content_html ? (
-                    <div
-                      className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:list-disc prose-ol:list-decimal"
-                      dangerouslySetInnerHTML={{ __html: contract.content_html }}
-                    />
+                    <div className="contract-pdf-viewer">
+                      <style>{`
+                        .contract-pdf-viewer {
+                          background: #ffffff !important;
+                          color: #1a1a1a !important;
+                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+                          line-height: 1.7;
+                          padding: 0;
+                          max-width: 900px;
+                          margin: 0 auto;
+                          width: 100%;
+                        }
+                        .contract-pdf-viewer > .legacy-contract {
+                          background: #ffffff !important;
+                          min-height: auto !important;
+                        }
+                        .contract-pdf-viewer * {
+                          box-sizing: border-box;
+                        }
+                        .contract-pdf-viewer .legacy-contract {
+                          background: #ffffff !important;
+                          color: #1a1a1a !important;
+                          margin: 0;
+                          padding: 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract header,
+                        .contract-pdf-viewer .legacy-contract nav,
+                        .contract-pdf-viewer .legacy-contract .grid,
+                        .contract-pdf-viewer .legacy-contract .topbar,
+                        .contract-pdf-viewer .legacy-contract .actions,
+                        .contract-pdf-viewer .legacy-contract .brand {
+                          display: none !important;
+                          visibility: hidden !important;
+                          height: 0 !important;
+                          width: 0 !important;
+                          overflow: hidden !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .wrap {
+                          max-width: 100% !important;
+                          margin: 0 !important;
+                          padding: 0 !important;
+                          background: #ffffff !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .wrap > .grid {
+                          display: block !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .wrap > .grid > nav {
+                          display: none !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .wrap > .grid > main {
+                          width: 100% !important;
+                          max-width: 100% !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract main {
+                          background: #ffffff !important;
+                          border: none !important;
+                          box-shadow: none !important;
+                          border-radius: 0 !important;
+                          padding: 0 !important;
+                          width: 100% !important;
+                          max-width: 100% !important;
+                          margin: 0 !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .hero {
+                          background: #ffffff !important;
+                          border-bottom: 1px solid #e5e5e5 !important;
+                          padding: 0 0 20px 0 !important;
+                          margin-bottom: 30px;
+                        }
+                        .contract-pdf-viewer .legacy-contract h1 {
+                          color: #1a1a1a !important;
+                          font-size: 24px;
+                          font-weight: 700;
+                          margin: 0 0 12px 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract .sub {
+                          color: #666666 !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .content {
+                          padding: 0 !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract section {
+                          padding: 20px 0;
+                          border-bottom: 1px solid #e5e5e5;
+                        }
+                        .contract-pdf-viewer .legacy-contract section:last-child {
+                          border-bottom: none;
+                        }
+                        .contract-pdf-viewer .legacy-contract h2 {
+                          color: #1a1a1a !important;
+                          font-size: 18px;
+                          font-weight: 700;
+                          margin: 0 0 12px 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract h3 {
+                          color: #1a1a1a !important;
+                          font-size: 16px;
+                          font-weight: 600;
+                          margin: 16px 0 8px 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract p {
+                          color: #1a1a1a !important;
+                          margin: 12px 0;
+                          font-size: 14px;
+                        }
+                        .contract-pdf-viewer .legacy-contract ul,
+                        .contract-pdf-viewer .legacy-contract ol {
+                          color: #1a1a1a !important;
+                          margin: 12px 0 12px 20px;
+                        }
+                        .contract-pdf-viewer .legacy-contract li {
+                          color: #1a1a1a !important;
+                          margin: 6px 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract strong {
+                          color: #1a1a1a !important;
+                          font-weight: 600;
+                        }
+                        .contract-pdf-viewer .legacy-contract .muted {
+                          color: #666666 !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .callout {
+                          border: 1px solid #2563eb;
+                          background: rgba(37, 99, 235, 0.05);
+                          padding: 16px;
+                          border-radius: 6px;
+                          margin: 16px 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract .callout.danger {
+                          border-color: #dc2626;
+                          background: rgba(220, 38, 38, 0.05);
+                        }
+                        .contract-pdf-viewer .legacy-contract .callout.success {
+                          border-color: #059669;
+                          background: rgba(5, 150, 105, 0.05);
+                        }
+                        .contract-pdf-viewer .legacy-contract .footer {
+                          background: #f9fafb !important;
+                          border-top: 1px solid #e5e5e5 !important;
+                          padding: 20px 0 !important;
+                          margin-top: 40px;
+                        }
+                        .contract-pdf-viewer .legacy-contract .footer small {
+                          color: #666666 !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .checkbox {
+                          background: #f9fafb !important;
+                          border: 1px solid #e5e5e5 !important;
+                          padding: 16px;
+                          border-radius: 6px;
+                        }
+                        .contract-pdf-viewer .legacy-contract .checkbox label {
+                          color: #1a1a1a !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract .btn {
+                          display: none !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract a {
+                          color: #2563eb;
+                          text-decoration: underline;
+                        }
+                        .contract-pdf-viewer .legacy-contract a:hover {
+                          color: #1d4ed8;
+                        }
+                        .contract-pdf-viewer .legacy-contract .pill {
+                          background: #f5f5f5 !important;
+                          border: 1px solid #e5e5e5 !important;
+                          color: #666666 !important;
+                        }
+                        .contract-pdf-viewer .legacy-contract details {
+                          background: #f9fafb !important;
+                          border: 1px solid #e5e5e5 !important;
+                          padding: 12px 16px;
+                          border-radius: 6px;
+                          margin: 16px 0;
+                        }
+                        .contract-pdf-viewer .legacy-contract summary {
+                          color: #1a1a1a !important;
+                          font-weight: 600;
+                        }
+                        .contract-pdf-viewer .legacy-contract .divider {
+                          background: #e5e5e5 !important;
+                          height: 1px;
+                          margin: 20px 0;
+                        }
+                      `}</style>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: contract.content_html }}
+                      />
+                    </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <p>Carregando conteúdo do contrato...</p>
                     </div>
                   )}
+                  </div>
                 </ScrollArea>
               </div>
               <p className="text-xs text-muted-foreground mt-2 text-center">

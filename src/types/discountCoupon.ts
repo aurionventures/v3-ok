@@ -161,3 +161,106 @@ export function generateCouponToken(): string {
   }
   return token;
 }
+
+/**
+ * Inicializa os cupons padrão (20%, 50%, 100%) se não existirem
+ * Esta função garante que os cupons demonstrativos sempre estejam disponíveis
+ */
+export function initializeDefaultCoupons(): void {
+  const STORAGE_KEY = 'discount_coupons';
+  
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    let existingCoupons: DiscountCoupon[] = [];
+    
+    if (stored) {
+      existingCoupons = JSON.parse(stored);
+    }
+
+    // Verificar se já existem os cupons padrão
+    const defaultTokens = ['DESC20', 'DESC50', 'DESC100'];
+    const hasDefaultCoupons = defaultTokens.every(token =>
+      existingCoupons.some(c => c.token === token)
+    );
+
+    // Se não existirem, criar os 3 cupons padrão
+    if (!hasDefaultCoupons) {
+      const now = new Date();
+      const validUntil = new Date();
+      validUntil.setFullYear(validUntil.getFullYear() + 1); // Válido por 1 ano
+
+      const defaultCoupons: DiscountCoupon[] = [
+        {
+          id: 'default-coupon-20',
+          token: 'DESC20',
+          name: 'Desconto Demonstrativo 20%',
+          discountType: 'percentage',
+          discountValue: 20,
+          minPurchaseValue: undefined,
+          maxDiscountValue: undefined,
+          validFrom: now.toISOString(),
+          validUntil: validUntil.toISOString(),
+          maxUses: undefined, // Ilimitado
+          currentUses: 0,
+          applicablePlans: [], // Aplicável a todos os planos
+          applicablePortes: [], // Aplicável a todos os portes
+          status: 'active',
+          createdBy: 'super_admin',
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString(),
+        },
+        {
+          id: 'default-coupon-50',
+          token: 'DESC50',
+          name: 'Desconto Demonstrativo 50%',
+          discountType: 'percentage',
+          discountValue: 50,
+          minPurchaseValue: undefined,
+          maxDiscountValue: undefined,
+          validFrom: now.toISOString(),
+          validUntil: validUntil.toISOString(),
+          maxUses: undefined, // Ilimitado
+          currentUses: 0,
+          applicablePlans: [], // Aplicável a todos os planos
+          applicablePortes: [], // Aplicável a todos os portes
+          status: 'active',
+          createdBy: 'super_admin',
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString(),
+        },
+        {
+          id: 'default-coupon-100',
+          token: 'DESC100',
+          name: 'Desconto Demonstrativo 100%',
+          discountType: 'percentage',
+          discountValue: 100,
+          minPurchaseValue: undefined,
+          maxDiscountValue: undefined,
+          validFrom: now.toISOString(),
+          validUntil: validUntil.toISOString(),
+          maxUses: undefined, // Ilimitado
+          currentUses: 0,
+          applicablePlans: [], // Aplicável a todos os planos
+          applicablePortes: [], // Aplicável a todos os portes
+          status: 'active',
+          createdBy: 'super_admin',
+          createdAt: now.toISOString(),
+          updatedAt: now.toISOString(),
+        },
+      ];
+
+      // Adicionar apenas os cupons que não existem
+      const newCoupons = defaultCoupons.filter(
+        defaultCoupon => !existingCoupons.some(existing => existing.token === defaultCoupon.token)
+      );
+
+      if (newCoupons.length > 0) {
+        const updatedCoupons = [...existingCoupons, ...newCoupons];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCoupons));
+        console.log(`✅ ${newCoupons.length} cupom(ns) padrão inicializado(s):`, newCoupons.map(c => c.token).join(', '));
+      }
+    }
+  } catch (error) {
+    console.error("Erro ao inicializar cupons padrão:", error);
+  }
+}

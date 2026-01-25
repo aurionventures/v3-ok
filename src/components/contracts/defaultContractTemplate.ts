@@ -1,36 +1,35 @@
 export const DEFAULT_CONTRACT_CONTENT = `<style>
   .legacy-contract{
-    --bg:#0b0f14;
-    --card:#0f1620;
-    --text:#e8eef6;
-    --muted:#a8b3c2;
-    --line:#223042;
-    --accent:#5aa2ff;
-    --accent2:#7ee787;
-    --danger:#ff6b6b;
-    --shadow: 0 8px 28px rgba(0,0,0,.35);
-    --radius: 14px;
-    --max: 980px;
+    --bg:#ffffff;
+    --card:#ffffff;
+    --text:#1a1a1a;
+    --muted:#666666;
+    --line:#e5e5e5;
+    --accent:#2563eb;
+    --accent2:#059669;
+    --danger:#dc2626;
+    --shadow: 0 1px 3px rgba(0,0,0,.1);
+    --radius: 8px;
+    --max: 900px;
     --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     margin:0;
     font-family: var(--sans);
-    background: radial-gradient(1200px 800px at 15% 0%, rgba(90,162,255,.12), transparent 50%),
-                radial-gradient(900px 600px at 85% 10%, rgba(126,231,135,.10), transparent 55%),
-                var(--bg);
+    background: var(--bg);
     color:var(--text);
-    line-height:1.55;
+    line-height:1.7;
+    min-height: 100vh;
   }
   .legacy-contract *{box-sizing:border-box}
-  .legacy-contract a{color:var(--accent); text-decoration:none}
-  .legacy-contract a:hover{text-decoration:underline}
+  .legacy-contract a{color:var(--accent); text-decoration:underline; text-decoration-color: rgba(37,99,235,.3);}
+  .legacy-contract a:hover{text-decoration-color: var(--accent); color: #1d4ed8;}
   .legacy-contract header{
     position:sticky;
     top:0;
     z-index:10;
-    backdrop-filter: blur(10px);
-    background: rgba(11,15,20,.78);
-    border-bottom:1px solid rgba(34,48,66,.55);
+    background: #ffffff;
+    border-bottom:1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
   }
   .legacy-contract .wrap{max-width: var(--max); margin: 0 auto; padding: 18px 18px;}
   .legacy-contract .topbar{
@@ -44,89 +43,53 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
   .legacy-contract .badge{
     font-size:12px;
     padding:4px 10px;
-    border:1px solid rgba(90,162,255,.35);
+    border:1px solid var(--accent);
     color:var(--accent);
     border-radius:999px;
-    background: rgba(90,162,255,.08);
+    background: rgba(37,99,235,.08);
   }
   .legacy-contract .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
   .legacy-contract .btn{
-    border:1px solid rgba(34,48,66,.85);
-    background: rgba(15,22,32,.7);
+    border:1px solid var(--line);
+    background: #ffffff;
     color:var(--text);
     padding:10px 12px;
-    border-radius: 10px;
+    border-radius: 6px;
     cursor:pointer;
     font-weight:600;
-    transition:.15s transform ease, .15s background ease;
+    transition:.15s all ease;
   }
-  .legacy-contract .btn:hover{transform: translateY(-1px); background: rgba(15,22,32,.95)}
+  .legacy-contract .btn:hover{transform: translateY(-1px); background: #f5f5f5; border-color: var(--accent);}
   .legacy-contract .btn.primary{
-    border-color: rgba(90,162,255,.55);
-    background: rgba(90,162,255,.14);
-    color: var(--text);
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #ffffff;
   }
+  .legacy-contract .btn.primary:hover{background: #1d4ed8;}
   .legacy-contract .btn.danger{
-    border-color: rgba(255,107,107,.55);
-    background: rgba(255,107,107,.10);
+    border-color: var(--danger);
+    background: #ffffff;
+    color: var(--danger);
   }
+  .legacy-contract .btn.danger:hover{background: #fee2e2;}
   .legacy-contract .grid{
-    display:grid;
-    grid-template-columns: 280px 1fr;
-    gap:18px;
-    align-items:start;
+    display:block;
     margin-top:18px;
   }
-  @media (max-width: 960px){
-    .legacy-contract .grid{grid-template-columns:1fr}
-    .legacy-contract nav{position:relative !important; top:auto !important}
-  }
   .legacy-contract nav{
-    position:sticky;
-    top:86px;
-    background: rgba(15,22,32,.65);
-    border:1px solid rgba(34,48,66,.75);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow:hidden;
-  }
-  .legacy-contract .nav-head{
-    padding:14px 14px 10px;
-    border-bottom:1px solid rgba(34,48,66,.65);
-  }
-  .legacy-contract .nav-title{
-    font-weight:800;
-    font-size:13px;
-    letter-spacing:.6px;
-    text-transform:uppercase;
-    color:var(--muted);
-  }
-  .legacy-contract .nav-body{padding:10px}
-  .legacy-contract .nav-body a{
-    display:block;
-    padding:9px 10px;
-    border-radius:10px;
-    color:var(--text);
-    border:1px solid transparent;
-  }
-  .legacy-contract .nav-body a:hover{
-    background: rgba(90,162,255,.08);
-    border-color: rgba(90,162,255,.22);
-    text-decoration:none;
+    display:none;
   }
   .legacy-contract main{
-    background: rgba(15,22,32,.55);
-    border:1px solid rgba(34,48,66,.75);
+    background: var(--card);
+    border:1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow:hidden;
   }
   .legacy-contract .hero{
-    padding:22px 22px 8px;
-    border-bottom:1px solid rgba(34,48,66,.65);
-    background:
-      linear-gradient(135deg, rgba(90,162,255,.16), rgba(126,231,135,.10)),
-      rgba(15,22,32,.55);
+    padding:32px 32px 16px;
+    border-bottom:1px solid var(--line);
+    background: var(--card);
   }
   .legacy-contract h1{
     margin:0 0 6px;
@@ -147,14 +110,14 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
     font-size:12px;
     padding:4px 10px;
     border-radius:999px;
-    border:1px solid rgba(34,48,66,.85);
-    background: rgba(11,15,20,.35);
+    border:1px solid var(--line);
+    background: #f5f5f5;
     color:var(--muted);
   }
-  .legacy-contract .content{padding: 18px 22px 22px;}
+  .legacy-contract .content{padding: 32px 40px 40px;}
   .legacy-contract section{
-    padding: 14px 0;
-    border-bottom: 1px dashed rgba(34,48,66,.55);
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
   }
   .legacy-contract section:last-child{border-bottom:none}
   .legacy-contract h2{
@@ -172,26 +135,26 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
   .legacy-contract ul{margin:8px 0 8px 18px; color: var(--text)}
   .legacy-contract li{margin:6px 0}
   .legacy-contract .callout{
-    border:1px solid rgba(90,162,255,.32);
-    background: rgba(90,162,255,.08);
-    padding:12px 14px;
-    border-radius: 12px;
-    margin: 10px 0;
+    border:1px solid var(--accent);
+    background: rgba(37,99,235,.05);
+    padding:16px 18px;
+    border-radius: 8px;
+    margin: 16px 0;
   }
   .legacy-contract .callout.danger{
-    border-color: rgba(255,107,107,.35);
-    background: rgba(255,107,107,.10);
+    border-color: var(--danger);
+    background: rgba(220,38,38,.05);
   }
   .legacy-contract .callout.success{
-    border-color: rgba(126,231,135,.28);
-    background: rgba(126,231,135,.08);
+    border-color: var(--accent2);
+    background: rgba(5,150,105,.05);
   }
   .legacy-contract details{
-    border:1px solid rgba(34,48,66,.75);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: rgba(11,15,20,.35);
-    margin: 10px 0;
+    border:1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 16px;
+    background: #f9fafb;
+    margin: 16px 0;
   }
   .legacy-contract summary{
     cursor:pointer;
@@ -199,9 +162,9 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
     color: var(--text);
   }
   .legacy-contract .footer{
-    padding: 16px 22px;
-    border-top:1px solid rgba(34,48,66,.65);
-    background: rgba(11,15,20,.35);
+    padding: 24px 32px;
+    border-top:1px solid var(--line);
+    background: #f9fafb;
     display:flex;
     flex-wrap:wrap;
     gap:10px;
@@ -214,13 +177,13 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
   }
   .legacy-contract .checkbox{
     display:flex; gap:10px; align-items:flex-start;
-    padding:10px 12px;
-    border:1px solid rgba(34,48,66,.75);
-    border-radius: 12px;
-    background: rgba(15,22,32,.35);
+    padding:16px 18px;
+    border:1px solid var(--line);
+    border-radius: 8px;
+    background: #f9fafb;
   }
   .legacy-contract .checkbox input{margin-top:4px; transform: scale(1.1)}
-  .legacy-contract .checkbox label{color:var(--muted); font-size:13px}
+  .legacy-contract .checkbox label{color:var(--text); font-size:14px}
   .legacy-contract .note{
     font-size:12px;
     color:var(--muted);
@@ -229,15 +192,15 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
     font-family: var(--mono);
     font-size:12px;
     padding:2px 8px;
-    border:1px solid rgba(34,48,66,.85);
-    border-radius:8px;
-    background: rgba(11,15,20,.35);
-    color:var(--muted);
+    border:1px solid var(--line);
+    border-radius:6px;
+    background: #f5f5f5;
+    color:var(--text);
   }
   .legacy-contract .divider{
     height:1px;
-    background: rgba(34,48,66,.65);
-    margin: 12px 0;
+    background: var(--line);
+    margin: 20px 0;
   }
   .legacy-contract .two-col{
     display:grid;
@@ -252,7 +215,7 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
   <header>
     <div class="wrap">
       <div class="topbar">
-        <div class="brand" aria-label="Identificação do documento">
+        <div class="brand" aria-label="Identificação do documento" style="color: var(--text);">
           <span>LEGACY OS</span>
           <span class="badge">Termos de Serviço</span>
         </div>
@@ -267,34 +230,6 @@ export const DEFAULT_CONTRACT_CONTENT = `<style>
 
   <div class="wrap">
     <div class="grid">
-      <nav aria-label="Sumário">
-        <div class="nav-head">
-          <div class="nav-title">Sumário</div>
-        </div>
-        <div class="nav-body">
-          <a href="#aceitacao-dos-termos">Aceitação dos Termos</a>
-          <a href="#definicoes">1. Definições</a>
-          <a href="#servico-e-planos">2. Serviço e Planos</a>
-          <a href="#cadastro-e-conta">3. Cadastro e Conta</a>
-          <a href="#precos-e-pagamento">4. Preços e Pagamento</a>
-          <a href="#uso-aceitavel">5. Uso Aceitável</a>
-          <a href="#dados-e-privacidade">6. Dados e Privacidade (LGPD)</a>
-          <a href="#sla">7. Nível de Serviço (SLA)</a>
-          <a href="#seguranca">8. Segurança da Informação</a>
-          <a href="#propriedade-intelectual">9. Propriedade Intelectual</a>
-          <a href="#confidencialidade">10. Confidencialidade</a>
-          <a href="#prazo-e-rescisao">11. Prazo e Rescisão</a>
-          <a href="#limitacao">12. Limitação de Responsabilidade</a>
-          <a href="#indenizacao">13. Indenização</a>
-          <a href="#forca-maior">14. Força Maior</a>
-          <a href="#modificacoes">15. Modificações dos Termos</a>
-          <a href="#disposicoes-gerais">16. Disposições Gerais</a>
-          <a href="#legislacao-e-foro">17. Legislação e Foro</a>
-          <a href="#contato">18. Contato e Suporte</a>
-          <a href="#aceitacao-eletronica">Aceitação Eletrônica</a>
-        </div>
-      </nav>
-
       <main aria-label="Conteúdo do contrato">
         <div class="hero">
           <h1>TERMOS DE SERVIÇO E CONTRATO DE ASSINATURA — PLATAFORMA LEGACY OS (SaaS)</h1>

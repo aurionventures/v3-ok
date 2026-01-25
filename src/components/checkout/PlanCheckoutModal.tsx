@@ -28,6 +28,7 @@ import {
   DiscountCoupon,
   calculateCouponDiscount,
   validateCoupon,
+  initializeDefaultCoupons,
 } from '@/types/discountCoupon';
 
 interface PlanCheckoutModalProps {
@@ -203,9 +204,12 @@ export function PlanCheckoutModal({
     toast.info('Cupom removido');
   };
 
-  // Reset ao fechar
+  // Inicializar cupons quando o modal abrir e reset ao fechar
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // Inicializar cupons padrão quando o modal abrir
+      initializeDefaultCoupons();
+    } else {
       setCurrentStep('prazo');
       setContractTerm(12);
       setPaymentCycle('monthly');

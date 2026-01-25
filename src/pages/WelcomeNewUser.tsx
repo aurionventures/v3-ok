@@ -260,48 +260,42 @@ export default function WelcomeNewUser() {
               <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-3">
-              <Card className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-                      <Zap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">Inteligência Artificial</CardTitle>
-                      <CardDescription className="text-xs">Multi-agentes que trazem governança e inteligência preditiva</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
+            <div className="space-y-3 max-w-2xl mx-auto">
+              <div className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <Zap className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-0.5 text-sm">Inteligência Artificial</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Multi-agentes que trazem governança e inteligência preditiva
+                  </p>
+                </div>
+              </div>
 
-              <Card className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                      <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">Conselhos e Reuniões</CardTitle>
-                      <CardDescription className="text-xs">Gerencie conselhos, membros e atas de reuniões</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
+              <div className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-0.5 text-sm">Conselhos e Reuniões</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Gerencie conselhos, membros e atas de reuniões
+                  </p>
+                </div>
+              </div>
 
-              <Card className="border-2 md:col-span-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                      <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">Documentos e Compliance</CardTitle>
-                      <CardDescription className="text-xs">Centralize documentos e gerencie checklists</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
+              <div className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-0.5 text-sm">Documentos e Compliance</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Centralize documentos e gerencie checklists
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-center gap-3 pt-2 mt-auto">

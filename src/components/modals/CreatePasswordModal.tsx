@@ -199,33 +199,33 @@ export function CreatePasswordModal({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Lock className="h-6 w-6 text-primary" />
+      <DialogContent className="sm:max-w-sm max-h-[90vh] overflow-y-auto p-4">
+        <DialogHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Lock className="h-4 w-4 text-primary" />
             </div>
-            <div>
-              <DialogTitle className="text-xl">Criar sua senha de acesso</DialogTitle>
-              <DialogDescription className="text-sm mt-1">
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-lg">Criar sua senha de acesso</DialogTitle>
+              <DialogDescription className="text-xs mt-0.5">
                 Crie uma senha segura para acessar a plataforma Legacy OS
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Informações do usuário */}
-          <div className="p-3 bg-muted rounded-lg space-y-1">
-            <p className="text-sm font-medium">{name}</p>
-            <p className="text-xs text-muted-foreground">{email}</p>
-            <p className="text-xs text-muted-foreground">{companyName}</p>
+        <div className="space-y-2.5 py-1">
+          {/* Informações do usuário - Compacto */}
+          <div className="p-2 bg-muted rounded-md space-y-0.5">
+            <p className="text-xs font-medium truncate">{name}</p>
+            <p className="text-[10px] text-muted-foreground truncate">{email}</p>
+            <p className="text-[10px] text-muted-foreground truncate">{companyName}</p>
           </div>
 
           {/* Campo de senha */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-semibold">
+              <Label htmlFor="password" className="text-xs font-semibold">
                 Senha *
               </Label>
               <Button
@@ -233,10 +233,10 @@ export function CreatePasswordModal({
                 variant="ghost"
                 size="sm"
                 onClick={generateStrongPassword}
-                className="h-7 text-xs gap-1 text-primary hover:text-primary"
+                className="h-6 text-[10px] gap-1 px-2 text-primary hover:text-primary"
               >
                 <RotateCw className="h-3 w-3" />
-                Gerar senha forte
+                Gerar
               </Button>
             </div>
             <div className="relative">
@@ -246,7 +246,7 @@ export function CreatePasswordModal({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Digite sua senha"
-                className={`pr-10 ${
+                className={`pr-9 h-9 text-sm ${
                   password && !passwordValidation.isValid
                     ? 'border-red-500 focus-visible:ring-red-500'
                     : password && passwordValidation.isValid
@@ -257,36 +257,36 @@ export function CreatePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeOff className="h-3.5 w-3.5" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3.5 w-3.5" />
                 )}
               </button>
             </div>
             {password && !passwordValidation.isValid && (
-              <div className="space-y-1 text-xs text-red-500">
-                {passwordValidation.errors.map((error, index) => (
+              <div className="space-y-0.5 text-[10px] text-red-500">
+                {passwordValidation.errors.slice(0, 2).map((error, index) => (
                   <p key={index} className="flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
+                    <AlertCircle className="h-2.5 w-2.5" />
                     {error}
                   </p>
                 ))}
               </div>
             )}
             {password && passwordValidation.isValid && (
-              <p className="text-xs text-green-600 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" />
+              <p className="text-[10px] text-green-600 flex items-center gap-1">
+                <CheckCircle className="h-2.5 w-2.5" />
                 Senha forte
               </p>
             )}
           </div>
 
           {/* Campo de confirmação */}
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-sm font-semibold">
+          <div className="space-y-1.5">
+            <Label htmlFor="confirmPassword" className="text-xs font-semibold">
               Confirmar Senha *
             </Label>
             <div className="relative">
@@ -296,7 +296,7 @@ export function CreatePasswordModal({
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirme sua senha"
-                className={`pr-10 ${
+                className={`pr-9 h-9 text-sm ${
                   confirmPassword && !passwordsMatch
                     ? 'border-red-500 focus-visible:ring-red-500'
                     : confirmPassword && passwordsMatch
@@ -307,33 +307,33 @@ export function CreatePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeOff className="h-3.5 w-3.5" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3.5 w-3.5" />
                 )}
               </button>
             </div>
             {confirmPassword && !passwordsMatch && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
+              <p className="text-[10px] text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-2.5 w-2.5" />
                 As senhas não coincidem
               </p>
             )}
             {confirmPassword && passwordsMatch && (
-              <p className="text-xs text-green-600 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" />
+              <p className="text-[10px] text-green-600 flex items-center gap-1">
+                <CheckCircle className="h-2.5 w-2.5" />
                 Senhas coincidem
               </p>
             )}
           </div>
 
-          {/* Requisitos de senha */}
-          <div className="p-3 bg-muted rounded-lg">
-            <p className="text-xs font-medium mb-2">Requisitos da senha:</p>
-            <ul className="text-xs text-muted-foreground space-y-1">
+          {/* Requisitos de senha - Compacto */}
+          <div className="p-2 bg-muted rounded-md">
+            <p className="text-[10px] font-medium mb-1">Requisitos da senha:</p>
+            <ul className="text-[10px] text-muted-foreground space-y-0.5">
               <li>• Mínimo de 8 caracteres</li>
               <li>• Pelo menos uma letra maiúscula</li>
               <li>• Pelo menos uma letra minúscula</li>
@@ -343,21 +343,21 @@ export function CreatePasswordModal({
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2 pt-1">
           <Button
             onClick={handleCreatePassword}
             disabled={!canCreate || isCreating}
             className="flex-1"
-            size="lg"
+            size="sm"
           >
             {isCreating ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1.5"></div>
                 Criando...
               </>
             ) : (
               <>
-                <Lock className="h-4 w-4 mr-2" />
+                <Lock className="h-3 w-3 mr-1.5" />
                 Criar Senha e Acessar
               </>
             )}

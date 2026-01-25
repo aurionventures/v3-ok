@@ -73,6 +73,7 @@ import {
   CouponStatus,
   generateCouponToken,
   validateCoupon,
+  initializeDefaultCoupons,
 } from "@/types/discountCoupon";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -114,6 +115,8 @@ export default function AdminDiscountCoupons() {
   });
 
   useEffect(() => {
+    // Inicializar cupons padrão antes de carregar
+    initializeDefaultCoupons();
     loadCoupons();
     loadUsage();
   }, []);

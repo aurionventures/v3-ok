@@ -54,6 +54,7 @@ import {
   DiscountCoupon,
   calculateCouponDiscount,
   validateCoupon,
+  initializeDefaultCoupons,
 } from '@/types/discountCoupon';
 
 type Step = 'dados' | 'contrato' | 'confirmacao';
@@ -80,6 +81,9 @@ export default function ContractCheckout() {
   const [calculatedPrice, setCalculatedPrice] = useState<number | undefined>(undefined);
   
   useEffect(() => {
+    // Inicializar cupons padrão ao carregar o checkout
+    initializeDefaultCoupons();
+    
     // Se não veio na URL, tentar recuperar do localStorage
     if (!calculatedPriceFromUrl) {
       try {
