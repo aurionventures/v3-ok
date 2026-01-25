@@ -80,7 +80,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/ContractTemplateEditor";
+import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/defaultContractTemplate";
 import ContractTemplateEditor from "@/components/contracts/ContractTemplateEditor";
 
 interface Contract {

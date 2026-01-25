@@ -33,7 +33,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { ContractPDF, ContractData } from "@/components/contracts/ContractPDF";
 import { CreatePasswordModal } from "@/components/modals/CreatePasswordModal";
 import { formatCPF, isValidCPF, onlyNumbers } from "@/utils/masks";
-import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/ContractTemplateEditor";
+import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/defaultContractTemplate";
 
 interface Contract {
   id: string;

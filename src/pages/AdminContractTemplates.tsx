@@ -44,7 +44,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ContractTemplateEditor from "@/components/contracts/ContractTemplateEditor";
-import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/ContractTemplateEditor";
+import { DEFAULT_CONTRACT_CONTENT } from "@/components/contracts/defaultContractTemplate";
 
 interface ContractTemplate {
   id: string;
