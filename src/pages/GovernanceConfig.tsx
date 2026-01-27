@@ -362,7 +362,7 @@ const GovernanceConfig = () => {
                                   {organ.description || 'Sem descrição'}
                                 </CardDescription>
                               </div>
-                              {isAdmin && (
+                              {canManageMembers && (
                                 <Button
                                   variant="outline"
                                   size="icon"
