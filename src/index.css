@@ -5,74 +5,81 @@
 
 @layer base {
   :root {
-    --background: 210 50% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 216 50% 98%;
+    --foreground: 220 30% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 30% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 30% 20%;
 
-    --primary: 218 55% 23%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 218 65% 10%;
+    --primary-foreground: 40 40% 97%;
 
-    --secondary: 262 46% 42%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 38 45% 57%;
+    --secondary-foreground: 218 65% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 216 30% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 183 48% 33%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 38 45% 57%;
+    --accent-foreground: 218 65% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 38 45% 57%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 218 55% 18%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 218 55% 23%;
-    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-background: 218 65% 10%;
+    --sidebar-foreground: 40 40% 97%;
+    --sidebar-primary: 38 45% 57%;
+    --sidebar-primary-foreground: 218 65% 10%;
     --sidebar-accent: 218 55% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 218 55% 23%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent-foreground: 40 40% 97%;
+    --sidebar-border: 218 55% 18%;
+    --sidebar-ring: 38 45% 57%;
+
+    /* Legacy-specific tokens */
+    --legacy-dark: 218 65% 10%;
+    --legacy-dark-lighter: 218 40% 19%;
+    --legacy-gold: 38 45% 57%;
+    --legacy-gold-light: 38 45% 57%;
+    --legacy-light-bg: 210 33% 98%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 218 65% 5%;
+    --foreground: 40 40% 97%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 218 65% 8%;
+    --card-foreground: 40 40% 97%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 218 65% 8%;
+    --popover-foreground: 40 40% 97%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 38 45% 57%;
+    --primary-foreground: 218 65% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 218 32% 18%;
+    --secondary-foreground: 40 40% 97%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 218 32% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 38 45% 57%;
+    --accent-foreground: 218 65% 10%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 218 32% 18%;
+    --input: 218 32% 18%;
+    --ring: 38 45% 57%;
   }
 }
 
@@ -83,11 +90,16 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Lato', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
   }
 }
 
 .legacy-gradient {
-  background: linear-gradient(135deg, #1A365D 0%, #553C9A 100%);
+  background: linear-gradient(135deg, #0A1628 0%, #1B263B 100%);
 }
 
 .legacy-card {
@@ -95,7 +107,8 @@
 }
 
 .legacy-card-header {
-  @apply text-lg font-semibold text-legacy-500 mb-2;
+  @apply text-lg font-semibold mb-2;
+  color: hsl(var(--primary));
 }
 
 .legacy-section {
@@ -103,17 +116,30 @@
 }
 
 .legacy-input {
-  @apply w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-legacy-500 focus:border-transparent;
+  @apply w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:border-transparent;
+  --tw-ring-color: hsl(var(--secondary));
 }
 
 .legacy-button-primary {
-  @apply bg-legacy-500 hover:bg-legacy-600 text-white font-medium py-2 px-4 rounded-md transition-colors;
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--primary));
+  @apply font-medium py-3 px-8 rounded-lg transition-all hover:brightness-110;
 }
 
 .legacy-button-secondary {
-  @apply bg-legacy-purple-500 hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-colors;
+  border: 2px solid hsl(var(--secondary));
+  color: hsl(var(--secondary));
+  @apply bg-transparent font-medium py-3 px-8 rounded-lg transition-all hover:bg-white/5;
 }
 
 .legacy-button-outline {
-  @apply border border-legacy-500 text-legacy-500 hover:bg-legacy-50 font-medium py-2 px-4 rounded-md transition-colors;
+  border: 2px solid hsl(var(--secondary));
+  color: hsl(var(--secondary));
+  @apply font-medium py-2 px-4 rounded-md transition-colors;
+}
+
+.legacy-gold-card {
+  background: hsla(38, 45%, 57%, 0.1);
+  border: 2px solid hsla(38, 45%, 57%, 0.3);
+  @apply rounded-lg;
 }
