@@ -1,11 +1,12 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Building } from "lucide-react";
+import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff } from "lucide-react";
+
+type LoginView = "select" | "company" | "member" | "admin";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,219 +15,230 @@ const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Check if admin login is requested (via URL param or state)
-  const isAdminLogin = searchParams.get("type") === "admin" || location.state?.userType === "admin";
 
-  // Show only company login by default, or admin login if specified
-  const [loginView, setLoginView] = useState(isAdminLogin ? "admin" : "company");
-  
-  useEffect(() => {
-    // Update view if URL params change
-    setLoginView(isAdminLogin ? "admin" : "company");
-  }, [isAdminLogin]);
+  const isAdminLogin = searchParams.get("type") === "admin" || location.state?.userType === "admin";
+  const [loginView, setLoginView] = useState<LoginView>(isAdminLogin ? "admin" : "select");
 
   const handleLogin = async (userType: string) => {
     setIsLoading(true);
-    
-    // Simulate login - in a real app, this would call an authentication API
     setTimeout(() => {
       setIsLoading(false);
-      
-      // Basic validation
       if (!email || !password) {
-        toast({
-          title: "Erro de Login",
-          description: "Por favor, preencha todos os campos.",
-          variant: "destructive",
-        });
+        toast({ title: "Erro de Login", description: "Preencha todos os campos.", variant: "destructive" });
         return;
       }
-      
-      // Check credentials
-      const validCredentials = 
+      const valid =
         (userType === "company" && email === "empresa@legacy.com" && password === "123") ||
+        (userType === "member" && email === "membro@legacy.com" && password === "123") ||
         (userType === "admin" && email === "master@legacy.com" && password === "123");
-      
-      if (!validCredentials) {
-        toast({
-          title: "Erro de Login",
-          description: "Email ou senha inválidos.",
-          variant: "destructive",
-        });
+      if (!valid) {
+        toast({ title: "Erro de Login", description: "Email ou senha inválidos.", variant: "destructive" });
         return;
       }
-      
-      toast({
-        title: "Login bem-sucedido",
-        description: `Bem-vindo ao Legacy como ${userType === "admin" ? "Administrador" : "Empresa"}.`,
-      });
-      
-      // Redirect to different pages based on user type
-      if (userType === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      toast({ title: "Login bem-sucedido", description: `Bem-vindo ao Legacy OS.` });
+      if (userType === "admin") navigate("/admin");
+      else navigate("/dashboard");
     }, 1000);
   };
 
+  // Right panel content based on view
+  const rightPanelContent: Record<LoginView, { title: string; subtitle: string; cards: { icon: React.ReactNode; title: string; desc: string }[] }> = {
+    select: {
+      title: "Evolua a governança da sua empresa",
+      subtitle: "Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.",
+      cards: [
+        { icon: <Building2 className="h-5 w-5" />, title: "Estrutura Organizada", desc: "Conselhos, rituais e documentos em um só lugar" },
+        { icon: <BarChart3 className="h-5 w-5" />, title: "Sucessão Planejada", desc: "Prepare sua empresa para as próximas gerações" },
+        { icon: <Leaf className="h-5 w-5" />, title: "Diagnóstico Contínuo", desc: "Visualize a maturidade da sua governança" },
+        { icon: <Calendar className="h-5 w-5" />, title: "ESG Integrado", desc: "Sustentabilidade na agenda da governança" },
+      ],
+    },
+    company: {
+      title: "Acesso Empresa",
+      subtitle: "Gerencie a governança corporativa da sua organização com ferramentas inteligentes.",
+      cards: [
+        { icon: <Building2 className="h-5 w-5" />, title: "Dashboard Executivo", desc: "Métricas e indicadores de governança" },
+        { icon: <FileText className="h-5 w-5" />, title: "Documentação Completa", desc: "Todos os documentos organizados" },
+        { icon: <BarChart3 className="h-5 w-5" />, title: "Avaliação de Maturidade", desc: "Monitore a evolução da governança" },
+        { icon: <Users2 className="h-5 w-5" />, title: "Gestão de Conselhos", desc: "Organize conselhos e comitês" },
+      ],
+    },
+    member: {
+      title: "Acesso Membro",
+      subtitle: "Acesse o Portal de Membros e participe dos conselhos e órgãos de governança.",
+      cards: [
+        { icon: <Users2 className="h-5 w-5" />, title: "Portal de Membros", desc: "Acesse informações dos conselhos e órgãos" },
+        { icon: <FileText className="h-5 w-5" />, title: "Documentos e Atas", desc: "Visualize documentos e atas das reuniões" },
+        { icon: <Calendar className="h-5 w-5" />, title: "Agenda de Reuniões", desc: "Acompanhe a agenda e participe das reuniões" },
+      ],
+    },
+    admin: {
+      title: "Administrador Master",
+      subtitle: "Acesso exclusivo para administradores da plataforma Legacy OS.",
+      cards: [
+        { icon: <Building2 className="h-5 w-5" />, title: "Gestão de Clientes", desc: "Gerencie todas as organizações" },
+        { icon: <BarChart3 className="h-5 w-5" />, title: "Relatórios Globais", desc: "Visão geral da plataforma" },
+      ],
+    },
+  };
+
+  const panel = rightPanelContent[loginView];
+
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      {/* Left side */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[hsl(210,33%,98%)]">
         <div className="w-full max-w-md">
+          {/* Back link */}
+          <button
+            onClick={() => (loginView === "select" ? navigate("/") : setLoginView("select"))}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 font-lato"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {loginView === "select" ? "Voltar à Home" : "Voltar"}
+          </button>
+
+          {/* Logo */}
           <div className="text-center mb-8">
-            <img 
-              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png" 
-              alt="Legacy" 
+            <img
+              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
+              alt="Legacy OS"
               className="h-12 w-auto mx-auto mb-2"
             />
-            <p className="text-gray-600 mt-2">Governança Corporativa para Empresas Familiares</p>
+            <p className="font-lato text-sm text-muted-foreground mt-2">
+              Governança Corporativa e Patrimonial
+            </p>
           </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <div className="flex w-full mb-6">
-              <button
-                className={`flex-1 flex flex-col items-center justify-center p-4 ${
-                  loginView === "company" 
-                    ? "bg-legacy-500 text-white" 
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                } rounded-l-lg transition-colors`}
-                onClick={() => setLoginView("company")}
-              >
-                <Building className={`h-6 w-6 ${loginView === "company" ? "text-white" : "text-gray-600"} mb-2`} />
-                <span className="font-medium">Empresa</span>
-              </button>
-              
-              <button
-                className={`flex-1 flex flex-col items-center justify-center p-4 ${
-                  loginView === "admin" 
-                    ? "bg-legacy-purple-500 text-white" 
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                } rounded-r-lg transition-colors`}
-                onClick={() => setLoginView("admin")}
-              >
-                <Shield className={`h-6 w-6 ${loginView === "admin" ? "text-white" : "text-gray-600"} mb-2`} />
-                <span className="font-medium">Admin Master</span>
-              </button>
-            </div>
 
-            {loginView === "admin" ? (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-semibold text-legacy-purple-500">Administrador Master</h2>
-                  <p className="text-sm text-gray-500">Acesso exclusivo para administradores da plataforma</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="admin-email">Email de Administrador</Label>
-                  <Input 
-                    id="admin-email" 
-                    type="email" 
-                    placeholder="admin@legacy.com"
+          {loginView === "select" ? (
+            /* Role Selection */
+            <div>
+              <p className="font-lato text-center text-muted-foreground mb-8">
+                Escolha como deseja acessar
+              </p>
+              <div className="space-y-4">
+                <button
+                  onClick={() => setLoginView("company")}
+                  className="w-full bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-secondary/30 transition-all text-center group"
+                >
+                  <Building2 className="h-10 w-10 mx-auto mb-3 text-primary group-hover:text-secondary transition-colors" />
+                  <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Cliente</h3>
+                  <p className="font-lato text-sm text-muted-foreground">Acesso para empresas e organizações</p>
+                </button>
+
+                <button
+                  onClick={() => setLoginView("member")}
+                  className="w-full bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-secondary/30 transition-all text-center group"
+                >
+                  <Users2 className="h-10 w-10 mx-auto mb-3 text-green-600 group-hover:text-secondary transition-colors" />
+                  <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Membro</h3>
+                  <p className="font-lato text-sm text-muted-foreground">Acesso para membros de conselhos e órgãos</p>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Login Form */
+            <div className="bg-card border border-border rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-2">
+                {loginView === "company" && <Building2 className="h-6 w-6 text-primary" />}
+                {loginView === "member" && <Users2 className="h-6 w-6 text-green-600" />}
+                {loginView === "admin" && <Building2 className="h-6 w-6 text-secondary" />}
+                <h2 className="font-montserrat text-xl font-bold text-foreground">
+                  {loginView === "company" ? "Cliente" : loginView === "member" ? "Membro" : "Admin Master"}
+                </h2>
+              </div>
+              <p className="font-lato text-sm text-muted-foreground mb-6">
+                {loginView === "company"
+                  ? "Entre com suas credenciais de empresa"
+                  : loginView === "member"
+                  ? "Entre com suas credenciais de membro"
+                  : "Entre com suas credenciais de administrador"}
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <Label className="font-lato text-sm font-medium text-foreground">Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="mt-1"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">Senha de Administrador</Label>
-                  <Input 
-                    id="admin-password" 
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                <div>
+                  <Label className="font-lato text-sm font-medium text-foreground">Senha</Label>
+                  <div className="relative mt-1">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Digite sua senha"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <a href="#" className="text-sm text-legacy-purple-500 hover:underline">
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 font-montserrat"
+                    onClick={() => setLoginView("select")}
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-montserrat"
+                    disabled={isLoading}
+                    onClick={() => handleLogin(loginView)}
+                  >
+                    {isLoading ? "Entrando..." : "Entrar"}
+                  </Button>
+                </div>
+
+                <div className="text-center pt-2">
+                  <a href="#" className="font-lato text-sm text-muted-foreground hover:text-secondary transition-colors">
                     Esqueceu sua senha?
                   </a>
                 </div>
-                <Button 
-                  className="w-full bg-legacy-purple-500 hover:bg-opacity-90"
-                  disabled={isLoading}
-                  onClick={() => handleLogin("admin")}
-                >
-                  {isLoading ? "Entrando..." : "Entrar como Administrador"}
-                </Button>
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-semibold text-legacy-500">Empresa</h2>
-                  <p className="text-sm text-gray-500">Acesso para empresas cadastradas na plataforma</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="company-email">Email</Label>
-                  <Input 
-                    id="company-email" 
-                    type="email" 
-                    placeholder="seu@empresa.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company-password">Senha</Label>
-                  <Input 
-                    id="company-password" 
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <div className="text-right">
-                  <a href="#" className="text-sm text-legacy-500 hover:underline">
-                    Esqueceu sua senha?
-                  </a>
-                </div>
-                <Button 
-                  className="w-full bg-legacy-500 hover:bg-legacy-600"
-                  disabled={isLoading}
-                  onClick={() => handleLogin("company")}
-                >
-                  {isLoading ? "Entrando..." : "Entrar como Empresa"}
-                </Button>
-                
-                <div className="text-center text-sm text-gray-600">
-                  Não tem uma conta?{" "}
-                  <a href="#" className="text-legacy-500 hover:underline">
-                    Registre-se
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
-      
-      {/* Right side - Image */}
-      <div className="hidden lg:block lg:w-1/2 relative legacy-gradient">
-        <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-white">
-          <h2 className="text-3xl font-bold mb-6">Evolua a governança da sua empresa familiar</h2>
-          <p className="text-lg max-w-md text-center mb-8">
-            Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.
-          </p>
-          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="font-semibold mb-1">Estrutura Organizada</h3>
-              <p className="text-sm">Conselhos, rituais e documentos em um só lugar</p>
-            </div>
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="font-semibold mb-1">Sucessão Planejada</h3>
-              <p className="text-sm">Prepare sua empresa para as próximas gerações</p>
-            </div>
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="font-semibold mb-1">Diagnóstico Contínuo</h3>
-              <p className="text-sm">Visualize a maturidade da sua governança</p>
-            </div>
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="font-semibold mb-1">ESG Integrado</h3>
-              <p className="text-sm">Sustentabilidade na agenda da governança</p>
-            </div>
+
+      {/* Right side */}
+      <div className="hidden lg:flex lg:w-1/2 relative legacy-gradient items-center justify-center p-12">
+        {/* Purple gradient overlay for member view */}
+        {loginView === "member" && (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1B263B] to-[#553C9A]/60" />
+        )}
+        <div className="relative z-10 max-w-lg w-full text-white">
+          <h2 className="font-montserrat text-3xl font-bold mb-4">{panel.title}</h2>
+          <p className="font-lato text-lg text-white/80 mb-10">{panel.subtitle}</p>
+
+          <div className={`grid gap-4 ${panel.cards.length === 4 ? "grid-cols-2" : "grid-cols-1"}`}>
+            {panel.cards.map((card, i) => (
+              <div
+                key={i}
+                className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-5 hover:bg-white/15 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-white/80">{card.icon}</span>
+                  <h3 className="font-montserrat font-semibold text-sm">{card.title}</h3>
+                </div>
+                <p className="font-lato text-sm text-white/60">{card.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
