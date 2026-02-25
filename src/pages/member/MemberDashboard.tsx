@@ -1,0 +1,167 @@
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import NotificationBell from "@/components/NotificationBell";
+import {
+  LayoutDashboard,
+  FileText,
+  Calendar,
+  BarChart3,
+  ClipboardList,
+  ChevronRight,
+} from "lucide-react";
+import MemberBriefing from "./MemberBriefing";
+import MemberCopiloto from "./MemberCopiloto";
+
+const MemberDashboard = () => {
+  return (
+    <>
+      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold">Bem-vindo, Roberto</h1>
+            <p className="text-sm text-muted-foreground">Portal do Membro de Governança</p>
+          </div>
+          <NotificationBell />
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto p-6">
+        <Card className="mb-6 bg-legacy-500 border-legacy-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                  <Calendar className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">Próxima Reunião</h2>
+                  <p className="text-white/90 text-sm">segunda-feira, 13 de abril às 14:00</p>
+                  <p className="text-white/80 text-sm">Conselho de Administração</p>
+                  <div className="mt-3">
+                    <p className="text-xs text-white/80 mb-1">Progresso do Briefing</p>
+                    <Progress value={45} className="h-2 bg-white/20" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-6 text-sm">
+                <div className="text-center">
+                  <p className="font-semibold">47</p>
+                  <p className="text-white/80">dias restantes</p>
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold">45%</p>
+                  <p className="text-white/80">preparação</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="bg-muted p-1">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-background">
+              <LayoutDashboard className="h-4 w-4 mr-2" /> Visão Geral
+            </TabsTrigger>
+            <TabsTrigger value="briefing">
+              <FileText className="h-4 w-4 mr-2" /> Meu Briefing
+            </TabsTrigger>
+            <TabsTrigger value="copiloto">
+              <LayoutDashboard className="h-4 w-4 mr-2" /> Copiloto IA
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link to="/member/maturidade">
+                <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <BarChart3 className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">Maturidade</h3>
+                        <p className="text-2xl font-bold text-gray-900">4.0/5.0</p>
+                        <p className="text-sm text-muted-foreground">Ver análise completa</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link to="/member/reunioes">
+                <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <Calendar className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">Próximas Reuniões</h3>
+                        <p className="text-sm text-gray-600">3 reuniões agendadas</p>
+                        <p className="text-sm text-muted-foreground">Próxima: 10/12 às 14:00</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link to="/member/atas-pendentes">
+                <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center relative">
+                        <FileText className="h-6 w-6 text-orange-600" />
+                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-medium">2</span>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">ATAs Pendentes</h3>
+                        <p className="text-sm text-gray-600">2 aguardando sua ação</p>
+                        <p className="text-sm text-red-600 font-medium">1 urgente</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link to="/member/pendencias">
+                <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-lg bg-amber-100 flex items-center justify-center relative">
+                        <ClipboardList className="h-6 w-6 text-amber-600" />
+                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">3</span>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">Tarefas Pendentes</h3>
+                        <p className="text-sm text-gray-600">3 tarefas pendentes</p>
+                        <p className="text-sm text-red-600 font-medium">1 atrasada</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="briefing">
+            <MemberBriefing />
+          </TabsContent>
+
+          <TabsContent value="copiloto">
+            <MemberCopiloto />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </>
+  );
+};
+
+export default MemberDashboard;

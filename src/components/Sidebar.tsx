@@ -1,24 +1,32 @@
 
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
-  ActivitySquare, BarChart3, Calendar, FileText, ChevronRight, 
-  ChevronLeft, LayoutDashboard, Leaf, Network, Settings, Shield, 
-  Users, Database, BookOpen, BookText, Layers, Activity, Building, Bot, DollarSign, PieChart,
-  CheckCircle, Clock, AlertCircle, Zap, Target, Map, Play
+  BarChart3, Calendar, ClipboardList, FileText, ChevronRight, 
+  ChevronLeft, LayoutDashboard, Settings, Shield, 
+  Users, Building, Bot, DollarSign, PieChart,
+  Target, LogOut
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useGovernanceProgress } from "@/hooks/useGovernanceProgress";
-import GuidedNavigation from "@/components/GuidedNavigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(!isMobile);
-  const [showGuidedNav, setShowGuidedNav] = useState(false);
   
   const isAdminRoute = pathname.startsWith("/admin");
   
@@ -35,7 +43,23 @@ const Sidebar = () => {
       setOpen(false);
     }
   }, [pathname, isMobile]);
-  
+
+  const handleLogout = () => {
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso",
+    });
+    navigate("/");
+  };
+
+  const handleEditProfile = () => {
+    toast({
+      title: "Editar Perfil",
+      description: "Edição de perfil ativada",
+    });
+    navigate("/settings?tab=profile");
+  };
+
   // Admin menu items
   const adminMenuItems = [
     {
@@ -59,28 +83,6 @@ const Sidebar = () => {
       name: "Configurações"
     }
   ];
-  
-  const { modules } = useGovernanceProgress();
-  
-  // Get module progress by ID
-  const getModuleProgress = (moduleId: string) => {
-    return modules.find(m => m.id === moduleId);
-  };
-
-  // Get status badge for menu item
-  const getStatusBadge = (moduleId: string) => {
-    const module = getModuleProgress(moduleId);
-    if (!module) return null;
-
-    if (module.isCompleted) {
-      return <CheckCircle className="h-3 w-3 text-green-400" />;
-    } else if (module.completionPercentage >= 70) {
-      return <Clock className="h-3 w-3 text-yellow-400" />;
-    } else if (module.urgency === 'high') {
-      return <AlertCircle className="h-3 w-3 text-red-400" />;
-    }
-    return null;
-  };
 
   // Company menu items organized by phases
   const menuPhases = [
@@ -90,37 +92,23 @@ const Sidebar = () => {
       color: "text-blue-400",
       items: [
         {
-          icon: <Play className="h-5 w-5" />,
-          href: "/start",
-          name: "Comece Aqui",
-          moduleId: null,
-          priority: true
-        },
-        {
           icon: <LayoutDashboard className="h-5 w-5" />,
           href: "/dashboard",
           name: "Dashboard",
           moduleId: null
         },
         {
-          icon: <Settings className="h-5 w-5" />,
-          href: "/settings",
-          name: "Configurações",
-          moduleId: "settings"
-        },
-        {
-          icon: <BarChart3 className="h-5 w-5" />,
-          href: "/data-input",
-          name: "Otimização",
-          moduleId: "maturity",
-          priority: true
+          icon: <Bot className="h-5 w-5" />,
+          href: "/copiloto-governanca",
+          name: "Copiloto de IA",
+          moduleId: null
         }
       ]
     },
     {
       phase: "Fundação",
       icon: <Users className="h-4 w-4" />,
-      color: "text-green-400",
+      color: "text-blue-400",
       items: [
         {
           icon: <Users className="h-5 w-5" />,
@@ -146,12 +134,12 @@ const Sidebar = () => {
     {
       phase: "Estruturação",
       icon: <Shield className="h-4 w-4" />,
-      color: "text-purple-400",
+      color: "text-blue-400",
       items: [
         {
           icon: <Shield className="h-5 w-5" />,
           href: "/councils",
-          name: "Conselhos",
+          name: "Config. de Governança",
           moduleId: "councils",
           priority: true
         },
@@ -162,80 +150,22 @@ const Sidebar = () => {
           moduleId: "rituals"
         },
         {
-          icon: <Network className="h-5 w-5" />,
-          href: "/succession",
-          name: "Sucessão",
-          moduleId: "succession",
-          priority: true
-        }
-      ]
-    },
-    {
-      phase: "Desenvolvimento",
-      icon: <Activity className="h-4 w-4" />,
-      color: "text-orange-400",
-      items: [
-        {
-          icon: <Activity className="h-5 w-5" />,
-          href: "/people-development",
-          name: "Desenvolvimento",
-          moduleId: "people-development"
-        },
-        {
-          icon: <BookText className="h-5 w-5" />,
-          href: "/legacy",
-          name: "Legado",
+          icon: <BarChart3 className="h-5 w-5" />,
+          href: "/analise-acoes",
+          name: "Análise e Ações",
           moduleId: null
         },
         {
-          icon: <Layers className="h-5 w-5" />,
-          href: "/subsystems",
-          name: "Subsistemas",
-          moduleId: "subsystems"
-        }
-      ]
-    },
-    {
-      phase: "Monitoramento",
-      icon: <AlertCircle className="h-4 w-4" />,
-      color: "text-red-400",
-      items: [
-        {
-          icon: <Shield className="h-5 w-5" />,
-          href: "/systemic-risks",
-          name: "Riscos",
-          moduleId: "systemic-risks"
-        },
-        {
-          icon: <Leaf className="h-5 w-5" />,
-          href: "/esg",
-          name: "ESG",
-          moduleId: "esg"
-        },
-        {
-          icon: <ActivitySquare className="h-5 w-5" />,
-          href: "/activities",
-          name: "Atividades",
-          moduleId: null
-        }
-      ]
-    },
-    {
-      phase: "Otimização",
-      icon: <Zap className="h-4 w-4" />,
-      color: "text-yellow-400",
-      items: [
-        {
-          icon: <Database className="h-5 w-5" />,
-          href: "/data-input",
-          name: "Dados ESG",
+          icon: <Calendar className="h-5 w-5" />,
+          href: "/agenda",
+          name: "Agenda",
           moduleId: null
         },
         {
-          icon: <Bot className="h-5 w-5" />,
-          href: "/ai-agents",
-          name: "Agentes de IA",
-          moduleId: "ai-config"
+          icon: <ClipboardList className="h-5 w-5" />,
+          href: "/secretariado",
+          name: "Secretariado",
+          moduleId: null
         }
       ]
     }
@@ -249,25 +179,25 @@ const Sidebar = () => {
       open ? "flex flex-col w-64 sm:w-64 md:w-72 max-w-full" : "w-16 flex flex-col"
     )}>
       <div className="overflow-hidden p-4 border-b border-legacy-600 bg-legacy-500 text-white">
-        <div className="flex items-center justify-between">
-          <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2 min-w-0 flex-1">
             <img 
               src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png" 
               alt="Legacy" 
               className="h-8 w-auto brightness-0 invert"
             />
           </Link>
-          {!isAdminRoute && open && (
+          <div className="flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => setShowGuidedNav(true)}
-              className="text-white hover:bg-legacy-600 p-1"
-              title="Navegação Guiada"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-8 w-8 shrink-0 border-0 bg-transparent text-white hover:bg-legacy-600 hover:text-white"
+              title={open ? "Recolher menu" : "Expandir menu"}
             >
-              <Map className="h-4 w-4" />
+              {open ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
             </Button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -311,9 +241,7 @@ const Sidebar = () => {
                   <div className="space-y-1">
                     {phase.items.map(item => {
                       const isActive = pathname === item.href;
-                      const statusBadge = getStatusBadge(item.moduleId);
-                      const module = getModuleProgress(item.moduleId);
-                      
+
                       return (
                         <Link 
                           key={item.href} 
@@ -328,24 +256,7 @@ const Sidebar = () => {
                         >
                           <div className="flex items-center gap-2 flex-1">
                             {item.icon}
-                            {open && (
-                              <>
-                                <span className="flex-1">{item.name}</span>
-                                <div className="flex items-center gap-1">
-                                  {item.priority && !isActive && (
-                                    <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 text-xs px-1.5 py-0.5">
-                                      !
-                                    </Badge>
-                                  )}
-                                  {statusBadge}
-                                  {module && module.completionPercentage > 0 && module.completionPercentage < 100 && (
-                                    <span className="text-xs text-white/60">
-                                      {module.completionPercentage}%
-                                    </span>
-                                  )}
-                                </div>
-                              </>
-                            )}
+                            {open && <span className="flex-1">{item.name}</span>}
                           </div>
                         </Link>
                       );
@@ -357,15 +268,62 @@ const Sidebar = () => {
           )}
         </div>
       </div>
-      
-      <Button variant="outline" size="icon" onClick={toggleSidebar} className="m-2">
-        {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-      </Button>
-      
-      <GuidedNavigation 
-        isOpen={showGuidedNav} 
-        onClose={() => setShowGuidedNav(false)} 
-      />
+
+      {!isAdminRoute && (
+        <div className="border-t border-legacy-600 px-3 py-3 mt-auto shrink-0">
+          <div className={cn("flex items-center gap-2", !open && "justify-center")}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-legacy-500"
+                  title="Perfil"
+                >
+                  <Avatar className="h-9 w-9 shrink-0 border-2 border-white/20">
+                    <AvatarFallback className="bg-legacy-600 text-white text-sm">U</AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align={open ? "start" : "center"} side="right" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Usuário Admin</span>
+                    <span className="text-xs text-muted-foreground">admin@legacygov.com</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleEditProfile}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {open && (
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-medium text-white truncate">Usuário Admin</span>
+              </div>
+            )}
+            <Link
+              to="/settings"
+              className="shrink-0 rounded-md p-2 text-white hover:bg-legacy-600 transition-colors"
+              title="Configurações"
+            >
+              <Settings className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="shrink-0 rounded-md p-2 text-white hover:bg-legacy-600 transition-colors"
+              title="Sair"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

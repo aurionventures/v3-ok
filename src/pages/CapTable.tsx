@@ -18,7 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Sidebar from "@/components/Sidebar";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 // Mock data for demonstration
 const mockShareholders = [
@@ -320,14 +320,22 @@ const CapTable = () => {
                     >
                       <ResponsiveContainer width="100%" height="100%">
                         <RechartsPieChart>
-                          <ChartTooltip 
-                            content={<ChartTooltipContent />}
-                          />
-                          <RechartsPieChart data={chartData}>
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Pie
+                            data={chartData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius="80%"
+                            label={({ name, value }) => `${name}: ${value}%`}
+                            labelLine
+                          >
                             {chartData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.fill} />
                             ))}
-                          </RechartsPieChart>
+                          </Pie>
+                          <Legend />
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     </ChartContainer>

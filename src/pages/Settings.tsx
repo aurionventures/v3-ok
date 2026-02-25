@@ -1,9 +1,11 @@
 
 import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Bot, Shield, Bell, Cpu } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Bot, Shield, Bell, Cpu, ActivitySquare } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
+import ActivityList from "@/components/ActivityList";
+import { allActivities } from "@/pages/Activities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +63,10 @@ const Settings = () => {
                   <TabsTrigger value="notifications">
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
+                  </TabsTrigger>
+                  <TabsTrigger value="activities">
+                    <ActivitySquare className="h-4 w-4 mr-2" />
+                    Atividades
                   </TabsTrigger>
                 </TabsList>
                 
@@ -370,6 +376,13 @@ const Settings = () => {
                       <Save className="h-4 w-4 mr-2" />
                       Salvar Preferências de Notificações
                     </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="activities">
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium mb-4">Histórico de Atividades</h3>
+                    <ActivityList activities={allActivities} showViewAll={false} />
                   </div>
                 </TabsContent>
               </Tabs>

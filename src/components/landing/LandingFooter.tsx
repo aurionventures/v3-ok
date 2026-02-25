@@ -1,14 +1,18 @@
+import { Link } from "react-router-dom";
+
 const LandingFooter = () => {
   return (
     <footer className="bg-[#0B1628] text-white py-12">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="col-span-1">
-            <img
-              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
-              alt="Legacy OS"
-              className="h-8 w-auto brightness-0 invert mb-4"
-            />
+            <Link to="/">
+              <img
+                src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
+                alt="Legacy OS"
+                className="h-8 w-auto brightness-0 invert mb-4"
+              />
+            </Link>
             <p className="font-lato text-white/60 text-sm leading-relaxed">
               O primeiro Sistema Operacional de Governança Corporativa com IA nativa.
             </p>
@@ -19,7 +23,7 @@ const LandingFooter = () => {
             <ul className="space-y-2 font-lato text-sm text-white/60">
               <li><a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a></li>
               <li><a href="#diferenciais" className="hover:text-white transition-colors">Diferenciais</a></li>
-              <li><a href="#planos" className="hover:text-white transition-colors">Planos</a></li>
+              <li><Link to="/planos" className="hover:text-white transition-colors">Planos</Link></li>
               <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
           </div>

@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Users, Plus, Search, Calendar, FileText, Bot, TrendingUp, AlertTriangle, CheckCircle2, Send, Sparkles, Vote } from "lucide-react";
+import { Users, Plus, Search, FileText, Bot, TrendingUp, AlertTriangle, CheckCircle2, Send, Sparkles, Vote, Building2, Trash2, ChevronDown, Pencil } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -35,30 +35,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-// Sample councils data
+// Configuração de Governança - Conselhos
+const governanceConselhos = [
+  { id: 1, name: "Conselho de Administração", description: "Conselho responsável pela gestão estratégica da empresa", tipo: "administrativo", quorum: 3, nivel: "Estratégico", membros: 4 },
+  { id: 2, name: "Conselho Fiscal", description: "Conselho de fiscalização contábil e financeira", tipo: "fiscal", quorum: 3, nivel: "Estratégico", membros: 3 },
+  { id: 3, name: "Conselho Consultivo", description: "Conselho de especialistas externos para orientação estratégica", tipo: "consultivo", quorum: 5, nivel: "Estratégico", membros: 5 },
+];
+
+// Configuração de Governança - Comitês
+const governanceComites = [
+  { id: 1, name: "Comitê de Auditoria", description: "Supervisão de processos de auditoria interna e externa", tipo: "auditoria", quorum: 3, nivel: "Tático", membros: 4 },
+  { id: 2, name: "Comitê de Estratégia", description: "Definição e acompanhamento do planejamento estratégico", tipo: "estrategia", quorum: 4, nivel: "Tático", membros: 5 },
+  { id: 3, name: "Comitê de Riscos", description: "Gestão e mitigação de riscos corporativos", tipo: "outros", quorum: 3, nivel: "Tático", membros: 3 },
+];
+
+// Configuração de Governança - Comissões
+const governanceComissoes = [
+  { id: 1, name: "Comissão de Ética", description: "Análise de questões éticas e compliance corporativo", tipo: "outros", quorum: 3, nivel: "Operacional", membros: 4 },
+  { id: 2, name: "Comissão de Inovação", description: "Avaliação de projetos de inovação e transformação digital", tipo: "outros", quorum: 4, nivel: "Operacional", membros: 4 },
+  { id: 3, name: "Comissão de Sustentabilidade", description: "Iniciativas ESG e sustentabilidade empresarial", tipo: "outros", quorum: 3, nivel: "Operacional", membros: 3 },
+];
+
+// Sample councils data (legacy)
 const councils = [
-  {
-    id: 1,
-    name: "Conselho de Administração",
-    type: "Estatutário",
-    members: 5,
-    nextMeeting: "24/05/2025",
-  },
-  {
-    id: 2,
-    name: "Conselho Consultivo",
-    type: "Não estatutário",
-    members: 3,
-    nextMeeting: "10/06/2025",
-  },
-  {
-    id: 3,
-    name: "Comitê de Sucessão",
-    type: "Temporário",
-    members: 4,
-    nextMeeting: "15/06/2025",
-  },
+  { id: 1, name: "Conselho de Administração", type: "Estatutário", members: 5, nextMeeting: "24/05/2025" },
+  { id: 2, name: "Conselho Consultivo", type: "Não estatutário", members: 3, nextMeeting: "10/06/2025" },
+  { id: 3, name: "Comitê de Sucessão", type: "Temporário", members: 4, nextMeeting: "15/06/2025" },
 ];
 
 // Sample council members data
@@ -318,13 +322,6 @@ const Councils = () => {
     });
   };
 
-  const handleAddMeeting = () => {
-    toast({
-      title: "Reunião agendada",
-      description: "A nova reunião foi agendada com sucesso.",
-    });
-  };
-
   const handleViewDetails = (item: any, type: string) => {
     if (type === "projeto") {
       setSelectedProject(item);
@@ -445,6 +442,43 @@ const Councils = () => {
     }
   };
 
+  type GovernanceItem = { id: number; name: string; description: string; tipo: string; quorum: number; nivel: string; membros: number };
+  function GovernanceCard({ item, icon, onDelete }: { item: GovernanceItem; icon: React.ReactNode; onDelete: () => void }) {
+    const [docOpen, setDocOpen] = useState(false);
+    return (
+      <Card className="rounded-lg border bg-card">
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                {icon}
+                <h3 className="font-semibold text-base">{item.name}</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">Tipo: {item.tipo}</span>
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">Quórum: {item.quorum}</span>
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">Nível: {item.nivel}</span>
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">Membros: {item.membros}</span>
+              </div>
+              <Collapsible open={docOpen} onOpenChange={setDocOpen}>
+                <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                  <FileText className="h-4 w-4" />
+                  Documentos (0)
+                  <ChevronDown className={`h-4 w-4 transition-transform ${docOpen ? "rotate-180" : ""}`} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2 text-sm text-muted-foreground">Nenhum documento anexado.</CollapsibleContent>
+              </Collapsible>
+            </div>
+            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={onDelete} aria-label="Excluir">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -453,66 +487,55 @@ const Councils = () => {
         <div className="flex-1 overflow-y-auto p-6">
           <Card className="mb-6">
             <CardContent className="pt-6 px-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
-                  Conselhos e Comitês
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-legacy-500">
+                  Configuração de Governança
                 </h2>
-                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="search"
-                      placeholder="Buscar..."
-                      className="pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Gerencie conselhos, comitês e comissões da sua empresa
+                </p>
               </div>
 
               <Tabs defaultValue="councils">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="councils">Conselhos</TabsTrigger>
-                  <TabsTrigger value="members">Conselheiros</TabsTrigger>
-                  <TabsTrigger value="meetings">Reuniões</TabsTrigger>
-                  <TabsTrigger value="projects">Projetos para Votação</TabsTrigger>
-                  <TabsTrigger value="history">Histórico de Projetos</TabsTrigger>
-                  <TabsTrigger value="documents">Documentos</TabsTrigger>
-                </TabsList>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                  <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
+                    <TabsTrigger value="councils" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
+                      <Building2 className="mr-2 h-4 w-4" /> Conselhos
+                    </TabsTrigger>
+                    <TabsTrigger value="comites">
+                      <Users className="mr-2 h-4 w-4" /> Comitês
+                    </TabsTrigger>
+                    <TabsTrigger value="comissoes">
+                      <Users className="mr-2 h-4 w-4" /> Comissões
+                    </TabsTrigger>
+                    <TabsTrigger value="members">
+                      <Users className="mr-2 h-4 w-4" /> Membros
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
                 <TabsContent value="councils">
                   <div className="flex justify-end mb-4">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button>
-                          <Plus className="mr-2 h-4 w-4" /> Novo Conselho
-                        </Button>
+                        <Button><Plus className="mr-2 h-4 w-4" /> Criar Conselho</Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
                           <DialogTitle>Criar Novo Conselho</DialogTitle>
-                          <DialogDescription>
-                            Preencha as informações do novo conselho ou comitê
-                          </DialogDescription>
+                          <DialogDescription>Preencha as informações do novo conselho</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="councilName" className="text-right">
-                              Nome
-                            </label>
+                            <label htmlFor="councilName" className="text-right">Nome</label>
                             <Input id="councilName" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="councilType" className="text-right">
-                              Tipo
-                            </label>
+                            <label htmlFor="councilType" className="text-right">Tipo</label>
                             <Input id="councilType" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="description" className="text-right">
-                              Descrição
-                            </label>
+                            <label htmlFor="description" className="text-right">Descrição</label>
                             <Input id="description" className="col-span-3" />
                           </div>
                         </div>
@@ -522,90 +545,68 @@ const Councils = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Membros</TableHead>
-                        <TableHead>Próxima Reunião</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredCouncils.map((council) => (
-                        <TableRow
-                          key={council.id}
-                          className="cursor-pointer"
-                          onClick={() => handleViewDetails(council, "conselho")}
-                        >
-                          <TableCell className="font-medium">{council.name}</TableCell>
-                          <TableCell>{council.type}</TableCell>
-                          <TableCell>{council.members}</TableCell>
-                          <TableCell>{council.nextMeeting}</TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewDetails(council, "conselho");
-                              }}
-                            >
-                              Ver Detalhes
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-4">
+                    {governanceConselhos.map((item) => (
+                      <GovernanceCard key={item.id} item={item} icon={<Building2 className="h-5 w-5" />} onDelete={() => toast({ title: "Conselho removido" })} />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="comites">
+                  <div className="flex justify-end mb-4">
+                    <Button><Plus className="mr-2 h-4 w-4" /> Criar Comitê</Button>
+                  </div>
+                  <div className="space-y-4">
+                    {governanceComites.map((item) => (
+                      <GovernanceCard key={item.id} item={item} icon={<Users className="h-5 w-5" />} onDelete={() => toast({ title: "Comitê removido" })} />
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="comissoes">
+                  <div className="flex justify-end mb-4">
+                    <Button><Plus className="mr-2 h-4 w-4" /> Criar Comissão</Button>
+                  </div>
+                  <div className="space-y-4">
+                    {governanceComissoes.map((item) => (
+                      <GovernanceCard key={item.id} item={item} icon={<Users className="h-5 w-5" />} onDelete={() => toast({ title: "Comissão removida" })} />
+                    ))}
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="members">
-                  <div className="flex justify-end mb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div className="relative w-full sm:max-w-sm">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="search"
+                        placeholder="Buscar por nome ou cargo..."
+                        className="pl-8"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button>
-                          <Plus className="mr-2 h-4 w-4" /> Novo Conselheiro
-                        </Button>
+                        <Button className="shrink-0"><Plus className="mr-2 h-4 w-4" /> Criar Membro</Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                          <DialogTitle>Adicionar Conselheiro</DialogTitle>
-                          <DialogDescription>
-                            Preencha as informações do novo conselheiro
-                          </DialogDescription>
+                          <DialogTitle>Adicionar Membro</DialogTitle>
+                          <DialogDescription>Preencha as informações do novo membro</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="memberName" className="text-right">
-                              Nome
-                            </label>
+                            <label htmlFor="memberName" className="text-right">Nome</label>
                             <Input id="memberName" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="memberCouncil" className="text-right">
-                              Conselho
-                            </label>
-                            <Input id="memberCouncil" className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="memberRole" className="text-right">
-                              Cargo
-                            </label>
+                            <label htmlFor="memberRole" className="text-right">Cargo Principal</label>
                             <Input id="memberRole" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="startDate" className="text-right">
-                              Data Início
-                            </label>
+                            <label htmlFor="startDate" className="text-right">Data de Início</label>
                             <Input id="startDate" className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="endDate" className="text-right">
-                              Data Fim
-                            </label>
-                            <Input id="endDate" className="col-span-3" />
                           </div>
                         </div>
                         <DialogFooter>
@@ -614,141 +615,37 @@ const Councils = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
+                  <p className="text-lg font-semibold mb-4">{filteredMembers.length} Membros</p>
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nome</TableHead>
-                        <TableHead>Conselho</TableHead>
-                        <TableHead>Cargo</TableHead>
-                        <TableHead>Início</TableHead>
-                        <TableHead>Fim</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredMembers.map((member) => (
-                        <TableRow
-                          key={member.id}
-                          className="cursor-pointer"
-                          onClick={() => handleViewDetails(member, "conselheiro")}
-                        >
-                          <TableCell className="font-medium">{member.name}</TableCell>
-                          <TableCell>{member.council}</TableCell>
-                          <TableCell>{member.role}</TableCell>
-                          <TableCell>{member.startDate}</TableCell>
-                          <TableCell>{member.endDate}</TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewDetails(member, "conselheiro");
-                              }}
-                            >
-                              Ver Detalhes
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-
-                <TabsContent value="meetings">
-                  <div className="flex justify-end mb-4">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button>
-                          <Calendar className="mr-2 h-4 w-4" /> Agendar Reunião
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                          <DialogTitle>Agendar Nova Reunião</DialogTitle>
-                          <DialogDescription>
-                            Preencha as informações da reunião
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="meetingCouncil" className="text-right">
-                              Conselho
-                            </label>
-                            <Input id="meetingCouncil" className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="meetingDate" className="text-right">
-                              Data
-                            </label>
-                            <Input id="meetingDate" type="date" className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="meetingTime" className="text-right">
-                              Horário
-                            </label>
-                            <Input id="meetingTime" type="time" className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="meetingType" className="text-right">
-                              Tipo
-                            </label>
-                            <Input id="meetingType" className="col-span-3" />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button onClick={handleAddMeeting}>Agendar</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Conselho</TableHead>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Horário</TableHead>
-                        <TableHead>Tipo</TableHead>
+                        <TableHead>Cargo Principal</TableHead>
+                        <TableHead>Órgãos Alocados</TableHead>
+                        <TableHead>Data de Início</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredMeetings.map((meeting) => (
-                        <TableRow
-                          key={meeting.id}
-                          className="cursor-pointer"
-                          onClick={() => handleViewDetails(meeting, "reunião")}
-                        >
-                          <TableCell className="font-medium">{meeting.council}</TableCell>
-                          <TableCell>{meeting.date}</TableCell>
-                          <TableCell>{meeting.time}</TableCell>
-                          <TableCell>{meeting.type}</TableCell>
+                      {filteredMembers.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell className="font-medium">{member.name}</TableCell>
+                          <TableCell>{member.role}</TableCell>
+                          <TableCell>{member.council || "Não alocado"}</TableCell>
+                          <TableCell>{member.startDate}</TableCell>
                           <TableCell>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                meeting.status === "Agendada"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : meeting.status === "Realizada"
-                                  ? "bg-green-100 text-green-800"
-                                  : meeting.status === "Cancelada"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              }`}
-                            >
-                              {meeting.status}
-                            </span>
+                            <Badge variant="secondary" className="bg-primary text-primary-foreground">Ativo</Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewDetails(meeting, "reunião");
-                              }}
-                            >
-                              Ver Detalhes
+                            <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleViewDetails(member, "conselheiro")}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" aria-label="Alocar" onClick={() => toast({ title: "Alocar membro" })}>
+                              <Users className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" aria-label="Excluir" onClick={() => toast({ title: "Membro removido" })}>
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -757,7 +654,7 @@ const Councils = () => {
                   </Table>
                 </TabsContent>
 
-                <TabsContent value="projects">
+                <TabsContent value="projects" className="hidden">
                   <div className="flex justify-end mb-4">
                     <Dialog>
                       <DialogTrigger asChild>

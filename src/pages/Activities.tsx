@@ -8,8 +8,8 @@ import ActivityList from "@/components/ActivityList";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-// Sample data for activities
-const allActivities = [
+// Sample data for activities (exported for use in Settings > Atividades tab)
+export const allActivities = [
   {
     id: 1,
     type: "meeting" as const,

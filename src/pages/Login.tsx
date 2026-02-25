@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff } from "lucide-react";
+import { setUserType } from "@/lib/auth";
 
 type LoginView = "select" | "company" | "member" | "admin";
 
@@ -37,8 +38,10 @@ const Login = () => {
         toast({ title: "Erro de Login", description: "Email ou senha inválidos.", variant: "destructive" });
         return;
       }
+      setUserType(userType as "company" | "member" | "admin");
       toast({ title: "Login bem-sucedido", description: `Bem-vindo ao Legacy OS.` });
       if (userType === "admin") navigate("/admin");
+      else if (userType === "member") navigate("/member/dashboard");
       else navigate("/dashboard");
     }, 1000);
   };
@@ -99,18 +102,6 @@ const Login = () => {
             <ArrowLeft className="h-4 w-4" />
             {loginView === "select" ? "Voltar à Home" : "Voltar"}
           </button>
-
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <img
-              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
-              alt="Legacy OS"
-              className="h-12 w-auto mx-auto mb-2"
-            />
-            <p className="font-lato text-sm text-muted-foreground mt-2">
-              Governança Corporativa e Patrimonial
-            </p>
-          </div>
 
           {loginView === "select" ? (
             /* Role Selection */

@@ -1,5 +1,5 @@
-
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { MessageSquareText, X, Minimize2, Maximize2, Bot, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -74,6 +74,7 @@ const responses = {
 };
 
 const GovernanceAssistant = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState("");
@@ -85,6 +86,8 @@ const GovernanceAssistant = () => {
       text: `Olá! Sou o ${availableAssistants[0].name}. Como posso ajudá-lo hoje?` 
     }
   ]);
+
+  if (location.pathname.startsWith("/member")) return null;
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
