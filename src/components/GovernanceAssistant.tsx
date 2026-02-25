@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { MessageSquareText, X, Minimize2, Maximize2, Bot, RefreshCw } from "lucide-react";
+import { X, Minimize2, Maximize2, Bot, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -138,9 +138,11 @@ const GovernanceAssistant = () => {
     });
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      {isOpen && !isMinimized && (
+      {!isMinimized && (
         <Card className="w-80 shadow-lg mb-2 border-legacy-500 animate-fade-in">
           <CardHeader className={`px-4 py-2 border-b ${currentAssistant.bgColor} text-white flex justify-between items-center`}>
             <div className="flex items-center space-x-2">
@@ -233,7 +235,7 @@ const GovernanceAssistant = () => {
         </Card>
       )}
 
-      {isOpen && isMinimized && (
+      {isMinimized && (
         <Button 
           onClick={toggleMinimize}
           className={`mb-2 ${currentAssistant.bgColor} hover:opacity-90 text-white flex items-center gap-2 shadow-lg`}
@@ -242,15 +244,6 @@ const GovernanceAssistant = () => {
           <span>{currentAssistant.name}</span>
         </Button>
       )}
-
-      <Button
-        onClick={toggleChat}
-        className={`h-14 w-14 rounded-full shadow-lg flex items-center justify-center ${
-          isOpen ? "bg-gray-500 hover:bg-gray-600" : "bg-legacy-500 hover:bg-legacy-600"
-        }`}
-      >
-        <MessageSquareText className="h-6 w-6 text-white" />
-      </Button>
     </div>
   );
 };

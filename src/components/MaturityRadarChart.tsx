@@ -12,11 +12,14 @@ interface MaturityDimension {
 
 interface MaturityRadarChartProps {
   data: MaturityDimension[];
+  /** Quando "governanca": sem botões de toggle, setor preenchido (teal), legenda externa */
+  variant?: "default" | "governanca";
 }
 
-const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
+const MaturityRadarChart = ({ data, variant = "default" }: MaturityRadarChartProps) => {
   const [showCompany, setShowCompany] = useState(true);
   const [showSector, setShowSector] = useState(true);
+  const isGovernanca = variant === "governanca";
 
   // Validate data before rendering
   const isValidData = data && Array.isArray(data) && data.length > 0 && 
@@ -36,22 +39,24 @@ const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-center gap-4 mb-4">
-        <Button 
-          variant={showCompany ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowCompany(!showCompany)}
-        >
-          Empresa
-        </Button>
-        <Button 
-          variant={showSector ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowSector(!showSector)}
-        >
-          Boa Governança
-        </Button>
-      </div>
+      {!isGovernanca && (
+        <div className="flex justify-center gap-4 mb-4">
+          <Button 
+            variant={showCompany ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowCompany(!showCompany)}
+          >
+            Empresa
+          </Button>
+          <Button 
+            variant={showSector ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowSector(!showSector)}
+          >
+            Boa Governança
+          </Button>
+        </div>
+      )}
       <div className="h-80 w-full max-w-lg mx-auto">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart 
@@ -102,10 +107,11 @@ const MaturityRadarChart = ({ data }: MaturityRadarChartProps) => {
               <Radar
                 name="sectorAverage"
                 dataKey="sectorAverage"
-                stroke="#64748B"
-                fill="transparent"
+                stroke="#2dd4bf"
+                fill={isGovernanca ? "#2dd4bf" : "transparent"}
+                fillOpacity={isGovernanca ? 0.35 : 1}
                 strokeWidth={2}
-                strokeDasharray="5 5"
+                strokeDasharray={isGovernanca ? undefined : "5 5"}
               />
             )}
           </RadarChart>

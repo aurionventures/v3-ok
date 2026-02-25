@@ -9,6 +9,8 @@ import {
   PenLine,
   CheckSquare,
   BarChart3,
+  Users,
+  LayoutGrid,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,8 @@ import {
   Tooltip,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { BuscaConversacionalAtas } from "@/components/secretariado/BuscaConversacionalAtas";
+import { AprovacaoConvidadosContent } from "@/components/secretariado/AprovacaoConvidadosContent";
 
 const KPI_CARDS = [
   {
@@ -109,7 +113,15 @@ const TAREFAS_POR_ORGAO = [
 
 function GestaoTarefasContent() {
   return (
-    <div className="space-y-8 mt-6">
+    <div className="space-y-6 mt-6">
+      <BuscaConversacionalAtas />
+    </div>
+  );
+}
+
+function GestaoTarefasIndicadores() {
+  return (
+    <div className="space-y-8">
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Visão Gerencial - Indicadores Executivos
@@ -294,7 +306,7 @@ function GestaoTarefasContent() {
 }
 
 const Secretariado = () => {
-  const [activeTab, setActiveTab] = useState("tarefas");
+  const [activeTab, setActiveTab] = useState("indicadores");
   const [showGuidedNav, setShowGuidedNav] = useState(false);
 
   return (
@@ -314,11 +326,25 @@ const Secretariado = () => {
               >
                 <TabsList className="h-9 bg-transparent p-0 gap-0 border-b-0 rounded-none">
                   <TabsTrigger
+                    value="indicadores"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-1 mr-6 text-gray-600 data-[state=active]:text-gray-900"
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    Indicadores
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="tarefas"
                     className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-1 mr-6 text-gray-600 data-[state=active]:text-gray-900"
                   >
                     <ClipboardList className="h-4 w-4 mr-2" />
                     Gestão de Tarefas
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="convidados"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-1 mr-6 text-gray-600 data-[state=active]:text-gray-900"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Aprovação de Convidados
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -339,7 +365,13 @@ const Secretariado = () => {
         </header>
 
         <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          {activeTab === "indicadores" && (
+            <div className="mt-6">
+              <GestaoTarefasIndicadores />
+            </div>
+          )}
           {activeTab === "tarefas" && <GestaoTarefasContent />}
+          {activeTab === "convidados" && <AprovacaoConvidadosContent />}
         </main>
       </div>
 

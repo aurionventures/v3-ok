@@ -41,9 +41,9 @@ const MemberSidebar = () => {
       <div className="p-4 border-b border-legacy-600 text-white">
         <Link to="/member/dashboard" className="flex flex-col gap-1 min-w-0">
           <img
-            src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
+            src="/lovable-uploads/nova-logo-branca.png"
             alt="Legacy OS"
-            className="h-8 w-auto max-w-[160px] object-contain brightness-0 invert"
+            className="h-8 w-auto max-w-[160px] object-contain"
           />
           <span className="text-xs font-medium text-white/90">Portal do Membro</span>
         </Link>

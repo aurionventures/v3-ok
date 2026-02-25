@@ -32,7 +32,7 @@ export interface GovernanceProgress {
 const initialModules: ModuleProgress[] = [
   {
     id: 'family-structure',
-    name: 'Estrutura Familiar',
+    name: 'Estrutura Societária',
     description: 'Cadastro completo da família e organograma',
     completionPercentage: 65,
     isCompleted: false,

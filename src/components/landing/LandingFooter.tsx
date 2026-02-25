@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { CookieConsent } from "./CookieConsent";
 
 const LandingFooter = () => {
   return (
+    <>
     <footer className="bg-[#0B1628] text-white py-12">
       <div className="container mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-8">
@@ -53,9 +55,9 @@ const LandingFooter = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex flex-wrap gap-6">
-            <a href="#" className="font-lato text-white/40 hover:text-white transition-colors text-xs">Política de Privacidade</a>
+            <Link to="/politica-privacidade" className="font-lato text-white/40 hover:text-white transition-colors text-xs">Política de Privacidade</Link>
             <a href="#" className="font-lato text-white/40 hover:text-white transition-colors text-xs">Termos de Uso</a>
-            <a href="#" className="font-lato text-white/40 hover:text-white transition-colors text-xs">LGPD</a>
+            <Link to="/politica-privacidade#lgpd" className="font-lato text-white/40 hover:text-white transition-colors text-xs">LGPD</Link>
           </div>
           <div className="font-lato text-xs text-white/40">
             &copy; {new Date().getFullYear()} Legacy OS. Todos os direitos reservados.
@@ -63,6 +65,8 @@ const LandingFooter = () => {
         </div>
       </div>
     </footer>
+    <CookieConsent />
+    </>
   );
 };
 

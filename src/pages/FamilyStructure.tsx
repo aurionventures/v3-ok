@@ -178,13 +178,13 @@ const FamilyStructure = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Estrutura Familiar" />
+        <Header title="Estrutura Societária" />
         <div className="flex-1 overflow-y-auto p-6">
           <Card className="mb-6">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                 <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
-                  Estrutura Familiar
+                  Estrutura Societária
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                   <div className="relative">

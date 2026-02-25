@@ -106,7 +106,7 @@ const OnboardingPage = () => {
       value: "Prevenção proativa de conflitos e crises"
     },
     {
-      module: "Estrutura Familiar",
+      module: "Estrutura Societária",
       problem: "Complexidade das relações familiares dificulta decisões",
       solution: "Mapeamento visual das relações e influências familiares",
       value: "Decisões mais assertivas e transparentes"

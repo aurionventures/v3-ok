@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff, Shield } from "lucide-react";
 import { setUserType } from "@/lib/auth";
 
 type LoginView = "select" | "company" | "member" | "admin";
@@ -33,7 +33,7 @@ const Login = () => {
       const valid =
         (userType === "company" && email === "empresa@legacy.com" && password === "123") ||
         (userType === "member" && email === "membro@legacy.com" && password === "123") ||
-        (userType === "admin" && email === "master@legacy.com" && password === "123");
+        (userType === "admin" && email === "admin@legacy.com" && password === "123");
       if (!valid) {
         toast({ title: "Erro de Login", description: "Email ou senha inválidos.", variant: "destructive" });
         return;
@@ -127,6 +127,15 @@ const Login = () => {
                   <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Membro</h3>
                   <p className="font-lato text-sm text-muted-foreground">Acesso para membros de conselhos e órgãos</p>
                 </button>
+
+                <button
+                  onClick={() => setLoginView("admin")}
+                  className="w-full bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-secondary/30 transition-all text-center group"
+                >
+                  <Shield className="h-10 w-10 mx-auto mb-3 text-green-600 group-hover:text-secondary transition-colors" />
+                  <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Admin Master</h3>
+                  <p className="font-lato text-sm text-muted-foreground">Acesso para administradores da plataforma</p>
+                </button>
               </div>
             </div>
           ) : (
@@ -135,7 +144,7 @@ const Login = () => {
               <div className="flex items-center gap-3 mb-2">
                 {loginView === "company" && <Building2 className="h-6 w-6 text-primary" />}
                 {loginView === "member" && <Users2 className="h-6 w-6 text-green-600" />}
-                {loginView === "admin" && <Building2 className="h-6 w-6 text-secondary" />}
+                {loginView === "admin" && <Shield className="h-6 w-6 text-green-600" />}
                 <h2 className="font-montserrat text-xl font-bold text-foreground">
                   {loginView === "company" ? "Cliente" : loginView === "member" ? "Membro" : "Admin Master"}
                 </h2>

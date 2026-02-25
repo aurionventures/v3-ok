@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { Settings, Bot, Check, AlertCircle, ChevronDown, ChevronUp, Shield, Users, BookOpen, Leaf, Trash2, Edit, Save, Plus } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { Settings, Bot, Check, AlertCircle, ChevronDown, ChevronUp, Shield, Users, BookOpen, Leaf, Trash2, Edit, Save, Plus, FileText, ClipboardList, Calendar, TrendingUp, Target, LayoutGrid, List } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +30,10 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { AGENTES_SRC } from "@/data/agentesSrcData";
 
 // Agent configuration interface
 interface Agent {
@@ -153,6 +156,13 @@ const availableModules = [
 ];
 
 const AdminAgentConfig = () => {
+  const { pathname } = useLocation();
+  const isConfiguracaoIA = pathname === "/configuracao-ia";
+  const pageTitle = isConfiguracaoIA ? "Configuração de IA" : "Configuração de Agentes";
+  const pageDescription = isConfiguracaoIA
+    ? "Gerencie os agentes de IA e as configurações do assistente"
+    : "Gerencie os agentes de IA disponíveis na plataforma";
+
   const [agents, setAgents] = useState<Agent[]>(initialAgents);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -163,6 +173,7 @@ const AdminAgentConfig = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"mosaico" | "lista">("mosaico");
 
   // Create new agent dialog state
   const [showCreateAgentDialog, setShowCreateAgentDialog] = useState(false);
@@ -192,10 +203,44 @@ const AdminAgentConfig = () => {
         return <BookOpen />;
       case "Leaf":
         return <Leaf />;
+      case "FileText":
+        return <FileText />;
+      case "ClipboardList":
+        return <ClipboardList />;
+      case "Calendar":
+        return <Calendar />;
+      case "TrendingUp":
+        return <TrendingUp />;
+      case "Target":
+        return <Target />;
       default:
         return <Bot />;
     }
   };
+
+  // ID base para agentes sintéticos (originados de src/agente-*)
+  const SYNTHETIC_AGENT_ID_BASE = 1000;
+
+  // Lista unificada para o mosaico: agentes da página (Consilium, etc.) + agentes em src/ (sem duplicar os que já foram adicionados como sintéticos)
+  const mosaicAgents = [
+    ...agents.map((a) => ({
+      id: String(a.id),
+      name: a.name,
+      description: a.description,
+      status: a.status,
+      color: a.color,
+      icon: a.icon,
+    })),
+    ...AGENTES_SRC.filter(
+      (_, idx) => !agents.some((a) => a.id === SYNTHETIC_AGENT_ID_BASE + idx)
+    ),
+  ].filter((a) => {
+    const matchesSearch =
+      a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || a.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   // Filter agents based on search term, status filter and type filter
   const filteredAgents = agents.filter((agent) => {
@@ -233,6 +278,43 @@ const AdminAgentConfig = () => {
   // Handle edit agent
   const handleEditAgent = (agent: Agent) => {
     setEditingAgent({ ...agent });
+    setShowEditDialog(true);
+  };
+
+  // Abre o configurador para qualquer agente do mosaico (inclui agentes de src como Agent sintético)
+  const handleConfigurarMosaicAgent = (
+    agent: { id: string; name: string; description: string; status: "active" | "inactive"; color: string; icon: string }
+  ) => {
+    const fullAgent = agents.find((a) => String(a.id) === agent.id);
+    if (fullAgent) {
+      handleEditAgent(fullAgent);
+      return;
+    }
+    const srcIndex = AGENTES_SRC.findIndex((e) => e.id === agent.id);
+    if (srcIndex === -1) return;
+    const syntheticId = SYNTHETIC_AGENT_ID_BASE + srcIndex;
+    const existing = agents.find((a) => a.id === syntheticId);
+    if (existing) {
+      handleEditAgent(existing);
+      return;
+    }
+    const synthetic: Agent = {
+      id: syntheticId,
+      name: agent.name,
+      description: agent.description,
+      icon: agent.icon,
+      color: agent.color,
+      integrations: [],
+      status: agent.status,
+      type: "governance",
+      capabilities: [""],
+      maxTokens: 4096,
+      model: "gpt-4",
+      temperature: 0.7,
+      isSystemDefault: false,
+    };
+    setAgents((prev) => [...prev, synthetic]);
+    setEditingAgent({ ...synthetic });
     setShowEditDialog(true);
   };
 
@@ -365,19 +447,45 @@ const AdminAgentConfig = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Configuração de Agentes" />
+        <Header title={pageTitle} />
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6 flex justify-between items-start">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Configuração de Agentes</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
               <p className="text-gray-600 mt-1">
-                Gerencie os agentes de IA disponíveis na plataforma
+                {pageDescription}
               </p>
             </div>
-            <Button onClick={() => setShowCreateAgentDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Novo Agente
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("mosaico")}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    viewMode === "mosaico" ? "bg-legacy-500 text-white" : "text-gray-600 hover:bg-gray-100"
+                  )}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Mosaico
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("lista")}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    viewMode === "lista" ? "bg-legacy-500 text-white" : "text-gray-600 hover:bg-gray-100"
+                  )}
+                >
+                  <List className="h-4 w-4" />
+                  Lista
+                </button>
+              </div>
+              <Button onClick={() => setShowCreateAgentDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Novo Agente
+              </Button>
+            </div>
           </div>
 
           <Card className="mb-6">
@@ -431,6 +539,50 @@ const AdminAgentConfig = () => {
             </CardContent>
           </Card>
 
+          {viewMode === "mosaico" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {mosaicAgents.length === 0 ? (
+                <div className="col-span-full text-center py-12 bg-white rounded-lg shadow-sm border">
+                  <Bot className="mx-auto h-12 w-12 text-gray-300" />
+                  <h3 className="mt-4 text-lg font-medium">Nenhum agente encontrado</h3>
+                  <p className="mt-1 text-gray-500">
+                    Nenhum agente corresponde aos critérios de filtro selecionados.
+                  </p>
+                </div>
+              ) : (
+                mosaicAgents.map((agent) => (
+                  <Card key={agent.id} className="flex flex-col overflow-hidden">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${agent.color}20` }}
+                        >
+                          {getIconComponent(agent.icon)}
+                        </div>
+                        <Badge variant={agent.status === "active" ? "default" : "outline"} className="shrink-0">
+                          {agent.status === "active" ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-base mt-2 line-clamp-1">{agent.name}</CardTitle>
+                      <CardDescription className="line-clamp-2 text-sm">{agent.description}</CardDescription>
+                    </CardHeader>
+                    <CardFooter className="mt-auto pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleConfigurarMosaicAgent(agent)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Configurar
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : (
           <div className="space-y-6">
             {filteredAgents.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
@@ -547,6 +699,7 @@ const AdminAgentConfig = () => {
               ))
             )}
           </div>
+          )}
         </div>
       </div>
       

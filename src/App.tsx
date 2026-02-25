@@ -40,18 +40,30 @@ import Legacy from "./pages/Legacy";
 import SystemicRisks from "./pages/SystemicRisks";
 import Admin from "./pages/Admin";
 import AdminFinances from "./pages/AdminFinances";
+import GestaoFaturas from "./pages/GestaoFaturas";
+import ConfiguradorPlanos from "./pages/ConfiguradorPlanos";
 import AdminAgentConfig from "./pages/AdminAgentConfig";
 import AIConfig from "./pages/AIConfig";
 import AIAgents from "./pages/AIAgents";
+import AgentConciliacaoSocios from "./pages/AgentConciliacaoSocios";
+import AgentEstrategiaConselho from "./pages/AgentEstrategiaConselho";
+import AgentAnaliseTarefas from "./pages/AgentAnaliseTarefas";
 import GovernanceCopilot from "./pages/GovernanceCopilot";
 import Secretariado from "./pages/Secretariado";
 import Companies from "./pages/Companies";
 import CapTable from "./pages/CapTable";
+import MaturidadeGovernanca from "./pages/MaturidadeGovernanca";
+import Entrevistas from "./pages/Entrevistas";
 import MaturityQuiz from "./pages/MaturityQuiz";
 import Investors from "./pages/Investors";
 import Onboarding from "./pages/Onboarding";
 import CouncilPerformance from "./pages/CouncilPerformance";
 import Planos from "./pages/Planos";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
+import AdminMaster from "./pages/AdminMaster";
+import AdminPartners from "./pages/AdminPartners";
+import AdminPartnersTiers from "./pages/AdminPartnersTiers";
+import AdminContracts from "./pages/AdminContracts";
 
 
 const queryClient = new QueryClient();
@@ -104,12 +116,19 @@ const App = () => (
         <Route path="/esg" element={<ESG />} />
         <Route path="/systemic-risks" element={<SystemicRisks />} />
         <Route path="/cap-table" element={<CapTable />} />
-        
+        <Route path="/maturidade-governanca" element={<MaturidadeGovernanca />} />
+        <Route path="/entrevistas" element={<Entrevistas />} />
+
         <Route path="/settings" element={<Settings />} />
         <Route path="/activities" element={<Activities />} />
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/data-input" element={<DataInput />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/master" element={<AdminMaster />} />
+        <Route path="/admin/partners" element={<AdminPartners />} />
+        <Route path="/admin/partners/tiers" element={<AdminPartnersTiers />} />
+        <Route path="/admin/contracts" element={<AdminContracts />} />
+        <Route path="/admin/dashboard-gestao" element={<Admin />} />
         <Route path="/admin/finances" element={<AdminFinances />} />
         <Route path="/admin/companies" element={<Companies />} />
         <Route path="/admin/settings" element={<Settings />} />
@@ -117,16 +136,21 @@ const App = () => (
         <Route path="/admin/activities" element={<Activities />} />
         <Route path="/admin/insights" element={<Admin />} />
         <Route path="/admin/reports" element={<Admin />} />
-        <Route path="/admin/finances/invoices" element={<AdminFinances />} />
+        <Route path="/admin/finances/invoices" element={<GestaoFaturas />} />
         <Route path="/admin/finances/payments" element={<AdminFinances />} />
+        <Route path="/admin/configurador-planos" element={<ConfiguradorPlanos />} />
         <Route path="/admin/agent-config" element={<AdminAgentConfig />} />
         <Route path="/ai-config" element={<AIConfig />} />
         <Route path="/ai-agents" element={<AIAgents />} />
+        <Route path="/ai-agents/conciliacao-socios" element={<AgentConciliacaoSocios />} />
+        <Route path="/ai-agents/estrategia-conselho" element={<AgentEstrategiaConselho />} />
+        <Route path="/ai-agents/analise-tarefas" element={<AgentAnaliseTarefas />} />
         <Route path="/copiloto-governanca" element={<GovernanceCopilot />} />
         <Route path="/secretariado" element={<Secretariado />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/desempenho-conselho" element={<CouncilPerformance />} />
         <Route path="/planos" element={<Planos />} />
+        <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
         </Route>
         {/* Catch-all route for 404 */}
         <Route path="*" element={<NotFound />} />

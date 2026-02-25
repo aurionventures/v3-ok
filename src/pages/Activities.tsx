@@ -1,135 +1,275 @@
-
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import {
+  Send,
+  Search,
+  Clock,
+  Cpu,
+  CheckCircle,
+  Eye,
+  Sparkles,
+  ClipboardList,
+} from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Card, CardContent } from "@/components/ui/card";
-import ActivityList from "@/components/ActivityList";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  projetosParaVotacao,
+  type ProjetoParaVotacao,
+  type StatusProjeto,
+  type PrioridadeProjeto,
+} from "@/data/activitiesData";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-// Sample data for activities (exported for use in Settings > Atividades tab)
-export const allActivities = [
-  {
-    id: 1,
-    type: "meeting" as const,
-    title: "Reunião do Conselho Consultivo",
-    date: "24 de maio, 2025",
-    status: "scheduled" as const,
-    description: "Análise de resultados trimestrais e planejamento estratégico"
-  },
-  {
-    id: 2,
-    type: "document" as const,
-    title: "Atualização do Protocolo Familiar",
-    date: "20 de maio, 2025",
-    status: "completed" as const,
-    description: "Adição de cláusulas sobre política de dividendos"
-  },
-  {
-    id: 3,
-    type: "training" as const,
-    title: "Workshop de Liderança para Herdeiros",
-    date: "15 de maio, 2025",
-    status: "completed" as const,
-    description: "Formação sobre comunicação e tomada de decisão"
-  },
-  {
-    id: 4,
-    type: "document" as const,
-    title: "Revisão de Estatuto Social",
-    date: "10 de maio, 2025",
-    status: "pending" as const,
-    description: "Análise jurídica de alterações propostas"
-  },
-  {
-    id: 5,
-    type: "meeting" as const,
-    title: "Assembleia Familiar Anual",
-    date: "5 de maio, 2025",
-    status: "completed" as const,
-    description: "Prestação de contas e alinhamento de valores"
-  },
-  {
-    id: 6,
-    type: "training" as const,
-    title: "Curso de Governança Corporativa",
-    date: "1 de maio, 2025",
-    status: "completed" as const,
-    description: "Princípios e melhores práticas de governança"
-  },
-  {
-    id: 7,
-    type: "meeting" as const,
-    title: "Comitê de Sucessão",
-    date: "25 de abril, 2025",
-    status: "completed" as const,
-    description: "Avaliação de candidatos e cronograma"
-  },
-  {
-    id: 8,
-    type: "document" as const,
-    title: "Plano de Desenvolvimento de Herdeiros",
-    date: "20 de abril, 2025",
-    status: "completed" as const,
-    description: "Definição de metas e trilhas de formação"
-  },
-  {
-    id: 9,
-    type: "training" as const,
-    title: "Treinamento ESG para Conselheiros",
-    date: "15 de abril, 2025",
-    status: "cancelled" as const,
-    description: "Estratégias de implementação de práticas sustentáveis"
-  },
-  {
-    id: 10,
-    type: "meeting" as const,
-    title: "Reunião com Consultoria de Governança",
-    date: "10 de abril, 2025",
-    status: "completed" as const,
-    description: "Diagnóstico inicial e planejamento de melhorias"
-  }
-];
+function StatusBadge({ status }: { status: StatusProjeto }) {
+  const config: Record<
+    StatusProjeto,
+    { label: string; className: string; icon: React.ReactNode }
+  > = {
+    "Aguardando Análise": {
+      label: "Aguardando Análise",
+      className: "bg-amber-100 text-amber-800 border-amber-200",
+      icon: <Clock className="h-3.5 w-3.5" />,
+    },
+    "Analisado por IA": {
+      label: "Analisado por IA",
+      className: "bg-blue-100 text-blue-800 border-blue-200",
+      icon: <Cpu className="h-3.5 w-3.5" />,
+    },
+    Aprovado: {
+      label: "Aprovado",
+      className: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      icon: <CheckCircle className="h-3.5 w-3.5" />,
+    },
+    Rejeitado: {
+      label: "Rejeitado",
+      className: "bg-red-100 text-red-800 border-red-200",
+      icon: <Clock className="h-3.5 w-3.5" />,
+    },
+  };
+  const { label, className, icon } = config[status];
+  return (
+    <Badge variant="outline" className={cn("gap-1", className)}>
+      {icon}
+      {label}
+    </Badge>
+  );
+}
+
+function PrioridadeBadge({ prioridade }: { prioridade: PrioridadeProjeto }) {
+  const map: Record<PrioridadeProjeto, string> = {
+    Alta: "bg-red-100 text-red-800 border-red-200",
+    Média: "bg-amber-100 text-amber-800 border-amber-200",
+    Baixa: "bg-slate-100 text-slate-700 border-slate-200",
+  };
+  return (
+    <Badge variant="outline" className={map[prioridade]}>
+      {prioridade}
+    </Badge>
+  );
+}
 
 const ActivitiesPage = () => {
-  const navigate = useNavigate();
+  const [busca, setBusca] = useState("");
+  const [tab, setTab] = useState("votacao");
+
+  const projetosFiltrados = useMemo(() => {
+    const lista = tab === "votacao" ? projetosParaVotacao : [];
+    if (!busca.trim()) return lista;
+    const q = busca.toLowerCase();
+    return lista.filter(
+      (p) =>
+        p.titulo.toLowerCase().includes(q) ||
+        p.descricao.toLowerCase().includes(q) ||
+        p.conselho.toLowerCase().includes(q) ||
+        p.submetidoPor.toLowerCase().includes(q)
+    );
+  }, [busca, tab]);
+
+  const handleSubmeterProjeto = () => {
+    toast({
+      title: "Submeter projeto",
+      description: "Formulário de submissão será aberto em breve.",
+    });
+  };
+
+  const handleVerDetalhes = (projeto: ProjetoParaVotacao) => {
+    toast({
+      title: "Detalhes do projeto",
+      description: projeto.titulo,
+    });
+  };
+
+  const handleEnriquecerIA = (projeto: ProjetoParaVotacao) => {
+    toast({
+      title: "Enriquecer com IA",
+      description: `Análise IA para: ${projeto.titulo}`,
+    });
+  };
+
+  const handleSubmeterVotacao = (projeto: ProjetoParaVotacao) => {
+    toast({
+      title: "Submeter à votação",
+      description: projeto.titulo,
+    });
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Atividades" />
+        <Header title="Submeter Projetos" />
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex items-center mb-6">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate(-1)} 
-              className="mr-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-            <h2 className="text-xl font-semibold text-legacy-500">
-              Todas as Atividades
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-legacy-500">
+              Submeter Projetos
             </h2>
+            <p className="text-muted-foreground mt-1">
+              Gerencie projetos para análise e votação dos conselhos
+            </p>
           </div>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-legacy-500">
-                  Histórico de Atividades
-                </h3>
-              </div>
-              
-              <ActivityList 
-                activities={allActivities} 
-                showViewAll={false} 
+
+          <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+            <TabsList className="bg-white border">
+              <TabsTrigger value="votacao">Projetos para Votação</TabsTrigger>
+              <TabsTrigger value="historico">Histórico de Projetos</TabsTrigger>
+            </TabsList>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <Input
+                placeholder="Buscar projetos..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="max-w-sm"
               />
-            </CardContent>
-          </Card>
+              <Button
+                onClick={handleSubmeterProjeto}
+                className="bg-legacy-500 hover:bg-legacy-600 text-white gap-2"
+              >
+                <Send className="h-4 w-4" />
+                Submeter Projeto
+              </Button>
+            </div>
+
+            <TabsContent value="votacao" className="mt-4">
+              <div className="rounded-md border bg-white">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[28%]">Projeto</TableHead>
+                      <TableHead>Conselho</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Análise IA</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {projetosFiltrados.map((projeto) => (
+                      <TableRow key={projeto.id}>
+                        <TableCell>
+                          <div className="space-y-0.5">
+                            <p className="font-medium text-foreground">
+                              {projeto.titulo}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {projeto.descricao}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Submetido por {projeto.submetidoPor} em{" "}
+                              {projeto.dataSubmissao}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{projeto.conselho}</TableCell>
+                        <TableCell>
+                          <PrioridadeBadge prioridade={projeto.prioridade} />
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={projeto.status} />
+                        </TableCell>
+                        <TableCell>
+                          {projeto.analiseIAProgresso != null ? (
+                            <div className="space-y-1 min-w-[100px]">
+                              <Progress value={projeto.analiseIAProgresso} />
+                              <p className="text-xs text-muted-foreground">
+                                Risco{" "}
+                                {projeto.analiseIANivelRisco ?? "Não definido"}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              Não analisado
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-wrap gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleVerDetalhes(projeto)}
+                              className="gap-1"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              Ver Detalhes
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEnriquecerIA(projeto)}
+                              className="gap-1"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              Enriquecer com IA
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleSubmeterVotacao(projeto)}
+                              className="gap-1 bg-legacy-500 hover:bg-legacy-600"
+                            >
+                              <ClipboardList className="h-3.5 w-3.5" />
+                              Submeter Votação
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {projetosFiltrados.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  Nenhum projeto encontrado.
+                </p>
+              )}
+            </TabsContent>
+
+            <TabsContent value="historico" className="mt-4">
+              <div className="rounded-md border bg-white p-6">
+                <p className="text-muted-foreground text-center py-8">
+                  Histórico de projetos submetidos e votados será exibido aqui.
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

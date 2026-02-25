@@ -1,8 +1,9 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { 
-  PieChart, Plus, Filter, Download, Upload, Users, Building, 
-  Calendar, TrendingUp, AlertTriangle, FileText, Eye, 
+  PieChart, Filter, Download, Upload, Users, Building, 
+  Calendar, AlertTriangle, FileText, Eye, BookOpen,
   Edit, Trash2, Search, Settings
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Sidebar from "@/components/Sidebar";
+import NotificationBell from "@/components/NotificationBell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
@@ -103,8 +104,6 @@ const CapTable = () => {
   const [selectedCompany, setSelectedCompany] = useState("1");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
 
   const filteredShareholders = mockShareholders.filter(shareholder => {
     const matchesSearch = shareholder.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -128,141 +127,19 @@ const CapTable = () => {
               <p className="text-gray-600 mt-1">Gestão completa da estrutura societária e participações</p>
             </div>
             
-            <div className="flex gap-3">
-              <Dialog open={isSimulatorOpen} onOpenChange={setIsSimulatorOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Simulador
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Simulador de Eventos Societários</DialogTitle>
-                    <DialogDescription>
-                      Simule mudanças no Cap Table e visualize os impactos
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Tipo de Evento</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o evento" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="entry">Entrada de Sócio</SelectItem>
-                            <SelectItem value="exit">Saída de Sócio</SelectItem>
-                            <SelectItem value="capital-increase">Aumento Capital</SelectItem>
-                            <SelectItem value="donation">Doação/Herança</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label>Percentual Envolvido (%)</Label>
-                        <Input type="number" placeholder="Ex: 10.5" />
-                      </div>
-                    </div>
-                    
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Impacto Simulado:</strong> A entrada de um novo sócio com 10% resultaria na diluição proporcional de todos os sócios atuais.
-                      </AlertDescription>
-                    </Alert>
-                    
-                    <div className="flex gap-2 pt-4">
-                      <Button>Executar Simulação</Button>
-                      <Button variant="outline">Gerar Relatório PDF</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Adicionar Sócio
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Novo Sócio/Acionista</DialogTitle>
-                    <DialogDescription>
-                      Adicione um novo participante ao Cap Table
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Nome/Razão Social</Label>
-                      <Input placeholder="Nome completo ou razão social" />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Tipo</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pf">Pessoa Física</SelectItem>
-                            <SelectItem value="pj">Pessoa Jurídica</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label>Percentual (%)</Label>
-                        <Input type="number" placeholder="Ex: 15.5" />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Data de Entrada</Label>
-                        <Input type="date" />
-                      </div>
-                      
-                      <div>
-                        <Label>Tipo de Aquisição</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="compra">Compra</SelectItem>
-                            <SelectItem value="heranca">Herança</SelectItem>
-                            <SelectItem value="doacao">Doação</SelectItem>
-                            <SelectItem value="fundacao">Fundação</SelectItem>
-                            <SelectItem value="reorganizacao">Reorganização</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label>Valor Aportado (R$)</Label>
-                      <Input type="number" placeholder="Ex: 500000" />
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" id="family" />
-                      <Label htmlFor="family">Membro da família</Label>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-4">
-                      <Button onClick={() => setIsAddDialogOpen(false)}>Adicionar</Button>
-                      <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancelar</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+            <div className="flex gap-3 items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-blue-900 text-white border-blue-900 hover:bg-blue-800 hover:text-white"
+                asChild
+              >
+                <Link to="/legacy">
+                  <BookOpen className="h-4 w-4" />
+                  Guia Legacy
+                </Link>
+              </Button>
+              <NotificationBell />
             </div>
           </div>
 

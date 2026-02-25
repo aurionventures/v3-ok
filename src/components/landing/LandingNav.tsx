@@ -25,9 +25,9 @@ const LandingNav = ({ activeLink }: LandingNavProps) => {
         <div className="flex items-center gap-8">
           <Link to="/">
             <img
-              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
+              src="/lovable-uploads/nova-logo-branca.png"
               alt="Legacy OS"
-              className="h-7 w-auto brightness-0 invert"
+              className="h-7 w-auto"
             />
           </Link>
           <nav className="hidden md:flex items-center gap-6">

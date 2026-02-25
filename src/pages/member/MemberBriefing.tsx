@@ -1,9 +1,16 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Clock, Download, HelpCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Clock, Download, HelpCircle, FileCheck, BookOpen } from "lucide-react";
 
 const MemberBriefing = () => {
+  const [confirmacaoLeitura, setConfirmacaoLeitura] = useState(false);
+  const [abriuAnexos, setAbriuAnexos] = useState(false);
+
+  const progresso = (confirmacaoLeitura ? 50 : 0) + (abriuAnexos ? 50 : 0);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -14,15 +21,43 @@ const MemberBriefing = () => {
         <div className="flex items-center gap-4">
           <div className="flex-1 min-w-[200px]">
             <p className="text-xs text-muted-foreground mb-1">Progresso de preparação</p>
-            <Progress value={45} className="h-2" />
+            <Progress value={progresso} className="h-2" />
           </div>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Baixar PDF
           </Button>
-          <span className="text-sm font-medium">45%</span>
+          <span className="text-sm font-medium">{progresso}%</span>
         </div>
       </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-xs text-muted-foreground mb-3">Confirme para atualizar seu progresso</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={confirmacaoLeitura}
+                onCheckedChange={(checked) => setConfirmacaoLeitura(checked === true)}
+              />
+              <span className="flex items-center gap-2 text-sm">
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                Confirmo que li o briefing
+              </span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <Checkbox
+                checked={abriuAnexos}
+                onCheckedChange={(checked) => setAbriuAnexos(checked === true)}
+              />
+              <span className="flex items-center gap-2 text-sm">
+                <FileCheck className="h-4 w-4 text-muted-foreground" />
+                Confirmo que abri os anexos
+              </span>
+            </label>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="p-6">

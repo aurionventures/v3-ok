@@ -3,13 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, Send } from "lucide-react";
 
-const SUGGESTIONS = [
-  "Quais são os principais riscos da próxima reunião?",
-  "Me explique o contexto da aquisição em pauta",
-  "Qual deve ser minha posição sobre o plano estratégico?",
-  "Resuma os pontos críticos do briefing",
-];
-
 const MemberCopiloto = () => {
   const [question, setQuestion] = useState("");
 
@@ -27,19 +20,6 @@ const MemberCopiloto = () => {
             Faça perguntas sobre a próxima reunião, riscos, oportunidades ou qualquer tema de governança.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 justify-center">
-          {SUGGESTIONS.map((s) => (
-            <Button
-              key={s}
-              variant="secondary"
-              size="sm"
-              className="text-left max-w-full sm:max-w-[240px]"
-              onClick={() => setQuestion(s)}
-            >
-              {s}
-            </Button>
-          ))}
-        </div>
         <div className="flex gap-2">
           <Input
             placeholder="Faça uma pergunta sobre governança..."
@@ -51,9 +31,6 @@ const MemberCopiloto = () => {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-xs text-center text-muted-foreground">
-          Powered by IA - Respostas baseadas nos dados da sua empresa
-        </p>
       </div>
     </div>
   );

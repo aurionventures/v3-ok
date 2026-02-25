@@ -33,6 +33,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type MeetingStatus = "Agendada" | "Pauta Definida" | "Docs Enviados" | "Realizada" | "ATA Gerada";
 
@@ -47,11 +49,29 @@ type Meeting = {
 };
 
 const meetingsData: Meeting[] = [
-  { id: 1, council: "Conselho de Administração", date: "10/02/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
-  { id: 2, council: "Comitê de Auditoria", date: "19/02/2026", time: "10:00", type: "Ordinária", status: "Agendada" },
-  { id: 3, council: "Comissão de Ética", date: "27/02/2026", time: "15:00", type: "Extraordinária", status: "Agendada" },
-  { id: 4, council: "Conselho de Administração", date: "24/05/2025", time: "14:00", type: "Ordinária", status: "Realizada" },
-  { id: 5, council: "Conselho Consultivo", date: "10/06/2025", time: "10:00", type: "Ordinária", status: "Agendada" },
+  { id: 1, council: "Conselho de Administração", date: "12/01/2026", time: "14:00", type: "Ordinária", status: "Realizada" },
+  { id: 2, council: "Comitê de Auditoria", date: "15/01/2026", time: "10:00", type: "Ordinária", status: "Realizada" },
+  { id: 3, council: "Comissão de Ética", date: "22/01/2026", time: "15:00", type: "Extraordinária", status: "Realizada" },
+  { id: 4, council: "Conselho de Administração", date: "10/02/2026", time: "14:00", type: "Ordinária", status: "Realizada" },
+  { id: 5, council: "Comitê de Auditoria", date: "19/02/2026", time: "10:00", type: "Ordinária", status: "Realizada" },
+  { id: 6, council: "Comissão de Ética", date: "27/02/2026", time: "15:00", type: "Extraordinária", status: "Realizada" },
+  { id: 7, council: "Conselho de Administração", date: "05/03/2026", time: "14:00", type: "Ordinária", status: "Realizada" },
+  { id: 8, council: "Comitê de Auditoria", date: "12/03/2026", time: "10:00", type: "Ordinária", status: "Realizada" },
+  { id: 9, council: "Comissão de Ética", date: "18/03/2026", time: "15:00", type: "Extraordinária", status: "Realizada" },
+  { id: 10, council: "Conselho de Administração", date: "08/04/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
+  { id: 11, council: "Comitê de Auditoria", date: "14/04/2026", time: "10:00", type: "Ordinária", status: "Realizada" },
+  { id: 12, council: "Comissão de Ética", date: "21/04/2026", time: "15:00", type: "Extraordinária", status: "Agendada" },
+  { id: 13, council: "Conselho de Administração", date: "06/05/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
+  { id: 14, council: "Comitê de Auditoria", date: "18/05/2026", time: "10:00", type: "Ordinária", status: "Agendada" },
+  { id: 15, council: "Comissão de Ética", date: "25/05/2026", time: "15:00", type: "Extraordinária", status: "Agendada" },
+  { id: 16, council: "Conselho de Administração", date: "10/06/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
+  { id: 17, council: "Comitê de Auditoria", date: "16/06/2026", time: "10:00", type: "Ordinária", status: "Agendada" },
+  { id: 18, council: "Comissão de Ética", date: "23/06/2026", time: "15:00", type: "Extraordinária", status: "Agendada" },
+  { id: 19, council: "Conselho de Administração", date: "08/07/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
+  { id: 20, council: "Conselho de Administração", date: "12/08/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
+  { id: 21, council: "Conselho de Administração", date: "09/09/2026", time: "14:00", type: "Ordinária", status: "Agendada" },
+  { id: 22, council: "Conselho de Administração", date: "24/05/2025", time: "14:00", type: "Ordinária", status: "Realizada" },
+  { id: 23, council: "Conselho Consultivo", date: "10/06/2025", time: "10:00", type: "Ordinária", status: "Agendada" },
 ];
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -91,14 +111,27 @@ function getMonthGrid(month: Date): (Date | null)[][] {
   return grid;
 }
 
+type ViewMode = "annual" | "monthly";
+
+const STATUS_BADGE_CLASS: Record<MeetingStatus, string> = {
+  Agendada: "bg-blue-500 text-white border-0 hover:bg-blue-500",
+  "Pauta Definida": "bg-orange-500 text-white border-0 hover:bg-orange-500",
+  "Docs Enviados": "bg-red-500 text-white border-0 hover:bg-red-500",
+  Realizada: "bg-purple-500 text-white border-0 hover:bg-purple-500",
+  "ATA Gerada": "bg-green-500 text-white border-0 hover:bg-green-500",
+};
+
 const Agenda = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 1, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("monthly");
   const [filterBodyType, setFilterBodyType] = useState("all");
   const [filterBody, setFilterBody] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterMeetingType, setFilterMeetingType] = useState("all");
   const [filterAgendas, setFilterAgendas] = useState("all");
+
+  const ANNUAL_YEAR = 2026;
 
   const meetingsByDate = useMemo(() => {
     const map = new Map<string, Meeting[]>();
@@ -113,6 +146,21 @@ const Agenda = () => {
   const filteredMeetings = useMemo(() => {
     return meetingsData;
   }, []);
+
+  const meetingsByMonth = useMemo(() => {
+    const byMonth: Record<number, Meeting[]> = {};
+    for (let m = 1; m <= 12; m++) byMonth[m] = [];
+    for (const meeting of filteredMeetings) {
+      const d = parseMeetingDate(meeting.date);
+      if (d.getFullYear() === ANNUAL_YEAR) {
+        byMonth[d.getMonth() + 1].push(meeting);
+      }
+    }
+    for (let m = 1; m <= 12; m++) {
+      byMonth[m].sort((a, b) => parseMeetingDate(a.date).getTime() - parseMeetingDate(b.date).getTime());
+    }
+    return byMonth;
+  }, [filteredMeetings]);
 
   const monthGrid = useMemo(() => getMonthGrid(currentMonth), [currentMonth]);
 
@@ -270,30 +318,98 @@ const Agenda = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-base font-medium capitalize">
-                    {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                    {viewMode === "monthly"
+                      ? format(currentMonth, "MMMM yyyy", { locale: ptBR })
+                      : `Agenda ${ANNUAL_YEAR}`}
                   </span>
-                  <Button variant="outline" size="sm">Visão Anual</Button>
-                  <div className="flex rounded-md border">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant={viewMode === "annual" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("annual")}
+                  >
+                    Visão Anual
+                  </Button>
+                  {viewMode === "monthly" && (
+                    <div className="flex rounded-md border">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
 
+              <Tabs
+                value={viewMode === "annual" ? "agenda2026" : "mensal"}
+                onValueChange={(v) => setViewMode(v === "agenda2026" ? "annual" : "monthly")}
+                className="w-full"
+              >
+                <TabsList className="mb-4">
+                  <TabsTrigger value="agenda2026">Agenda {ANNUAL_YEAR}</TabsTrigger>
+                  <TabsTrigger value="mensal">Visão Mensal</TabsTrigger>
+                </TabsList>
+
+                {viewMode === "annual" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((monthNum) => {
+                      const monthDate = new Date(ANNUAL_YEAR, monthNum - 1, 1);
+                      const monthName = format(monthDate, "MMMM", { locale: ptBR });
+                      const meetings = meetingsByMonth[monthNum] ?? [];
+                      return (
+                        <div
+                          key={monthNum}
+                          className="rounded-lg border bg-card p-4 space-y-3"
+                        >
+                          <h3 className="text-sm font-semibold capitalize text-muted-foreground">
+                            {monthName}
+                          </h3>
+                          <div className="space-y-2">
+                            {meetings.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">Nenhuma reunião</p>
+                            ) : (
+                              meetings.map((meeting) => (
+                                <div
+                                  key={meeting.id}
+                                  className="flex flex-col gap-1 rounded p-2 bg-muted/50 hover:bg-muted/80 transition-colors"
+                                >
+                                  <div className="font-medium text-sm text-foreground">
+                                    {meeting.council}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {format(parseMeetingDate(meeting.date), "d/M")}-{meeting.time}
+                                  </div>
+                                  <Badge
+                                    className={STATUS_BADGE_CLASS[meeting.status]}
+                                    variant="outline"
+                                  >
+                                    {meeting.status}
+                                  </Badge>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </Tabs>
+
+              {viewMode === "monthly" && (
+              <>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -375,6 +491,8 @@ const Agenda = () => {
                   </div>
                 ))}
               </div>
+              </>
+              )}
             </CardContent>
           </Card>
         </div>
