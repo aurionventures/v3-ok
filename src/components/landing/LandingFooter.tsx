@@ -24,7 +24,7 @@ const LandingFooter = () => {
               <li><a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a></li>
               <li><a href="#diferenciais" className="hover:text-white transition-colors">Diferenciais</a></li>
               <li><Link to="/planos" className="hover:text-white transition-colors">Planos</Link></li>
-              <li><Link to="/modulos/ai-engine/governanca/diagnostico" className="hover:text-white transition-colors">AI Engine / Diagnóstico</Link></li>
+              <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
           </div>
 

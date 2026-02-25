@@ -52,8 +52,6 @@ import Investors from "./pages/Investors";
 import Onboarding from "./pages/Onboarding";
 import CouncilPerformance from "./pages/CouncilPerformance";
 import Planos from "./pages/Planos";
-import ModulosDiagnostico from "./pages/ModulosDiagnostico";
-import ModulosGovernanca from "./pages/ModulosGovernanca";
 
 
 const queryClient = new QueryClient();
@@ -129,8 +127,6 @@ const App = () => (
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/desempenho-conselho" element={<CouncilPerformance />} />
         <Route path="/planos" element={<Planos />} />
-        <Route path="/modulos/ai-engine/governanca/diagnostico" element={<ModulosDiagnostico />} />
-        <Route path="/modulos/governanca" element={<ModulosGovernanca />} />
         </Route>
         {/* Catch-all route for 404 */}
         <Route path="*" element={<NotFound />} />
