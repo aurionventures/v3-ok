@@ -17,8 +17,8 @@ import LandingFeatures from "@/components/landing/LandingFeatures";
 import LandingPillars from "@/components/landing/LandingPillars";
 import LandingComparison from "@/components/landing/LandingComparison";
 import LandingCTA from "@/components/landing/LandingCTA";
-import LandingFAQ from "@/components/landing/LandingFAQ";
 import LandingFooter from "@/components/landing/LandingFooter";
+import ModulosDiagnosticoCTA from "@/components/landing/ModulosDiagnosticoCTA";
 
 // --- Quiz data & types ---
 interface Question {
@@ -246,7 +246,7 @@ const Index = () => {
         </section>
 
         <LandingCTA />
-        <LandingFAQ />
+        <ModulosDiagnosticoCTA />
       </main>
       <LandingFooter />
     </div>
