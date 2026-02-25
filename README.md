@@ -155,6 +155,17 @@ npm run preview
 
 ---
 
+## Próximos passos para colocação em produção
+
+Este frontend está funcional com dados mock e autenticação simulada. Para colocar no ar com dados reais:
+
+1. **Backend e banco** – Implementar API (REST ou GraphQL) e banco de dados; expor endpoints para empresas, usuários, contratos, parceiros, agentes, etc.
+2. **Autenticação real** – Substituir o login atual (credenciais em `src/pages/Login.tsx` e tipo de usuário em `src/lib/auth.ts`) por fluxo real (ex.: JWT/OAuth) e validar permissões no backend.
+3. **Substituir mocks por HTTP** – Trocar os dados em `src/data/*` (ex.: `partnersData.ts`, `contractsData.ts`) e demais mocks por chamadas à API; manter as mesmas interfaces/types onde possível.
+4. **Variáveis de ambiente** – Criar `.env` (e `.env.example`) com URL da API e demais configs; usar no front (ex.: `import.meta.env.VITE_API_URL`); **remover credenciais do código**.
+
+---
+
 ## Resumo
 
 A Legacy OS reúne, em uma única plataforma, a gestão de estrutura familiar e societária, conselhos, documentos, agenda, secretariado e riscos, com agentes de IA que cobrem desde a redação de atas e briefings até diagnóstico de governança, sinais de mercado, insights estratégicos e busca conversacional em ATAs. Os prompts centralizados garantem consistência e controle de qualidade nas saídas geradas por IA, e a arquitetura de agentes permite estender ou integrar novos fluxos sem duplicar lógica.
