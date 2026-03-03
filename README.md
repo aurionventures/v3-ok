@@ -128,6 +128,7 @@ Os prompts ficam em **`src/prompts-agentes/prompts.ts`** e são usados por todos
 - **Gráficos:** Recharts
 
 Estrutura relevante:
+- **`supabase/SCHEMA.md`** – Documentação do schema do banco (tabelas, colunas, FKs). Migrações em `supabase/migrations/`.
 - `src/pages/` – Páginas da aplicação (Dashboard, Secretariado, Copiloto, Agentes, etc.)
 - `src/components/` – Componentes reutilizáveis e por domínio (landing, secretariado, planos, etc.)
 - `src/agente-*/` – Implementações dos agentes (ata, diagnóstico, briefing, pautas, etc.)
