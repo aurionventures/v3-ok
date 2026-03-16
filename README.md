@@ -142,6 +142,10 @@ Estrutura relevante:
 
 ## Como rodar
 
+**Deploy completo (backend + frontend):** siga o **[DEPLOY.md](./DEPLOY.md)** – passo a passo com Supabase, Edge Functions e OpenAI.
+
+**Setup detalhado:** consulte o **[SETUP.md](./SETUP.md)**.
+
 ```bash
 npm install
 npm run dev
@@ -156,14 +160,24 @@ npm run preview
 
 ---
 
-## Próximos passos para colocação em produção
+## Backend
 
-Este frontend está funcional com dados mock e autenticação simulada. Para colocar no ar com dados reais:
+O projeto inclui **backend completo** em Supabase:
 
-1. **Backend e banco** – Implementar API (REST ou GraphQL) e banco de dados; expor endpoints para empresas, usuários, contratos, parceiros, agentes, etc.
-2. **Autenticação real** – Substituir o login atual (credenciais em `src/pages/Login.tsx` e tipo de usuário em `src/lib/auth.ts`) por fluxo real (ex.: JWT/OAuth) e validar permissões no backend.
-3. **Substituir mocks por HTTP** – Trocar os dados em `src/data/*` (ex.: `partnersData.ts`, `contractsData.ts`) e demais mocks por chamadas à API; manter as mesmas interfaces/types onde possível.
-4. **Variáveis de ambiente** – Criar `.env` (e `.env.example`) com URL da API e demais configs; usar no front (ex.: `import.meta.env.VITE_API_URL`); **remover credenciais do código**.
+- **Banco de dados** – migrações em `supabase/migrations/`
+- **Edge Functions** – 14 funções (agentes de IA, pipeline, proxy OpenAI) em `supabase/functions/`
+- **Rotas** – documentadas em `supabase/ROTAS.md`
+- **Cliente** – `src/lib/supabase.ts` conecta o frontend ao backend
+
+Para ativar: configure `.env` (URL e anon key do Supabase), faça `supabase functions deploy` e configure `OPENAI_API_KEY` nos secrets. Ver [DEPLOY.md](./DEPLOY.md).
+
+---
+
+## Próximos passos (opcionais)
+
+1. **Autenticação real** – Substituir o login simulado por Supabase Auth (JWT).
+2. **Substituir mocks por dados reais** – Trocar `src/data/*` por chamadas ao banco via Supabase client.
+3. **RLS** – Configurar Row Level Security nas tabelas para multi-tenant.
 
 ---
 

@@ -94,7 +94,12 @@ function validateFunctions() {
       log(`functions/${nome}/prompt.ts parece vazio ou só comentários`, "error");
       hasErrors = true;
     }
-    if (hasExport && hasContent) {
+    const indexFile = path.join(dir, "index.ts");
+    if (!fs.existsSync(indexFile)) {
+      log(`index.ts ausente em: functions/${nome}`, "error");
+      hasErrors = true;
+    }
+    if (hasExport && hasContent && fs.existsSync(indexFile)) {
       log(`  ${nome}`, "ok");
     }
   }

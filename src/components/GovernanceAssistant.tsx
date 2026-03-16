@@ -98,32 +98,54 @@ const GovernanceAssistant = () => {
     setIsMinimized(!isMinimized);
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
 
-    // Add user message to conversation
+    const userMessage = message;
     const updatedConversation = [
-      ...conversation, 
-      { type: "user" as MessageType, text: message }
+      ...conversation,
+      { type: "user" as MessageType, text: userMessage },
     ];
     setConversation(updatedConversation);
-    
-    // Show thinking indicator
     setIsThinking(true);
     setMessage("");
-    
-    // Simulate AI response with a delay
-    setTimeout(() => {
+
+    try {
+      const { invokeEdgeFunction } = await import("@/lib/supabase");
+      const supabase = (await import("@/lib/supabase")).supabase;
+
+      if (supabase) {
+        const { data, error } = await invokeEdgeFunction<{ resultado?: string; raw?: string }>(
+          "pipeline-agentes",
+          {
+            agenteId: "agente",
+            input: `Contexto: Assistente ${currentAssistant.name}. Pergunta do usuário: ${userMessage}. Responda de forma concisa e útil sobre governança corporativa.`,
+          }
+        );
+        const text = data?.resultado ?? data?.raw ?? (error ? `Erro: ${error.message}` : "Sem resposta.");
+        setConversation([
+          ...updatedConversation,
+          { type: "assistant" as MessageType, text },
+        ]);
+      } else {
+        const responseArray = responses[currentAssistant.id as keyof typeof responses];
+        const randomResponse = responseArray[Math.floor(Math.random() * responseArray.length)];
+        setConversation([
+          ...updatedConversation,
+          { type: "assistant" as MessageType, text: randomResponse },
+        ]);
+      }
+    } catch {
       const responseArray = responses[currentAssistant.id as keyof typeof responses];
       const randomResponse = responseArray[Math.floor(Math.random() * responseArray.length)];
-      
       setConversation([
         ...updatedConversation,
-        { type: "assistant" as MessageType, text: randomResponse }
+        { type: "assistant" as MessageType, text: randomResponse },
       ]);
+    } finally {
       setIsThinking(false);
-    }, 1500);
+    }
   };
 
   const changeAssistant = (assistant: typeof availableAssistants[0]) => {

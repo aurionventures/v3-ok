@@ -1,0 +1,58 @@
+/**
+ * Agente Diagnóstico de Governança – maturidade, lacunas e recomendações.
+ * Rota: POST /functions/v1/agente-diagnostico-governanca
+ * Body: { "documentos": string, "entrevistas": string }
+ */
+
+import { corsHeaders } from "../_shared/cors.ts";
+import { runAgent } from "../_shared/openai.ts";
+import { PROMPT_AGENTE_DIAGNOSTICO_GOVERNANCA } from "./prompt.ts";
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Método não permitido" }),
+      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  try {
+    const body = await req.json();
+    const documentos = body.documentos ?? body.input ?? "";
+    const entrevistas = body.entrevistas ?? "";
+
+    const userContent = [
+      documentos && "Documentos fornecidos:\n" + documentos,
+      entrevistas && "\nRespostas das entrevistas:\n" + entrevistas,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (!userContent.trim()) {
+      return new Response(
+        JSON.stringify({ error: "Campo 'documentos' ou 'input' é obrigatório" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const result = await runAgent({
+      systemPrompt: PROMPT_AGENTE_DIAGNOSTICO_GOVERNANCA,
+      userContent,
+    });
+
+    return new Response(
+      JSON.stringify({ diagnostico: result, raw: result }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (err) {
+    console.error(err);
+    return new Response(
+      JSON.stringify({ error: err.message ?? "Erro ao processar" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

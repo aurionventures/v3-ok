@@ -4,8 +4,11 @@ Estrutura do schema e recursos de banco (Supabase) do projeto Legacy OS.
 
 **Documentação do schema:** [SCHEMA.md](./SCHEMA.md) – tabelas, colunas e relacionamentos.
 
+**Rotas das Edge Functions:** [ROTAS.md](./ROTAS.md) – endpoints, payloads e uso no frontend.
+
 ## Estrutura
 
+- **`config.toml`** – Configuração do projeto Supabase (local dev). Omita `project_id` e chaves ao compartilhar.
 - **`migrations/`** – Migrações SQL versionadas. Use o formato de nome: `YYYYMMDDHHMMSS_descricao_da_alteracao.sql` (ex.: `20260302120000_create_usuarios.sql`).
 - **`functions/`** – Edge Functions do Supabase (funções serverless associadas ao projeto).
   - **`_shared/`** – Código compartilhado entre as functions (helpers, tipos, config).
