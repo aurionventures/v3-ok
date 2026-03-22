@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { BarChart3, ChevronRight } from "lucide-react";
 
@@ -13,7 +14,10 @@ const MemberMaturidade = () => {
             <h1 className="text-xl font-semibold">Maturidade</h1>
             <p className="text-sm text-muted-foreground">Score de maturidade da governança</p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
+            <NotificationBell />
+          </div>
         </div>
       </header>
 

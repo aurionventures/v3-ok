@@ -1,5 +1,6 @@
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import { cn } from "@/lib/utils";
 
 interface LandingNavProps {
@@ -58,12 +59,15 @@ const LandingNav = ({ activeLink }: LandingNavProps) => {
             )}
           </nav>
         </div>
-        <Button
-          className="bg-legacy-gold text-legacy-500 hover:brightness-110 font-montserrat font-semibold text-sm px-5 py-2"
-          onClick={() => navigate("/login")}
-        >
-          Login
-        </Button>
+        <div className="flex items-center gap-3">
+          <GuiaLegacyButton />
+          <Button
+            className="bg-legacy-gold text-legacy-500 hover:brightness-110 font-montserrat font-semibold text-sm px-5 py-2"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </Button>
+        </div>
       </div>
     </header>
   );

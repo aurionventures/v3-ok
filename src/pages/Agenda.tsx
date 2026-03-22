@@ -13,6 +13,7 @@ import { format, parse, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, 
 import { ptBR } from "date-fns/locale";
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -224,10 +225,7 @@ const Agenda = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button variant="ghost" size="sm">
-              <BookOpen className="mr-2 h-4 w-4" />
-              Guia Legacy
-            </Button>
+            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </header>

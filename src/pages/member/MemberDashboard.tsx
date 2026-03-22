@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import {
   LayoutDashboard,
@@ -24,7 +25,10 @@ const MemberDashboard = () => {
             <h1 className="text-xl font-semibold">Bem-vindo, Roberto</h1>
             <p className="text-sm text-muted-foreground">Portal do Membro de Governança</p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
+            <NotificationBell />
+          </div>
         </div>
       </header>
 

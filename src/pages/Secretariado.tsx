@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  BookOpen,
   ClipboardList,
   CheckCircle,
   Clock,
@@ -17,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import Sidebar from "@/components/Sidebar";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import GuidedNavigation from "@/components/GuidedNavigation";
 import {
@@ -350,15 +350,7 @@ const Secretariado = () => {
               </Tabs>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowGuidedNav(true)}
-                className="border-gray-300"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Guia Legacy
-              </Button>
+              <GuiaLegacyButton onClick={() => setShowGuidedNav(true)} />
               <NotificationBell />
             </div>
           </div>

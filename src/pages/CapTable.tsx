@@ -1,10 +1,8 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
 import {
   Download,
   Upload,
   Eye,
-  BookOpen,
   Edit,
   Trash2,
   Plus,
@@ -43,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Sidebar from "@/components/Sidebar";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
@@ -187,17 +186,7 @@ const CapTable = () => {
             </div>
 
             <div className="flex gap-3 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 bg-blue-900 text-white border-blue-900 hover:bg-blue-800 hover:text-white"
-                asChild
-              >
-                <Link to="/legacy">
-                  <BookOpen className="h-4 w-4" />
-                  Guia Legacy
-                </Link>
-              </Button>
+              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>

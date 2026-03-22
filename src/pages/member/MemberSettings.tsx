@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 
 const MemberSettings = () => {
@@ -7,7 +8,10 @@ const MemberSettings = () => {
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Configurações</h1>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
+            <NotificationBell />
+          </div>
         </div>
       </header>
 

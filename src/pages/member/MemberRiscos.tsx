@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { Shield, AlertTriangle, TrendingUp, RefreshCw } from "lucide-react";
 
@@ -65,6 +66,7 @@ const MemberRiscos = () => {
             <p className="text-sm text-muted-foreground">Visão geral dos riscos, ameaças e oportunidades da governança</p>
           </div>
           <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
             <Button variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
             </Button>

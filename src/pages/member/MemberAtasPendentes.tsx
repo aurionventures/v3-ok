@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { FileText, Eye, Check, PenLine } from "lucide-react";
 
@@ -38,7 +39,10 @@ const MemberAtasPendentes = () => {
             </h1>
             <p className="text-sm text-muted-foreground">ATAs aguardando sua ação</p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
+            <NotificationBell />
+          </div>
         </div>
       </header>
 

@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { Calendar } from "lucide-react";
 
@@ -17,7 +18,10 @@ const MemberReunioes = () => {
             <h1 className="text-xl font-semibold">Próximas Reuniões</h1>
             <p className="text-sm text-muted-foreground">Reuniões agendadas para você</p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
+            <NotificationBell />
+          </div>
         </div>
       </header>
 

@@ -1,6 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
-import { BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useLocation } from "react-router-dom";
+import GuiaLegacyButton from "./GuiaLegacyButton";
 import NotificationBell from "./NotificationBell";
 
 interface HeaderProps {
@@ -18,19 +17,7 @@ const Header = ({ title = "Dashboard", rightExtra }: HeaderProps) => {
         <h1 className="text-xl font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
-        {!isAdmin && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 bg-blue-900 text-white border-blue-900 hover:bg-blue-800 hover:text-white"
-            asChild
-          >
-            <Link to="/legacy">
-              <BookOpen className="h-4 w-4" />
-              Guia Legacy
-            </Link>
-          </Button>
-        )}
+        {!isAdmin && <GuiaLegacyButton />}
         <NotificationBell />
         {rightExtra}
       </div>

@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { FileText } from "lucide-react";
 
@@ -16,7 +17,10 @@ const MemberPautas = () => {
             <h1 className="text-xl font-semibold">Pautas Virtuais</h1>
             <p className="text-sm text-muted-foreground">Pautas das reuniões disponíveis</p>
           </div>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <GuiaLegacyButton />
+            <NotificationBell />
+          </div>
         </div>
       </header>
 
