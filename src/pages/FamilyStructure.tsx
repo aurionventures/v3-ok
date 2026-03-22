@@ -1,11 +1,18 @@
-
-import React, { useState } from "react";
-import { Users, Search, UserPlus, Eye, Pencil, Trash2 } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Search, UserPlus, Eye, Pencil, Trash2, Building2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -23,6 +30,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -30,149 +46,132 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
+import { useEmpresas } from "@/hooks/useEmpresas";
+import { useFamilyMembers } from "@/hooks/useFamilyMembers";
+import type { FamilyMember } from "@/types/familyStructure";
 
-// Sample family members data
-const familyMembers = [
-  {
-    id: 1,
-    name: "José Silva",
-    age: 68,
-    generation: "1ª",
-    role: "Fundador",
-    involvement: "Presidente do Conselho",
-    status: "Ativo",
-    imageSrc: "https://randomuser.me/api/portraits/men/32.jpg",
-    shareholding: "45%",
-    education: "MBA em Administração, Universidade XYZ",
-    experience: "30 anos no setor, fundador da empresa em 1985",
-    contact: {
-      email: "jose.silva@email.com",
-      phone: "+55 11 99999-1111"
-    },
-    companies: [
-      { name: "Silva Empreendimentos", role: "Presidente do Conselho", shareholding: "45%" },
-      { name: "Silva Investimentos", role: "CEO", shareholding: "60%" }
-    ]
-  },
-  {
-    id: 2,
-    name: "Maria Silva",
-    age: 66,
-    generation: "1ª",
-    role: "Co-fundadora",
-    involvement: "Conselheira",
-    status: "Ativo",
-    imageSrc: "https://randomuser.me/api/portraits/women/32.jpg",
-    shareholding: "30%",
-    education: "Graduação em Economia, Universidade ABC",
-    experience: "28 anos de experiência, liderou a expansão internacional",
-    contact: {
-      email: "maria.silva@email.com",
-      phone: "+55 11 99999-2222"
-    },
-    companies: [
-      { name: "Silva Empreendimentos", role: "Conselheira", shareholding: "30%" },
-      { name: "Fundação Silva", role: "Presidente", shareholding: "N/A" }
-    ]
-  },
-  {
-    id: 3,
-    name: "Carlos Silva",
-    age: 42,
-    generation: "2ª",
-    role: "Herdeiro",
-    involvement: "Diretor de Operações",
-    status: "Ativo",
-    imageSrc: "https://randomuser.me/api/portraits/men/22.jpg",
-    shareholding: "10%",
-    education: "MBA em Finanças, Universidade Internacional",
-    experience: "15 anos na empresa, liderando inovação e expansão",
-    contact: {
-      email: "carlos.silva@email.com",
-      phone: "+55 11 99999-3333"
-    },
-    companies: [
-      { name: "Silva Empreendimentos", role: "Diretor de Operações", shareholding: "10%" },
-      { name: "Silva Tech", role: "CEO", shareholding: "40%" }
-    ]
-  },
-  {
-    id: 4,
-    name: "Ana Silva",
-    age: 40,
-    generation: "2ª",
-    role: "Herdeira",
-    involvement: "CFO",
-    status: "Ativo",
-    imageSrc: "https://randomuser.me/api/portraits/women/22.jpg",
-    shareholding: "10%",
-    education: "PhD em Administração de Empresas",
-    experience: "12 anos na empresa, responsável pela reestruturação financeira",
-    contact: {
-      email: "ana.silva@email.com",
-      phone: "+55 11 99999-4444"
-    },
-    companies: [
-      { name: "Silva Empreendimentos", role: "CFO", shareholding: "10%" },
-      { name: "Silva Capital", role: "Managing Partner", shareholding: "50%" }
-    ]
-  },
-  {
-    id: 5,
-    name: "Pedro Silva",
-    age: 38,
-    generation: "2ª",
-    role: "Herdeiro",
-    involvement: "Head de Marketing",
-    status: "Afastado",
-    imageSrc: "https://randomuser.me/api/portraits/men/12.jpg",
-    shareholding: "5%",
-    education: "Mestrado em Marketing Digital",
-    experience: "Atualmente trabalhando em empresa externa",
-    contact: {
-      email: "pedro.silva@email.com",
-      phone: "+55 11 99999-5555"
-    },
-    companies: [
-      { name: "Silva Empreendimentos", role: "Conselho Consultivo", shareholding: "5%" },
-      { name: "AgênciaX", role: "Diretor de Criação", shareholding: "N/A" }
-    ]
-  },
-];
+const INITIAL_FORM = {
+  name: "",
+  age: "",
+  generation: "",
+  role: "",
+  involvement: "",
+  status: "Ativo",
+  shareholding: "",
+};
 
 const FamilyStructure = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingMember, setIsAddingMember] = useState(false);
-  const [showDetailsMember, setShowDetailsMember] = useState<any>(null);
+  const [showDetailsMember, setShowDetailsMember] = useState<FamilyMember | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<FamilyMember | null>(null);
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [selectedEmpresaId, setSelectedEmpresaId] = useState<string | null>(null);
 
-  const filteredMembers = familyMembers.filter(
-    (member) =>
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.involvement.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { empresas, isLoading: loadingEmpresas, firstEmpresaId } = useEmpresas();
+  const empresaId = selectedEmpresaId ?? firstEmpresaId;
+  const { members, isLoading, insertMember, insertLoading, deleteMember, deleteLoading } =
+    useFamilyMembers(empresaId);
 
-  const handleViewDetails = (member: any) => {
+  const filteredMembers = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.name.toLowerCase().includes(term) ||
+        (m.role ?? "").toLowerCase().includes(term) ||
+        (m.involvement ?? "").toLowerCase().includes(term)
+    );
+  }, [members, searchTerm]);
+
+  const handleViewDetails = (member: FamilyMember) => {
     setShowDetailsMember(member);
   };
 
   const handleAddMember = () => {
+    setForm(INITIAL_FORM);
     setIsAddingMember(true);
   };
 
-  const handleEditMember = (member: any) => {
+  const handleFormChange = (field: string, value: string) => {
+    setForm((p) => ({ ...p, [field]: value }));
+  };
+
+  const handleSubmitAddMember = async () => {
+    if (!empresaId) {
+      toast({
+        title: "Empresa não selecionada",
+        description: "Selecione ou cadastre uma empresa para adicionar familiares.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!form.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Informe o nome completo do familiar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { data, error } = await insertMember({
+      empresa_id: empresaId,
+      nome: form.name.trim(),
+      idade: form.age ? parseInt(form.age, 10) : null,
+      geracao: form.generation || null,
+      papel: form.role || null,
+      envolvimento: form.involvement || null,
+      status: form.status || "Ativo",
+      participacao_societaria: form.shareholding || null,
+    });
+
+    if (error) {
+      toast({
+        title: "Erro ao adicionar",
+        description: error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Membro adicionado",
+      description: `${data?.name ?? form.name} foi adicionado com sucesso!`,
+    });
+    setIsAddingMember(false);
+  };
+
+  const handleEditMember = (member: FamilyMember) => {
     toast({
       title: "Editar membro",
-      description: `Editando informações de ${member.name}`,
+      description: `Edição de ${member.name} será implementada em breve.`,
     });
   };
 
-  const handleDeleteMember = (member: any) => {
+  const handleDeleteClick = (member: FamilyMember) => {
+    setMemberToDelete(member);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!memberToDelete) return;
+    const name = memberToDelete.name;
+    const { error } = await deleteMember(memberToDelete.id);
+    setMemberToDelete(null);
+    if (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: error,
+        variant: "destructive",
+      });
+      return;
+    }
     toast({
-      title: "Excluir membro",
-      description: `${member.name} será removido da estrutura familiar`,
+      title: "Membro removido",
+      description: `${name} foi removido da estrutura familiar.`,
     });
   };
+
+  const hasEmpresas = empresas.length > 0;
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -180,6 +179,32 @@ const FamilyStructure = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Estrutura Societária" />
         <div className="flex-1 overflow-y-auto p-6">
+          {hasEmpresas && (
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <Label className="text-sm font-medium">Empresa</Label>
+                  <Select
+                    value={empresaId ?? ""}
+                    onValueChange={(v) => setSelectedEmpresaId(v || null)}
+                  >
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder="Selecione a empresa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {empresas.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>
+                          {e.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="mb-6">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
@@ -197,76 +222,107 @@ const FamilyStructure = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <Button onClick={handleAddMember}>
+                  <Button
+                    onClick={handleAddMember}
+                    disabled={!empresaId || loadingEmpresas}
+                    title={!empresaId ? "Selecione uma empresa primeiro" : undefined}
+                  >
                     <UserPlus className="h-4 w-4 mr-2" />
                     Adicionar Familiar
                   </Button>
                 </div>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Idade</TableHead>
-                    <TableHead>Geração</TableHead>
-                    <TableHead>Papel</TableHead>
-                    <TableHead>Envolvimento</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
-                      <TableCell>{member.age}</TableCell>
-                      <TableCell>{member.generation}</TableCell>
-                      <TableCell>{member.role}</TableCell>
-                      <TableCell>{member.involvement}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            member.status === "Ativo"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {member.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewDetails(member)}
-                            title="Ver Detalhes"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditMember(member)}
-                            title="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteMember(member)}
-                            title="Remover"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {!hasEmpresas ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="font-medium">Nenhuma empresa cadastrada</p>
+                  <p className="text-sm mt-1">
+                    Cadastre uma empresa na tabela <code>empresas</code> do Supabase para usar a
+                    Estrutura Societária.
+                  </p>
+                </div>
+              ) : isLoading ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  Carregando familiares...
+                </div>
+              ) : filteredMembers.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="font-medium">
+                    {searchTerm ? "Nenhum resultado para a busca" : "Nenhum familiar cadastrado"}
+                  </p>
+                  <p className="text-sm mt-1">
+                    {searchTerm
+                      ? "Tente outro termo de busca"
+                      : "Clique em Adicionar Familiar para começar"}
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Idade</TableHead>
+                      <TableHead>Geração</TableHead>
+                      <TableHead>Papel</TableHead>
+                      <TableHead>Envolvimento</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMembers.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">{member.name}</TableCell>
+                        <TableCell>{member.age ?? "—"}</TableCell>
+                        <TableCell>{member.generation ?? "—"}</TableCell>
+                        <TableCell>{member.role ?? "—"}</TableCell>
+                        <TableCell>{member.involvement ?? "—"}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              member.status === "Ativo"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {member.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewDetails(member)}
+                              title="Ver Detalhes"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditMember(member)}
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteClick(member)}
+                              title="Remover"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -284,76 +340,93 @@ const FamilyStructure = () => {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Nome Completo
-                </label>
-                <Input id="name" placeholder="Nome completo" />
+                <Label htmlFor="name">Nome Completo</Label>
+                <Input
+                  id="name"
+                  placeholder="Nome completo"
+                  value={form.name}
+                  onChange={(e) => handleFormChange("name", e.target.value)}
+                />
               </div>
               <div className="space-y-2">
-                <label htmlFor="age" className="text-sm font-medium">
-                  Idade
-                </label>
-                <Input id="age" type="number" placeholder="Idade" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="generation" className="text-sm font-medium">
-                  Geração
-                </label>
-                <select id="generation" className="w-full p-2 border rounded-md">
-                  <option value="">Selecione...</option>
-                  <option value="1ª">1ª Geração</option>
-                  <option value="2ª">2ª Geração</option>
-                  <option value="3ª">3ª Geração</option>
-                  <option value="4ª">4ª Geração</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="role" className="text-sm font-medium">
-                  Papel
-                </label>
-                <Input id="role" placeholder="Ex: Fundador, Herdeiro, etc." />
+                <Label htmlFor="age">Idade</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="Idade"
+                  value={form.age}
+                  onChange={(e) => handleFormChange("age", e.target.value)}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="involvement" className="text-sm font-medium">
-                  Envolvimento
-                </label>
-                <Input id="involvement" placeholder="Ex: CEO, Conselheiro, etc." />
+                <Label htmlFor="generation">Geração</Label>
+                <Select
+                  value={form.generation}
+                  onValueChange={(v) => handleFormChange("generation", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1ª">1ª Geração</SelectItem>
+                    <SelectItem value="2ª">2ª Geração</SelectItem>
+                    <SelectItem value="3ª">3ª Geração</SelectItem>
+                    <SelectItem value="4ª">4ª Geração</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <label htmlFor="status" className="text-sm font-medium">
-                  Status
-                </label>
-                <select id="status" className="w-full p-2 border rounded-md">
-                  <option value="">Selecione...</option>
-                  <option value="Ativo">Ativo</option>
-                  <option value="Afastado">Afastado</option>
-                  <option value="Inativo">Inativo</option>
-                </select>
+                <Label htmlFor="role">Papel</Label>
+                <Input
+                  id="role"
+                  placeholder="Ex: Fundador, Herdeiro, etc."
+                  value={form.role}
+                  onChange={(e) => handleFormChange("role", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="involvement">Envolvimento</Label>
+                <Input
+                  id="involvement"
+                  placeholder="Ex: CEO, Conselheiro, etc."
+                  value={form.involvement}
+                  onChange={(e) => handleFormChange("involvement", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={form.status} onValueChange={(v) => handleFormChange("status", v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ativo">Ativo</SelectItem>
+                    <SelectItem value="Afastado">Afastado</SelectItem>
+                    <SelectItem value="Inativo">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <label htmlFor="shareholding" className="text-sm font-medium">
-                Participação Societária
-              </label>
-              <Input id="shareholding" placeholder="Ex: 25%" />
+              <Label htmlFor="shareholding">Participação Societária</Label>
+              <Input
+                id="shareholding"
+                placeholder="Ex: 25%"
+                value={form.shareholding}
+                onChange={(e) => handleFormChange("shareholding", e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingMember(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => {
-              toast({
-                title: "Membro adicionado",
-                description: "O novo membro da família foi adicionado com sucesso!"
-              });
-              setIsAddingMember(false);
-            }}>
-              Salvar
+            <Button onClick={handleSubmitAddMember} disabled={insertLoading}>
+              {insertLoading ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -368,28 +441,43 @@ const FamilyStructure = () => {
               Informações detalhadas sobre o membro da família
             </SheetDescription>
           </SheetHeader>
-          
+
           {showDetailsMember && (
             <div className="py-6">
               <div className="flex items-center mb-6">
-                <div className="w-20 h-20 rounded-full overflow-hidden mr-4">
-                  <img 
-                    src={showDetailsMember.imageSrc} 
-                    alt={showDetailsMember.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                {showDetailsMember.imageSrc ? (
+                  <div className="w-20 h-20 rounded-full overflow-hidden mr-4">
+                    <img
+                      src={showDetailsMember.imageSrc}
+                      alt={showDetailsMember.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+                    <UserPlus className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
                 <div>
                   <h3 className="text-xl font-semibold">{showDetailsMember.name}</h3>
-                  <p className="text-gray-500">{showDetailsMember.role} • {showDetailsMember.generation} Geração</p>
+                  <p className="text-gray-500">
+                    {[
+                      showDetailsMember.role,
+                      showDetailsMember.generation
+                        ? `${showDetailsMember.generation} Geração`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Idade</h4>
-                    <p>{showDetailsMember.age} anos</p>
+                    <p>{showDetailsMember.age != null ? `${showDetailsMember.age} anos` : "—"}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Status</h4>
@@ -404,56 +492,72 @@ const FamilyStructure = () => {
                     </span>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Participação Societária</h4>
-                  <p>{showDetailsMember.shareholding}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Formação</h4>
-                  <p>{showDetailsMember.education}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Experiência</h4>
-                  <p>{showDetailsMember.experience}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Contato</h4>
-                  <p>Email: {showDetailsMember.contact.email}</p>
-                  <p>Telefone: {showDetailsMember.contact.phone}</p>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">Empresas</h4>
-                  <div className="space-y-3">
-                    {showDetailsMember.companies.map((company: any, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-md">
-                        <div className="font-medium">{company.name}</div>
-                        <div className="text-sm text-gray-500">Cargo: {company.role}</div>
-                        {company.shareholding !== "N/A" && (
-                          <div className="text-sm text-gray-500">
-                            Participação: {company.shareholding}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+
+                {showDetailsMember.shareholding && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">
+                      Participação Societária
+                    </h4>
+                    <p>{showDetailsMember.shareholding}</p>
                   </div>
-                </div>
+                )}
+
+                {showDetailsMember.education && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">Formação</h4>
+                    <p>{showDetailsMember.education}</p>
+                  </div>
+                )}
+
+                {showDetailsMember.experience && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">Experiência</h4>
+                    <p>{showDetailsMember.experience}</p>
+                  </div>
+                )}
+
+                {(showDetailsMember.contact.email || showDetailsMember.contact.phone) && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">Contato</h4>
+                    {showDetailsMember.contact.email && (
+                      <p>Email: {showDetailsMember.contact.email}</p>
+                    )}
+                    {showDetailsMember.contact.phone && (
+                      <p>Telefone: {showDetailsMember.contact.phone}</p>
+                    )}
+                  </div>
+                )}
+
+                {showDetailsMember.companies.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Empresas</h4>
+                    <div className="space-y-3">
+                      {showDetailsMember.companies.map((company, index) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded-md">
+                          <div className="font-medium">{company.name}</div>
+                          <div className="text-sm text-gray-500">Cargo: {company.role}</div>
+                          {company.shareholding && company.shareholding !== "N/A" && (
+                            <div className="text-sm text-gray-500">
+                              Participação: {company.shareholding}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              
+
               <div className="mt-8 flex space-x-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => handleEditMember(showDetailsMember)}
                   className="flex-1"
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   Editar
                 </Button>
-                <Button 
+                <Button
                   onClick={() => setShowDetailsMember(null)}
                   className="flex-1 bg-legacy-purple-500 hover:bg-legacy-purple-600"
                 >
@@ -464,6 +568,29 @@ const FamilyStructure = () => {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!memberToDelete} onOpenChange={(open) => !open && setMemberToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir familiar</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <strong>{memberToDelete?.name}</strong> da estrutura
+              familiar? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLoading}>Cancelar</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? "Excluindo..." : "Excluir"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
