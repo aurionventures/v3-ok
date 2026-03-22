@@ -1,0 +1,381 @@
+import { supabase } from "@/lib/supabase";
+import type {
+  ConselhoRow,
+  ComiteRow,
+  ComissaoRow,
+  MembroGovernancaRow,
+  AlocacaoRow,
+  OrgaoGovernanca,
+  MembroComAlocacao,
+  ConselhoInsert,
+  ComiteInsert,
+  ComissaoInsert,
+  MembroInsert,
+  AlocacaoInsert,
+} from "@/types/governance";
+
+async function countAlocacoesPorOrgao(
+  campo: "conselho_id" | "comite_id" | "comissao_id",
+  ids: string[]
+): Promise<Map<string, number>> {
+  if (!supabase || ids.length === 0) return new Map();
+  const { data } = await supabase
+    .from("alocacoes_membros")
+    .select(campo)
+    .eq("ativo", true)
+    .in(campo, ids);
+  const map = new Map<string, number>();
+  for (const id of ids) map.set(id, 0);
+  for (const row of data ?? []) {
+    const id = (row as Record<string, string>)[campo];
+    if (id) map.set(id, (map.get(id) ?? 0) + 1);
+  }
+  return map;
+}
+
+// --- Conselhos ---
+export async function fetchConselhos(empresaId: string): Promise<OrgaoGovernanca[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("conselhos")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .eq("ativo", true)
+    .order("nome");
+  if (error) {
+    console.error("[governance] fetchConselhos:", error);
+    return [];
+  }
+  const rows = data ?? [];
+  const ids = rows.map((r: ConselhoRow) => r.id);
+  const counts = await countAlocacoesPorOrgao("conselho_id", ids);
+  return rows.map((r: ConselhoRow) => ({
+    id: r.id,
+    nome: r.nome,
+    descricao: r.descricao ?? "",
+    tipo: r.tipo ?? "",
+    quorum: r.quorum ?? 3,
+    nivel: r.nivel ?? "",
+    membros: counts.get(r.id) ?? 0,
+  }));
+}
+
+export async function insertConselho(p: ConselhoInsert): Promise<{ data: OrgaoGovernanca | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Supabase não configurado" };
+  const { data, error } = await supabase
+    .from("conselhos")
+    .insert({
+      empresa_id: p.empresa_id,
+      nome: p.nome,
+      tipo: p.tipo ?? null,
+      descricao: p.descricao ?? null,
+      quorum: p.quorum ?? 3,
+      nivel: p.nivel ?? null,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error("[governance] insertConselho:", error);
+    return { data: null, error: error.message };
+  }
+  return {
+    data: data
+      ? {
+          id: data.id,
+          nome: data.nome,
+          descricao: data.descricao ?? "",
+          tipo: data.tipo ?? "",
+          quorum: data.quorum ?? 3,
+          nivel: data.nivel ?? "",
+          membros: 0,
+        }
+      : null,
+    error: null,
+  };
+}
+
+export async function deleteConselho(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase.from("conselhos").delete().eq("id", id);
+  if (error) {
+    console.error("[governance] deleteConselho:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+// --- Comitês ---
+export async function fetchComites(empresaId: string): Promise<OrgaoGovernanca[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("comites")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .eq("ativo", true)
+    .order("nome");
+  if (error) {
+    console.error("[governance] fetchComites:", error);
+    return [];
+  }
+  const rows = data ?? [];
+  const ids = rows.map((r: ComiteRow) => r.id);
+  const counts = await countAlocacoesPorOrgao("comite_id", ids);
+  return rows.map((r: ComiteRow) => ({
+    id: r.id,
+    nome: r.nome,
+    descricao: r.descricao ?? "",
+    tipo: r.tipo ?? "",
+    quorum: r.quorum ?? 3,
+    nivel: r.nivel ?? "",
+    membros: counts.get(r.id) ?? 0,
+  }));
+}
+
+export async function insertComite(p: ComiteInsert): Promise<{ data: OrgaoGovernanca | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Supabase não configurado" };
+  const { data, error } = await supabase
+    .from("comites")
+    .insert({
+      empresa_id: p.empresa_id,
+      nome: p.nome,
+      conselho_id: p.conselho_id ?? null,
+      descricao: p.descricao ?? null,
+      tipo: p.tipo ?? null,
+      quorum: p.quorum ?? 3,
+      nivel: p.nivel ?? null,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error("[governance] insertComite:", error);
+    return { data: null, error: error.message };
+  }
+  return {
+    data: data
+      ? {
+          id: data.id,
+          nome: data.nome,
+          descricao: data.descricao ?? "",
+          tipo: data.tipo ?? "",
+          quorum: data.quorum ?? 3,
+          nivel: data.nivel ?? "",
+          membros: 0,
+        }
+      : null,
+    error: null,
+  };
+}
+
+export async function deleteComite(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase.from("comites").delete().eq("id", id);
+  if (error) {
+    console.error("[governance] deleteComite:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+// --- Comissões ---
+export async function fetchComissoes(empresaId: string): Promise<OrgaoGovernanca[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("comissoes")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .eq("ativo", true)
+    .order("nome");
+  if (error) {
+    console.error("[governance] fetchComissoes:", error);
+    return [];
+  }
+  const rows = data ?? [];
+  const ids = rows.map((r: ComissaoRow) => r.id);
+  const counts = await countAlocacoesPorOrgao("comissao_id", ids);
+  return rows.map((r: ComissaoRow) => ({
+    id: r.id,
+    nome: r.nome,
+    descricao: r.descricao ?? "",
+    tipo: r.tipo ?? "",
+    quorum: r.quorum ?? 3,
+    nivel: r.nivel ?? "",
+    membros: counts.get(r.id) ?? 0,
+  }));
+}
+
+export async function insertComissao(p: ComissaoInsert): Promise<{ data: OrgaoGovernanca | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Supabase não configurado" };
+  const { data, error } = await supabase
+    .from("comissoes")
+    .insert({
+      empresa_id: p.empresa_id,
+      nome: p.nome,
+      descricao: p.descricao ?? null,
+      tipo: p.tipo ?? null,
+      quorum: p.quorum ?? 3,
+      nivel: p.nivel ?? null,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error("[governance] insertComissao:", error);
+    return { data: null, error: error.message };
+  }
+  return {
+    data: data
+      ? {
+          id: data.id,
+          nome: data.nome,
+          descricao: data.descricao ?? "",
+          tipo: data.tipo ?? "",
+          quorum: data.quorum ?? 3,
+          nivel: data.nivel ?? "",
+          membros: 0,
+        }
+      : null,
+    error: null,
+  };
+}
+
+export async function deleteComissao(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase.from("comissoes").delete().eq("id", id);
+  if (error) {
+    console.error("[governance] deleteComissao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+// --- Membros ---
+export async function fetchMembros(empresaId: string): Promise<MembroComAlocacao[]> {
+  if (!supabase) return [];
+  const { data: membros, error: errM } = await supabase
+    .from("membros_governanca")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .order("nome");
+  if (errM || !membros) return [];
+
+  const { data: alocacoes } = await supabase
+    .from("alocacoes_membros")
+    .select("membro_id, conselho_id, comite_id, comissao_id")
+    .eq("ativo", true);
+
+  const conselhoIds = [...new Set((alocacoes ?? []).map((a: AlocacaoRow) => a.conselho_id).filter(Boolean) as string[])];
+  const comiteIds = [...new Set((alocacoes ?? []).map((a: AlocacaoRow) => a.comite_id).filter(Boolean) as string[])];
+  const comissaoIds = [...new Set((alocacoes ?? []).map((a: AlocacaoRow) => a.comissao_id).filter(Boolean) as string[])];
+
+  const nomesConselhos = new Map<string, string>();
+  const nomesComites = new Map<string, string>();
+  const nomesComissoes = new Map<string, string>();
+  if (conselhoIds.length) {
+    const { data: d } = await supabase.from("conselhos").select("id, nome").in("id", conselhoIds);
+    for (const r of d ?? []) nomesConselhos.set(r.id, r.nome);
+  }
+  if (comiteIds.length) {
+    const { data: d } = await supabase.from("comites").select("id, nome").in("id", comiteIds);
+    for (const r of d ?? []) nomesComites.set(r.id, r.nome);
+  }
+  if (comissaoIds.length) {
+    const { data: d } = await supabase.from("comissoes").select("id, nome").in("id", comissaoIds);
+    for (const r of d ?? []) nomesComissoes.set(r.id, r.nome);
+  }
+
+  const orgaosMap = new Map<string, string[]>();
+  for (const a of alocacoes ?? []) {
+    const arr = orgaosMap.get(a.membro_id) ?? [];
+    const nome = (a.conselho_id && nomesConselhos.get(a.conselho_id)) ||
+      (a.comite_id && nomesComites.get(a.comite_id)) ||
+      (a.comissao_id && nomesComissoes.get(a.comissao_id)) || "";
+    if (nome) arr.push(nome);
+    orgaosMap.set(a.membro_id, arr);
+  }
+
+  return membros.map((m: MembroGovernancaRow) => ({
+    id: m.id,
+    nome: m.nome,
+    cargoPrincipal: m.cargo_principal ?? null,
+    orgaosAlocados: orgaosMap.get(m.id) ?? [],
+  }));
+}
+
+export async function insertMembro(p: MembroInsert): Promise<{ data: MembroComAlocacao | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Supabase não configurado" };
+  const { data, error } = await supabase
+    .from("membros_governanca")
+    .insert({
+      empresa_id: p.empresa_id,
+      nome: p.nome,
+      cargo_principal: p.cargo_principal ?? null,
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error("[governance] insertMembro:", error);
+    return { data: null, error: error.message };
+  }
+  return {
+    data: data ? { id: data.id, nome: data.nome, cargoPrincipal: data.cargo_principal ?? null, orgaosAlocados: [] } : null,
+    error: null,
+  };
+}
+
+export async function updateMembro(
+  id: string,
+  p: { nome?: string; cargo_principal?: string | null }
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("membros_governanca")
+    .update({
+      nome: p.nome,
+      cargo_principal: p.cargo_principal ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) {
+    console.error("[governance] updateMembro:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+export async function deleteMembro(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase.from("membros_governanca").delete().eq("id", id);
+  if (error) {
+    console.error("[governance] deleteMembro:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+// --- Alocações ---
+export async function insertAlocacao(p: AlocacaoInsert): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase.from("alocacoes_membros").insert({
+    membro_id: p.membro_id,
+    conselho_id: p.conselho_id ?? null,
+    comite_id: p.comite_id ?? null,
+    comissao_id: p.comissao_id ?? null,
+    cargo: p.cargo ?? null,
+    data_inicio: p.data_inicio ?? null,
+    data_fim: p.data_fim ?? null,
+  });
+  if (error) {
+    console.error("[governance] insertAlocacao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+export async function removeAlocacao(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase.from("alocacoes_membros").delete().eq("id", id);
+  if (error) {
+    console.error("[governance] removeAlocacao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}

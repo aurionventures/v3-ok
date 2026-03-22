@@ -139,12 +139,6 @@ const Sidebar = () => {
           href: "/entrevistas",
           name: "Entrevistas",
           moduleId: "entrevistas"
-        },
-        {
-          icon: <Calendar className="h-5 w-5" />,
-          href: "/rituals",
-          name: "Rituais",
-          moduleId: "rituals"
         }
       ]
     },
