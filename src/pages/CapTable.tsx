@@ -2,9 +2,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
-  PieChart, Filter, Download, Upload, Users, Building, 
-  Calendar, AlertTriangle, FileText, Eye, BookOpen,
-  Edit, Trash2, Search, Settings
+  Download, Upload, Building, Eye, BookOpen,
+  Edit, Trash2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,11 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
 
 // Mock data for demonstration
 const mockShareholders = [
@@ -94,12 +92,6 @@ const chartData = mockShareholders.map((shareholder, index) => ({
   fill: chartColors[index % chartColors.length]
 }));
 
-const evolutionData = [
-  { month: "Jan 2023", joao: 40, maria: 25, holding: 20, investidor: 15, pedro: 0 },
-  { month: "Jun 2023", joao: 38, maria: 22, holding: 22, investidor: 15, pedro: 3 },
-  { month: "Jan 2024", joao: 35.5, maria: 20, holding: 25, investidor: 15, pedro: 4.5 }
-];
-
 const CapTable = () => {
   const [selectedCompany, setSelectedCompany] = useState("1");
   const [searchTerm, setSearchTerm] = useState("");
@@ -172,9 +164,6 @@ const CapTable = () => {
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="table">Tabela Detalhada</TabsTrigger>
-              <TabsTrigger value="evolution">Evolução</TabsTrigger>
-              <TabsTrigger value="documents">Documentos</TabsTrigger>
-              <TabsTrigger value="alerts">Alertas</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -362,119 +351,6 @@ const CapTable = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Evolution Tab */}
-            <TabsContent value="evolution" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Evolução do Cap Table</CardTitle>
-                  <CardDescription>Histórico de mudanças nas participações ao longo do tempo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{
-                      joao: { label: "João Silva", color: "#8B5CF6" },
-                      maria: { label: "Maria Silva", color: "#06B6D4" },
-                      holding: { label: "Silva Holdings", color: "#10B981" },
-                      investidor: { label: "Investidor Anjo", color: "#F59E0B" },
-                      pedro: { label: "Pedro Silva", color: "#EF4444" }
-                    }}
-                    className="h-[400px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={evolutionData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Legend />
-                        <Line type="monotone" dataKey="joao" stroke="#8B5CF6" strokeWidth={2} />
-                        <Line type="monotone" dataKey="maria" stroke="#06B6D4" strokeWidth={2} />
-                        <Line type="monotone" dataKey="holding" stroke="#10B981" strokeWidth={2} />
-                        <Line type="monotone" dataKey="investidor" stroke="#F59E0B" strokeWidth={2} />
-                        <Line type="monotone" dataKey="pedro" stroke="#EF4444" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Documents Tab */}
-            <TabsContent value="documents" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Documentos Societários
-                  </CardTitle>
-                  <CardDescription>Documentos relacionados ao Cap Table e eventos societários</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {[
-                      { name: "Contrato Social Atualizado", date: "2024-01-15", type: "Contrato", status: "Ativo" },
-                      { name: "Ata Assembleia - Entrada Pedro Silva", date: "2024-01-10", type: "Ata", status: "Aprovado" },
-                      { name: "Acordo de Acionistas", date: "2023-08-15", type: "Acordo", status: "Vigente" },
-                      { name: "Avaliação da Empresa - 2024", date: "2024-02-01", type: "Avaliação", status: "Atual" }
-                    ].map((doc, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-gray-500" />
-                          <div>
-                            <div className="font-medium">{doc.name}</div>
-                            <div className="text-sm text-gray-500">{doc.type} • {doc.date}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{doc.status}</Badge>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Alerts Tab */}
-            <TabsContent value="alerts" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    Alertas e Lembretes
-                  </CardTitle>
-                  <CardDescription>Eventos importantes e prazos relacionados ao Cap Table</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Alert>
-                      <Calendar className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Assembleia Anual:</strong> Assembleia geral programada para 15/03/2024 para aprovação das demonstrações financeiras.
-                      </AlertDescription>
-                    </Alert>
-                    
-                    <Alert>
-                      <Users className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Direito de Preferência:</strong> Investidor Anjo XYZ pode exercer direito de preferência até 30/06/2024.
-                      </AlertDescription>
-                    </Alert>
-                    
-                    <Alert>
-                      <FileText className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Renovação de Acordo:</strong> Acordo de acionistas vence em 15/08/2024 e precisa ser renovado.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
