@@ -68,7 +68,6 @@ const AnaliseAcoes = () => {
         <div className="flex-1 overflow-y-auto p-6">
           <p className="text-center text-muted-foreground mb-6 max-w-2xl mx-auto">
             Analise documentos do checklist (contratos) e entrevistas para identificar incongruências, gaps e gerar plano de ação.
-            Configure OPENAI_API_KEY no Supabase para habilitar a análise com IA.
           </p>
 
           {!hasEmpresas ? (
