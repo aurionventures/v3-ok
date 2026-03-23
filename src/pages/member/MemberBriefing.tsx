@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Download, HelpCircle, FileCheck, BookOpen, FileText, Target, Lightbulb, AlertTriangle } from "lucide-react";
+import { Clock, Download, HelpCircle, FileCheck, BookOpen, FileText, Target, Lightbulb, AlertTriangle, Calendar, List } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 import { fetchBriefingMembro } from "@/services/membroBriefing";
 
-const MemberBriefing = () => {
+interface MemberBriefingProps {
+  onProgressChange?: (progress: number) => void;
+}
+
+const MemberBriefing = ({ onProgressChange }: MemberBriefingProps) => {
   const { data: membro } = useCurrentMembro();
   const [confirmacaoLeitura, setConfirmacaoLeitura] = useState(false);
   const [abriuAnexos, setAbriuAnexos] = useState(false);
@@ -20,14 +24,20 @@ const MemberBriefing = () => {
   });
 
   const bData = briefing?.data;
+  const meetingAgendaFromData = (bData?.dados_completos as { meeting_agenda?: unknown[] })?.meeting_agenda ?? [];
   const temBriefing =
     bData &&
     (bData.resumo_executivo ||
       (bData.perguntas_criticas?.length ?? 0) > 0 ||
       !!bData.seu_foco ||
       !!bData.preparacao_recomendada ||
-      !!bData.alertas_contextuais);
+      !!bData.alertas_contextuais ||
+      meetingAgendaFromData.length > 0);
   const progresso = temBriefing ? (confirmacaoLeitura ? 50 : 0) + (abriuAnexos ? 50 : 0) : 0;
+
+  useEffect(() => {
+    onProgressChange?.(progresso);
+  }, [progresso, onProgressChange]);
 
   if (isLoading) {
     return (
@@ -44,7 +54,7 @@ const MemberBriefing = () => {
           <FileText className="h-16 w-16 mx-auto mb-4 opacity-40" />
           <p className="font-medium text-base">Seu briefing será gerado pelo Secretariado</p>
           <p className="text-sm mt-2 max-w-md mx-auto">
-            O briefing de preparação para as reuniões será disponibilizado aqui assim que for gerado pela área administrativa.
+            O briefing será disponibilizado aqui quando o administrador aprovar pautas sugeridas pela IA no Copiloto de Governança. Se você está alocado ao órgão da reunião, receberá a pauta e seu briefing personalizado.
           </p>
         </CardContent>
       </Card>
@@ -53,6 +63,7 @@ const MemberBriefing = () => {
 
   const b = briefing!.data!;
   const perguntas = Array.isArray(b.perguntas_criticas) ? b.perguntas_criticas : [];
+  const meetingAgenda = (b.dados_completos as { meeting_agenda?: Array<{ horario?: string; titulo?: string; tipo?: string; apresentador?: string; materiais?: string; perguntas?: string[]; decisao_esperada?: string; conexao?: string }> })?.meeting_agenda ?? [];
 
   return (
     <div className="space-y-6">
@@ -106,6 +117,57 @@ const MemberBriefing = () => {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold">{b.titulo}</h3>
+          </CardContent>
+        </Card>
+      )}
+
+      {meetingAgenda.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <List className="h-5 w-5 text-primary" />
+              Temas da Pauta
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Estude os temas que serão discutidos na reunião para se preparar.
+            </p>
+            <div className="space-y-4">
+              {meetingAgenda.map((item, idx) => (
+                <div key={idx} className="rounded-lg border bg-muted/30 p-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="font-medium">{item.titulo ?? "Item"}</span>
+                    {item.tipo && (
+                      <span className="rounded bg-muted px-2 py-0.5 text-xs">{item.tipo}</span>
+                    )}
+                    {item.horario && (
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {item.horario}
+                      </span>
+                    )}
+                    {item.apresentador && (
+                      <span className="text-muted-foreground">Apresentador: {item.apresentador}</span>
+                    )}
+                  </div>
+                  {item.materiais && (
+                    <p className="text-muted-foreground mb-1"><span className="font-medium">Materiais:</span> {item.materiais}</p>
+                  )}
+                  {item.decisao_esperada && (
+                    <p className="text-muted-foreground mb-1"><span className="font-medium">Decisão esperada:</span> {item.decisao_esperada}</p>
+                  )}
+                  {item.conexao && (
+                    <p className="text-muted-foreground mb-1"><span className="font-medium">Conexão:</span> {item.conexao}</p>
+                  )}
+                  {Array.isArray(item.perguntas) && item.perguntas.length > 0 && (
+                    <ul className="mt-2 list-disc list-inside text-muted-foreground space-y-0.5">
+                      {item.perguntas.map((p, i) => (
+                        <li key={i}>{p}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

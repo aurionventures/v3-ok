@@ -128,7 +128,7 @@ export async function aprovarPautaSugerida(
 
   const { data: pauta, error: fetchErr } = await supabase
     .from("pauta_sugerida_ia")
-    .select("output_2b, status")
+    .select("output_2a, output_2b, status")
     .eq("id", pautaId)
     .eq("empresa_id", empresaId)
     .maybeSingle();
@@ -141,6 +141,8 @@ export async function aprovarPautaSugerida(
   }
 
   const briefings = (pauta.output_2b as { member_briefings?: Array<Record<string, unknown>> })?.member_briefings ?? [];
+  const meetingAgenda = (pauta.output_2a as { meeting_agenda?: unknown[] })?.meeting_agenda ?? [];
+
   for (const b of briefings) {
     const membroId = b.membro_id;
     if (!membroId || typeof membroId !== "string") continue;
@@ -161,6 +163,7 @@ export async function aprovarPautaSugerida(
       seu_foco: seuFoco || undefined,
       preparacao_recomendada: preparacao || undefined,
       alertas_contextuais: alertas || undefined,
+      dados_completos: meetingAgenda.length > 0 ? { meeting_agenda: meetingAgenda } : undefined,
     });
 
     if (upsertErr) {

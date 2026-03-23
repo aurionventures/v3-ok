@@ -46,15 +46,26 @@ const emptyResult: InsightsEstrategicosResult = {
   resumo: "",
 };
 
-export function useInsightsEstrategicos() {
-  const { firstEmpresaId } = useEmpresas();
+export interface UseInsightsEstrategicosOptions {
+  /** Empresa ID (ex: de useCurrentMembro). Quando informado, usa em vez de firstEmpresaId. Permite members verem os mesmos insights do Copiloto. */
+  empresaId?: string | null;
+  /** Se true, busca automaticamente ao montar. Útil para members. ADM usa false e refetch manual. */
+  autoFetch?: boolean;
+}
 
-  const storedInitial = getStoredInsights(firstEmpresaId ?? null);
+export function useInsightsEstrategicos(options?: UseInsightsEstrategicosOptions) {
+  const { firstEmpresaId } = useEmpresas();
+  const empresaIdOverride = options?.empresaId;
+  const autoFetch = options?.autoFetch ?? false;
+
+  const effectiveEmpresaId = empresaIdOverride ?? firstEmpresaId ?? null;
+
+  const storedInitial = getStoredInsights(effectiveEmpresaId);
 
   const query = useQuery({
-    queryKey: [...INSIGHTS_ESTRATEGICOS_KEY, firstEmpresaId ?? "none"],
-    queryFn: () => fetchInsightsEstrategicos(firstEmpresaId),
-    enabled: false,
+    queryKey: [...INSIGHTS_ESTRATEGICOS_KEY, effectiveEmpresaId ?? "none"],
+    queryFn: () => fetchInsightsEstrategicos(effectiveEmpresaId),
+    enabled: !!effectiveEmpresaId && autoFetch,
     staleTime: 1000 * 60 * 5,
     initialData: storedInitial ?? undefined,
   });
@@ -69,9 +80,9 @@ export function useInsightsEstrategicos() {
         query.data.oportunidades?.length > 0 ||
         (query.data.resumo ?? "").trim() !== "")
     ) {
-      setStoredInsights(firstEmpresaId ?? null, query.data);
+      setStoredInsights(effectiveEmpresaId, query.data);
     }
-  }, [query.isSuccess, query.data, firstEmpresaId]);
+  }, [query.isSuccess, query.data, effectiveEmpresaId]);
 
   const data = (query.data ?? storedInitial ?? emptyResult) as InsightsEstrategicosResult;
 
@@ -80,7 +91,7 @@ export function useInsightsEstrategicos() {
     isLoading: query.isLoading,
     isFetched: query.isFetched,
     error: query.error ?? data.error,
-    hasEmpresa: !!firstEmpresaId,
+    hasEmpresa: !!effectiveEmpresaId,
     refetch: query.refetch,
   };
 }

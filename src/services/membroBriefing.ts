@@ -49,6 +49,38 @@ export async function fetchBriefingMembro(
   return { data: row, error: null };
 }
 
+/** Lista todos os briefings do membro (para exibir múltiplas reuniões). */
+export async function fetchBriefingsMembro(
+  membroId: string
+): Promise<{ data: MembroBriefingRow[]; error: string | null }> {
+  if (!supabase) return { data: [], error: "Supabase não configurado" };
+
+  const { data, error } = await supabase
+    .from("membro_briefing")
+    .select("*, reunioes(titulo, data_reuniao)")
+    .eq("membro_id", membroId)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("[membroBriefing] fetchBriefings:", error);
+    return { data: [], error: error.message };
+  }
+
+  const rows = (data ?? []) as (MembroBriefingRow & { reunioes?: { titulo?: string; data_reuniao?: string } | null })[];
+  for (const row of rows) {
+    if (Array.isArray(row.perguntas_criticas) === false && typeof row.perguntas_criticas === "string") {
+      try {
+        row.perguntas_criticas = JSON.parse(row.perguntas_criticas as unknown as string) ?? [];
+      } catch {
+        row.perguntas_criticas = [];
+      }
+    }
+    if (!Array.isArray(row.perguntas_criticas)) row.perguntas_criticas = [];
+  }
+
+  return { data: rows, error: null };
+}
+
 export interface MembroBriefingInsert {
   membro_id: string;
   empresa_id: string;
@@ -59,6 +91,8 @@ export interface MembroBriefingInsert {
   seu_foco?: string | null;
   preparacao_recomendada?: string | null;
   alertas_contextuais?: string | null;
+  /** Ex: { meeting_agenda: [...] } para o membro estudar os temas da pauta */
+  dados_completos?: Record<string, unknown> | null;
 }
 
 /**
@@ -98,6 +132,7 @@ export async function upsertBriefingMembro(
     seu_foco: p.seu_foco ?? null,
     preparacao_recomendada: p.preparacao_recomendada ?? null,
     alertas_contextuais: p.alertas_contextuais ?? null,
+    dados_completos: p.dados_completos ?? null,
     updated_at: new Date().toISOString(),
   };
 

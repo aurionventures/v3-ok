@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -37,6 +37,7 @@ const MemberDashboard = () => {
   const { data: membro } = useCurrentMembro();
   const { score: maturidadeScore, fullMark: maturidadeFullMark, estagio: maturidadeEstagio, isLoading: maturidadeLoading } = useMaturidadeScore();
   const { data: pendencias = [] } = useMemberPendencias();
+  const [briefingProgress, setBriefingProgress] = useState(0);
 
   const { data: dashboard } = useQuery({
     queryKey: ["member", "dashboard", membro?.id, membro?.empresa_id, membro?.nome],
@@ -114,10 +115,12 @@ const MemberDashboard = () => {
                   <p className="text-white/80 text-sm">
                     {dashboard?.proxima?.titulo ?? dashboard?.proxima?.conselho_nome ?? dashboard?.proxima?.comite_nome ?? dashboard?.proxima?.comissao_nome ?? "—"}
                   </p>
-                  <div className="mt-3">
-                    <p className="text-xs text-white/80 mb-1">Progresso do Briefing</p>
-                    <Progress value={45} className="h-2 bg-white/20" />
-                  </div>
+                  {briefingProgress > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-white/80 mb-1">Progresso do Briefing</p>
+                      <Progress value={briefingProgress} className="h-2 bg-white/20" />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-6 text-sm">
@@ -125,10 +128,12 @@ const MemberDashboard = () => {
                   <p className="font-semibold">{dashboard?.reunioesCount ?? 0}</p>
                   <p className="text-white/80">reuniões futuras</p>
                 </div>
-                <div className="text-center">
-                  <p className="font-semibold">45%</p>
-                  <p className="text-white/80">preparação</p>
-                </div>
+                {briefingProgress > 0 && (
+                  <div className="text-center">
+                    <p className="font-semibold">{briefingProgress}%</p>
+                    <p className="text-white/80">preparação</p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -269,7 +274,7 @@ const MemberDashboard = () => {
           </TabsContent>
 
           <TabsContent value="briefing">
-            <MemberBriefing />
+            <MemberBriefing onProgressChange={setBriefingProgress} />
           </TabsContent>
 
           <TabsContent value="copiloto">
