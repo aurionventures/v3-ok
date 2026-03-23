@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, ActivitySquare, FileText, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, ActivitySquare, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -217,6 +217,79 @@ const Settings = () => {
                       <Save className="h-4 w-4 mr-2" />
                       Salvar Perfil
                     </Button>
+
+                    {isAdmin() && (
+                      <div className="mt-8 pt-8 border-t">
+                        <h3 className="text-lg font-medium mb-4">Criar novo Super Admin</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Cadastre um novo Super Admin com nome, e-mail e senha provisória. Envie as credenciais ao novo administrador. No primeiro acesso, ele deverá alterar a senha.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="super-admin-nome">Nome</Label>
+                            <Input
+                              id="super-admin-nome"
+                              placeholder="Nome completo"
+                              value={superAdminNome}
+                              onChange={(e) => setSuperAdminNome(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="super-admin-email">E-mail</Label>
+                            <Input
+                              id="super-admin-email"
+                              type="email"
+                              placeholder="admin@exemplo.com"
+                              value={superAdminEmail}
+                              onChange={(e) => setSuperAdminEmail(e.target.value)}
+                            />
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label htmlFor="super-admin-senha">Senha provisória (mín. 6 caracteres)</Label>
+                            <div className="relative">
+                              <Input
+                                id="super-admin-senha"
+                                type={superAdminSenhaVisivel ? "text" : "password"}
+                                placeholder="••••••••"
+                                value={superAdminSenha}
+                                onChange={(e) => setSuperAdminSenha(e.target.value)}
+                                className="pr-20"
+                              />
+                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setSuperAdminSenha(gerarSenhaAleatoria())}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground rounded"
+                                  title="Gerar senha"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSuperAdminSenhaVisivel((v) => !v)}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground rounded"
+                                  title={superAdminSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                                >
+                                  {superAdminSenhaVisivel ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          className="mt-4"
+                          onClick={handleCriarSuperAdmin}
+                          disabled={superAdminLoading}
+                        >
+                          {superAdminLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Criar Super Admin
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
                 

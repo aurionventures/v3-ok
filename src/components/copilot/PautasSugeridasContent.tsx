@@ -6,6 +6,12 @@ import {
   Check,
   X,
   Loader2,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Shield,
+  AlertTriangle,
+  Lightbulb,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,19 +123,31 @@ function pautaToAgenda(p: PautaSugeridaIA & { reunioes?: { titulo?: string; data
   };
 }
 
+type RawPautaDetail = PautaSugeridaIA & { reunioes?: { titulo?: string; data_reuniao?: string } | null };
+
 function AgendaCard({
   agenda,
+  rawPauta,
   onApprove,
   onReject,
   approveLoading,
   rejectLoading,
 }: {
   agenda: GeneratedAgenda;
+  rawPauta?: RawPautaDetail | null;
   onApprove: () => void;
   onReject: () => void;
   approveLoading?: boolean;
   rejectLoading?: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasDetail =
+    rawPauta &&
+    ((rawPauta.output_2a?.meeting_agenda?.length ?? 0) > 0 ||
+      (rawPauta.output_1?.strategic_risks?.length ?? 0) > 0 ||
+      (rawPauta.output_1?.operational_threats?.length ?? 0) > 0 ||
+      (rawPauta.output_1?.strategic_opportunities?.length ?? 0) > 0);
+
   return (
     <Card className="rounded-lg shadow-sm border overflow-hidden">
       <CardHeader className="pb-3">
@@ -201,6 +219,138 @@ function AgendaCard({
             <p className="text-lg font-semibold text-amber-700">{agenda.highPriorityCount}</p>
           </div>
         </div>
+
+        {hasDetail && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-4 text-gray-600 hover:text-gray-900"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4 mr-1.5" />
+                  Ocultar detalhes
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4 mr-1.5" />
+                  Expandir e ler detalhes
+                </>
+              )}
+            </Button>
+
+            {expanded && rawPauta && (
+              <div className="mt-4 pt-4 border-t space-y-6">
+                {(rawPauta.output_2a?.meeting_agenda?.length ?? 0) > 0 && (
+                  <div>
+                    <h4 className="flex items-center gap-2 font-medium text-gray-900 mb-3">
+                      <FileText className="h-4 w-4 text-violet-500" />
+                      Temas da Pauta
+                    </h4>
+                    <div className="space-y-4">
+                      {rawPauta.output_2a.meeting_agenda.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="rounded-lg border bg-gray-50/50 p-4 text-sm"
+                        >
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="font-medium text-gray-900">{item.titulo ?? "Item"}</span>
+                            {item.tipo && (
+                              <Badge variant="outline" className="text-xs">
+                                {item.tipo}
+                              </Badge>
+                            )}
+                            {item.horario && (
+                              <span className="text-gray-500 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {item.horario}
+                              </span>
+                            )}
+                            {item.apresentador && (
+                              <span className="text-gray-600">Apresentador: {item.apresentador}</span>
+                            )}
+                          </div>
+                          {item.materiais && (
+                            <p className="text-gray-600 mb-1"><span className="font-medium">Materiais:</span> {item.materiais}</p>
+                          )}
+                          {item.decisao_esperada && (
+                            <p className="text-gray-600 mb-1"><span className="font-medium">Decisão esperada:</span> {item.decisao_esperada}</p>
+                          )}
+                          {item.conexao && (
+                            <p className="text-gray-600 mb-1"><span className="font-medium">Conexão:</span> {item.conexao}</p>
+                          )}
+                          {Array.isArray(item.perguntas) && item.perguntas.length > 0 && (
+                            <ul className="mt-2 list-disc list-inside text-gray-600">
+                              {item.perguntas.map((p, i) => (
+                                <li key={i}>{p}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(rawPauta.output_1?.strategic_risks?.length ?? 0) > 0 && (
+                  <div>
+                    <h4 className="flex items-center gap-2 font-medium text-gray-900 mb-3">
+                      <Shield className="h-4 w-4 text-red-500" />
+                      Riscos Estratégicos
+                    </h4>
+                    <ul className="space-y-2">
+                      {rawPauta.output_1!.strategic_risks!.map((r, idx) => (
+                        <li key={idx} className="rounded border border-red-100 bg-red-50/30 p-3 text-sm">
+                          <span className="font-medium text-gray-900">{r.titulo}</span>
+                          {r.descricao && <p className="text-gray-600 mt-0.5">{r.descricao}</p>}
+                          {r.acao && <p className="text-gray-600 mt-0.5"><span className="font-medium">Ação:</span> {r.acao}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {(rawPauta.output_1?.operational_threats?.length ?? 0) > 0 && (
+                  <div>
+                    <h4 className="flex items-center gap-2 font-medium text-gray-900 mb-3">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      Ameaças Operacionais
+                    </h4>
+                    <ul className="space-y-2">
+                      {rawPauta.output_1!.operational_threats!.map((t, idx) => (
+                        <li key={idx} className="rounded border border-amber-100 bg-amber-50/30 p-3 text-sm">
+                          <span className="font-medium text-gray-900">{t.titulo}</span>
+                          {t.descricao && <p className="text-gray-600 mt-0.5">{t.descricao}</p>}
+                          {t.acao && <p className="text-gray-600 mt-0.5"><span className="font-medium">Ação:</span> {t.acao}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {(rawPauta.output_1?.strategic_opportunities?.length ?? 0) > 0 && (
+                  <div>
+                    <h4 className="flex items-center gap-2 font-medium text-gray-900 mb-3">
+                      <Lightbulb className="h-4 w-4 text-green-500" />
+                      Oportunidades Estratégicas
+                    </h4>
+                    <ul className="space-y-2">
+                      {rawPauta.output_1!.strategic_opportunities!.map((o, idx) => (
+                        <li key={idx} className="rounded border border-green-100 bg-green-50/30 p-3 text-sm">
+                          <span className="font-medium text-gray-900">{o.titulo}</span>
+                          {o.descricao && <p className="text-gray-600 mt-0.5">{o.descricao}</p>}
+                          {o.acao && <p className="text-gray-600 mt-0.5"><span className="font-medium">Ação:</span> {o.acao}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -463,6 +613,7 @@ export function PautasSugeridasContent() {
               <AgendaCard
                 key={agenda.id}
                 agenda={agenda}
+                rawPauta={rawPautas.find((p) => p.id === agenda.id) ?? null}
                 onApprove={() =>
                   aprovarMt.mutate({
                     pautaId: agenda.id,

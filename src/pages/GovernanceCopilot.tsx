@@ -86,7 +86,7 @@ function InsightCard({
 }
 
 function InsightsContent() {
-  const { riscos, ameacas, oportunidades, resumo, isLoading, isFetched, error, hasEmpresa, refetch } =
+  const { riscos, ameacas, oportunidades, isLoading, isFetched, error, hasEmpresa, refetch } =
     useInsightsEstrategicos();
 
   if (!hasEmpresa) {
@@ -161,13 +161,6 @@ function InsightsContent() {
           Gerar nova insight
         </Button>
       </div>
-      {resumo && (
-        <Card className="border-0 shadow-sm bg-violet-50/50">
-          <CardContent className="pt-6">
-            <p className="text-sm text-gray-700">{resumo}</p>
-          </CardContent>
-        </Card>
-      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 rounded-lg px-3 py-2 bg-red-50">

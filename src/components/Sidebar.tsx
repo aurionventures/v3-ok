@@ -182,21 +182,24 @@ const Sidebar = () => {
       items: [
         {
           icon: <Send className="h-5 w-5" />,
-          href: "/activities",
+          href: "/planos",
           name: "Submeter Projetos",
-          moduleId: null
+          moduleId: null,
+          locked: true
         },
         {
           icon: <Award className="h-5 w-5" />,
-          href: "/desempenho-conselho",
+          href: "/planos",
           name: "Desempenho do Conselho",
-          moduleId: null
+          moduleId: null,
+          locked: true
         },
         {
           icon: <Shield className="h-5 w-5" />,
-          href: "/systemic-risks",
+          href: "/planos",
           name: "Riscos",
-          moduleId: null
+          moduleId: null,
+          locked: true
         },
         {
           icon: <Users className="h-5 w-5" />,

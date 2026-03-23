@@ -24,6 +24,7 @@ import {
   convertStoredDataToRadarData,
 } from "@/utils/maturityStorage";
 import { useDashboardIndicadores } from "@/hooks/useSecretariadoIndicadores";
+import { useInsightsEstrategicos } from "@/hooks/useInsightsEstrategicos";
 
 const shortLabels: Record<string, string> = {
   "Sócios": "Sócios",
@@ -40,6 +41,13 @@ const Dashboard = () => {
     convertStoredDataToRadarData(null)
   );
   const { indicadores, hasEmpresa } = useDashboardIndicadores();
+  const {
+    riscos,
+    ameacas,
+    oportunidades,
+    isLoading: insightsLoading,
+    hasEmpresa: hasEmpresaInsights,
+  } = useInsightsEstrategicos();
 
   useEffect(() => {
     const stored = getCurrentMaturityAssessment();
@@ -216,75 +224,149 @@ const Dashboard = () => {
           {/* Row 3: Copiloto de Governança | IA Preditiva */}
           <Card className="border-0 shadow-sm mb-6">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-violet-600" />
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Copiloto de Governança | IA Preditiva <Sparkles className="inline h-4 w-4 text-amber-500 ml-0.5" />
-                </h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-violet-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Copiloto de Governança | IA Preditiva <Sparkles className="inline h-4 w-4 text-amber-500 ml-0.5" />
+                  </h2>
+                </div>
+                <Button
+                  variant="link"
+                  className="text-sm text-violet-600 h-auto p-0"
+                  onClick={() => navigate("/copiloto-governanca")}
+                >
+                  Ver detalhes
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border border-red-100 bg-red-50/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
-                        <Shield className="h-5 w-5" />
-                        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-red-600 px-0.5 text-[10px] font-bold text-white">02</span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Riscos Estratégicos</h3>
-                        <p className="text-xs text-gray-600 mt-0.5">1 crítico • 1 alto</p>
-                        <p className="text-sm text-gray-700 mt-2">Vulnerabilidade na Sucessão Executiva</p>
-                        <ul className="mt-2 space-y-0.5 text-sm text-gray-600">
-                          <li>→ Revisar plano de sucessão</li>
-                          <li>→ Mapear candidatos internos</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {!hasEmpresaInsights ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  Selecione uma empresa para visualizar os insights estratégicos.
+                </p>
+              ) : insightsLoading ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  Gerando insights com IA...
+                </p>
+              ) : riscos.length === 0 && ameacas.length === 0 && oportunidades.length === 0 ? (
+                <div className="rounded-lg border border-dashed bg-gray-50 p-6 text-center">
+                  <p className="text-sm text-gray-500 mb-4">
+                    Nenhum insight gerado. Acesse o Copiloto de Governança para que a IA analise os dados e identifique riscos, ameaças e oportunidades.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                    onClick={() => navigate("/copiloto-governanca")}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Ir para Copiloto
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="border border-red-100 bg-red-50/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                            <Shield className="h-5 w-5" />
+                            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-red-600 px-0.5 text-[10px] font-bold text-white">
+                              {riscos.length}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Riscos Estratégicos</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              {riscos.length > 0
+                                ? riscos[0].statusTags.map((t) => t.label).join(" • ") || "—"
+                                : "—"}
+                            </p>
+                            {riscos.length > 0 ? (
+                              <>
+                                <p className="text-sm text-gray-700 mt-2">{riscos[0].title}</p>
+                                <ul className="mt-2 space-y-0.5 text-sm text-gray-600">
+                                  {riscos[0].actions.slice(0, 2).map((a) => (
+                                    <li key={a.label}>→ {a.label}</li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
+                              <p className="text-sm text-gray-500 mt-2">Nenhum risco identificado</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                <Card className="border border-amber-100 bg-amber-50/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
-                        <AlertTriangle className="h-5 w-5" />
-                        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-600 text-[10px] font-bold text-white">2</span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Ameaças Operacionais</h3>
-                        <p className="text-xs text-gray-600 mt-0.5">1 imediato • 1 em 30d</p>
-                        <p className="text-sm text-gray-700 mt-2">Pressão Regulatória ESG</p>
-                        <ul className="mt-2 space-y-0.5 text-sm text-gray-600">
-                          <li>→ Atualizar políticas ESG</li>
-                          <li>→ Treinar equipe de compliance</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    <Card className="border border-amber-100 bg-amber-50/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                            <AlertTriangle className="h-5 w-5" />
+                            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-amber-600 px-0.5 text-[10px] font-bold text-white">
+                              {ameacas.length}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Ameaças Operacionais</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              {ameacas.length > 0
+                                ? ameacas[0].statusTags.map((t) => t.label).join(" • ") || "—"
+                                : "—"}
+                            </p>
+                            {ameacas.length > 0 ? (
+                              <>
+                                <p className="text-sm text-gray-700 mt-2">{ameacas[0].title}</p>
+                                <ul className="mt-2 space-y-0.5 text-sm text-gray-600">
+                                  {ameacas[0].actions.slice(0, 2).map((a) => (
+                                    <li key={a.label}>→ {a.label}</li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
+                              <p className="text-sm text-gray-500 mt-2">Nenhuma ameaça identificada</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                <Card className="border border-blue-100 bg-blue-50/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                        <Lightbulb className="h-5 w-5" />
-                        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">2</span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Oportunidades</h3>
-                        <p className="text-xs text-gray-600 mt-0.5">Identificadas pela IA</p>
-                        <p className="text-sm text-gray-700 mt-2">Fortalecimento da Cultura de Compliance</p>
-                        <ul className="mt-2 space-y-0.5 text-sm text-gray-600">
-                          <li>→ Implementar programa</li>
-                          <li>→ Medir resultados trimestrais</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    <Card className="border border-blue-100 bg-blue-50/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                            <Lightbulb className="h-5 w-5" />
+                            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-blue-600 px-0.5 text-[10px] font-bold text-white">
+                              {oportunidades.length}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Oportunidades Identificadas pela IA</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              {oportunidades.length > 0
+                                ? oportunidades[0].statusTags.map((t) => t.label).join(" • ") || "Estratégica"
+                                : "—"}
+                            </p>
+                            {oportunidades.length > 0 ? (
+                              <>
+                                <p className="text-sm text-gray-700 mt-2">{oportunidades[0].title}</p>
+                                <ul className="mt-2 space-y-0.5 text-sm text-gray-600">
+                                  {oportunidades[0].actions.slice(0, 2).map((a) => (
+                                    <li key={a.label}>→ {a.label}</li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
+                              <p className="text-sm text-gray-500 mt-2">Nenhuma oportunidade identificada</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

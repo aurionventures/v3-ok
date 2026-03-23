@@ -5,6 +5,33 @@ export interface AddonModuleInfo {
 }
 
 export const ADDON_MODULES: Record<string, AddonModuleInfo> = {
+  "Submeter Projetos": {
+    title: "Submeter Projetos",
+    description: "Submissão e acompanhamento de projetos pelo conselho.",
+    features: [
+      "Submissão de projetos para aprovação",
+      "Fluxo de aprovação e pareceres",
+      "Acompanhamento e evolução de projetos",
+    ],
+  },
+  "Desempenho do Conselho": {
+    title: "Desempenho do Conselho",
+    description: "Métricas e indicadores de eficácia e maturidade do conselho.",
+    features: [
+      "Avaliação de desempenho por competência",
+      "Indicadores de participação e contribuição",
+      "Relatórios de evolução e metas",
+    ],
+  },
+  "Riscos": {
+    title: "Riscos",
+    description: "Gestão de riscos sistêmicos e matriz de exposição.",
+    features: [
+      "Matriz de riscos e mitigação",
+      "Monitoramento de indicadores de risco",
+      "Relatórios e dashboards de exposição",
+    ],
+  },
   "Desenvolvimento e PDI": {
     title: "Desenvolvimento e PDI",
     description: "Gestão de pessoas e desempenho de liderança.",
