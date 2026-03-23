@@ -54,7 +54,6 @@ const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const STATUS_BADGE_CLASS: Record<string, string> = {
   agendada: "bg-blue-500 text-white border-0 hover:bg-blue-500",
   pauta_definida: "bg-orange-500 text-white border-0 hover:bg-orange-500",
-  docs_enviados: "bg-red-500 text-white border-0 hover:bg-red-500",
   realizada: "bg-purple-500 text-white border-0 hover:bg-purple-500",
   ata_gerada: "bg-green-500 text-white border-0 hover:bg-green-500",
 };
@@ -62,7 +61,6 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   agendada: "Agendada",
   pauta_definida: "Pauta Definida",
-  docs_enviados: "Docs Enviados",
   realizada: "Concluída",
   ata_gerada: "ATA Gerada",
 };
