@@ -33,6 +33,9 @@ http://localhost:54321/functions/v1/<NOME_DA_FUNCAO>
 | `/functions/v1/agente-busca-atas` | POST | Busca semântica em atas |
 | `/functions/v1/pipeline-agentes` | POST | Orquestra qualquer agente por ID |
 | `/functions/v1/openai-proxy` | POST | Proxy genérico para OpenAI |
+| `/functions/v1/criar-membro-acesso` | POST | Cria membro com e-mail e senha provisória |
+| `/functions/v1/criar-empresa-adm-acesso` | POST | Cria ADM da empresa com e-mail e senha provisória |
+| `/functions/v1/seed-empresa-adm-demo` | POST | Seed: cria ADM empresa@legacy.com para Empresa Demo |
 
 ---
 
@@ -140,6 +143,38 @@ Busca semântica nas atas. Retorna temas encontrados, trechos relevantes, decis�
   "messages": [{ "role": "user", "content": "..." }],
   "model": "gpt-4o-mini"
 }
+```
+
+### criar-membro-acesso
+```json
+{
+  "email": "membro@empresa.com",
+  "senha_provisoria": "123456",
+  "nome": "João Silva",
+  "cargo_principal": "Conselheiro",
+  "empresa_id": "uuid"
+}
+```
+Cria usuário Auth e registro em `membros_governanca`. No primeiro acesso, o membro deve alterar a senha.
+
+### criar-empresa-adm-acesso
+```json
+{
+  "email": "adm@empresa.com",
+  "senha_provisoria": "123456",
+  "nome": "Administrador Empresa",
+  "empresa_id": "uuid"
+}
+```
+Cria usuário Auth e perfil em `perfis` (role `empresa_adm`). No primeiro acesso, o ADM deve alterar a senha.
+
+### seed-empresa-adm-demo
+Sem body. Cria usuário `empresa@legacy.com` com senha `123456` como ADM da Empresa Demo.
+**Execute uma vez** após aplicar migrações:
+```bash
+curl -X POST "https://<PROJECT_REF>.supabase.co/functions/v1/seed-empresa-adm-demo" \
+  -H "Authorization: Bearer <ANON_KEY>" \
+  -H "Content-Type: application/json"
 ```
 
 ---

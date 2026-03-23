@@ -41,7 +41,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { MOCK_PARTNERS, getPartnersMetrics, type Partner, type PartnerType } from "@/data/partnersData";
+import { getPartnersMetrics, type Partner, type PartnerType } from "@/data/partnersData";
 
 const METRIC_CARDS = [
   { key: "total", label: "Total de Parceiros", icon: Handshake, color: "text-gray-600" },
@@ -54,7 +54,7 @@ const METRIC_CARDS = [
 
 export default function AdminPartners() {
   const navigate = useNavigate();
-  const [partners] = useState<Partner[]>(MOCK_PARTNERS);
+  const [partners] = useState<Partner[]>([]);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const metrics = getPartnersMetrics(partners);
 
@@ -170,6 +170,13 @@ export default function AdminPartners() {
                   </Select>
                 </CardHeader>
                 <CardContent>
+                  {filteredPartners.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <Handshake className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-gray-500">Nenhum parceiro cadastrado</p>
+                      <p className="text-sm text-gray-400 mt-1">Integração em configuração. Os dados serão exibidos quando o módulo estiver ativo.</p>
+                    </div>
+                  ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -219,6 +226,7 @@ export default function AdminPartners() {
                       ))}
                     </TableBody>
                   </Table>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

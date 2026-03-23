@@ -36,12 +36,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import {
-  MOCK_CONTRACTS,
-  getContractMetrics,
-  type Contract,
-  type ContractStatus,
-} from "@/data/contractsData";
+import { getContractMetrics, type Contract, type ContractStatus } from "@/data/contractsData";
+import { toast } from "@/hooks/use-toast";
 
 const STATUS_CARDS: { key: keyof ReturnType<typeof getContractMetrics>; label: string; icon: React.ElementType; color: string }[] = [
   { key: "total", label: "Total", icon: FileText, color: "text-gray-700" },
@@ -78,6 +74,18 @@ function ContractsTable({
   contracts: Contract[];
   onViewDetails: (c: Contract) => void;
 }) {
+  if (contracts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md bg-gray-50/50">
+        <FileText className="h-12 w-12 text-muted-foreground mb-3" />
+        <p className="font-medium text-gray-700">Nenhum contrato cadastrado</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Os contratos serão exibidos quando o módulo estiver integrado.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -123,11 +131,19 @@ function ContractsTable({
 
 export default function AdminContracts() {
   const [activeTab, setActiveTab] = useState("clientes");
-  const [contracts] = useState<Contract[]>(MOCK_CONTRACTS);
+  const [contracts] = useState<Contract[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const metrics = getContractMetrics(contracts);
+
+  const handleNovoContrato = () => {
+    toast({
+      title: "Em desenvolvimento",
+      description: "A integração de contratos será disponibilizada em breve.",
+      variant: "default",
+    });
+  };
 
   const filteredContracts = useMemo(() => {
     let list = contracts;
@@ -237,7 +253,10 @@ export default function AdminContracts() {
                       Gerencie contratos, envie para assinatura e dispare emails de senha
                     </CardDescription>
                   </div>
-                  <Button className="gap-2 bg-legacy-500 hover:bg-legacy-600 text-white">
+                  <Button
+                    className="gap-2 bg-legacy-500 hover:bg-legacy-600 text-white"
+                    onClick={handleNovoContrato}
+                  >
                     <Plus className="h-4 w-4" />
                     Novo Contrato
                   </Button>

@@ -4,10 +4,12 @@ import MemberSidebar from "@/components/MemberSidebar";
 import { isMember, setUserType } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { fetchMembroByUserId } from "@/services/governance";
+import { fetchEmpresaById } from "@/services/empresas";
 
 const MemberLayout = () => {
   const [checking, setChecking] = useState(true);
   const [authorized, setAuthorized] = useState(false);
+  const [redirectState, setRedirectState] = useState<{ error: string } | null>(null);
 
   useEffect(() => {
     const check = async () => {
@@ -23,12 +25,28 @@ const MemberLayout = () => {
         return;
       }
       const membro = await fetchMembroByUserId(session.user.id);
-      if (membro) {
-        setUserType("member");
-        setAuthorized(true);
-      } else {
+      if (!membro) {
         setAuthorized(false);
+        setChecking(false);
+        return;
       }
+      if (!membro.empresa_id) {
+        await supabase.auth.signOut();
+        setRedirectState({ error: "Membro sem empresa vinculada. Contacte o administrador." });
+        setAuthorized(false);
+        setChecking(false);
+        return;
+      }
+      const empresa = await fetchEmpresaById(membro.empresa_id);
+      if (!empresa || !empresa.ativo) {
+        await supabase.auth.signOut();
+        setRedirectState({ error: "Empresa inativa ou inexistente. Contacte o administrador." });
+        setAuthorized(false);
+        setChecking(false);
+        return;
+      }
+      setUserType("member");
+      setAuthorized(true);
       setChecking(false);
     };
     check();
@@ -43,7 +61,13 @@ const MemberLayout = () => {
   }
 
   if (!authorized) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={redirectState ? { memberLoginError: redirectState.error } : undefined}
+      />
+    );
   }
 
   return (

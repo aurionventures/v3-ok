@@ -65,6 +65,7 @@ import AdminMaster from "./pages/AdminMaster";
 import AdminPartners from "./pages/AdminPartners";
 import AdminPartnersTiers from "./pages/AdminPartnersTiers";
 import AdminContracts from "./pages/AdminContracts";
+import CompanyAlterarSenha from "./pages/company/CompanyAlterarSenha";
 
 
 const queryClient = new QueryClient();
@@ -97,6 +98,7 @@ const App = () => (
           <Route path="settings" element={<MemberSettings />} />
           <Route path="alterar-senha" element={<MemberAlterarSenha />} />
         </Route>
+        <Route path="/company/alterar-senha" element={<CompanyAlterarSenha />} />
         <Route element={<CompanyOrPublicGuard />}>
           <Route path="/" element={<Index />} />
           <Route path="/investors" element={<Investors />} />

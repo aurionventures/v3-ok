@@ -209,7 +209,15 @@ const Councils = () => {
   };
 
   const handleCriarMembro = async () => {
-    if (!membroNome.trim() || !empresaId) {
+    if (!empresaId) {
+      toast({
+        title: "Nenhuma empresa cadastrada",
+        description: "Cadastre uma empresa em Admin > Empresas antes de criar membros.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!membroNome.trim()) {
       toast({ title: "Preencha o nome", variant: "destructive" });
       return;
     }

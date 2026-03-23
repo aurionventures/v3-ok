@@ -124,6 +124,19 @@ Para os agentes de IA funcionarem:
 
 Consulte [supabase/ROTAS.md](./supabase/ROTAS.md) para a lista de rotas e payloads. Para um guia completo de deploy, veja [DEPLOY.md](./DEPLOY.md).
 
+### Seed: ADM Empresa Demo
+
+Para criar o usuário de teste `empresa@legacy.com` | `123456` como ADM da Empresa Demo:
+
+1. Garanta que a migration `seed_empresa_demo` foi executada (cria a Empresa Demo).
+2. Faça deploy da função: `supabase functions deploy seed-empresa-adm-demo`
+3. Invoke uma vez:
+```bash
+curl -X POST "https://SEU_PROJECT_REF.supabase.co/functions/v1/seed-empresa-adm-demo" \
+  -H "Authorization: Bearer SUA_ANON_KEY" \
+  -H "Content-Type: application/json"
+```
+
 ## 8. Rodar o projeto
 
 ```bash

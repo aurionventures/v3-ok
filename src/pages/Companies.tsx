@@ -34,11 +34,15 @@ import { Label } from "@/components/ui/label";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useEmpresasAll } from "@/hooks/useEmpresas";
 import {
   insertEmpresa,
+  insertEmpresaAdm,
   updateEmpresa,
+  fetchEmpresaDetalhes,
   type Empresa,
+  type EmpresaDetalhes,
 } from "@/services/empresas";
 import { useQueryClient } from "@tanstack/react-query";
 import { EMPRESAS_QUERY_KEY, EMPRESAS_ALL_QUERY_KEY } from "@/hooks/useEmpresas";
@@ -53,9 +57,13 @@ const Companies = () => {
     nome: "",
     razao_social: "",
     cnpj: "",
+    adm_email: "",
+    adm_senha_provisoria: "",
   });
 
   const [editCompany, setEditCompany] = useState<Empresa | null>(null);
+  const [editDetalhes, setEditDetalhes] = useState<EmpresaDetalhes | null>(null);
+  const [editDetalhesLoading, setEditDetalhesLoading] = useState(false);
   const [editForm, setEditForm] = useState({ nome: "", razao_social: "", cnpj: "", ativo: true });
   const [isEditLoading, setIsEditLoading] = useState(false);
 
@@ -74,6 +82,9 @@ const Companies = () => {
 
   const handleCreateCompany = async () => {
     const nome = newCompany.nome.trim();
+    const admEmail = newCompany.adm_email.trim().toLowerCase();
+    const admSenha = newCompany.adm_senha_provisoria;
+
     if (!nome) {
       toast({
         title: "Campos obrigatórios",
@@ -82,35 +93,80 @@ const Companies = () => {
       });
       return;
     }
-
-    setIsCreateLoading(true);
-    const { data, error } = await insertEmpresa({
-      nome,
-      razao_social: newCompany.razao_social.trim() || null,
-      cnpj: newCompany.cnpj.trim() || null,
-    });
-    setIsCreateLoading(false);
-
-    if (error) {
+    if (!admEmail) {
       toast({
-        title: "Erro ao criar empresa",
-        description: error,
+        title: "Campos obrigatórios",
+        description: "O e-mail do ADM da empresa é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!admSenha || admSenha.length < 6) {
+      toast({
+        title: "Senha inválida",
+        description: "A senha provisória deve ter pelo menos 6 caracteres",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Empresa criada",
-      description: `${data?.nome ?? nome} foi adicionada com sucesso.`,
+    setIsCreateLoading(true);
+    const { data: empresaData, error: errEmpresa } = await insertEmpresa({
+      nome,
+      razao_social: newCompany.razao_social.trim() || null,
+      cnpj: newCompany.cnpj.trim() || null,
     });
 
-    setNewCompany({ nome: "", razao_social: "", cnpj: "" });
+    if (errEmpresa || !empresaData) {
+      setIsCreateLoading(false);
+      toast({
+        title: "Erro ao criar empresa",
+        description: errEmpresa ?? "Erro desconhecido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error: errAdm } = await insertEmpresaAdm({
+      empresa_id: empresaData.id,
+      email: admEmail,
+      senha_provisoria: admSenha,
+      nome: `Administrador ${nome}`,
+    });
+    setIsCreateLoading(false);
+
+    if (errAdm) {
+      toast({
+        title: "Empresa criada, mas erro no ADM",
+        description: errAdm,
+        variant: "destructive",
+      });
+      setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "" });
+      setIsNewCompanyDialogOpen(false);
+      invalidateEmpresas();
+      return;
+    }
+
+    const credenciais = `E-mail: ${admEmail}\nSenha provisória: ${admSenha}`;
+    toast({
+      title: "Empresa criada",
+      description: `${empresaData.nome} foi adicionada. O ADM deve alterar a senha no primeiro acesso.`,
+      action: (
+        <ToastAction
+          altText="Copiar credenciais"
+          onClick={() => navigator.clipboard?.writeText(credenciais)}
+        >
+          Copiar credenciais
+        </ToastAction>
+      ),
+    });
+
+    setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "" });
     setIsNewCompanyDialogOpen(false);
     invalidateEmpresas();
   };
 
-  const handleOpenEdit = (empresa: Empresa) => {
+  const handleOpenEdit = async (empresa: Empresa) => {
     setEditCompany(empresa);
     setEditForm({
       nome: empresa.nome,
@@ -118,6 +174,16 @@ const Companies = () => {
       cnpj: empresa.cnpj ?? "",
       ativo: empresa.ativo,
     });
+    setEditDetalhes(null);
+    setEditDetalhesLoading(true);
+    const { data, error } = await fetchEmpresaDetalhes(empresa.id);
+    setEditDetalhesLoading(false);
+    if (error) {
+      toast({ title: "Erro ao carregar detalhes", description: error, variant: "destructive" });
+      setEditDetalhes({ empresa, adm: null });
+    } else {
+      setEditDetalhes(data ?? { empresa, adm: null });
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -211,7 +277,7 @@ const Companies = () => {
                     Nova Empresa
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Adicionar Nova Empresa</DialogTitle>
                     <DialogDescription>
@@ -260,6 +326,47 @@ const Companies = () => {
                         className="col-span-3"
                         placeholder="00.000.000/0001-00"
                       />
+                    </div>
+                    <div className="border-t pt-4 mt-2">
+                      <p className="text-sm font-medium text-muted-foreground mb-3">
+                        Credenciais do ADM da empresa (acesso ao dashboard)
+                      </p>
+                      <div className="grid gap-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="adm_email" className="text-right">
+                            E-mail do ADM*
+                          </Label>
+                          <Input
+                            id="adm_email"
+                            type="email"
+                            value={newCompany.adm_email}
+                            onChange={(e) =>
+                              setNewCompany((p) => ({ ...p, adm_email: e.target.value }))
+                            }
+                            className="col-span-3"
+                            placeholder="adm@empresa.com"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="adm_senha" className="text-right">
+                            Senha provisória*
+                          </Label>
+                          <Input
+                            id="adm_senha"
+                            type="password"
+                            value={newCompany.adm_senha_provisoria}
+                            onChange={(e) =>
+                              setNewCompany((p) => ({ ...p, adm_senha_provisoria: e.target.value }))
+                            }
+                            className="col-span-3"
+                            placeholder="Mínimo 6 caracteres"
+                            minLength={6}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground col-span-4">
+                          No primeiro acesso, o ADM deverá alterar a senha.
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>
@@ -476,70 +583,100 @@ const Companies = () => {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editCompany} onOpenChange={() => setEditCompany(null)}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={!!editCompany} onOpenChange={() => { setEditCompany(null); setEditDetalhes(null); }}>
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Editar Empresa</DialogTitle>
+            <DialogTitle>Dados da Empresa</DialogTitle>
             <DialogDescription>
-              Altere os dados da empresa.
+              Dados completos da empresa e do ADM.
             </DialogDescription>
           </DialogHeader>
           {editCompany && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-nome" className="text-right">
-                  Nome*
-                </Label>
-                <Input
-                  id="edit-nome"
-                  value={editForm.nome}
-                  onChange={(e) =>
-                    setEditForm((p) => ({ ...p, nome: e.target.value }))
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-razao" className="text-right">
-                  Razão Social
-                </Label>
-                <Input
-                  id="edit-razao"
-                  value={editForm.razao_social}
-                  onChange={(e) =>
-                    setEditForm((p) => ({ ...p, razao_social: e.target.value }))
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-cnpj" className="text-right">
-                  CNPJ
-                </Label>
-                <Input
-                  id="edit-cnpj"
-                  value={editForm.cnpj}
-                  onChange={(e) =>
-                    setEditForm((p) => ({ ...p, cnpj: e.target.value }))
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Status</Label>
-                <div className="col-span-3 flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="edit-ativo"
-                    checked={editForm.ativo}
-                    onChange={(e) =>
-                      setEditForm((p) => ({ ...p, ativo: e.target.checked }))
-                    }
-                    className="rounded"
-                  />
-                  <Label htmlFor="edit-ativo">Ativo</Label>
+              {editDetalhesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-muted-foreground">Empresa</p>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="edit-nome" className="text-right">
+                        Nome*
+                      </Label>
+                      <Input
+                        id="edit-nome"
+                        value={editForm.nome}
+                        onChange={(e) =>
+                          setEditForm((p) => ({ ...p, nome: e.target.value }))
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="edit-razao" className="text-right">
+                        Razão Social
+                      </Label>
+                      <Input
+                        id="edit-razao"
+                        value={editForm.razao_social}
+                        onChange={(e) =>
+                          setEditForm((p) => ({ ...p, razao_social: e.target.value }))
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="edit-cnpj" className="text-right">
+                        CNPJ
+                      </Label>
+                      <Input
+                        id="edit-cnpj"
+                        value={editForm.cnpj}
+                        onChange={(e) =>
+                          setEditForm((p) => ({ ...p, cnpj: e.target.value }))
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Status</Label>
+                      <div className="col-span-3 flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="edit-ativo"
+                          checked={editForm.ativo}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, ativo: e.target.checked }))
+                          }
+                          className="rounded"
+                        />
+                        <Label htmlFor="edit-ativo">Ativo</Label>
+                      </div>
+                    </div>
+                  </div>
+                  {editDetalhes?.adm && (
+                    <div className="border-t pt-4 mt-2 space-y-3">
+                      <p className="text-sm font-semibold text-muted-foreground">ADM da empresa</p>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Nome</Label>
+                        <div className="col-span-3 text-sm py-2">{editDetalhes.adm.nome ?? "—"}</div>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">E-mail</Label>
+                        <div className="col-span-3 text-sm py-2">{editDetalhes.adm.email ?? "—"}</div>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Senha alterada</Label>
+                        <div className="col-span-3 text-sm py-2">
+                          {editDetalhes.adm.senha_alterada ? "Sim" : "Não (primeiro acesso pendente)"}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
           <DialogFooter>
