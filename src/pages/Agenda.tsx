@@ -234,7 +234,7 @@ const Agenda = () => {
   const addConvidado = () => {
     setFormConvidados((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), email: "", senha_provisoria: "", senha_valida_ate: "" },
+      { id: `conv-${Date.now()}-${Math.random().toString(36).slice(2)}`, email: "", senha_provisoria: "", senha_valida_ate: "" },
     ]);
   };
 
