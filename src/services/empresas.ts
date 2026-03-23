@@ -61,6 +61,44 @@ export interface PerfilEmpresaAdm {
   senha_alterada: boolean;
 }
 
+export interface PerfilSuperAdmin {
+  id: string;
+  user_id: string;
+  empresa_id: string | null;
+  nome: string | null;
+  role: string | null;
+  senha_alterada: boolean;
+}
+
+/** Busca perfil Super Admin por user_id - para login Admin */
+export async function fetchPerfilSuperAdminByUserId(
+  userId: string
+): Promise<PerfilSuperAdmin | null> {
+  if (!supabase || !userId) return null;
+
+  const { data, error } = await supabase
+    .from("perfis")
+    .select("id, user_id, empresa_id, nome, role, senha_alterada")
+    .eq("user_id", userId)
+    .eq("role", "super_admin")
+    .maybeSingle();
+
+  if (error) {
+    console.error("[empresas] fetchPerfilSuperAdminByUserId:", error);
+    return null;
+  }
+
+  if (!data) return null;
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    empresa_id: data.empresa_id,
+    nome: data.nome,
+    role: data.role,
+    senha_alterada: data.senha_alterada ?? true,
+  } as PerfilSuperAdmin;
+}
+
 /** Busca perfil ADM de empresa por user_id - para login Cliente */
 export async function fetchPerfilEmpresaAdmByUserId(
   userId: string
@@ -195,6 +233,35 @@ export async function insertEmpresaAdm(
     email: p.email.trim().toLowerCase(),
     senha_provisoria: p.senha_provisoria,
     nome: (p.nome ?? "Administrador").trim(),
+  });
+  if (error) return { data: null, error: error.message };
+  const err = data?.error;
+  if (err) return { data: null, error: err };
+  if (!data?.perfil_id || !data?.email) return { data: null, error: "Resposta inválida da Edge Function" };
+  return {
+    data: { perfil_id: data.perfil_id, email: data.email },
+    error: null,
+  };
+}
+
+export interface SuperAdminInsert {
+  nome: string;
+  email: string;
+  senha_provisoria: string;
+}
+
+/** Cria Super Admin (auth + perfil role=super_admin) – no primeiro acesso deve alterar a senha */
+export async function insertSuperAdmin(
+  p: SuperAdminInsert
+): Promise<{ data: { perfil_id: string; email: string } | null; error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{
+    perfil_id?: string;
+    email?: string;
+    error?: string;
+  }>("criar-super-admin", {
+    email: p.email.trim().toLowerCase(),
+    senha_provisoria: p.senha_provisoria,
+    nome: (p.nome ?? "").trim(),
   });
   if (error) return { data: null, error: error.message };
   const err = data?.error;

@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Calendar,
-  FileText,
   Clock,
   Sparkles,
   Check,
@@ -11,7 +10,13 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useAgenda } from "@/hooks/useAgenda";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,12 +33,15 @@ import type { ReuniaoEnriquecida } from "@/types/agenda";
 type MeetingStatus = "sem_pauta" | "pendente";
 type AgendaStatus = "pendente" | "aprovada";
 type AgendaFilter = "todas" | "pendentes" | "aprovadas";
+type OrganFilter = "todos" | "conselho" | "comite" | "comissao";
+type MeetingOrganType = "conselho" | "comite" | "comissao" | "outro";
 
 type Meeting = {
   id: string;
   dateLabel: string;
   daysFromNow: number;
   councilName: string;
+  organType: MeetingOrganType;
   status: MeetingStatus;
 };
 
@@ -51,6 +59,17 @@ type GeneratedAgenda = {
   empresaId: string;
 };
 
+function getOrganType(r: ReuniaoEnriquecida): MeetingOrganType {
+  if (r.conselho_id) return "conselho";
+  if (r.comite_id) return "comite";
+  if (r.comissao_id) return "comissao";
+  const vt = (r.virtual_tipo ?? "").toLowerCase();
+  if (vt === "conselho") return "conselho";
+  if (vt === "comite") return "comite";
+  if (vt === "comissao") return "comissao";
+  return "outro";
+}
+
 function reuniaoToMeeting(r: ReuniaoEnriquecida): Meeting {
   const data = r.data_reuniao ? new Date(r.data_reuniao) : new Date();
   const hoje = new Date();
@@ -67,6 +86,7 @@ function reuniaoToMeeting(r: ReuniaoEnriquecida): Meeting {
     dateLabel,
     daysFromNow,
     councilName,
+    organType: getOrganType(r),
     status: "sem_pauta",
   };
 }
@@ -95,48 +115,6 @@ function pautaToAgenda(p: PautaSugeridaIA & { reunioes?: { titulo?: string; data
     reuniaoId: p.reuniao_id,
     empresaId: p.empresa_id,
   };
-}
-
-function MeetingCard({
-  meeting,
-  selected,
-  onSelect,
-}: {
-  meeting: Meeting;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const isPast = meeting.daysFromNow < 0;
-
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "text-left rounded-lg border p-4 transition-colors w-full min-w-0",
-        selected
-          ? "border-amber-500 bg-amber-50/50"
-          : "border-dashed border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50/50"
-      )}
-    >
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="font-semibold text-gray-900">{meeting.dateLabel}</span>
-        <span
-          className={cn(
-            "text-xs font-medium px-2 py-0.5 rounded-full",
-            isPast ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"
-          )}
-        >
-          {isPast ? `${meeting.daysFromNow} dias` : `+${meeting.daysFromNow} dias`}
-        </span>
-      </div>
-      <p className="text-sm text-gray-600 mb-2 truncate">{meeting.councilName}</p>
-      <div className="flex items-center gap-1.5">
-        <FileText className="h-4 w-4 text-gray-500 shrink-0" />
-        <span className="text-xs font-medium text-gray-600">Sem Pauta</span>
-      </div>
-    </button>
-  );
 }
 
 function AgendaCard({
@@ -236,17 +214,36 @@ export function PautasSugeridasContent() {
   const { reunioes } = useAgenda(empresaId ?? null);
   const qc = useQueryClient();
 
-  const meetingsForSelect = reunioes
-    .filter((r) => r.data_reuniao)
-    .slice(0, 8);
+  const allMeetingsFromReunioes = reunioes.filter((r) => r.data_reuniao);
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
   const [agendaFilter, setAgendaFilter] = useState<AgendaFilter>("todas");
+  const [organFilter, setOrganFilter] = useState<OrganFilter>("todos");
 
   useEffect(() => {
-    if (meetingsForSelect.length > 0 && !selectedMeetingId) {
-      setSelectedMeetingId(meetingsForSelect[0].id);
+    if (allMeetingsFromReunioes.length > 0 && !selectedMeetingId) {
+      setSelectedMeetingId(allMeetingsFromReunioes[0].id);
     }
   }, [reunioes, selectedMeetingId]);
+
+  const meetingsFilteredByOrgan = useMemo(
+    () =>
+      allMeetingsFromReunioes.filter((r) => {
+        const ot = getOrganType(r);
+        if (organFilter === "todos") return true;
+        return ot === organFilter;
+      }),
+    [allMeetingsFromReunioes, organFilter]
+  );
+
+  useEffect(() => {
+    if (
+      selectedMeetingId &&
+      meetingsFilteredByOrgan.length > 0 &&
+      !meetingsFilteredByOrgan.some((r) => r.id === selectedMeetingId)
+    ) {
+      setSelectedMeetingId(meetingsFilteredByOrgan[0].id);
+    }
+  }, [organFilter, selectedMeetingId, meetingsFilteredByOrgan]);
 
   const pautasQuery = useQuery({
     queryKey: [...COPILOTO_PAUTAS_KEY, empresaId ?? "none"],
@@ -270,13 +267,28 @@ export function PautasSugeridasContent() {
   const aprovarMt = useMutation({
     mutationFn: ({ pautaId, empresaId, reuniaoId }: { pautaId: string; empresaId: string; reuniaoId: string }) =>
       aprovarPautaSugerida(pautaId, empresaId, reuniaoId),
-    onSuccess: (result) => {
+    onMutate: () => {
+      const t = toast({
+        title: "Processando...",
+        description: "Enviando briefings aos membros. Aguarde.",
+      });
+      return { toastRef: t };
+    },
+    onSuccess: (result, _variables, context) => {
       if (result.error) {
+        context?.toastRef?.dismiss?.();
         toast({ title: "Erro", description: result.error, variant: "destructive" });
       } else {
-        toast({ title: "Pauta aprovada", description: "Briefings foram enviados aos membros." });
+        context?.toastRef?.update?.({
+          title: "Pauta aprovada",
+          description: "Briefings foram processados e enviados aos membros.",
+          variant: "default",
+        });
         qc.invalidateQueries({ queryKey: [...COPILOTO_PAUTAS_KEY, empresaId ?? "none"] });
       }
+    },
+    onError: (_err, _variables, context) => {
+      context?.toastRef?.dismiss?.();
     },
   });
 
@@ -293,7 +305,7 @@ export function PautasSugeridasContent() {
     },
   });
 
-  const meetings: Meeting[] = meetingsForSelect.map(reuniaoToMeeting);
+  const meetings: Meeting[] = meetingsFilteredByOrgan.map(reuniaoToMeeting);
 
   const rawPautas = (pautasQuery.data ?? []) as (PautaSugeridaIA & { reunioes?: { titulo?: string; data_reuniao?: string } | null })[];
   const agendas: GeneratedAgenda[] = rawPautas.map(pautaToAgenda);
@@ -345,17 +357,65 @@ export function PautasSugeridasContent() {
             Gerar Nova Pauta com IA
           </Button>
         </div>
-        <p className="text-sm text-gray-600 mb-4">Selecione uma reunião para gerar pautas com IA</p>
-        <div className="flex flex-wrap items-stretch gap-4">
-          {meetings.map((meeting) => (
-            <div key={meeting.id} className="flex-1 min-w-[200px] max-w-[260px]">
-              <MeetingCard
-                meeting={meeting}
-                selected={selectedMeetingId === meeting.id}
-                onSelect={() => setSelectedMeetingId(meeting.id)}
-              />
-            </div>
-          ))}
+        <p className="text-sm text-gray-600 mb-2">Selecione uma reunião para gerar pautas com IA</p>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="min-w-[180px]">
+            <label className="text-xs font-medium text-gray-500 block mb-1.5">Tipo de órgão</label>
+            <Select
+              value={organFilter}
+              onValueChange={(v) => setOrganFilter(v as OrganFilter)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="conselho">Conselho</SelectItem>
+                <SelectItem value="comite">Comitê</SelectItem>
+                <SelectItem value="comissao">Comissão</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[320px] flex-1">
+            <label className="text-xs font-medium text-gray-500 block mb-1.5">Reunião</label>
+            <Select
+              value={selectedMeetingId ?? ""}
+              onValueChange={setSelectedMeetingId}
+              disabled={meetings.length === 0}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    meetings.length === 0
+                      ? organFilter === "todos"
+                        ? "Nenhuma reunião agendada"
+                        : `Nenhuma reunião de ${organFilter === "conselho" ? "Conselho" : organFilter === "comite" ? "Comitê" : "Comissão"}`
+                      : "Selecione uma reunião"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {meetings.map((meeting) => {
+                  const organLabel =
+                    meeting.organType === "conselho"
+                      ? "Conselho"
+                      : meeting.organType === "comite"
+                        ? "Comitê"
+                        : meeting.organType === "comissao"
+                          ? "Comissão"
+                          : "";
+                  const daysLabel =
+                    meeting.daysFromNow < 0 ? `${meeting.daysFromNow} dias` : `+${meeting.daysFromNow} dias`;
+                  const label = `${meeting.councilName} — ${meeting.dateLabel} · ${daysLabel}${organLabel ? ` · ${organLabel}` : ""}`;
+                  return (
+                    <SelectItem key={meeting.id} value={meeting.id}>
+                      {label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </section>
 

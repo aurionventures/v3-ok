@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, ActivitySquare, FileText } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, ActivitySquare, FileText, Eye, EyeOff, RefreshCw } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,8 +12,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useEmpresas } from "@/hooks/useEmpresas";
+import { isAdmin } from "@/lib/auth";
+import { insertSuperAdmin } from "@/services/empresas";
 import { fetchPromptPautaAta, upsertPromptPautaAta, PROMPT_PADRAO } from "@/services/promptsConfig";
+
+function gerarSenhaAleatoria(len = 10): string {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
 
 const Settings = () => {
   const { firstEmpresaId } = useEmpresas();
@@ -21,6 +31,12 @@ const Settings = () => {
   const [promptPautaAta, setPromptPautaAta] = useState(PROMPT_PADRAO);
   const [promptPautaAtaLoading, setPromptPautaAtaLoading] = useState(false);
   const [promptPautaAtaSaving, setPromptPautaAtaSaving] = useState(false);
+
+  const [superAdminNome, setSuperAdminNome] = useState("");
+  const [superAdminEmail, setSuperAdminEmail] = useState("");
+  const [superAdminSenha, setSuperAdminSenha] = useState("");
+  const [superAdminSenhaVisivel, setSuperAdminSenhaVisivel] = useState(false);
+  const [superAdminLoading, setSuperAdminLoading] = useState(false);
 
   useEffect(() => {
     if (!firstEmpresaId) return;
@@ -51,6 +67,48 @@ const Settings = () => {
       title: "Configurações salvas",
       description: "Suas configurações foram atualizadas com sucesso.",
     });
+  };
+
+  const handleCriarSuperAdmin = async () => {
+    const nome = superAdminNome.trim();
+    const email = superAdminEmail.trim().toLowerCase();
+    const senha = superAdminSenha;
+    if (!nome) {
+      toast({ title: "Preencha o nome", variant: "destructive" });
+      return;
+    }
+    if (!email) {
+      toast({ title: "E-mail é obrigatório", variant: "destructive" });
+      return;
+    }
+    if (!senha || senha.length < 6) {
+      toast({ title: "A senha provisória deve ter pelo menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setSuperAdminLoading(true);
+    const { data, error } = await insertSuperAdmin({ nome, email, senha_provisoria: senha });
+    setSuperAdminLoading(false);
+    if (error) {
+      toast({ title: "Erro ao criar Super Admin", description: error, variant: "destructive" });
+      return;
+    }
+    const credenciais = `E-mail: ${email}\nSenha provisória: ${senha}`;
+    toast({
+      title: "Super Admin criado",
+      description: "Envie as credenciais ao novo administrador. Ele deve alterar a senha no primeiro acesso.",
+      action: (
+        <ToastAction
+          altText="Copiar credenciais"
+          onClick={() => navigator.clipboard?.writeText(credenciais)}
+        >
+          Copiar credenciais
+        </ToastAction>
+      ),
+    });
+    setSuperAdminNome("");
+    setSuperAdminEmail("");
+    setSuperAdminSenha("");
+    setSuperAdminSenhaVisivel(false);
   };
   
   return (
@@ -97,33 +155,6 @@ const Settings = () => {
                 
                 <TabsContent value="general">
                   <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium mb-4">Preferências do Sistema</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Tema Escuro</Label>
-                            <p className="text-sm text-gray-500">Ativar o tema escuro para a interface</p>
-                          </div>
-                          <Switch />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Modo de Alto Contraste</Label>
-                            <p className="text-sm text-gray-500">Melhorar a legibilidade com alto contraste</p>
-                          </div>
-                          <Switch />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Animações</Label>
-                            <p className="text-sm text-gray-500">Ativar animações na interface</p>
-                          </div>
-                          <Switch defaultChecked />
-                        </div>
-                      </div>
-                    </div>
-                    
                     <div>
                       <h3 className="text-lg font-medium mb-4">Idioma e Região</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

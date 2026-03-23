@@ -11,6 +11,7 @@ import { fetchMembroByUserId } from "@/services/governance";
 import {
   fetchEmpresaById,
   fetchPerfilEmpresaAdmByUserId,
+  fetchPerfilSuperAdminByUserId,
 } from "@/services/empresas";
 
 type LoginView = "select" | "company" | "member" | "admin";
@@ -163,14 +164,23 @@ const Login = () => {
           toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
           return;
         }
-        if (data.user?.email !== "admin@legacy.com") {
+        const userId = data?.user?.id;
+        const email = data?.user?.email?.toLowerCase() ?? "";
+        const isLegacyAdmin = email === "admin@legacy.com";
+        const perfilSuperAdmin = userId ? await fetchPerfilSuperAdminByUserId(userId) : null;
+
+        if (!isLegacyAdmin && !perfilSuperAdmin) {
           await supabase.auth.signOut();
-          toast({ title: "Acesso negado", description: "Use admin@legacy.com para acesso administrativo.", variant: "destructive" });
+          toast({ title: "Acesso negado", description: "Credenciais inválidas para acesso administrativo.", variant: "destructive" });
           return;
         }
         setUserType("admin");
         toast({ title: "Login bem-sucedido", description: "Bem-vindo ao Legacy OS." });
-        navigate("/admin");
+        if (perfilSuperAdmin && !perfilSuperAdmin.senha_alterada) {
+          navigate("/admin/alterar-senha");
+        } else {
+          navigate("/admin");
+        }
       } finally {
         setIsLoading(false);
       }

@@ -145,6 +145,22 @@ function InsightsContent() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isLoading}
+          className="border-violet-200 text-violet-700 hover:bg-violet-50"
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Sparkles className="h-4 w-4 mr-2" />
+          )}
+          Gerar nova insight
+        </Button>
+      </div>
       {resumo && (
         <Card className="border-0 shadow-sm bg-violet-50/50">
           <CardContent className="pt-6">
