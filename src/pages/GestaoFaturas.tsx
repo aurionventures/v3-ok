@@ -49,66 +49,10 @@ interface Fatura {
   status: StatusFatura;
 }
 
-const faturasData: Fatura[] = [
-  {
-    id: "NF-2026-0001",
-    ref: "2026-01",
-    cliente: "Empresa ABC Ltda",
-    cnpj: "12.345.678/0001-90",
-    descricao: "Plano Profissional + Add-ons -...",
-    valor: 8497,
-    vencimento: "09/01/2026",
-    dataPagamento: "08/01/2026",
-    status: "pago",
-  },
-  {
-    id: "NF-2026-0002",
-    ref: "2026-02",
-    cliente: "Empresa ABC Ltda",
-    cnpj: "12.345.678/0001-90",
-    descricao: "Plano Profissional + Add-ons -...",
-    valor: 8497,
-    vencimento: "09/02/2026",
-    diasAtraso: 15,
-    status: "vencido",
-  },
-  {
-    id: "NF-2026-0003",
-    ref: "2026-01",
-    cliente: "Grupo XYZ S.A.",
-    cnpj: "98.765.432/0001-10",
-    descricao: "Setup + Primeira Mensalidade...",
-    valor: 21994,
-    vencimento: "19/01/2026",
-    diasAtraso: 36,
-    status: "vencido",
-  },
-  {
-    id: "NF-2025-0180",
-    ref: "2025-12",
-    cliente: "Indústria QWE Ltda",
-    cnpj: "11.122.333/0001-44",
-    descricao: "Plano Essencial - Dezembro 20...",
-    valor: 2997,
-    vencimento: "09/12/2025",
-    diasAtraso: 77,
-    status: "vencido",
-  },
-  {
-    id: "NF-2026-0004",
-    ref: "2026-02",
-    cliente: "Cliente",
-    cnpj: null,
-    descricao: "Setup + Primeira Mensalidade...",
-    valor: 20508.6,
-    vencimento: "25/02/2026",
-    status: "pendente",
-  },
-];
-
 const GestaoFaturas = () => {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<"todas" | StatusFatura>("todas");
+  const faturasData: Fatura[] = [];
 
   const faturasFiltradas = useMemo(() => {
     let list = faturasData;
@@ -145,7 +89,7 @@ const GestaoFaturas = () => {
       qtdVencidas: vencidas.length,
       taxaRecebimento: taxa,
     };
-  }, []);
+  }, [faturasData]);
 
   const tabs = [
     { value: "todas" as const, label: "Todas" },
@@ -288,7 +232,16 @@ const GestaoFaturas = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {faturasFiltradas.map((f) => (
+                  {faturasFiltradas.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                        <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p className="font-medium">Nenhuma fatura encontrada</p>
+                        <p className="text-sm">As faturas dos clientes aparecerão aqui.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    faturasFiltradas.map((f) => (
                     <TableRow key={f.id}>
                       <TableCell>
                         <div>
@@ -378,7 +331,8 @@ const GestaoFaturas = () => {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

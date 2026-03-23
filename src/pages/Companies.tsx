@@ -7,6 +7,10 @@ import {
   Download,
   Pencil,
   Loader2,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +35,24 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { getPlanos } from "@/data/planosStorage";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/hooks/use-toast";
@@ -40,7 +62,9 @@ import {
   insertEmpresa,
   insertEmpresaAdm,
   updateEmpresa,
+  deleteEmpresa,
   fetchEmpresaDetalhes,
+  redefinirSenhaEmpresaAdm,
   type Empresa,
   type EmpresaDetalhes,
 } from "@/services/empresas";
@@ -59,6 +83,7 @@ const Companies = () => {
     cnpj: "",
     adm_email: "",
     adm_senha_provisoria: "",
+    plano_id: "",
   });
 
   const [editCompany, setEditCompany] = useState<Empresa | null>(null);
@@ -66,6 +91,12 @@ const Companies = () => {
   const [editDetalhesLoading, setEditDetalhesLoading] = useState(false);
   const [editForm, setEditForm] = useState({ nome: "", razao_social: "", cnpj: "", ativo: true });
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [admSenhaVisivel, setAdmSenhaVisivel] = useState(false);
+  const [admSenhaProvisoria, setAdmSenhaProvisoria] = useState<string | null>(null);
+  const [isRedefinirSenhaLoading, setIsRedefinirSenhaLoading] = useState(false);
+  const [empresaToDelete, setEmpresaToDelete] = useState<Empresa | null>(null);
+  const [excluirConfirmacao, setExcluirConfirmacao] = useState("");
+  const [isExcluirLoading, setIsExcluirLoading] = useState(false);
 
   const filteredCompanies = empresas.filter(
     (empresa) =>
@@ -141,7 +172,7 @@ const Companies = () => {
         description: errAdm,
         variant: "destructive",
       });
-      setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "" });
+      setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "", plano_id: "" });
       setIsNewCompanyDialogOpen(false);
       invalidateEmpresas();
       return;
@@ -161,7 +192,7 @@ const Companies = () => {
       ),
     });
 
-    setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "" });
+    setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "", plano_id: "" });
     setIsNewCompanyDialogOpen(false);
     invalidateEmpresas();
   };
@@ -175,15 +206,49 @@ const Companies = () => {
       ativo: empresa.ativo,
     });
     setEditDetalhes(null);
+    setAdmSenhaProvisoria(null);
+    setAdmSenhaVisivel(false);
     setEditDetalhesLoading(true);
     const { data, error } = await fetchEmpresaDetalhes(empresa.id);
     setEditDetalhesLoading(false);
     if (error) {
-      toast({ title: "Erro ao carregar detalhes", description: error, variant: "destructive" });
       setEditDetalhes({ empresa, adm: null });
+      toast({
+        title: "Dados do ADM indisponíveis",
+        description: "Você pode editar a empresa. Os dados do ADM não foram carregados.",
+        variant: "destructive",
+      });
     } else {
       setEditDetalhes(data ?? { empresa, adm: null });
     }
+  };
+
+  const handleRedefinirSenhaAdm = async () => {
+    const adm = editDetalhes?.adm;
+    if (!adm?.user_id) return;
+    setIsRedefinirSenhaLoading(true);
+    const { data, error } = await redefinirSenhaEmpresaAdm(adm.user_id);
+    setIsRedefinirSenhaLoading(false);
+    if (error) {
+      toast({ title: "Erro ao redefinir senha", description: error, variant: "destructive" });
+      return;
+    }
+    const senha = data?.senha_provisoria ?? "";
+    setAdmSenhaProvisoria(senha);
+    setAdmSenhaVisivel(true);
+    const credenciais = `E-mail: ${adm.email}\nSenha provisória: ${senha}`;
+    toast({
+      title: "Nova senha provisória gerada",
+      description: "O ADM deve alterar a senha no próximo acesso.",
+      action: (
+        <ToastAction
+          altText="Copiar credenciais"
+          onClick={() => navigator.clipboard?.writeText(credenciais)}
+        >
+          Copiar credenciais
+        </ToastAction>
+      ),
+    });
   };
 
   const handleSaveEdit = async () => {
@@ -218,6 +283,34 @@ const Companies = () => {
 
     toast({ title: "Empresa atualizada" });
     setEditCompany(null);
+    invalidateEmpresas();
+  };
+
+  const handleOpenExcluir = (empresa: Empresa) => {
+    setEmpresaToDelete(empresa);
+    setExcluirConfirmacao("");
+  };
+
+  const handleConfirmarExcluir = async () => {
+    if (!empresaToDelete) return;
+    if (excluirConfirmacao.trim() !== empresaToDelete.nome) {
+      toast({
+        title: "Confirmação incorreta",
+        description: `Digite exatamente "${empresaToDelete.nome}" para confirmar a exclusão.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsExcluirLoading(true);
+    const { error } = await deleteEmpresa(empresaToDelete.id);
+    setIsExcluirLoading(false);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Empresa excluída", description: `${empresaToDelete.nome} foi removida.` });
+    setEmpresaToDelete(null);
+    setExcluirConfirmacao("");
     invalidateEmpresas();
   };
 
@@ -284,91 +377,128 @@ const Companies = () => {
                       Preencha os dados da nova empresa. O ADM da empresa poderá criar membros e configurar a governança.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="nome" className="text-right">
-                        Nome*
-                      </Label>
-                      <Input
-                        id="nome"
-                        value={newCompany.nome}
-                        onChange={(e) =>
-                          setNewCompany((p) => ({ ...p, nome: e.target.value }))
-                        }
-                        className="col-span-3"
-                        placeholder="Ex: Empresa Demo"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="razao_social" className="text-right">
-                        Razão Social
-                      </Label>
-                      <Input
-                        id="razao_social"
-                        value={newCompany.razao_social}
-                        onChange={(e) =>
-                          setNewCompany((p) => ({ ...p, razao_social: e.target.value }))
-                        }
-                        className="col-span-3"
-                        placeholder="Opcional"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="cnpj" className="text-right">
-                        CNPJ
-                      </Label>
-                      <Input
-                        id="cnpj"
-                        value={newCompany.cnpj}
-                        onChange={(e) =>
-                          setNewCompany((p) => ({ ...p, cnpj: e.target.value }))
-                        }
-                        className="col-span-3"
-                        placeholder="00.000.000/0001-00"
-                      />
-                    </div>
-                    <div className="border-t pt-4 mt-2">
-                      <p className="text-sm font-medium text-muted-foreground mb-3">
-                        Credenciais do ADM da empresa (acesso ao dashboard)
-                      </p>
+                  <Tabs defaultValue="empresa" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="empresa">Dados da empresa</TabsTrigger>
+                      <TabsTrigger value="plano">Plano</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="empresa" className="space-y-4 pt-4">
                       <div className="grid gap-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="adm_email" className="text-right">
-                            E-mail do ADM*
+                          <Label htmlFor="nome" className="text-right">
+                            Nome*
                           </Label>
                           <Input
-                            id="adm_email"
-                            type="email"
-                            value={newCompany.adm_email}
+                            id="nome"
+                            value={newCompany.nome}
                             onChange={(e) =>
-                              setNewCompany((p) => ({ ...p, adm_email: e.target.value }))
+                              setNewCompany((p) => ({ ...p, nome: e.target.value }))
                             }
                             className="col-span-3"
-                            placeholder="adm@empresa.com"
+                            placeholder="Ex: Empresa Demo"
                           />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="adm_senha" className="text-right">
-                            Senha provisória*
+                          <Label htmlFor="razao_social" className="text-right">
+                            Razão Social
                           </Label>
                           <Input
-                            id="adm_senha"
-                            type="password"
-                            value={newCompany.adm_senha_provisoria}
+                            id="razao_social"
+                            value={newCompany.razao_social}
                             onChange={(e) =>
-                              setNewCompany((p) => ({ ...p, adm_senha_provisoria: e.target.value }))
+                              setNewCompany((p) => ({ ...p, razao_social: e.target.value }))
                             }
                             className="col-span-3"
-                            placeholder="Mínimo 6 caracteres"
-                            minLength={6}
+                            placeholder="Opcional"
                           />
                         </div>
-                        <p className="text-xs text-muted-foreground col-span-4">
-                          No primeiro acesso, o ADM deverá alterar a senha.
-                        </p>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="cnpj" className="text-right">
+                            CNPJ
+                          </Label>
+                          <Input
+                            id="cnpj"
+                            value={newCompany.cnpj}
+                            onChange={(e) =>
+                              setNewCompany((p) => ({ ...p, cnpj: e.target.value }))
+                            }
+                            className="col-span-3"
+                            placeholder="00.000.000/0001-00"
+                          />
+                        </div>
+                        <div className="border-t pt-4 mt-2">
+                          <p className="text-sm font-medium text-muted-foreground mb-3">
+                            Credenciais do ADM da empresa (acesso ao dashboard)
+                          </p>
+                          <div className="grid gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="adm_email" className="text-right">
+                                E-mail do ADM*
+                              </Label>
+                              <Input
+                                id="adm_email"
+                                type="email"
+                                value={newCompany.adm_email}
+                                onChange={(e) =>
+                                  setNewCompany((p) => ({ ...p, adm_email: e.target.value }))
+                                }
+                                className="col-span-3"
+                                placeholder="adm@empresa.com"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="adm_senha" className="text-right">
+                                Senha provisória*
+                              </Label>
+                              <Input
+                                id="adm_senha"
+                                type="password"
+                                value={newCompany.adm_senha_provisoria}
+                                onChange={(e) =>
+                                  setNewCompany((p) => ({ ...p, adm_senha_provisoria: e.target.value }))
+                                }
+                                className="col-span-3"
+                                placeholder="Mínimo 6 caracteres"
+                                minLength={6}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground col-span-4">
+                              No primeiro acesso, o ADM deverá alterar a senha.
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </TabsContent>
+                    <TabsContent value="plano" className="space-y-4 pt-4">
+                      <div className="grid gap-4">
+                        <p className="text-sm text-muted-foreground">
+                          Selecione o plano de assinatura da empresa. Os planos são configurados em Configurador de Planos.
+                        </p>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="plano" className="text-right">
+                            Plano
+                          </Label>
+                          <div className="col-span-3">
+                            <Select
+                              value={newCompany.plano_id || undefined}
+                              onValueChange={(v) => setNewCompany((p) => ({ ...p, plano_id: v }))}
+                            >
+                              <SelectTrigger id="plano">
+                                <SelectValue placeholder="Selecione um plano" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getPlanos().map((plano) => (
+                                  <SelectItem key={plano.id} value={plano.id}>
+                                    {plano.name} — {plano.description}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                   <DialogFooter>
                     <Button
                       type="button"
@@ -583,7 +713,17 @@ const Companies = () => {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editCompany} onOpenChange={() => { setEditCompany(null); setEditDetalhes(null); }}>
+      <Dialog
+        open={!!editCompany}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditCompany(null);
+            setEditDetalhes(null);
+            setAdmSenhaProvisoria(null);
+            setAdmSenhaVisivel(false);
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Dados da Empresa</DialogTitle>
@@ -658,21 +798,67 @@ const Companies = () => {
                   </div>
                   {editDetalhes?.adm && (
                     <div className="border-t pt-4 mt-2 space-y-3">
-                      <p className="text-sm font-semibold text-muted-foreground">ADM da empresa</p>
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        ADM da empresa
+                      </p>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Nome</Label>
-                        <div className="col-span-3 text-sm py-2">{editDetalhes.adm.nome ?? "—"}</div>
+                        <div className="col-span-3 text-sm py-2">
+                          {editDetalhes.adm.nome ?? "—"}
+                        </div>
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">E-mail</Label>
-                        <div className="col-span-3 text-sm py-2">{editDetalhes.adm.email ?? "—"}</div>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Senha alterada</Label>
                         <div className="col-span-3 text-sm py-2">
-                          {editDetalhes.adm.senha_alterada ? "Sim" : "Não (primeiro acesso pendente)"}
+                          {editDetalhes.adm.email ?? "—"}
                         </div>
                       </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Senha</Label>
+                        <div className="col-span-3 flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              type={admSenhaVisivel ? "text" : "password"}
+                              readOnly
+                              value={admSenhaProvisoria ?? "••••••••"}
+                              className="pr-10 bg-muted font-mono"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setAdmSenhaVisivel((v) => !v)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              title={admSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                            >
+                              {admSenhaVisivel ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRedefinirSenhaAdm}
+                            disabled={isRedefinirSenhaLoading}
+                          >
+                            {isRedefinirSenhaLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4" />
+                            )}
+                            <span className="ml-1.5 hidden sm:inline">
+                              Redefinir senha
+                            </span>
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground col-span-4">
+                        {admSenhaProvisoria
+                          ? "Use o botão para copiar as credenciais e enviar ao ADM."
+                          : "A senha não é exibida por segurança. Use \"Redefinir senha\" para gerar uma nova."}
+                      </p>
                     </div>
                   )}
                 </>

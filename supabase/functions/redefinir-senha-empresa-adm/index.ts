@@ -1,7 +1,8 @@
 /**
- * Retorna dados completos da empresa + ADM (para Super ADM visualizar/editar).
- * Rota: POST /functions/v1/get-empresa-detalhes
- * Body: { empresa_id }
+ * Redefinir Senha do ADM Empresa – gera nova senha provisória e atualiza o usuário Auth.
+ * Rota: POST /functions/v1/redefinir-senha-empresa-adm
+ * Body: { user_id }
+ * Retorna: { senha_provisoria }
  */
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -11,6 +12,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
+
+function gerarSenhaProvisoria(): string {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 10; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -26,11 +34,11 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const empresa_id = (body.empresa_id ?? "").trim();
+    const user_id = (body.user_id ?? "").trim();
 
-    if (!empresa_id) {
+    if (!user_id) {
       return new Response(
-        JSON.stringify({ error: "empresa_id é obrigatório" }),
+        JSON.stringify({ error: "user_id é obrigatório" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -48,57 +56,31 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const { data: empresa, error: errEmpresa } = await supabase
-      .from("empresas")
-      .select("id, nome, razao_social, cnpj, ativo")
-      .eq("id", empresa_id)
-      .maybeSingle();
+    const senha_provisoria = gerarSenhaProvisoria();
 
-    if (errEmpresa || !empresa) {
+    const { error } = await supabase.auth.admin.updateUserById(user_id, {
+      password: senha_provisoria,
+    });
+
+    if (error) {
+      console.error("[redefinir-senha-empresa-adm] updateUserById:", error);
       return new Response(
-        JSON.stringify({ error: "Empresa não encontrada" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: error.message ?? "Erro ao redefinir senha" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { data: admPerfil } = await supabase
+    await supabase
       .from("perfis")
-      .select("id, user_id, nome, senha_alterada")
-      .eq("empresa_id", empresa_id)
-      .eq("role", "empresa_adm")
-      .maybeSingle();
-
-    let admEmail: string | null = null;
-    let adm: { user_id: string; nome: string | null; email: string | null; senha_alterada: boolean } | null = null;
-
-    if (admPerfil) {
-      if (admPerfil.user_id) {
-        const { data: userData } = await supabase.auth.admin.getUserById(admPerfil.user_id);
-        admEmail = userData?.user?.email ?? null;
-      }
-      adm = {
-        user_id: admPerfil.user_id ?? "",
-        nome: admPerfil.nome ?? null,
-        email: admEmail,
-        senha_alterada: admPerfil.senha_alterada ?? true,
-      };
-    }
+      .update({ senha_alterada: false })
+      .eq("user_id", user_id);
 
     return new Response(
-      JSON.stringify({
-        empresa: {
-          id: empresa.id,
-          nome: empresa.nome,
-          razao_social: empresa.razao_social,
-          cnpj: empresa.cnpj,
-          ativo: empresa.ativo,
-        },
-        adm,
-      }),
+      JSON.stringify({ senha_provisoria }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("[get-empresa-detalhes]", err);
+    console.error("[redefinir-senha-empresa-adm]", err);
     return new Response(
       JSON.stringify({ error: err?.message ?? "Erro interno" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

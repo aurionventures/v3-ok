@@ -1,25 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Building2, FileText, Plus, Pencil, Trash2, Users, Infinity, Puzzle } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { getPlanos, setPlanos as savePlanosToStorage, type PlanoAssinatura } from "@/data/planosStorage";
 
 interface PorteEmpresa {
   id: string;
   name: string;
   description: string;
   revenueRange: string;
-}
-
-interface PlanoAssinatura {
-  id: string;
-  name: string;
-  description: string;
-  empresas: number;
-  usuarios: string;
-  addons: number;
 }
 
 const portesIniciais: PorteEmpresa[] = [
@@ -30,24 +32,65 @@ const portesIniciais: PorteEmpresa[] = [
   { id: "5", name: "Enterprise", description: "Corporações", revenueRange: "> R$1B" },
 ];
 
-const planosIniciais: PlanoAssinatura[] = [
-  { id: "1", name: "Essencial", description: "Plano básico", empresas: 1, usuarios: "∞", addons: 0 },
-  { id: "2", name: "Profissional", description: "Para crescimento", empresas: 1, usuarios: "∞", addons: 2 },
-  { id: "3", name: "Business", description: "Médias empresas", empresas: 1, usuarios: "∞", addons: 3 },
-  { id: "4", name: "Enterprise", description: "Solução completa", empresas: 1, usuarios: "∞", addons: 6 },
-];
-
 const ConfiguradorPlanos = () => {
   const { toast } = useToast();
   const [portes, setPortes] = useState<PorteEmpresa[]>(portesIniciais);
-  const [planos, setPlanos] = useState<PlanoAssinatura[]>(planosIniciais);
+  const [planos, setPlanos] = useState<PlanoAssinatura[]>(() => getPlanos());
+
+  useEffect(() => {
+    savePlanosToStorage(planos);
+  }, [planos]);
+
+  // Porte dialog
+  const [porteDialogOpen, setPorteDialogOpen] = useState(false);
+  const [porteEditando, setPorteEditando] = useState<PorteEmpresa | null>(null);
+  const [porteForm, setPorteForm] = useState({ name: "", description: "", revenueRange: "" });
+
+  // Plano dialog
+  const [planoDialogOpen, setPlanoDialogOpen] = useState(false);
+  const [planoEditando, setPlanoEditando] = useState<PlanoAssinatura | null>(null);
+  const [planoForm, setPlanoForm] = useState({ name: "", description: "", empresas: "1", usuarios: "∞", addons: "0" });
 
   const handleNovoPorte = () => {
-    toast({ title: "Novo porte", description: "Funcionalidade em desenvolvimento." });
+    setPorteEditando(null);
+    setPorteForm({ name: "", description: "", revenueRange: "" });
+    setPorteDialogOpen(true);
   };
 
   const handleEditarPorte = (p: PorteEmpresa) => {
-    toast({ title: "Editar porte", description: `Editar: ${p.name}` });
+    setPorteEditando(p);
+    setPorteForm({
+      name: p.name,
+      description: p.description,
+      revenueRange: p.revenueRange,
+    });
+    setPorteDialogOpen(true);
+  };
+
+  const handleSalvarPorte = () => {
+    const name = porteForm.name.trim();
+    const description = porteForm.description.trim();
+    const revenueRange = porteForm.revenueRange.trim();
+    if (!name) {
+      toast({ title: "Nome obrigatório", variant: "destructive" });
+      return;
+    }
+    if (porteEditando) {
+      setPortes((prev) =>
+        prev.map((x) =>
+          x.id === porteEditando.id
+            ? { ...x, name, description, revenueRange }
+            : x
+        )
+      );
+      toast({ title: "Porte atualizado", description: `${name} foi salvo.` });
+    } else {
+      const ids = portes.map((x) => parseInt(x.id, 10)).filter((n) => !isNaN(n));
+      const id = String(ids.length ? Math.max(...ids) + 1 : 1);
+      setPortes((prev) => [...prev, { id, name, description, revenueRange }]);
+      toast({ title: "Porte criado", description: `${name} foi adicionado.` });
+    }
+    setPorteDialogOpen(false);
   };
 
   const handleExcluirPorte = (p: PorteEmpresa) => {
@@ -56,11 +99,49 @@ const ConfiguradorPlanos = () => {
   };
 
   const handleNovoPlano = () => {
-    toast({ title: "Novo plano", description: "Funcionalidade em desenvolvimento." });
+    setPlanoEditando(null);
+    setPlanoForm({ name: "", description: "", empresas: "1", usuarios: "∞", addons: "0" });
+    setPlanoDialogOpen(true);
   };
 
   const handleEditarPlano = (p: PlanoAssinatura) => {
-    toast({ title: "Editar plano", description: `Editar: ${p.name}` });
+    setPlanoEditando(p);
+    setPlanoForm({
+      name: p.name,
+      description: p.description,
+      empresas: String(p.empresas),
+      usuarios: p.usuarios,
+      addons: String(p.addons),
+    });
+    setPlanoDialogOpen(true);
+  };
+
+  const handleSalvarPlano = () => {
+    const name = planoForm.name.trim();
+    const description = planoForm.description.trim();
+    const empresas = parseInt(planoForm.empresas, 10) || 1;
+    const usuarios = planoForm.usuarios.trim() || "∞";
+    const addons = parseInt(planoForm.addons, 10) || 0;
+    if (!name) {
+      toast({ title: "Nome obrigatório", variant: "destructive" });
+      return;
+    }
+    if (planoEditando) {
+      setPlanos((prev) =>
+        prev.map((x) =>
+          x.id === planoEditando.id
+            ? { ...x, name, description, empresas, usuarios, addons }
+            : x
+        )
+      );
+      toast({ title: "Plano atualizado", description: `${name} foi salvo.` });
+    } else {
+      const ids = planos.map((x) => parseInt(x.id, 10)).filter((n) => !isNaN(n));
+      const id = String(ids.length ? Math.max(...ids) + 1 : 1);
+      setPlanos((prev) => [...prev, { id, name, description, empresas, usuarios, addons }]);
+      toast({ title: "Plano criado", description: `${name} foi adicionado.` });
+    }
+    setPlanoDialogOpen(false);
   };
 
   const handleExcluirPlano = (p: PlanoAssinatura) => {
@@ -169,6 +250,118 @@ const ConfiguradorPlanos = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Dialog Porte */}
+          <Dialog open={porteDialogOpen} onOpenChange={setPorteDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{porteEditando ? "Editar porte" : "Novo porte"}</DialogTitle>
+                <DialogDescription>Configure os dados do porte de empresa.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="porte-name">Nome</Label>
+                  <Input
+                    id="porte-name"
+                    value={porteForm.name}
+                    onChange={(e) => setPorteForm((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="Ex: SMB"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="porte-desc">Descrição</Label>
+                  <Input
+                    id="porte-desc"
+                    value={porteForm.description}
+                    onChange={(e) => setPorteForm((p) => ({ ...p, description: e.target.value }))}
+                    placeholder="Ex: Empresas < R$ 50M/ano"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="porte-revenue">Faixa de faturamento</Label>
+                  <Input
+                    id="porte-revenue"
+                    value={porteForm.revenueRange}
+                    onChange={(e) => setPorteForm((p) => ({ ...p, revenueRange: e.target.value }))}
+                    placeholder="Ex: <R$50M - R$50M"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPorteDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSalvarPorte}>Salvar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Plano */}
+          <Dialog open={planoDialogOpen} onOpenChange={setPlanoDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{planoEditando ? "Editar plano" : "Novo plano"}</DialogTitle>
+                <DialogDescription>Configure os dados do plano de assinatura.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="plano-name">Nome</Label>
+                  <Input
+                    id="plano-name"
+                    value={planoForm.name}
+                    onChange={(e) => setPlanoForm((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="Ex: Essencial"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="plano-desc">Descrição</Label>
+                  <Input
+                    id="plano-desc"
+                    value={planoForm.description}
+                    onChange={(e) => setPlanoForm((p) => ({ ...p, description: e.target.value }))}
+                    placeholder="Ex: Plano básico"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="plano-empresas">Empresas</Label>
+                    <Input
+                      id="plano-empresas"
+                      type="number"
+                      min={0}
+                      value={planoForm.empresas}
+                      onChange={(e) => setPlanoForm((p) => ({ ...p, empresas: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="plano-usuarios">Usuários</Label>
+                    <Input
+                      id="plano-usuarios"
+                      value={planoForm.usuarios}
+                      onChange={(e) => setPlanoForm((p) => ({ ...p, usuarios: e.target.value }))}
+                      placeholder="∞"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="plano-addons">Add-ons</Label>
+                    <Input
+                      id="plano-addons"
+                      type="number"
+                      min={0}
+                      value={planoForm.addons}
+                      onChange={(e) => setPlanoForm((p) => ({ ...p, addons: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPlanoDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSalvarPlano}>Salvar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

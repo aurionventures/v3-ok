@@ -81,9 +81,16 @@ export async function fetchPerfilEmpresaAdmByUserId(
   } as PerfilEmpresaAdm;
 }
 
+export interface EmpresaAdmDetalhes {
+  user_id: string;
+  nome: string | null;
+  email: string | null;
+  senha_alterada: boolean;
+}
+
 export interface EmpresaDetalhes {
   empresa: Empresa;
-  adm: { nome: string | null; email: string | null; senha_alterada: boolean } | null;
+  adm: EmpresaAdmDetalhes | null;
 }
 
 /** Busca dados completos da empresa + ADM (via Edge Function, para Super ADM) */
@@ -92,7 +99,7 @@ export async function fetchEmpresaDetalhes(
 ): Promise<{ data: EmpresaDetalhes | null; error: string | null }> {
   const { data, error } = await invokeEdgeFunction<{
     empresa?: Empresa;
-    adm?: { nome: string | null; email: string | null; senha_alterada: boolean } | null;
+    adm?: EmpresaAdmDetalhes | null;
     error?: string;
   }>("get-empresa-detalhes", { empresa_id: empresaId });
 
@@ -214,4 +221,34 @@ export async function updateEmpresa(id: string, p: EmpresaUpdate): Promise<{ err
   }
 
   return { error: null };
+}
+
+/** Exclui empresa permanentemente. Cuidado: pode cascatear em dados relacionados. */
+export async function deleteEmpresa(id: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+
+  const { error } = await supabase.from("empresas").delete().eq("id", id);
+
+  if (error) {
+    console.error("[empresas] deleteEmpresa:", error);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+/** Redefine senha provisória do ADM da empresa (via Edge Function) */
+export async function redefinirSenhaEmpresaAdm(
+  userId: string
+): Promise<{ data: { senha_provisoria: string } | null; error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{
+    senha_provisoria?: string;
+    error?: string;
+  }>("redefinir-senha-empresa-adm", { user_id: userId });
+  if (error) return { data: null, error: error.message };
+  const err = data?.error;
+  if (err) return { data: null, error: err };
+  if (!data?.senha_provisoria)
+    return { data: null, error: "Resposta inválida da Edge Function" };
+  return { data: { senha_provisoria: data.senha_provisoria }, error: null };
 }
