@@ -1,12 +1,27 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { 
-  X, ArrowRight, CheckCircle, Target, Users, Shield, Activity, 
-  AlertCircle, Zap, ChevronDown, ChevronUp, Map, Clock 
+import {
+  X,
+  ArrowRight,
+  CheckCircle,
+  Target,
+  Users,
+  Shield,
+  Activity,
+  AlertCircle,
+  ChevronRight,
+  Map,
+  FileText,
+  Calendar,
+  TrendingUp,
+  PieChart,
+  GraduationCap,
+  Settings,
+  Leaf,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useGovernanceProgress } from "@/hooks/useGovernanceProgress";
 
@@ -15,22 +30,32 @@ interface GuidedNavigationProps {
   onClose: () => void;
 }
 
-const GuidedNavigation = ({ isOpen, onClose }: GuidedNavigationProps) => {
-  const { modules, overallPercentage, nextRecommendations } = useGovernanceProgress();
-  const [expandedPhase, setExpandedPhase] = useState<string | null>("foundation");
+const ICON_MAP: Record<string, React.ReactNode> = {
+  Users: <Users className="h-4 w-4" />,
+  Shield: <Shield className="h-4 w-4" />,
+  Calendar: <Calendar className="h-4 w-4" />,
+  TrendingUp: <TrendingUp className="h-4 w-4" />,
+  FileText: <FileText className="h-4 w-4" />,
+  BarChart3: <Activity className="h-4 w-4" />,
+  Leaf: <Leaf className="h-4 w-4" />,
+  AlertTriangle: <AlertCircle className="h-4 w-4" />,
+  GraduationCap: <GraduationCap className="h-4 w-4" />,
+  Settings: <Settings className="h-4 w-4" />,
+  PieChart: <PieChart className="h-4 w-4" />,
+};
 
-  // Get next priority module
+const GuidedNavigation = ({ isOpen, onClose }: GuidedNavigationProps) => {
+  const { modules, overallPercentage } = useGovernanceProgress();
+  const location = useLocation();
+
   const getNextPriorityModule = () => {
     const urgentIncomplete = modules
-      .filter(m => !m.isCompleted && m.urgency === 'high')
+      .filter((m) => !m.isCompleted && m.urgency === "high")
       .sort((a, b) => a.completionPercentage - b.completionPercentage)[0];
-    
     if (urgentIncomplete) return urgentIncomplete;
-    
     const incompleteModules = modules
-      .filter(m => !m.isCompleted)
+      .filter((m) => !m.isCompleted)
       .sort((a, b) => a.completionPercentage - b.completionPercentage);
-    
     return incompleteModules[0];
   };
 
@@ -40,224 +65,206 @@ const GuidedNavigation = ({ isOpen, onClose }: GuidedNavigationProps) => {
     {
       id: "foundation",
       name: "Fundação",
-      description: "Configure os elementos básicos da sua governança",
-      icon: <Users className="h-5 w-5" />,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
       modules: ["family-structure", "documents", "cap-table"],
-      priority: overallPercentage < 30
     },
     {
       id: "structure",
       name: "Estruturação",
-      description: "Estabeleça conselhos e processos sucessórios",
-      icon: <Shield className="h-5 w-5" />,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
       modules: ["councils", "rituals", "succession"],
-      priority: overallPercentage >= 30 && overallPercentage < 60
     },
     {
       id: "development",
       name: "Desenvolvimento",
-      description: "Desenvolva pessoas e subsistemas",
-      icon: <Activity className="h-5 w-5" />,
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/10",
       modules: ["people-development", "subsystems"],
-      priority: overallPercentage >= 60 && overallPercentage < 80
     },
     {
       id: "monitoring",
       name: "Monitoramento",
-      description: "Gerencie riscos e sustentabilidade",
-      icon: <AlertCircle className="h-5 w-5" />,
-      color: "text-red-500",
-      bgColor: "bg-red-500/10",
       modules: ["systemic-risks", "esg"],
-      priority: overallPercentage >= 80
-    }
+    },
   ];
-
-  const getPhaseProgress = (phaseModules: string[]) => {
-    const phaseModuleData = modules.filter(m => phaseModules.includes(m.id));
-    const totalWeight = phaseModuleData.reduce((sum, m) => sum + m.weight, 0);
-    const weightedProgress = phaseModuleData.reduce(
-      (sum, m) => sum + (m.completionPercentage * m.weight) / 100,
-      0
-    );
-    return totalWeight > 0 ? Math.round((weightedProgress / totalWeight) * 100) : 0;
-  };
 
   const getModuleHref = (moduleId: string) => {
     const moduleRoutes: Record<string, string> = {
       "family-structure": "/family-structure",
-      "documents": "/documents",
+      documents: "/documents",
       "cap-table": "/cap-table",
-      "councils": "/councils",
-      "rituals": "/rituals",
-      "succession": "/succession",
+      councils: "/councils",
+      rituals: "/rituals",
+      succession: "/succession",
       "people-development": "/people-development",
-      "subsystems": "/subsystems",
+      subsystems: "/subsystems",
       "systemic-risks": "/systemic-risks",
-      "esg": "/esg"
+      esg: "/esg",
     };
     return moduleRoutes[moduleId] || "/dashboard";
+  };
+
+  const handleNavClick = (href: string) => {
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Map className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Navegação Guiada</CardTitle>
-                <CardDescription>
-                  Sua governança está {overallPercentage}% completa
-                </CardDescription>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
+    <>
+      {/* Backdrop - click to close */}
+      <div
+        className="fixed inset-0 bg-black/25 z-40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-        <CardContent className="space-y-6">
-          {/* Next Step Card */}
+      {/* Side panel */}
+      <aside
+        className={cn(
+          "fixed top-0 right-0 h-full w-[320px] sm:w-[360px] bg-card border-l shadow-xl z-50",
+          "flex flex-col animate-in slide-in-from-right duration-300"
+        )}
+      >
+        <div className="flex items-center justify-between p-4 border-b shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-lg">
+              <Map className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-base">Guia da Plataforma</h2>
+              <p className="text-xs text-muted-foreground">
+                {overallPercentage}% completo
+              </p>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+          {/* Progress bar */}
+          <div className="space-y-2">
+            <Progress value={overallPercentage} className="h-2" />
+          </div>
+
+          {/* Next step CTA */}
           {nextModule && (
-            <Card className="border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">Próximo Passo Recomendado</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">{nextModule.name}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {nextModule.nextActions[0]}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant={nextModule.urgency === 'high' ? 'destructive' : 'secondary'}>
-                        {nextModule.urgency === 'high' ? 'Urgente' : 'Recomendado'}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {nextModule.completionPercentage}% completo
-                      </span>
-                    </div>
-                  </div>
-                  <Link to={getModuleHref(nextModule.id)}>
-                    <Button onClick={onClose}>
-                      Ir para módulo
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  Próximo passo
+                </span>
+              </div>
+              <p className="font-medium text-sm">{nextModule.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                {nextModule.nextActions[0]}
+              </p>
+              <Link to={getModuleHref(nextModule.id)}>
+                <Button
+                  size="sm"
+                  className="w-full mt-3"
+                  onClick={() => handleNavClick(getModuleHref(nextModule!.id))}
+                >
+                  Ir para módulo
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </Link>
+            </div>
           )}
 
-          {/* Phases */}
-          <div className="space-y-3">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Jornada por Fases
+          {/* Navigation menu by phase */}
+          <nav className="space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Jornada por módulos
             </h3>
-            
-            {phases.map((phase) => {
-              const phaseProgress = getPhaseProgress(phase.modules);
-              const phaseModuleData = modules.filter(m => phase.modules.includes(m.id));
-              const isExpanded = expandedPhase === phase.id;
-              
-              return (
-                <Card key={phase.id} className={cn(
-                  "transition-all duration-200",
-                  phase.priority && "ring-2 ring-primary/20"
-                )}>
-                  <CardHeader 
-                    className="pb-3 cursor-pointer"
-                    onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn("p-2 rounded-lg", phase.bgColor)}>
-                          <span className={phase.color}>{phase.icon}</span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{phase.name}</h4>
-                            {phase.priority && (
-                              <Badge variant="outline" className="text-xs">
-                                Foco atual
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {phase.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{phaseProgress}%</span>
-                        {isExpanded ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  {isExpanded && (
-                    <CardContent className="pt-0">
-                      <div className="space-y-2">
-                        {phaseModuleData.map((module) => (
-                          <Link
-                            key={module.id}
-                            to={getModuleHref(module.id)}
-                            onClick={onClose}
-                            className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              {module.isCompleted ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <div className="h-4 w-4 border-2 border-muted-foreground rounded-full" />
+            <ul className="space-y-1">
+              {phases.map((phase) => (
+                <li key={phase.id}>
+                  <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                    {phase.name}
+                  </div>
+                  <ul className="space-y-0.5">
+                    {modules
+                      .filter((m) => phase.modules.includes(m.id))
+                      .map((module) => {
+                        const href = getModuleHref(module.id);
+                        const isActive = location.pathname === href;
+                        const Icon = ICON_MAP[module.icon] ?? <Activity className="h-4 w-4" />;
+                        return (
+                          <li key={module.id}>
+                            <Link
+                              to={href}
+                              onClick={() => handleNavClick(href)}
+                              className={cn(
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                                "hover:bg-muted/70",
+                                isActive && "bg-primary/10 text-primary font-medium"
                               )}
-                              <div>
-                                <span className="font-medium text-sm">{module.name}</span>
-                                <p className="text-xs text-muted-foreground">
-                                  {module.nextActions[0] || 'Módulo completo'}
-                                </p>
+                            >
+                              {module.isCompleted ? (
+                                <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                              ) : (
+                                <span className="text-muted-foreground shrink-0">
+                                  {Icon}
+                                </span>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm block truncate">
+                                  {module.name}
+                                </span>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">
-                                {module.completionPercentage}%
-                              </span>
-                              <ArrowRight className="h-3 w-3" />
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
+                              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            </Link>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Quick links - outros módulos úteis */}
+          <div className="pt-2 border-t">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Outros
+            </h3>
+            <div className="space-y-0.5">
+              {["maturity", "ai-config", "settings"]
+                .map((id) => modules.find((m) => m.id === id))
+                .filter(Boolean)
+                .map((module) => {
+                  const href = module!.id === "maturity"
+                    ? "/maturidade-governanca"
+                    : module!.id === "ai-config"
+                      ? "/ai-config"
+                      : "/settings";
+                  const isActive = location.pathname === href;
+                  const Icon = ICON_MAP[module!.icon] ?? <Settings className="h-4 w-4" />;
+                  return (
+                    <Link
+                      key={module!.id}
+                      to={href}
+                      onClick={() => handleNavClick(href)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                        "hover:bg-muted/70",
+                        isActive && "bg-primary/10 text-primary"
+                      )}
+                    >
+                      {module!.isCompleted ? (
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                      ) : (
+                        <span className="text-muted-foreground shrink-0">{Icon}</span>
+                      )}
+                      <span className="text-sm flex-1">{module!.name}</span>
+                    </Link>
+                  );
+                })}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </aside>
+    </>
   );
 };
 
