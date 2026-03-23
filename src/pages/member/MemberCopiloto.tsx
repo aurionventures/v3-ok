@@ -48,7 +48,7 @@ const MemberCopiloto = ({ reuniaoIdProxima }: MemberCopilotoProps) => {
     setQuestion("");
     setIsAsking(true);
 
-    const { content, error } = await perguntarComBriefing(briefing, q);
+    const { content, error } = await perguntarComBriefing(briefing, q, chatHistory);
 
     setIsAsking(false);
     if (error) {

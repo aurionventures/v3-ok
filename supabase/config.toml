@@ -55,6 +55,10 @@ verify_jwt = false
 [functions.usage-openai]
 verify_jwt = false
 
+# openai-proxy: proxy LLM para Copiloto IA (membros)
+[functions.openai-proxy]
+verify_jwt = false
+
 # get-access-logs: logs de acesso (requer JWT admin)
 [functions.get-access-logs]
 verify_jwt = true

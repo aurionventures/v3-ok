@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Download, HelpCircle, FileCheck, BookOpen, FileText, Target, Lightbulb, AlertTriangle, Calendar, List } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Clock, HelpCircle, BookOpen, FileText, Target, Lightbulb, AlertTriangle, Calendar, List } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
-import { fetchBriefingMembro } from "@/services/membroBriefing";
+import { fetchBriefingMembro, updateBriefingProgresso, MembroBriefingRow } from "@/services/membroBriefing";
 
 interface MemberBriefingProps {
   onProgressChange?: (progress: number) => void;
@@ -16,13 +15,29 @@ interface MemberBriefingProps {
 
 const MemberBriefing = ({ onProgressChange, reuniaoIdProxima }: MemberBriefingProps) => {
   const { data: membro } = useCurrentMembro();
-  const [confirmacaoLeitura, setConfirmacaoLeitura] = useState(false);
-  const [abriuAnexos, setAbriuAnexos] = useState(false);
+  const qc = useQueryClient();
 
   const { data: briefing, isLoading } = useQuery({
     queryKey: ["member", "briefing", membro?.id, reuniaoIdProxima],
     queryFn: () => fetchBriefingMembro(membro!.id, reuniaoIdProxima ?? undefined),
     enabled: !!membro?.id,
+  });
+
+  const updateProgressoMt = useMutation({
+    mutationFn: ({ briefingId, confirmou_leitura, abriu_anexos }: { briefingId: string; confirmou_leitura?: boolean; abriu_anexos?: boolean }) =>
+      updateBriefingProgresso(briefingId, { confirmou_leitura, abriu_anexos }),
+    onMutate: (variables) => {
+      qc.setQueryData(
+        ["member", "briefing", membro?.id, reuniaoIdProxima],
+        (prev: { data?: MembroBriefingRow } | undefined) => {
+          if (!prev?.data) return prev;
+          const next = { ...prev.data };
+          if (variables.confirmou_leitura !== undefined) next.confirmou_leitura = variables.confirmou_leitura;
+          if (variables.abriu_anexos !== undefined) next.abriu_anexos = variables.abriu_anexos;
+          return { ...prev, data: next };
+        }
+      );
+    },
   });
 
   const bData = briefing?.data;
@@ -35,7 +50,9 @@ const MemberBriefing = ({ onProgressChange, reuniaoIdProxima }: MemberBriefingPr
       !!bData.preparacao_recomendada ||
       !!bData.alertas_contextuais ||
       meetingAgendaFromData.length > 0);
-  const progresso = temBriefing ? (confirmacaoLeitura ? 50 : 0) + (abriuAnexos ? 50 : 0) : 0;
+
+  const confirmouLeitura = !!bData?.confirmou_leitura;
+  const progresso = temBriefing ? (confirmouLeitura ? 100 : 0) : 0;
 
   useEffect(() => {
     onProgressChange?.(progresso);
@@ -79,10 +96,6 @@ const MemberBriefing = ({ onProgressChange, reuniaoIdProxima }: MemberBriefingPr
             <p className="text-xs text-muted-foreground mb-1">Progresso de preparação</p>
             <Progress value={progresso} className="h-2" />
           </div>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Baixar PDF
-          </Button>
           <span className="text-sm font-medium">{progresso}%</span>
         </div>
       </div>
@@ -93,22 +106,12 @@ const MemberBriefing = ({ onProgressChange, reuniaoIdProxima }: MemberBriefingPr
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <label className="flex items-center gap-3 cursor-pointer">
               <Checkbox
-                checked={confirmacaoLeitura}
-                onCheckedChange={(checked) => setConfirmacaoLeitura(checked === true)}
+                checked={confirmouLeitura}
+                onCheckedChange={(checked) => b.id && updateProgressoMt.mutate({ briefingId: b.id, confirmou_leitura: checked === true })}
               />
               <span className="flex items-center gap-2 text-sm">
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
                 Confirmo que li o briefing
-              </span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <Checkbox
-                checked={abriuAnexos}
-                onCheckedChange={(checked) => setAbriuAnexos(checked === true)}
-              />
-              <span className="flex items-center gap-2 text-sm">
-                <FileCheck className="h-4 w-4 text-muted-foreground" />
-                Confirmo que abri os anexos
               </span>
             </label>
           </div>

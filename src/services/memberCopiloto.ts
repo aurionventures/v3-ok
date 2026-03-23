@@ -48,31 +48,43 @@ function buildBriefingContext(b: MembroBriefingRow): string {
   return parts.length > 0 ? parts.join("\n\n") : "";
 }
 
+const SYSTEM_PROMPT_ASSESSOR = `Você é um assessor que prepara perguntas para reuniões de governança.
+Para cada pauta ou documento fornecido, sugira:
+1. Perguntas de esclarecimento (dados, fatos).
+2. Perguntas de aprofundamento (riscos, alternativas).
+3. Perguntas de decisão (critérios, opções).
+4. Ordem sugerida e momento adequado (abertura, deliberação, encerramento).
+Seja objetivo e acionável.`;
+
 export async function perguntarComBriefing(
   briefing: MembroBriefingRow | null,
-  pergunta: string
+  pergunta: string,
+  historico?: Array<{ role: "user" | "assistant"; content: string }>
 ): Promise<{ content: string | null; error: string | null }> {
   const context = briefing ? buildBriefingContext(briefing) : "";
 
   const systemContent = context
-    ? `Você é um assistente de governança corporativa. O membro tem acesso ao seguinte briefing de preparação para reunião. Use-o como base de conhecimento para responder perguntas, sugerir abordagens e ajudar o membro a se preparar.
-
-Responda de forma objetiva, consultiva e respeitosa. Sugira abordagens práticas quando pertinente. Se a pergunta estiver fora do contexto do briefing, responda com base em boas práticas de governança.
+    ? `${SYSTEM_PROMPT_ASSESSOR}
 
 ═══════════════════════════════════════════════
-BRIEFING DO MEMBRO
+BRIEFING DO MEMBRO (base de conhecimento)
 ═══════════════════════════════════════════════
 
 ${context}`
-    : `Você é um assistente de governança corporativa. O membro ainda não tem um briefing disponível. Responda com base em boas práticas de governança e sugira que ele aguarde o briefing ser gerado pelo administrador ao aprovar pautas no Copiloto de Governança.`;
+    : `${SYSTEM_PROMPT_ASSESSOR}
+
+O membro ainda não tem um briefing disponível. Sugira que ele aguarde o briefing ser gerado pelo administrador ao aprovar pautas no Copiloto de Governança. Use boas práticas de governança para orientar.`;
+
+  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: systemContent },
+    ...(historico ?? []).map((h) => ({ role: h.role, content: h.content })),
+    { role: "user", content: pergunta.trim() },
+  ];
 
   const { data, error } = await invokeEdgeFunction<{ content?: string }>("openai-proxy", {
-    messages: [
-      { role: "system", content: systemContent },
-      { role: "user", content: pergunta.trim() },
-    ],
+    messages,
     model: "gpt-4o-mini",
-  });
+  }, { useAnonKey: true });
 
   if (error) return { content: null, error: error.message };
   const err = (data as { error?: string })?.error;

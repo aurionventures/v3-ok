@@ -12,8 +12,27 @@ export interface MembroBriefingRow {
   preparacao_recomendada?: string | null;
   alertas_contextuais?: string | null;
   dados_completos?: unknown;
+  confirmou_leitura?: boolean;
+  abriu_anexos?: boolean;
   created_at?: string;
   updated_at?: string;
+}
+
+/** Atualiza progresso do briefing (membro marca como lido/anexos abertos). */
+export async function updateBriefingProgresso(
+  briefingId: string,
+  p: { confirmou_leitura?: boolean; abriu_anexos?: boolean }
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (p.confirmou_leitura !== undefined) payload.confirmou_leitura = p.confirmou_leitura;
+  if (p.abriu_anexos !== undefined) payload.abriu_anexos = p.abriu_anexos;
+  const { error } = await supabase.from("membro_briefing").update(payload).eq("id", briefingId);
+  if (error) {
+    console.error("[membroBriefing] updateBriefingProgresso:", error);
+    return { error: error.message };
+  }
+  return { error: null };
 }
 
 export async function fetchBriefingMembro(
