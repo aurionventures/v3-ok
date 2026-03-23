@@ -372,14 +372,19 @@ UNIQUE(conselho_id, perfil_id). Índice em `conselho_id`.
 
 ## Migrações
 
-As definições DDL estão em `supabase/migrations/` na ordem:
+As definições DDL estão em `supabase/migrations/` e devem ser executadas **na ordem do nome do arquivo** (`YYYYMMDDHHMMSS`):
 
-1. `20260302120000_create_empresas_usuarios.sql`
-2. `20260302120100_create_conselhos_comites.sql`
-3. `20260302120200_create_reunioes_pautas_atas.sql`
-4. `20260302120300_create_documentos_estrutura_familiar.sql`
-5. `20260302120400_create_maturidade_entrevistas.sql`
-6. `20260302120500_create_agenda_rituais_riscos.sql`
-7. `20260302120600_add_historico_agentes_insights.sql`
+| Ordem | Arquivo |
+|-------|---------|
+| 1 | `20260302120000_create_empresas_usuarios.sql` |
+| 2 | `20260302120100_create_conselhos_comites.sql` |
+| 3 | `20260302120200_create_reunioes_pautas_atas.sql` |
+| 4 | `20260302120300_create_documentos_estrutura_familiar.sql` |
+| 5 | `20260302120400_create_maturidade_entrevistas.sql` |
+| 6 | `20260302120500_create_agenda_rituais_riscos.sql` |
+| 7 | `20260302120600_add_historico_agentes_insights.sql` |
+| 8+ | Demais migrações (extensions, storage, membros, briefings, atas, etc.) |
+
+Execute via `supabase db push` ou SQL Editor do Dashboard, uma por uma na ordem.
 
 A fonte de verdade do schema é o conjunto dessas migrações; este documento é referência para leitura rápida.

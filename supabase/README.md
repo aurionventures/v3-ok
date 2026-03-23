@@ -1,10 +1,13 @@
-# Schema e banco de dados – Legacy OS
+# Supabase – Legacy OS
 
 Estrutura do schema e recursos de banco (Supabase) do projeto Legacy OS.
 
-**Documentação do schema:** [SCHEMA.md](./SCHEMA.md) – tabelas, colunas e relacionamentos.
+**Para novo servidor:** substitua apenas o **Project Ref** (URL + Anon Key no `.env`) e a **OpenAI API Key** (Secrets). O restante é portável.
 
-**Rotas das Edge Functions:** [ROTAS.md](./ROTAS.md) – endpoints, payloads e uso no frontend.
+**Documentação:**
+- [SCHEMA.md](./SCHEMA.md) – tabelas, colunas e relacionamentos
+- [ROTAS.md](./ROTAS.md) – Edge Functions, endpoints e payloads
+- [DEPLOY_FUNCTIONS.md](./DEPLOY_FUNCTIONS.md) – deploy das funções
 
 ## Estrutura
 

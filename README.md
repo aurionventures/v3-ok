@@ -1,5 +1,31 @@
 # Legacy OS
 
+## 👤 Assumindo este projeto (handover)
+
+**Para outro desenvolvedor colocar o projeto em um novo servidor Supabase, substitua apenas 2 itens:**
+
+| # | O que substituir | Onde | Como obter |
+|---|-----------------|------|------------|
+| 1 | **Project Ref (ID do banco)** | `.env` na raiz | Novo projeto Supabase → Settings → API → Project URL e anon key |
+| 2 | **OpenAI API Key** | Secrets do Supabase | Supabase Dashboard → Project Settings → Edge Functions → Secrets |
+
+### Variáveis no `.env` (frontend)
+
+```env
+VITE_SUPABASE_URL=https://<PROJECT_REF>.supabase.co
+VITE_SUPABASE_ANON_KEY=<sua-anon-key>
+```
+
+### Secret no Supabase
+
+```bash
+supabase secrets set OPENAI_API_KEY=sk-proj-...
+```
+
+**Passos completos:** veja [SETUP.md](./SETUP.md) e [DEPLOY.md](./DEPLOY.md).
+
+---
+
 ## O que é a Legacy OS
 
 A **Legacy OS** é um **Sistema Operacional de Governança Corporativa** voltado a conselhos de administração, comitês, secretariado e famílias empresárias. Não é um board portal tradicional nem uma ferramenta apenas operacional: é infraestrutura decisória que combina gestão de governança com agentes de IA especializados para antecipar cenários, priorizar decisões e dar clareza estratégica.
@@ -165,11 +191,11 @@ npm run preview
 O projeto inclui **backend completo** em Supabase:
 
 - **Banco de dados** – migrações em `supabase/migrations/`
-- **Edge Functions** – 14 funções (agentes de IA, pipeline, proxy OpenAI) em `supabase/functions/`
+- **Edge Functions** – funções em `supabase/functions/` (agentes de IA, pipeline, `openai-proxy` para Copiloto IA)
 - **Rotas** – documentadas em `supabase/ROTAS.md`
 - **Cliente** – `src/lib/supabase.ts` conecta o frontend ao backend
 
-Para ativar: configure `.env` (URL e anon key do Supabase), faça `supabase functions deploy` e configure `OPENAI_API_KEY` nos secrets. Ver [DEPLOY.md](./DEPLOY.md).
+**Para ativar:** configure `.env` (URL e anon key), faça `supabase functions deploy` e configure `OPENAI_API_KEY` nos secrets. Ver [DEPLOY.md](./DEPLOY.md) e [supabase/DEPLOY_FUNCTIONS.md](./supabase/DEPLOY_FUNCTIONS.md).
 
 ---
 

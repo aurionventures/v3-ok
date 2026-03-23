@@ -1,14 +1,26 @@
-# Setup do Legacy OS – Supabase
+# Setup do Legacy OS – Onboarding de Desenvolvedor
 
-Este guia permite que um desenvolvedor ative o projeto Legacy OS no Supabase: criar o banco, aplicar as migrações e configurar as variáveis de ambiente.
+Este guia permite que um desenvolvedor **assuma o projeto** e o coloque em funcionamento em **outro servidor Supabase**. Basta substituir 2 credenciais.
+
+---
+
+## 🔑 O que você precisa substituir (handover)
+
+| Item | Onde | Como obter |
+|------|------|------------|
+| **1. Project Ref + Anon Key** | Arquivo `.env` na raiz do projeto | Novo projeto Supabase → Settings → API |
+| **2. OpenAI API Key** | Secrets do Supabase | Supabase Dashboard → Project Settings → Edge Functions → Secrets |
+
+**Nada mais.** O código, migrações e Edge Functions são portáveis. O projeto funcionará em qualquer projeto Supabase com essas credenciais configuradas.
 
 ---
 
 ## Pré-requisitos
 
 - **Node.js** 18+ e npm
-- **Conta Supabase** – [supabase.com](https://supabase.com) (gratuito)
-- **Supabase CLI** (opcional, para aplicar migrações via terminal): `npm install -g supabase`
+- **Conta Supabase** – [supabase.com](https://supabase.com) (plano gratuito)
+- **Chave da API OpenAI** – [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Supabase CLI** (opcional): `npm install -g supabase`
 
 ---
 
@@ -18,75 +30,60 @@ Este guia permite que um desenvolvedor ative o projeto Legacy OS no Supabase: cr
 2. Clique em **New Project**
 3. Preencha:
    - **Name:** `legacy-os` (ou outro nome)
-   - **Database Password:** guarde em local seguro (será usado para conexão direta)
+   - **Database Password:** guarde em local seguro
    - **Region:** escolha a mais próxima
 4. Aguarde a criação do projeto (1–2 minutos)
 
 ---
 
-## 2. Obter credenciais
+## 2. Obter credenciais do Supabase (Item 1)
 
 No painel do projeto:
 
 1. Vá em **Settings** → **API**
 2. Copie:
-   - **Project URL** (ex.: `https://xxxxx.supabase.co`)
+   - **Project URL** (ex.: `https://xxxxx.supabase.co`) → esse é o **Project Ref** (`xxxxx`)
    - **anon public** (chave pública, segura para o frontend)
 
-Guarde essas variáveis para o próximo passo.
+Guarde para o passo 4.
 
 ---
 
 ## 3. Aplicar migrações (criar tabelas)
 
-As migrações estão em `supabase/migrations/` e devem ser executadas **na ordem**:
-
-| Ordem | Arquivo |
-|-------|---------|
-| 1 | `20260302120000_create_empresas_usuarios.sql` |
-| 2 | `20260302120100_create_conselhos_comites.sql` |
-| 3 | `20260302120200_create_reunioes_pautas_atas.sql` |
-| 4 | `20260302120300_create_documentos_estrutura_familiar.sql` |
-| 5 | `20260302120400_create_maturidade_entrevistas.sql` |
-| 6 | `20260302120500_create_agenda_rituais_riscos.sql` |
-| 7 | `20260302120600_add_historico_agentes_insights.sql` |
+As migrações estão em `supabase/migrations/` e devem ser executadas **na ordem cronológica** (o nome do arquivo define a ordem: `YYYYMMDDHHMMSS_descricao.sql`).
 
 ### Opção A: Via Supabase Dashboard (SQL Editor)
 
 1. No painel do projeto, vá em **SQL Editor**
-2. Para cada arquivo em `supabase/migrations/` (na ordem acima):
+2. Para cada arquivo em `supabase/migrations/` (ordem do mais antigo ao mais recente):
    - Abra o arquivo no editor
    - Copie todo o conteúdo SQL
    - Cole no SQL Editor do Supabase
    - Clique em **Run**
 3. Aguarde a execução de cada migração antes de prosseguir
 
-### Opção B: Via Supabase CLI
+### Opção B: Via Supabase CLI (recomendado)
 
 ```bash
 # Na raiz do projeto
-supabase init
-
-# Vincular ao projeto remoto (substitua PROJECT_REF pelo ID do projeto)
 supabase link --project-ref SEU_PROJECT_REF
 
 # Aplicar todas as migrações
 supabase db push
 ```
 
-O `project-ref` está na URL do projeto: `https://app.supabase.com/project/SEU_PROJECT_REF` ou em **Settings** → **General**.
+O `PROJECT_REF` está na URL do projeto: `https://xxxxx.supabase.co` → `xxxxx` é o ref. Ou em **Settings** → **General** → **Reference ID**.
 
 ---
 
-## 4. Variáveis de ambiente
-
-Copie o arquivo de exemplo e preencha com as credenciais do passo 2:
+## 4. Configurar variáveis do frontend (Item 1)
 
 ```bash
 cp .env.example .env
 ```
 
-Edite `.env` e substitua pelos valores obtidos no passo 2:
+Edite `.env` e substitua pelos valores do passo 2:
 
 ```env
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
@@ -97,45 +94,44 @@ VITE_SUPABASE_ANON_KEY=sua-chave-anon-publica
 
 ---
 
-## 5. Cliente Supabase (frontend)
+## 5. Configurar OpenAI (Item 2)
 
-O cliente já está em `src/lib/supabase.ts`. O pacote `@supabase/supabase-js` é instalado com `npm install`. Nenhuma ação extra necessária.
+### Opção A – Via Supabase Dashboard
 
----
+1. Supabase Dashboard → **Project Settings** → **Edge Functions** → **Secrets**
+2. Adicione: `OPENAI_API_KEY` = `sk-proj-...` (sua chave da OpenAI)
+3. Salve
 
-## 6. Validar estrutura
+### Opção B – Via CLI
 
 ```bash
-npm run validate:supabase
+supabase secrets set OPENAI_API_KEY=sk-proj-sua-chave-aqui
 ```
 
 ---
 
-## 7. Edge Functions (backend de IA)
+## 6. Deploy das Edge Functions
 
-Para os agentes de IA funcionarem:
+```bash
+supabase link --project-ref SEU_PROJECT_REF   # se ainda não linkou
+supabase functions deploy
+```
 
-1. **Vincule o projeto** (se ainda não fez): `supabase link --project-ref SEU_PROJECT_REF`
-2. **Configure a chave OpenAI:**
-   - **Via CLI:** `supabase secrets set OPENAI_API_KEY=sk-proj-...`
-   - **Via Dashboard:** Project Settings → Edge Functions → Secrets → adicione `OPENAI_API_KEY`
-3. **Deploy das funções:** `supabase functions deploy`
-4. **Teste local (opcional):** copie `supabase/.env.local.example` para `supabase/.env.local`, preencha `OPENAI_API_KEY`, e rode `supabase functions serve --env-file ./supabase/.env.local`
+Isso publica todas as Edge Functions na nuvem. Consulte [supabase/DEPLOY_FUNCTIONS.md](./supabase/DEPLOY_FUNCTIONS.md) para detalhes.
 
-Consulte [supabase/ROTAS.md](./supabase/ROTAS.md) para a lista de rotas e payloads. Para um guia completo de deploy, veja [DEPLOY.md](./DEPLOY.md).
+---
 
-### Seed: ADM Empresa Demo
+## 7. Seed: ADM Empresa Demo (opcional)
 
 Para criar o usuário de teste `empresa@legacy.com` | `123456` como ADM da Empresa Demo:
 
-1. Garanta que a migration `seed_empresa_demo` foi executada (cria a Empresa Demo).
-2. Faça deploy da função: `supabase functions deploy seed-empresa-adm-demo`
-3. Invoke uma vez:
 ```bash
 curl -X POST "https://SEU_PROJECT_REF.supabase.co/functions/v1/seed-empresa-adm-demo" \
   -H "Authorization: Bearer SUA_ANON_KEY" \
   -H "Content-Type: application/json"
 ```
+
+---
 
 ## 8. Rodar o projeto
 
@@ -144,14 +140,27 @@ npm install
 npm run dev
 ```
 
-O frontend usa `src/lib/supabase.ts` para conectar ao Supabase e `invokeEdgeFunction()` para chamar as Edge Functions. Com `.env` configurado, as chamadas aos agentes funcionam. Sem Supabase, o app continua com dados mock e autenticação simulada.
+Acesse `http://localhost:5173`. O frontend usa `src/lib/supabase.ts` para conectar ao Supabase e `invokeEdgeFunction()` para chamar as Edge Functions.
+
+---
+
+## Resumo – Checklist
+
+- [ ] Projeto Supabase criado
+- [ ] Migrações aplicadas (`supabase db push` ou SQL Editor)
+- [ ] `.env` com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
+- [ ] `OPENAI_API_KEY` configurado nos Secrets do Supabase
+- [ ] Edge Functions deployadas (`supabase functions deploy`)
+- [ ] `npm run dev` rodando
 
 ---
 
 ## Referências
 
-- **Schema:** [supabase/SCHEMA.md](./supabase/SCHEMA.md) – tabelas, colunas e relacionamentos
-- **Estrutura Supabase:** [supabase/README.md](./supabase/README.md) – estrutura de pastas, migrações e Edge Functions
+- **Deploy completo:** [DEPLOY.md](./DEPLOY.md)
+- **Rotas das Edge Functions:** [supabase/ROTAS.md](./supabase/ROTAS.md)
+- **Schema do banco:** [supabase/SCHEMA.md](./supabase/SCHEMA.md)
+- **Estrutura Supabase:** [supabase/README.md](./supabase/README.md)
 
 ---
 
@@ -159,7 +168,8 @@ O frontend usa `src/lib/supabase.ts` para conectar ao Supabase e `invokeEdgeFunc
 
 | Problema | Solução |
 |----------|---------|
-| Erro `auth.users` não existe | A primeira migração referencia `auth.users`. Certifique-se de que o projeto Supabase está criado e que o Auth está habilitado. |
-| Erro de FK em migrações | Execute as migrações na ordem exata. Tabelas que referenciam outras (ex.: `empresas`) precisam existir antes. |
-| `supabase db push` falha | Verifique se `supabase link` foi executado com o `project-ref` correto. |
-| Variáveis não carregam no Vite | Reinicie o servidor (`npm run dev`) após alterar o `.env`. |
+| Erro `auth.users` não existe | O projeto Supabase deve estar criado e o Auth habilitado |
+| Erro de FK em migrações | Execute as migrações na ordem exata (nome do arquivo = ordem) |
+| `supabase db push` falha | Verifique `supabase link` com o `project-ref` correto |
+| Variáveis não carregam no Vite | Reinicie `npm run dev` após alterar o `.env` |
+| "Failed to send request to Edge Function" | Verifique `OPENAI_API_KEY` nos Secrets e se as funções foram deployadas |

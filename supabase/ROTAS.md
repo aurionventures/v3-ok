@@ -6,6 +6,8 @@ As Edge Functions são expostas automaticamente pelo Supabase em:
 https://<PROJECT_REF>.supabase.co/functions/v1/<NOME_DA_FUNCAO>
 ```
 
+**Para novo servidor:** substitua `<PROJECT_REF>` pela URL do seu projeto Supabase (ex.: `https://xxxxx.supabase.co` → ref = `xxxxx`).
+
 Em desenvolvimento local (`supabase functions serve`):
 
 ```
@@ -138,9 +140,15 @@ Busca semântica nas atas. Retorna temas encontrados, trechos relevantes, decis�
 `agenteId` pode ser qualquer um: `agente`, `agente-ata`, `agente-diagnostico-governanca`, etc.
 
 ### openai-proxy
+Proxy genérico para OpenAI. Usado pelo **Copiloto IA** (portal do membro) com briefing como base de conhecimento. **Requer** `OPENAI_API_KEY` nos Secrets do Supabase.
+
 ```json
 {
-  "messages": [{ "role": "user", "content": "..." }],
+  "messages": [
+    { "role": "system", "content": "opcional" },
+    { "role": "user", "content": "..." },
+    { "role": "assistant", "content": "..." }
+  ],
   "model": "gpt-4o-mini"
 }
 ```
@@ -203,14 +211,16 @@ Para testar localmente:
 supabase functions serve agente-atas-reunioes
 ```
 
-## Variáveis de Ambiente
+## Variáveis de Ambiente (Handover)
+
+Para o projeto funcionar em outro servidor Supabase, substitua apenas:
 
 | Variável | Onde | Descrição |
 |----------|------|-----------|
-| `VITE_SUPABASE_URL` | Frontend (.env) | URL do projeto Supabase |
-| `VITE_SUPABASE_ANON_KEY` | Frontend (.env) | Chave anon/public |
-| `OPENAI_API_KEY` | Supabase Secrets | Chave da API OpenAI |
+| `VITE_SUPABASE_URL` | `.env` na raiz | URL do projeto Supabase (ex.: `https://xxxxx.supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | `.env` na raiz | Chave anon/public (Settings → API) |
+| `OPENAI_API_KEY` | Supabase Secrets | Chave da API OpenAI (Dashboard → Edge Functions → Secrets) |
 
 **Importante:** Nunca commite `.env` nem chaves. Use `.env.example` como template.
 
-**OPENAI_API_KEY:** As funções `agente-*` funcionam sem a chave (retornam placeholder). Para ativar a IA: Supabase Dashboard → Project Settings → Edge Functions → Secrets → `OPENAI_API_KEY`.
+**OPENAI_API_KEY:** Sem a chave, funções como `agente-*` retornam placeholder; `openai-proxy` (Copiloto IA) retorna erro. Configure em: Supabase Dashboard → Project Settings → Edge Functions → Secrets.
