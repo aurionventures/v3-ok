@@ -46,7 +46,7 @@ import type { ReuniaoEnriquecida } from "@/types/agenda";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { fetchMembrosPorOrgao } from "@/services/governance";
+import { fetchMembrosPorReuniao } from "@/services/governance";
 import {
   fetchPautas,
   insertPauta,
@@ -172,10 +172,17 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
 
   useEffect(() => {
     if (!open || !empresaId || !r) return;
-    const orgaoId = (r as ReuniaoEnriquecida).conselho_id || (r as ReuniaoEnriquecida).comite_id || (r as ReuniaoEnriquecida).comissao_id;
-    const tipo = (r as ReuniaoEnriquecida).conselho_id ? "conselho" : (r as ReuniaoEnriquecida).comite_id ? "comite" : "comissao";
-    if (!orgaoId) return;
-    fetchMembrosPorOrgao(empresaId, tipo, orgaoId).then((membros) => {
+    const rr = r as ReuniaoEnriquecida;
+    const temOrgao = rr.conselho_id || rr.comite_id || rr.comissao_id;
+    if (!temOrgao) {
+      setParticipantes([]);
+      return;
+    }
+    fetchMembrosPorReuniao(empresaId, {
+      conselho_id: rr.conselho_id,
+      comite_id: rr.comite_id,
+      comissao_id: rr.comissao_id,
+    }).then((membros) => {
       setParticipantes(membros.map((m) => ({
         id: m.id,
         nome: m.nome,

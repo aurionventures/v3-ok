@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye,
 import { setUserType } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { fetchMembroByUserId } from "@/services/governance";
+import { fetchEmpresaById } from "@/services/empresas";
 
 type LoginView = "select" | "company" | "member" | "admin";
 
@@ -54,6 +55,17 @@ const Login = () => {
         if (!membro) {
           await supabase.auth.signOut();
           toast({ title: "Erro de Login", description: "Nenhum membro vinculado a esta conta.", variant: "destructive" });
+          return;
+        }
+        if (!membro.empresa_id) {
+          await supabase.auth.signOut();
+          toast({ title: "Erro de Login", description: "Membro sem empresa vinculada. Contacte o administrador.", variant: "destructive" });
+          return;
+        }
+        const empresa = await fetchEmpresaById(membro.empresa_id);
+        if (!empresa || !empresa.ativo) {
+          await supabase.auth.signOut();
+          toast({ title: "Erro de Login", description: "Empresa inativa ou inexistente. Contacte o administrador.", variant: "destructive" });
           return;
         }
         setUserType("member");

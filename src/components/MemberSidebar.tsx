@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { clearUserType } from "@/lib/auth";
+import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 
 const MEMBER_MENU = [
   { href: "/member/dashboard", name: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
@@ -29,6 +30,15 @@ const MemberSidebar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: membro } = useCurrentMembro();
+
+  const nomeMembro = membro?.nome?.trim() || "Membro";
+  const iniciaisMembro = nomeMembro
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase() ?? "")
+    .join("") || "M";
 
   const handleLogout = () => {
     clearUserType();
@@ -73,10 +83,10 @@ const MemberSidebar = () => {
       <div className="border-t border-legacy-600 px-3 py-3 shrink-0">
         <div className="flex items-center gap-2 mb-2">
           <div className="h-9 w-9 rounded-full bg-legacy-600 flex items-center justify-center text-white text-sm font-medium">
-            RA
+            {iniciaisMembro}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">Roberto Alves</p>
+            <p className="text-sm font-medium text-white truncate">{nomeMembro}</p>
             <p className="text-xs text-white/80">Membro</p>
           </div>
         </div>

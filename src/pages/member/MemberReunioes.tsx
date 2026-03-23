@@ -26,19 +26,26 @@ const MemberReunioes = () => {
       const conselhoIds = new Set((alocacoes ?? []).map((a) => a.conselho_id).filter(Boolean));
       const comiteIds = new Set((alocacoes ?? []).map((a) => a.comite_id).filter(Boolean));
       const comissaoIds = new Set((alocacoes ?? []).map((a) => a.comissao_id).filter(Boolean));
-      const { data } = await fetchReunioes(membro.empresa_id);
-      return data
-        .filter((r) =>
-          (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
-          (r.comite_id && comiteIds.has(r.comite_id)) ||
-          (r.comissao_id && comissaoIds.has(r.comissao_id))
-        )
-        .sort((a, b) => (a.data_reuniao ?? "").localeCompare(b.data_reuniao ?? ""));
+      const temAlocacao = conselhoIds.size > 0 || comiteIds.size > 0 || comissaoIds.size > 0;
+      const todas = await fetchReunioes(membro.empresa_id);
+      const filtradas = temAlocacao
+        ? todas.filter(
+            (r) =>
+              (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
+              (r.comite_id && comiteIds.has(r.comite_id)) ||
+              (r.comissao_id && comissaoIds.has(r.comissao_id)) ||
+              (!r.conselho_id && !r.comite_id && !r.comissao_id)
+          )
+        : todas;
+      return filtradas.sort((a, b) => (a.data_reuniao ?? "").localeCompare(b.data_reuniao ?? ""));
     },
   });
 
-  const futuras = useMemo(
-    () => reunioes.filter((r) => !r.data_reuniao || new Date(r.data_reuniao) >= new Date()),
+  const reunioesFuturas = useMemo(
+    () =>
+      reunioes
+        .filter((r) => r.data_reuniao && new Date(r.data_reuniao) >= new Date())
+        .slice(0, 10),
     [reunioes]
   );
 
@@ -59,7 +66,7 @@ const MemberReunioes = () => {
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="space-y-4">
-          {futuras.map((r) => (
+          {reunioesFuturas.map((r) => (
             <Card key={r.id}>
               <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
@@ -78,10 +85,10 @@ const MemberReunioes = () => {
               </CardContent>
             </Card>
           ))}
-          {futuras.length === 0 && (
+          {reunioesFuturas.length === 0 && (
             <Card>
               <CardContent className="p-6 text-sm text-muted-foreground">
-                Nenhuma reunião agendada para seus órgãos no momento.
+                Nenhuma das suas próximas reuniões foi encontrada na agenda.
               </CardContent>
             </Card>
           )}

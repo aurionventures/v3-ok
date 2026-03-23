@@ -79,10 +79,14 @@ export async function upsertAta(
     ataId = (data as AtaRow).id;
   }
 
-  if (isNew && membroIds && membroIds.length > 0) {
-    const { error: errInit } = await initAtaAprovacoes(ataId, membroIds);
-    if (errInit) {
-      console.error("[atas] initAtaAprovacoes:", errInit);
+  if (membroIds && membroIds.length > 0) {
+    const { data: ataRow } = await supabase.from("atas").select("status").eq("id", ataId).single();
+    const status = (ataRow as { status?: string } | null)?.status;
+    if (status === "aguardando_aprovacao" || isNew) {
+      const { error: errInit } = await initAtaAprovacoes(ataId, membroIds);
+      if (errInit) {
+        console.error("[atas] initAtaAprovacoes:", errInit);
+      }
     }
   }
 

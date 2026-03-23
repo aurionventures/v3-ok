@@ -11,15 +11,37 @@ import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 import { fetchReunioes } from "@/services/agenda";
 import { fetchAtasPendentesMembro } from "@/services/ataAprovacoes";
 
+function responsavelCoincideComMembro(responsavel: string, nomeMembro: string): boolean {
+  const r = (responsavel ?? "").trim().toLowerCase();
+  const n = (nomeMembro ?? "").trim().toLowerCase();
+  if (!r || !n) return false;
+  return r.includes(n) || n.includes(r) || n.split(/\s+/)[0] === r || r.split(/\s+/)[0] === n;
+}
+
 const MemberPendencias = () => {
   const { data: membro } = useCurrentMembro();
   const { data: pendencias = [] } = useQuery({
-    queryKey: ["member", "pendencias", membro?.id, membro?.empresa_id],
+    queryKey: ["member", "pendencias", membro?.id, membro?.empresa_id, membro?.nome],
     enabled: !!membro?.id && !!membro?.empresa_id,
     queryFn: async (): Promise<Array<{ id: string; title: string; prazo: string | null; origem: string; tipo: "ata" | "tarefa" }>> => {
       if (!membro?.id || !membro.empresa_id || !supabase) return [];
-      const { data: reunioes } = await fetchReunioes(membro.empresa_id);
-      const reuniaoMap = new Map(reunioes.map((r) => [r.id, r]));
+      const { data: todasReunioes } = await fetchReunioes(membro.empresa_id);
+      const { data: alocacoes } = await supabase
+        .from("alocacoes_membros")
+        .select("conselho_id, comite_id, comissao_id")
+        .eq("membro_id", membro.id)
+        .eq("ativo", true);
+      const conselhoIds = new Set((alocacoes ?? []).map((a) => a.conselho_id).filter(Boolean));
+      const comiteIds = new Set((alocacoes ?? []).map((a) => a.comite_id).filter(Boolean));
+      const comissaoIds = new Set((alocacoes ?? []).map((a) => a.comissao_id).filter(Boolean));
+      const reunioesDoMembro = todasReunioes.filter(
+        (r) =>
+          (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
+          (r.comite_id && comiteIds.has(r.comite_id)) ||
+          (r.comissao_id && comissaoIds.has(r.comissao_id))
+      );
+      const reuniaoIds = reunioesDoMembro.map((r) => r.id);
+      const reuniaoMap = new Map(todasReunioes.map((r) => [r.id, r]));
 
       const { data: atasPendentes } = await fetchAtasPendentesMembro(membro.id);
       const pendAta = atasPendentes.map((a) => ({
@@ -30,18 +52,23 @@ const MemberPendencias = () => {
         tipo: "ata" as const,
       }));
 
-      const { data: tarefas } = await supabase
-        .from("reuniao_tarefas")
-        .select("id, nome, responsavel, reuniao_id, data_conclusao")
-        .is("data_conclusao", null)
-        .ilike("responsavel", membro.nome);
-      const pendTarefas = (tarefas ?? []).map((t) => ({
-        id: `tarefa-${t.id}`,
-        title: t.nome,
-        prazo: t.data_conclusao,
-        origem: reuniaoMap.get(t.reuniao_id)?.titulo ?? "Tarefa e Combinado",
-        tipo: "tarefa" as const,
-      }));
+      let pendTarefas: Array<{ id: string; title: string; prazo: string | null; origem: string; tipo: "tarefa" }> = [];
+      if (reuniaoIds.length > 0) {
+        const { data: tarefas } = await supabase
+          .from("reuniao_tarefas")
+          .select("id, nome, responsavel, reuniao_id, data_conclusao")
+          .in("reuniao_id", reuniaoIds)
+          .is("data_conclusao", null);
+        pendTarefas = (tarefas ?? [])
+          .filter((t) => responsavelCoincideComMembro(t.responsavel, membro.nome))
+          .map((t) => ({
+            id: `tarefa-${t.id}`,
+            title: t.nome,
+            prazo: t.data_conclusao,
+            origem: reuniaoMap.get(t.reuniao_id)?.titulo ?? "Tarefa e Combinado",
+            tipo: "tarefa" as const,
+          }));
+      }
 
       return [...pendAta, ...pendTarefas];
     },

@@ -453,6 +453,43 @@ export async function fetchMembroByUserId(userId: string): Promise<{
   };
 }
 
+/** Retorna membros alocados em qualquer órgão da reunião (conselho, comitê, comissão) */
+export async function fetchMembrosPorReuniao(
+  empresaId: string,
+  reuniao: { conselho_id?: string | null; comite_id?: string | null; comissao_id?: string | null }
+): Promise<{ id: string; nome: string; email: string | null; cargo: string | null }[]> {
+  const seen = new Set<string>();
+  const result: { id: string; nome: string; email: string | null; cargo: string | null }[] = [];
+  if (reuniao.conselho_id) {
+    const membros = await fetchMembrosPorOrgao(empresaId, "conselho", reuniao.conselho_id);
+    for (const m of membros) {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        result.push(m);
+      }
+    }
+  }
+  if (reuniao.comite_id) {
+    const membros = await fetchMembrosPorOrgao(empresaId, "comite", reuniao.comite_id);
+    for (const m of membros) {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        result.push(m);
+      }
+    }
+  }
+  if (reuniao.comissao_id) {
+    const membros = await fetchMembrosPorOrgao(empresaId, "comissao", reuniao.comissao_id);
+    for (const m of membros) {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        result.push(m);
+      }
+    }
+  }
+  return result;
+}
+
 /** Retorna membros alocados em um órgão específico (conselho, comitê ou comissão) */
 export async function fetchMembrosPorOrgao(
   empresaId: string,
