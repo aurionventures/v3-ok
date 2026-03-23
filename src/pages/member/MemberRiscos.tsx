@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { Shield, AlertTriangle, TrendingUp, RefreshCw, Loader2 } from "lucide-react";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
@@ -38,7 +37,6 @@ const MemberRiscos = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
               Atualizar

@@ -1,10 +1,10 @@
-import { BookOpen } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useGuiaLegacy } from "@/contexts/GuiaLegacyContext";
 
 interface GuiaLegacyButtonProps {
-  /** When provided, uses this onClick; otherwise opens GuidedNavigation via context */
+  /** When provided, uses this onClick; otherwise opens guide chat via context */
   onClick?: () => void;
   className?: string;
 }
@@ -22,7 +22,7 @@ const GuiaLegacyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, GuiaL
 
     const content = (
       <>
-        <BookOpen className="h-4 w-4 shrink-0" strokeWidth={2} />
+        <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2} />
         <span>Guia Legacy</span>
       </>
     );
@@ -33,6 +33,7 @@ const GuiaLegacyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, GuiaL
         type="button"
         onClick={handleClick}
         className={cn(baseStyles, visualStyles, className)}
+        title="Abrir guia da plataforma"
       >
         {content}
       </button>

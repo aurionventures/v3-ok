@@ -14,14 +14,20 @@ export interface AccessLogEntry {
   meta?: { ip?: string; user_agent?: string };
 }
 
-/** Busca logs de acesso (requer usuário admin autenticado) */
+/** Busca logs de acesso (requer usuário admin autenticado).
+ * Para empresa_adm: passa empresa_id para filtrar apenas logs da empresa. */
 export async function fetchAccessLogs(options?: {
   limite?: number;
   offset?: number;
+  empresa_id?: string | null;
 }): Promise<{ logs: AccessLogEntry[]; error?: string }> {
   const { data, error } = await invokeEdgeFunction<{ logs: AccessLogEntry[]; total: number }>(
     "get-access-logs",
-    { limite: options?.limite ?? 200, offset: options?.offset ?? 0 }
+    {
+      limite: options?.limite ?? 200,
+      offset: options?.offset ?? 0,
+      ...(options?.empresa_id && { empresa_id: options.empresa_id }),
+    }
   );
   if (error) return { logs: [], error: error.message };
   return { logs: data?.logs ?? [] };

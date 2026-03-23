@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { BarChart3, ChevronRight, Loader2 } from "lucide-react";
 import { useMaturidadeScore } from "@/hooks/useMaturidadeScore";
@@ -17,7 +16,6 @@ const MemberMaturidade = () => {
             <p className="text-sm text-muted-foreground">Score de maturidade da governança</p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

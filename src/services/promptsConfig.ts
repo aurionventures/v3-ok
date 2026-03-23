@@ -9,25 +9,90 @@ INSTRUÇÕES DE ESTILO:
 - Use terceira pessoa do singular
 - Gere resumos executivos de 1000 palavras`;
 
-export async function fetchPromptPautaAta(
-  empresaId: string | null
-): Promise<{ prompt: string; error: string | null }> {
+/** Busca o prompt padrão definido pelo Super ADM (empresa_id = null) */
+export async function fetchPromptDefaultPautaAta(): Promise<{
+  prompt: string;
+  error: string | null;
+}> {
   if (!supabase) return { prompt: PROMPT_PADRAO, error: null };
-  if (!empresaId) return { prompt: PROMPT_PADRAO, error: null };
 
   const { data, error } = await supabase
     .from("prompts_config")
     .select("prompt_override")
     .eq("agente_id", AGENTE_PAUTA_ATA)
-    .eq("empresa_id", empresaId)
+    .is("empresa_id", null)
     .maybeSingle();
 
   if (error) {
-    console.error("[promptsConfig] fetch:", error);
+    console.error("[promptsConfig] fetchDefault:", error);
     return { prompt: PROMPT_PADRAO, error: error.message };
   }
   const override = (data as { prompt_override?: string } | null)?.prompt_override;
   return { prompt: (override?.trim() || PROMPT_PADRAO), error: null };
+}
+
+/** Salva o prompt padrão da plataforma (Super ADM) */
+export async function upsertPromptDefaultPautaAta(
+  prompt: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+
+  const { data: existing } = await supabase
+    .from("prompts_config")
+    .select("id")
+    .eq("agente_id", AGENTE_PAUTA_ATA)
+    .is("empresa_id", null)
+    .maybeSingle();
+
+  const payload = {
+    empresa_id: null,
+    agente_id: AGENTE_PAUTA_ATA,
+    prompt_override: prompt.trim() || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (existing) {
+    const { error } = await supabase
+      .from("prompts_config")
+      .update(payload)
+      .eq("id", (existing as { id: string }).id);
+    if (error) {
+      console.error("[promptsConfig] updateDefault:", error);
+      return { error: error.message };
+    }
+  } else {
+    const { error } = await supabase.from("prompts_config").insert(payload);
+    if (error) {
+      console.error("[promptsConfig] insertDefault:", error);
+      return { error: error.message };
+    }
+  }
+  return { error: null };
+}
+
+/** Busca o prompt efetivo: override da empresa > padrão Super ADM > PROMPT_PADRAO */
+export async function fetchPromptPautaAta(
+  empresaId: string | null
+): Promise<{ prompt: string; error: string | null }> {
+  if (!supabase) return { prompt: PROMPT_PADRAO, error: null };
+
+  if (empresaId) {
+    const { data, error } = await supabase
+      .from("prompts_config")
+      .select("prompt_override")
+      .eq("agente_id", AGENTE_PAUTA_ATA)
+      .eq("empresa_id", empresaId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[promptsConfig] fetch:", error);
+      return { prompt: PROMPT_PADRAO, error: error.message };
+    }
+    const override = (data as { prompt_override?: string } | null)?.prompt_override;
+    if (override?.trim()) return { prompt: override.trim(), error: null };
+  }
+
+  return fetchPromptDefaultPautaAta();
 }
 
 export async function upsertPromptPautaAta(

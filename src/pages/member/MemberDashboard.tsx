@@ -6,7 +6,6 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import {
   LayoutDashboard,
@@ -90,7 +89,6 @@ const MemberDashboard = () => {
             <p className="text-sm text-muted-foreground">Portal do Membro de Governança</p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

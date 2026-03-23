@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { 
-BarChart3, Calendar, ClipboardList, FileText, ChevronRight,
+import {
+  BarChart3, Calendar, ClipboardList, FileText, ChevronRight,
   ChevronLeft, ChevronUp, ChevronDown, LayoutDashboard, Settings, Shield,
   Users, Building, Bot, DollarSign, PieChart,
   Target, LogOut, Mic, Gift, Send, Award, Lock, Leaf, TrendingUp, Calculator,
@@ -23,6 +23,41 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { AddonModuleModal } from "@/components/AddonModuleModal";
+import { companyMenuPhases } from "@/config/companyMenu";
+
+const PHASE_CONFIG: Record<string, { icon: React.ReactNode; color: string; badgeCount?: number }> = {
+  Início: { icon: <Target className="h-4 w-4" />, color: "text-blue-400" },
+  Parametrização: { icon: <Users className="h-4 w-4" />, color: "text-blue-400" },
+  Estruturação: { icon: <Shield className="h-4 w-4" />, color: "text-blue-400" },
+  "Add-ons": { icon: <Gift className="h-4 w-4" />, color: "text-legacy-gold", badgeCount: 3 },
+};
+
+const ITEM_ICONS: Record<string, React.ReactNode> = {
+  "/dashboard": <LayoutDashboard className="h-5 w-5" />,
+  "/copiloto-governanca": <Bot className="h-5 w-5" />,
+  "/family-structure": <Users className="h-5 w-5" />,
+  "/documents": <FileText className="h-5 w-5" />,
+  "/cap-table": <PieChart className="h-5 w-5" />,
+  "/maturidade-governanca": <BarChart3 className="h-5 w-5" />,
+  "/entrevistas": <Mic className="h-5 w-5" />,
+  "/councils": <Shield className="h-5 w-5" />,
+  "/analise-acoes": <BarChart3 className="h-5 w-5" />,
+  "/agenda": <Calendar className="h-5 w-5" />,
+  "/secretariado": <ClipboardList className="h-5 w-5" />,
+  "/planos": <Send className="h-5 w-5" />,
+};
+
+const ITEM_ICONS_ADDONS: Record<string, React.ReactNode> = {
+  "Submeter Projetos": <Send className="h-5 w-5" />,
+  "Desempenho do Conselho": <Award className="h-5 w-5" />,
+  Riscos: <Shield className="h-5 w-5" />,
+  "Desenvolvimento e PDI": <Users className="h-5 w-5" />,
+  "Maturidade ESG": <Leaf className="h-5 w-5" />,
+  "Inteligência de Mercado": <TrendingUp className="h-5 w-5" />,
+  "Benchmarking Global": <Target className="h-5 w-5" />,
+  "Agentes de IA": <Bot className="h-5 w-5" />,
+  "Simulador de Cenários": <Calculator className="h-5 w-5" />,
+};
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -85,169 +120,22 @@ const Sidebar = () => {
     { type: "item", icon: <Settings className="h-5 w-5" />, href: "/admin/settings", name: "Configurações" }
   ];
 
-  // Company menu items organized by phases
-  const menuPhases = [
-    {
-      phase: "Início",
-      icon: <Target className="h-4 w-4" />,
-      color: "text-blue-400",
-      items: [
-        {
-          icon: <LayoutDashboard className="h-5 w-5" />,
-          href: "/dashboard",
-          name: "Dashboard",
-          moduleId: null
-        },
-        {
-          icon: <Bot className="h-5 w-5" />,
-          href: "/copiloto-governanca",
-          name: "Copiloto de IA",
-          moduleId: null
-        }
-      ]
-    },
-    {
-      phase: "Parametrização",
-      icon: <Users className="h-4 w-4" />,
-      color: "text-blue-400",
-      items: [
-        {
-          icon: <Users className="h-5 w-5" />,
-          href: "/family-structure",
-          name: "Estrutura Societária",
-          moduleId: "family-structure",
-          priority: true
-        },
-        {
-          icon: <FileText className="h-5 w-5" />,
-          href: "/documents",
-          name: "Checklist",
-          moduleId: "documents"
-        },
-        {
-          icon: <PieChart className="h-5 w-5" />,
-          href: "/cap-table",
-          name: "Cap Table",
-          moduleId: "cap-table"
-        },
-        {
-          icon: <BarChart3 className="h-5 w-5" />,
-          href: "/maturidade-governanca",
-          name: "Maturidade de Governança",
-          moduleId: "maturidade-governanca"
-        },
-        {
-          icon: <Mic className="h-5 w-5" />,
-          href: "/entrevistas",
-          name: "Entrevistas",
-          moduleId: "entrevistas"
-        }
-      ]
-    },
-    {
-      phase: "Estruturação",
-      icon: <Shield className="h-4 w-4" />,
-      color: "text-blue-400",
-      items: [
-        {
-          icon: <Shield className="h-5 w-5" />,
-          href: "/councils",
-          name: "Config. de Governança",
-          moduleId: "councils",
-          priority: true
-        },
-        {
-          icon: <BarChart3 className="h-5 w-5" />,
-          href: "/analise-acoes",
-          name: "Análise e Ações",
-          moduleId: null
-        },
-        {
-          icon: <Calendar className="h-5 w-5" />,
-          href: "/agenda",
-          name: "Agenda",
-          moduleId: null
-        },
-        {
-          icon: <ClipboardList className="h-5 w-5" />,
-          href: "/secretariado",
-          name: "Secretariado",
-          moduleId: null
-        }
-      ]
-    },
-    {
-      phase: "Add-ons",
-      icon: <Gift className="h-4 w-4" />,
-      color: "text-legacy-gold",
-      badgeCount: 3,
-      items: [
-        {
-          icon: <Send className="h-5 w-5" />,
-          href: "/planos",
-          name: "Submeter Projetos",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Award className="h-5 w-5" />,
-          href: "/planos",
-          name: "Desempenho do Conselho",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Shield className="h-5 w-5" />,
-          href: "/planos",
-          name: "Riscos",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Users className="h-5 w-5" />,
-          href: "/planos",
-          name: "Desenvolvimento e PDI",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Leaf className="h-5 w-5" />,
-          href: "/planos",
-          name: "Maturidade ESG",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <TrendingUp className="h-5 w-5" />,
-          href: "/planos",
-          name: "Inteligência de Mercado",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Target className="h-5 w-5" />,
-          href: "/planos",
-          name: "Benchmarking Global",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Bot className="h-5 w-5" />,
-          href: "/planos",
-          name: "Agentes de IA",
-          moduleId: null,
-          locked: true
-        },
-        {
-          icon: <Calculator className="h-5 w-5" />,
-          href: "/planos",
-          name: "Simulador de Cenários",
-          moduleId: null,
-          locked: true
-        }
-      ]
-    }
-  ];
+  const menuPhases = companyMenuPhases.map((menuPhase) => {
+    const config = PHASE_CONFIG[menuPhase.phase] ?? { icon: <Shield className="h-4 w-4" />, color: "text-blue-400" };
+    return {
+      phase: menuPhase.phase,
+      icon: config.icon,
+      color: config.color,
+      badgeCount: config.badgeCount,
+      items: menuPhase.items.map((item) => ({
+        icon: item.locked ? (ITEM_ICONS_ADDONS[item.name] ?? <Gift className="h-5 w-5" />) : (ITEM_ICONS[item.href] ?? <FileText className="h-5 w-5" />),
+        href: item.href,
+        name: item.name,
+        moduleId: item.moduleId,
+        locked: item.locked,
+      })),
+    };
+  });
 
   // Choose which menu items to display based on the route
   const menuData = isAdminRoute ? adminMenuItems : menuPhases;
@@ -380,14 +268,14 @@ const Sidebar = () => {
                               </div>
                             </button>
                           ) : (
-                            <Link 
-                              to={item.href} 
+                            <Link
+                              to={item.href}
                               className={cn(
-                                "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors group relative", 
+                                "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors group relative",
                                 isActive
-                                  ? "bg-legacy-600 text-white" 
+                                  ? "bg-legacy-600 text-white"
                                   : "text-white hover:bg-legacy-600"
-                              )} 
+                              )}
                               title={!open ? item.name : undefined}
                             >
                               <div className="flex items-center gap-2 flex-1 min-w-0">

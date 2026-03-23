@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -83,7 +82,6 @@ const MemberPendencias = () => {
             <p className="text-sm text-muted-foreground">Tarefas atribuídas a você</p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

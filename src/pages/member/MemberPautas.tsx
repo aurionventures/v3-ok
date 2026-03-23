@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -104,7 +103,6 @@ const MemberPautas = () => {
             <p className="text-sm text-muted-foreground">Pautas das reuniões disponíveis</p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

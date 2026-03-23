@@ -23,7 +23,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay,
 import { ptBR } from "date-fns/locale";
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -530,7 +529,6 @@ const Agenda = () => {
         <header className="flex items-center justify-between border-b bg-background px-4 py-3">
           <h1 className="text-xl font-semibold">Agenda Anual</h1>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </header>

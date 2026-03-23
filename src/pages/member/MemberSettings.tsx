@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { useToast } from "@/hooks/use-toast";
 import { useMembroPerfil } from "@/hooks/useMembroPerfil";
@@ -58,7 +57,6 @@ const MemberSettings = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">Configurações e Perfil</h1>
             <div className="flex items-center gap-2">
-              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>
@@ -76,7 +74,6 @@ const MemberSettings = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Configurações e Perfil</h1>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

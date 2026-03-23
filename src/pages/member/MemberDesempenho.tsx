@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { useQuery } from "@tanstack/react-query";
 import { Award, CheckCircle2, Target } from "lucide-react";
@@ -46,7 +45,6 @@ const MemberDesempenho = () => {
             <p className="text-sm text-muted-foreground">Avaliação 360° e Autoavaliação</p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

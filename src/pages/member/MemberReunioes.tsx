@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -58,7 +57,6 @@ const MemberReunioes = () => {
             <p className="text-sm text-muted-foreground">Reuniões agendadas para você</p>
           </div>
           <div className="flex items-center gap-2">
-            <GuiaLegacyButton />
             <NotificationBell />
           </div>
         </div>

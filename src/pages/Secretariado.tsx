@@ -28,7 +28,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Sidebar from "@/components/Sidebar";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import {
   BarChart,
@@ -894,7 +893,6 @@ const Secretariado = () => {
               </Tabs>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>

@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Target, TrendingUp, Users, CheckCircle, Globe, DollarSign, Award, Star } from "lucide-react";
@@ -19,7 +18,6 @@ const Investors = () => {
             <p className="ml-3 text-sm text-gray-600">Family Office Governance Tech</p>
           </div>
           <div className="flex items-center gap-3">
-            <GuiaLegacyButton />
             <Button 
               className="bg-legacy-purple-500 text-white hover:bg-opacity-90"
               onClick={() => window.location.href = "mailto:contato@legacy.com.br"}

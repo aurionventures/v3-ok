@@ -64,15 +64,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body = (await req.json().catch(() => ({}))) as { limite?: number; offset?: number };
+    const body = (await req.json().catch(() => ({}))) as { limite?: number; offset?: number; empresa_id?: string };
     const limite = Math.min(Math.max(Number(body.limite) || 200, 1), 500);
     const offset = Math.max(Number(body.offset) || 0, 0);
 
-    const { data: rows, error } = await supabase
+    let query = supabase
       .from("platform_access_logs")
-      .select("id, user_id, email, tipo, empresa_nome, acao, ip, user_agent, created_at")
+      .select("id, user_id, email, tipo, empresa_id, empresa_nome, acao, ip, user_agent, created_at")
       .order("created_at", { ascending: false })
       .range(offset, offset + limite - 1);
+
+    if (isEmpresaAdm && !isSuperAdmin) {
+      const empresaIds = (perfis ?? [])
+        .map((p: { empresa_id: string | null }) => p.empresa_id)
+        .filter((id): id is string => !!id);
+      const filterEmpresaId = body.empresa_id && empresaIds.includes(body.empresa_id) ? body.empresa_id : empresaIds[0];
+      if (filterEmpresaId) {
+        query = query.eq("empresa_id", filterEmpresaId);
+      }
+    }
+
+    const { data: rows, error } = await query;
 
     if (error) {
       return new Response(

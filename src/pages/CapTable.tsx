@@ -41,7 +41,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Sidebar from "@/components/Sidebar";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
@@ -186,7 +185,6 @@ const CapTable = () => {
             </div>
 
             <div className="flex gap-3 items-center">
-              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>

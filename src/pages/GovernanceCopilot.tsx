@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Sidebar from "@/components/Sidebar";
-import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { PautasSugeridasContent } from "@/components/copilot/PautasSugeridasContent";
 import { InsightCard } from "@/components/copilot/InsightCard";
@@ -165,7 +164,6 @@ const GovernanceCopilot = () => {
               </Tabs>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>
