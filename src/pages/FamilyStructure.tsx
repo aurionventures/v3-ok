@@ -385,15 +385,6 @@ const FamilyStructure = () => {
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="shareholding">Participação Societária</Label>
-              <Input
-                id="shareholding"
-                placeholder="Ex: 25%"
-                value={form.shareholding}
-                onChange={(e) => handleFormChange("shareholding", e.target.value)}
-              />
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingMember(false)}>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
+import { useEmpresas } from "@/hooks/useEmpresas";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +13,7 @@ import {
   convertStoredDataToRadarData,
   clearMaturityData,
 } from "@/utils/maturityStorage";
+import { upsertDiagnosticoMaturidade } from "@/services/maturidade";
 import {
   XAxis,
   YAxis,
@@ -32,6 +34,7 @@ function getMaturityLevel(score: number): { level: string; className: string } {
 
 const MaturidadeGovernanca = () => {
   const navigate = useNavigate();
+  const { firstEmpresaId } = useEmpresas();
   const [activeTab, setActiveTab] = useState("historico");
   const [maturidadeData, setMaturidadeData] = useState(
     convertStoredDataToRadarData(null)
@@ -57,7 +60,13 @@ const MaturidadeGovernanca = () => {
         fullDate: new Date(a.timestamp),
       }))
     );
-  }, [activeTab]);
+
+    if (stored && firstEmpresaId) {
+      upsertDiagnosticoMaturidade(firstEmpresaId, stored).then(({ error }) => {
+        if (error) console.warn("[MaturidadeGovernanca] sync to DB:", error);
+      });
+    }
+  }, [activeTab, firstEmpresaId]);
 
   const hasData = maturidadeData.some((d) => d.score > 0);
 

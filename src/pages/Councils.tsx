@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Plus, FileText, Building2, Trash2, ChevronDown, Loader2, Pencil, Eye } from "lucide-react";
+import { Users, Plus, Building2, Trash2, Loader2, Pencil, Eye, EyeOff, RefreshCw } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,16 +41,21 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useGovernance } from "@/hooks/useGovernance";
 import type { OrgaoGovernanca } from "@/types/governance";
-import { cn } from "@/lib/utils";
 
 const TIPOS_CONSELHO = ["administrativo", "fiscal", "consultivo", "outros"];
 const TIPOS_COMITE = ["auditoria", "estrategia", "riscos", "outros"];
 const TIPOS_COMISSAO = ["etica", "inovacao", "sustentabilidade", "outros"];
 const NIVEIS = ["Estratégico", "Tático", "Operacional"];
+
+function gerarSenhaAleatoria(len = 10): string {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
 
 const Councils = () => {
 
@@ -80,6 +85,7 @@ const Councils = () => {
   const [membroCargo, setMembroCargo] = useState("");
   const [membroEmail, setMembroEmail] = useState("");
   const [membroSenhaProvisoria, setMembroSenhaProvisoria] = useState("");
+  const [membroSenhaVisivel, setMembroSenhaVisivel] = useState(false);
 
   const [editarMembroOpen, setEditarMembroOpen] = useState(false);
   const [editarMembroId, setEditarMembroId] = useState<string | null>(null);
@@ -260,6 +266,7 @@ const Councils = () => {
     setMembroCargo("");
     setMembroEmail("");
     setMembroSenhaProvisoria("");
+    setMembroSenhaVisivel(false);
   };
 
   const handleAlocar = async () => {
@@ -336,7 +343,6 @@ const Councils = () => {
     onDelete: () => void;
     tipoLabel: string;
   }) {
-    const [docOpen, setDocOpen] = useState(false);
     return (
       <Card className="rounded-lg border bg-card">
         <CardContent className="p-4">
@@ -361,16 +367,6 @@ const Councils = () => {
                   Membros: {item.membros}
                 </span>
               </div>
-              <Collapsible open={docOpen} onOpenChange={setDocOpen}>
-                <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                  <FileText className="h-4 w-4" />
-                  Documentos (0)
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", docOpen && "rotate-180")} />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2 text-sm text-muted-foreground">
-                  Nenhum documento anexado.
-                </CollapsibleContent>
-              </Collapsible>
             </div>
             <Button
               variant="ghost"
@@ -732,12 +728,39 @@ const Councils = () => {
                             </div>
                             <div className="space-y-2">
                               <Label>Senha provisória (mín. 6 caracteres)</Label>
-                              <Input
-                                type="password"
-                                placeholder="••••••••"
-                                value={membroSenhaProvisoria}
-                                onChange={(e) => setMembroSenhaProvisoria(e.target.value)}
-                              />
+                              <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                  <Input
+                                    type={membroSenhaVisivel ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    value={membroSenhaProvisoria}
+                                    onChange={(e) => setMembroSenhaProvisoria(e.target.value)}
+                                    className="pr-20"
+                                  />
+                                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setMembroSenhaProvisoria(gerarSenhaAleatoria())}
+                                      className="p-1.5 text-muted-foreground hover:text-foreground rounded"
+                                      title="Gerar senha"
+                                    >
+                                      <RefreshCw className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setMembroSenhaVisivel((v) => !v)}
+                                      className="p-1.5 text-muted-foreground hover:text-foreground rounded"
+                                      title={membroSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                                    >
+                                      {membroSenhaVisivel ? (
+                                        <EyeOff className="h-4 w-4" />
+                                      ) : (
+                                        <Eye className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
                               <p className="text-xs text-muted-foreground">
                                 O membro deve alterar a senha no primeiro acesso.
                               </p>

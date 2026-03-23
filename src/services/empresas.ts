@@ -9,6 +9,15 @@ export interface Empresa {
   ativo: boolean;
 }
 
+export interface EmpresaDados {
+  setor: string | null;
+  segmento: string | null;
+  porte: string | null;
+  areas_atuacao: string | null;
+  descricao: string | null;
+  missao: string | null;
+}
+
 export async function fetchEmpresas(): Promise<Empresa[]> {
   if (!supabase) return [];
 
@@ -217,6 +226,66 @@ export async function updateEmpresa(id: string, p: EmpresaUpdate): Promise<{ err
 
   if (error) {
     console.error("[empresas] updateEmpresa:", error);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+/** Busca dados de contexto da empresa (setor, atuação, etc.) para IA */
+export async function fetchEmpresaDados(empresaId: string): Promise<EmpresaDados | null> {
+  if (!supabase || !empresaId) return null;
+
+  const { data, error } = await supabase
+    .from("empresas")
+    .select("setor, segmento, porte, areas_atuacao, descricao, missao")
+    .eq("id", empresaId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[empresas] fetchEmpresaDados:", error);
+    return null;
+  }
+
+  if (!data) return null;
+  return {
+    setor: data.setor ?? null,
+    segmento: data.segmento ?? null,
+    porte: data.porte ?? null,
+    areas_atuacao: data.areas_atuacao ?? null,
+    descricao: data.descricao ?? null,
+    missao: data.missao ?? null,
+  } as EmpresaDados;
+}
+
+export interface EmpresaDadosUpdate {
+  setor?: string | null;
+  segmento?: string | null;
+  porte?: string | null;
+  areas_atuacao?: string | null;
+  descricao?: string | null;
+  missao?: string | null;
+}
+
+/** Atualiza dados de contexto da empresa */
+export async function updateEmpresaDados(
+  empresaId: string,
+  p: EmpresaDadosUpdate
+): Promise<{ error: string | null }> {
+  if (!supabase || !empresaId) return { error: "Supabase ou empresa não configurado" };
+
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (p.setor !== undefined) payload.setor = p.setor?.trim() || null;
+  if (p.segmento !== undefined) payload.segmento = p.segmento?.trim() || null;
+  if (p.porte !== undefined) payload.porte = p.porte?.trim() || null;
+  if (p.areas_atuacao !== undefined) payload.areas_atuacao = p.areas_atuacao?.trim() || null;
+  if (p.descricao !== undefined) payload.descricao = p.descricao?.trim() || null;
+  if (p.missao !== undefined) payload.missao = p.missao?.trim() || null;
+
+  const { error } = await supabase.from("empresas").update(payload).eq("id", empresaId);
+
+  if (error) {
+    console.error("[empresas] updateEmpresaDados:", error);
     return { error: error.message };
   }
 

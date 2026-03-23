@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
@@ -12,19 +13,38 @@ import {
   Sparkles,
   Lightbulb,
   Leaf,
-  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import {
+  getCurrentMaturityAssessment,
+  convertStoredDataToRadarData,
+} from "@/utils/maturityStorage";
+import { useDashboardIndicadores } from "@/hooks/useSecretariadoIndicadores";
+
+const shortLabels: Record<string, string> = {
+  "Sócios": "Sócios",
+  "Conselho": "Conselho",
+  "Diretoria": "Diretoria",
+  "Órgãos de fiscalização e controle": "Órgãos fiscalização",
+  "Conduta e conflitos de interesses": "Conduta",
+  "Empresas Familiares": "Empresas Familiares",
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [maturidadeData, setMaturidadeData] = useState(
+    convertStoredDataToRadarData(null)
+  );
+  const { indicadores, hasEmpresa } = useDashboardIndicadores();
 
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  useEffect(() => {
+    const stored = getCurrentMaturityAssessment();
+    setMaturidadeData(convertStoredDataToRadarData(stored));
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -44,13 +64,22 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-500">Score Maturidade</p>
                     <p className="text-xl font-bold text-gray-900 mt-0.5">
-                      4.00 <span className="text-gray-400 font-normal">/ 5.0</span>
-                      <span className="ml-1 text-sm font-normal text-green-600">+0.5</span>
+                      {maturidadeData.some((d) => d.score > 0)
+                        ? (maturidadeData.reduce((s, d) => s + d.score, 0) / maturidadeData.length).toFixed(1)
+                        : "—"}
+                      <span className="text-gray-400 font-normal"> / 5.0</span>
                     </p>
                   </div>
                   <BarChart3 className="h-5 w-5 text-blue-600 shrink-0" />
                 </div>
-                <Progress value={80} className="h-2 mt-3 bg-blue-100 [&>div]:bg-blue-600" />
+                <Progress
+                  value={
+                    maturidadeData.some((d) => d.score > 0)
+                      ? (maturidadeData.reduce((s, d) => s + d.score, 0) / maturidadeData.length / 5) * 100
+                      : 0
+                  }
+                  className="h-2 mt-3 bg-blue-100 [&>div]:bg-blue-600"
+                />
               </CardContent>
             </Card>
 
@@ -59,11 +88,14 @@ const Dashboard = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Riscos Críticos</p>
-                    <p className="text-xl font-bold text-gray-900 mt-0.5">3</p>
+                    <p className="text-xl font-bold text-gray-900 mt-0.5">{indicadores.riscosCriticos}</p>
                   </div>
                   <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
                 </div>
-                <Progress value={40} className="h-2 mt-3 bg-red-100 [&>div]:bg-red-500" />
+                <Progress
+                  value={indicadores.riscosCriticos > 0 ? Math.min(indicadores.riscosCriticos * 25, 100) : 0}
+                  className="h-2 mt-3 bg-red-100 [&>div]:bg-red-500"
+                />
               </CardContent>
             </Card>
 
@@ -71,12 +103,15 @@ const Dashboard = () => {
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Tarefas Atrasadas</p>
-                    <p className="text-xl font-bold text-gray-900 mt-0.5">4</p>
+                    <p className="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
+                    <p className="text-xl font-bold text-gray-900 mt-0.5">{indicadores.tarefasPendentes}</p>
                   </div>
                   <Clock className="h-5 w-5 text-amber-500 shrink-0" />
                 </div>
-                <Progress value={35} className="h-2 mt-3 bg-amber-100 [&>div]:bg-amber-500" />
+                <Progress
+                  value={indicadores.tarefasPendentes > 0 ? Math.min(indicadores.tarefasPendentes * 10, 100) : 0}
+                  className="h-2 mt-3 bg-amber-100 [&>div]:bg-amber-500"
+                />
               </CardContent>
             </Card>
 
@@ -85,11 +120,14 @@ const Dashboard = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Pautas Definidas</p>
-                    <p className="text-xl font-bold text-gray-900 mt-0.5">33%</p>
+                    <p className="text-xl font-bold text-gray-900 mt-0.5">{indicadores.pautasDefinidasPct}%</p>
                   </div>
                   <FileText className="h-5 w-5 text-blue-600 shrink-0" />
                 </div>
-                <Progress value={33} className="h-2 mt-3 bg-blue-100 [&>div]:bg-blue-600" />
+                <Progress
+                  value={indicadores.pautasDefinidasPct}
+                  className="h-2 mt-3 bg-blue-100 [&>div]:bg-blue-600"
+                />
               </CardContent>
             </Card>
 
@@ -98,46 +136,20 @@ const Dashboard = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">ATAs Geradas</p>
-                    <p className="text-xl font-bold text-gray-900 mt-0.5">90%</p>
+                    <p className="text-xl font-bold text-gray-900 mt-0.5">{indicadores.atasGeradasPct}%</p>
                   </div>
                   <FileCheck className="h-5 w-5 text-green-600 shrink-0" />
                 </div>
-                <Progress value={90} className="h-2 mt-3 bg-green-100 [&>div]:bg-green-600" />
+                <Progress
+                  value={indicadores.atasGeradasPct}
+                  className="h-2 mt-3 bg-green-100 [&>div]:bg-green-600"
+                />
               </CardContent>
             </Card>
           </div>
 
-          {/* Row 2: Gestão de Riscos, Tarefas, Indicadores */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-gray-600" />
-                  <h2 className="text-base font-semibold text-gray-900">Gestão de Riscos</h2>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg bg-blue-600 px-3 py-2 text-center text-white">
-                    <span className="text-lg font-bold">6</span>
-                    <p className="text-xs opacity-90">Total</p>
-                  </div>
-                  <div className="rounded-lg bg-red-100 px-3 py-2 text-center text-red-700">
-                    <span className="text-lg font-bold">3</span>
-                    <p className="text-xs">Críticos</p>
-                  </div>
-                  <div className="rounded-lg bg-green-100 px-3 py-2 text-center text-green-700">
-                    <span className="text-lg font-bold">6</span>
-                    <p className="text-xs">Mitigados</p>
-                  </div>
-                  <div className="rounded-lg bg-amber-100 px-3 py-2 text-center text-amber-700">
-                    <span className="text-lg font-bold">0</span>
-                    <p className="text-xs">S/ Mitig.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
+          {/* Row 2: Tarefas, Indicadores */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <Card className="border-0 shadow-sm">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
@@ -146,24 +158,28 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 text-center text-slate-700">
-                    <span className="text-lg font-bold">20</span>
-                    <p className="text-xs">Total</p>
+                {!hasEmpresa ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Sem empresa selecionada</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-slate-100 px-3 py-2 text-center text-slate-700">
+                      <span className="text-lg font-bold">{indicadores.tarefasTotal}</span>
+                      <p className="text-xs">Total</p>
+                    </div>
+                    <div className="rounded-lg bg-green-100 px-3 py-2 text-center text-green-700">
+                      <span className="text-lg font-bold">{indicadores.tarefasResolvidas}</span>
+                      <p className="text-xs">Concluídas</p>
+                    </div>
+                    <div className="rounded-lg bg-amber-100 px-3 py-2 text-center text-amber-700">
+                      <span className="text-lg font-bold">{indicadores.tarefasPendentes}</span>
+                      <p className="text-xs">Pendentes</p>
+                    </div>
+                    <div className="rounded-lg bg-slate-100 px-3 py-2 text-center text-slate-700">
+                      <span className="text-lg font-bold">{indicadores.taxaResolucao}%</span>
+                      <p className="text-xs">Resolução</p>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-green-100 px-3 py-2 text-center text-green-700">
-                    <span className="text-lg font-bold">8</span>
-                    <p className="text-xs">Concluídas</p>
-                  </div>
-                  <div className="rounded-lg bg-amber-100 px-3 py-2 text-center text-amber-700">
-                    <span className="text-lg font-bold">9</span>
-                    <p className="text-xs">Pendentes</p>
-                  </div>
-                  <div className="rounded-lg bg-slate-100 px-3 py-2 text-center text-slate-700">
-                    <span className="text-lg font-bold">40%</span>
-                    <p className="text-xs">Resolução</p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -175,20 +191,24 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <ul className="space-y-3">
-                  <li className="flex justify-between text-sm">
-                    <span className="text-gray-600">Reuniões este mês</span>
-                    <span className="font-semibold text-gray-900">36</span>
-                  </li>
-                  <li className="flex justify-between text-sm">
-                    <span className="text-gray-600">Órgãos ativos</span>
-                    <span className="font-semibold text-gray-900">5</span>
-                  </li>
-                  <li className="flex justify-between text-sm">
-                    <span className="text-gray-600">ATAs pendentes</span>
-                    <span className="font-semibold text-gray-900">2</span>
-                  </li>
-                </ul>
+                {!hasEmpresa ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Sem empresa selecionada</p>
+                ) : (
+                  <ul className="space-y-3">
+                    <li className="flex justify-between text-sm">
+                      <span className="text-gray-600">Reuniões este mês</span>
+                      <span className="font-semibold text-gray-900">{indicadores.reunioesEsteMes}</span>
+                    </li>
+                    <li className="flex justify-between text-sm">
+                      <span className="text-gray-600">Órgãos ativos</span>
+                      <span className="font-semibold text-gray-900">{indicadores.orgaosAtivos}</span>
+                    </li>
+                    <li className="flex justify-between text-sm">
+                      <span className="text-gray-600">ATAs pendentes</span>
+                      <span className="font-semibold text-gray-900">{indicadores.atasPendentes}</span>
+                    </li>
+                  </ul>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -196,20 +216,11 @@ const Dashboard = () => {
           {/* Row 3: Copiloto de Governança | IA Preditiva */}
           <Card className="border-0 shadow-sm mb-6">
             <CardHeader className="pb-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-violet-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Copiloto de Governança | IA Preditiva <Sparkles className="inline h-4 w-4 text-amber-500 ml-0.5" />
-                  </h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Dados demo • {timeStr}</span>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    Atualizar
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-violet-600" />
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Copiloto de Governança | IA Preditiva <Sparkles className="inline h-4 w-4 text-amber-500 ml-0.5" />
+                </h2>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -286,7 +297,7 @@ const Dashboard = () => {
                   <Button
                     variant="link"
                     className="text-sm text-blue-600 h-auto p-0"
-                    onClick={() => navigate("/maturity")}
+                    onClick={() => navigate("/maturidade-governanca")}
                   >
                     Ver detalhes
                   </Button>
@@ -294,22 +305,20 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3">
-                  {[
-                    { label: "Sócios", value: 4.1, max: 5 },
-                    { label: "Conselho", value: 3.9, max: 5 },
-                    { label: "Diretoria", value: 4.0, max: 5 },
-                    { label: "Comitês", value: 3.6, max: 5 },
-                    { label: "Gestão", value: 3.8, max: 5 },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-600 w-20 shrink-0">{item.label}</span>
+                  {maturidadeData.map((item) => (
+                    <div key={item.name} className="flex items-center gap-3">
+                      <span className="text-sm text-gray-600 w-24 shrink-0">
+                        {shortLabels[item.name] ?? item.name}
+                      </span>
                       <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-600 rounded-full"
-                          style={{ width: `${(item.value / item.max) * 100}%` }}
+                          style={{ width: `${(item.score / item.fullMark) * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 w-8">{item.value}</span>
+                      <span className="text-sm font-medium text-gray-900 w-8">
+                        {item.score.toFixed(1)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -333,25 +342,9 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {[
-                    { label: "Ambiental", value: 63.3, color: "bg-green-500" },
-                    { label: "Social", value: 71.7, color: "bg-green-600" },
-                    { label: "Governança", value: 66.7, color: "bg-violet-500" },
-                    { label: "Estratégia", value: 70, color: "bg-amber-500" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-600 w-24 shrink-0">{item.label}</span>
-                      <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${item.color} rounded-full`}
-                          style={{ width: `${item.value}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-gray-900 w-12">{item.value}%</span>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  Sem dados de ESG cadastrados. Acesse a página de ESG para configurar os indicadores.
+                </p>
               </CardContent>
             </Card>
           </div>

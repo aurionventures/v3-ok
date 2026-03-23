@@ -57,6 +57,20 @@ export interface TarefaPendenteHistorico {
   etapa: "aprovacao" | "assinatura" | "tarefa";
 }
 
+export interface DashboardIndicadores {
+  riscosCriticos: number;
+  riscosTotal: number;
+  tarefasPendentes: number;
+  tarefasTotal: number;
+  tarefasResolvidas: number;
+  taxaResolucao: number;
+  pautasDefinidasPct: number;
+  atasGeradasPct: number;
+  atasPendentes: number;
+  reunioesEsteMes: number;
+  orgaosAtivos: number;
+}
+
 const CORES = {
   resolvidas: "#22c55e",
   pendentes: "#f97316",
@@ -128,6 +142,90 @@ export async function fetchIndicadoresTarefas(
     taxaResolucao,
     statusPieData,
     tarefasPorOrgao,
+  };
+}
+
+/**
+ * Busca indicadores agregados para o Dashboard.
+ */
+export async function fetchDashboardIndicadores(
+  empresaId: string | null
+): Promise<DashboardIndicadores> {
+  const empty: DashboardIndicadores = {
+    riscosCriticos: 0,
+    riscosTotal: 0,
+    tarefasPendentes: 0,
+    tarefasTotal: 0,
+    tarefasResolvidas: 0,
+    taxaResolucao: 0,
+    pautasDefinidasPct: 0,
+    atasGeradasPct: 0,
+    atasPendentes: 0,
+    reunioesEsteMes: 0,
+    orgaosAtivos: 0,
+  };
+
+  if (!supabase || !empresaId) return empty;
+
+  const [tarefas, atasResumo, reunioes] = await Promise.all([
+    fetchIndicadoresTarefas(empresaId),
+    fetchAtasPendentesResumo(empresaId),
+    fetchReunioes(empresaId),
+  ]);
+
+  const reuniaoIds = reunioes.map((r) => r.id);
+  const totalReunioes = reuniaoIds.length;
+
+  const now = new Date();
+  const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const reunioesEsteMes = reunioes.filter(
+    (r) => (r.data_reuniao ?? "").slice(0, 10) >= inicioMes
+  ).length;
+
+  const orgaosSet = new Set<string>();
+  for (const r of reunioes) {
+    if (r.conselho_nome) orgaosSet.add(r.conselho_nome);
+    if (r.comite_nome) orgaosSet.add(r.comite_nome);
+    if (r.comissao_nome) orgaosSet.add(r.comissao_nome);
+  }
+  const orgaosAtivos = orgaosSet.size;
+
+  const { count: riscosTotal } = await supabase
+    .from("riscos")
+    .select("id", { count: "exact", head: true })
+    .eq("empresa_id", empresaId);
+  const { count: riscosCriticosCount } = await supabase
+    .from("riscos")
+    .select("id", { count: "exact", head: true })
+    .eq("empresa_id", empresaId)
+    .or("severidade.eq.critico,severidade.eq.crítico,severidade.eq.alto");
+
+  let reunioesComPautas = 0;
+  if (reuniaoIds.length > 0) {
+    const { data: pautas } = await supabase
+      .from("pautas")
+      .select("reuniao_id")
+      .in("reuniao_id", reuniaoIds);
+    reunioesComPautas = new Set((pautas ?? []).map((p: { reuniao_id: string }) => p.reuniao_id)).size;
+  }
+
+  const totalAtas = atasResumo.aguardandoAprovacao + atasResumo.aguardandoAssinatura + atasResumo.finalizadas;
+  const pautasDefinidasPct = totalReunioes > 0 ? Math.round((reunioesComPautas / totalReunioes) * 100) : 0;
+  const atasGeradasPct = totalReunioes > 0 ? Math.round((totalAtas / totalReunioes) * 100) : 0;
+  const atasPendentes = atasResumo.aguardandoAprovacao + atasResumo.aguardandoAssinatura;
+
+  return {
+    riscosCriticos: riscosCriticosCount ?? 0,
+    riscosTotal: riscosTotal ?? 0,
+    tarefasPendentes: tarefas.pendentes,
+    tarefasTotal: tarefas.total,
+    tarefasResolvidas: tarefas.resolvidas,
+    taxaResolucao: tarefas.taxaResolucao,
+    pautasDefinidasPct,
+    atasGeradasPct,
+    atasPendentes,
+    reunioesEsteMes,
+    orgaosAtivos,
   };
 }
 
