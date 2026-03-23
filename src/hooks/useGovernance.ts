@@ -10,11 +10,13 @@ import {
   insertMembro,
   insertMembroComAcesso,
   insertAlocacao,
+  redefinirSenhaMembro,
   updateMembro,
   deleteConselho,
   deleteComite,
   deleteComissao,
   deleteMembro,
+  excluirMembroDefinitivo,
 } from "@/services/governance";
 import type {
   ConselhoInsert,
@@ -82,17 +84,34 @@ export function useGovernance(empresaId: string | null) {
 
   const insertMembroComAcessoMt = useMutation({
     mutationFn: insertMembroComAcesso,
-    onSuccess: inval,
+    onSuccess: (_, variables) => {
+      inval();
+      void qc.refetchQueries({
+        queryKey: [...GOVERNANCE_QUERY_KEY, variables.empresa_id, "membros"],
+      });
+    },
   });
 
   const insertAlocacaoMt = useMutation({
     mutationFn: insertAlocacao,
-    onSuccess: inval,
+    onSuccess: () => {
+      inval();
+      if (empresaId) {
+        void qc.refetchQueries({ queryKey: [...GOVERNANCE_QUERY_KEY, empresaId, "membros"] });
+        void qc.refetchQueries({ queryKey: [...GOVERNANCE_QUERY_KEY, empresaId, "conselhos"] });
+        void qc.refetchQueries({ queryKey: [...GOVERNANCE_QUERY_KEY, empresaId, "comites"] });
+        void qc.refetchQueries({ queryKey: [...GOVERNANCE_QUERY_KEY, empresaId, "comissoes"] });
+      }
+    },
   });
 
   const updateMembroMt = useMutation({
     mutationFn: ({ id, p }: { id: string; p: { nome?: string; cargo_principal?: string | null } }) => updateMembro(id, p),
     onSuccess: inval,
+  });
+
+  const redefinirSenhaMembroMt = useMutation({
+    mutationFn: redefinirSenhaMembro,
   });
 
   const deleteConselhoMt = useMutation({
@@ -115,6 +134,11 @@ export function useGovernance(empresaId: string | null) {
     onSuccess: inval,
   });
 
+  const excluirMembroDefinitivoMt = useMutation({
+    mutationFn: excluirMembroDefinitivo,
+    onSuccess: inval,
+  });
+
   const totalMembrosAlocados =
     (conselhosQ.data?.reduce((s, c) => s + c.membros, 0) ?? 0) +
     (comitesQ.data?.reduce((s, c) => s + c.membros, 0) ?? 0) +
@@ -133,17 +157,21 @@ export function useGovernance(empresaId: string | null) {
     insertMembro: insertMembroMt.mutateAsync,
     insertMembroComAcesso: insertMembroComAcessoMt.mutateAsync,
     insertAlocacao: insertAlocacaoMt.mutateAsync,
+    redefinirSenhaMembro: redefinirSenhaMembroMt.mutateAsync,
     updateMembro: updateMembroMt.mutateAsync,
     deleteConselho: deleteConselhoMt.mutateAsync,
     deleteComite: deleteComiteMt.mutateAsync,
     deleteComissao: deleteComissaoMt.mutateAsync,
     deleteMembro: deleteMembroMt.mutateAsync,
+    excluirMembroDefinitivo: excluirMembroDefinitivoMt.mutateAsync,
     insertConselhoLoading: insertConselhoMt.isPending,
     insertComiteLoading: insertComiteMt.isPending,
     insertComissaoLoading: insertComissaoMt.isPending,
     insertMembroLoading: insertMembroMt.isPending,
     insertMembroComAcessoLoading: insertMembroComAcessoMt.isPending,
     insertAlocacaoLoading: insertAlocacaoMt.isPending,
+    redefinirSenhaMembroLoading: redefinirSenhaMembroMt.isPending,
+    excluirMembroDefinitivoLoading: excluirMembroDefinitivoMt.isPending,
     updateMembroLoading: updateMembroMt.isPending,
   };
 }

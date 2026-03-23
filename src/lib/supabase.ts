@@ -37,12 +37,22 @@ export async function invokeEdgeFunction<T = unknown>(
     };
   }
 
-  const { data, error } = await supabase.functions.invoke<T>(functionName, {
+  const { data, error } = await supabase.functions.invoke<T & { error?: string }>(functionName, {
     body,
   });
 
   if (error) {
-    return { error: { message: error.message } };
+    let message = error.message;
+    const err = error as { context?: { json?: () => Promise<{ error?: string }> } };
+    if (err?.context && typeof err.context.json === "function") {
+      try {
+        const parsed = await err.context.json();
+        if (parsed?.error) message = parsed.error;
+      } catch {
+        /* usar message padrão */
+      }
+    }
+    return { error: { message } };
   }
   return { data };
 }

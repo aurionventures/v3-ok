@@ -123,6 +123,9 @@ const Agenda = () => {
   const [formHorario, setFormHorario] = useState("14:00");
   const [formTipoReuniao, setFormTipoReuniao] = useState("ordinaria");
   const [membrosOrgao, setMembrosOrgao] = useState<{ id: string; nome: string; cargo: string | null }[]>([]);
+  const [novaReuniaoOpen, setNovaReuniaoOpen] = useState(false);
+  const [formModoReuniao, setFormModoReuniao] = useState<"orgao" | "avulsa">("avulsa");
+  const [formTituloAvulsa, setFormTituloAvulsa] = useState("");
 
   useEffect(() => {
     setCurrentMonth(new Date(anoSelecionado, 0, 1));
@@ -214,17 +217,44 @@ const Agenda = () => {
 
   const monthGrid = useMemo(() => getMonthGrid(currentMonth), [currentMonth]);
 
+  const openNovaReuniaoParaData = (day: Date) => {
+    setFormData(format(day, "yyyy-MM-dd"));
+    setFormModoReuniao("avulsa");
+    setFormTituloAvulsa("");
+    setFormOrgaoId("");
+    setNovaReuniaoOpen(true);
+  };
+
   const handleAgendar = async () => {
-    if (!empresaId || !orgaoSelecionado || !formData.trim()) {
-      toast({ title: "Preencha todos os campos", variant: "destructive" });
+    if (!empresaId || !formData.trim()) {
+      toast({ title: "Preencha a data", variant: "destructive" });
       return;
     }
-    const conselhoId = formTipoOrgao === "conselho" ? orgaoSelecionado.id : null;
-    const comiteId = formTipoOrgao === "comite" ? orgaoSelecionado.id : null;
-    const comissaoId = formTipoOrgao === "comissao" ? orgaoSelecionado.id : null;
-    const titulo = orgaoSelecionado.nome;
+    const isAvulsa = formModoReuniao === "avulsa";
+    let titulo: string;
+    let conselhoId: string | null = null;
+    let comiteId: string | null = null;
+    let comissaoId: string | null = null;
+
+    if (isAvulsa) {
+      if (!formTituloAvulsa.trim()) {
+        toast({ title: "Preencha o título da reunião avulsa", variant: "destructive" });
+        return;
+      }
+      titulo = formTituloAvulsa.trim();
+    } else {
+      if (!orgaoSelecionado) {
+        toast({ title: "Selecione o órgão", variant: "destructive" });
+        return;
+      }
+      titulo = orgaoSelecionado.nome;
+      conselhoId = formTipoOrgao === "conselho" ? orgaoSelecionado.id : null;
+      comiteId = formTipoOrgao === "comite" ? orgaoSelecionado.id : null;
+      comissaoId = formTipoOrgao === "comissao" ? orgaoSelecionado.id : null;
+    }
+
     const tipoLabel = formTipoReuniao === "ordinaria" ? "Ordinária" : "Extraordinária";
-    const { data, error } = await insertReuniao({
+    const { error } = await insertReuniao({
       empresa_id: empresaId,
       conselho_id: conselhoId,
       comite_id: comiteId,
@@ -243,6 +273,7 @@ const Agenda = () => {
     setNovaReuniaoOpen(false);
     setFormOrgaoId("");
     setFormData("");
+    setFormTituloAvulsa("");
     refetch();
   };
 
@@ -485,50 +516,80 @@ const Agenda = () => {
                     </DialogContent>
                   </Dialog>
 
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <CalendarPlus className="mr-2 h-4 w-4" />
-                        Nova Reunião
-                      </Button>
-                    </DialogTrigger>
+                  <Dialog open={novaReuniaoOpen} onOpenChange={(open) => { setNovaReuniaoOpen(open); if (!open) { setFormTituloAvulsa(""); setFormOrgaoId(""); } }}>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setFormData("");
+                        setFormTituloAvulsa("");
+                        setFormModoReuniao("avulsa");
+                        setFormOrgaoId("");
+                        setNovaReuniaoOpen(true);
+                      }}
+                    >
+                      <CalendarPlus className="mr-2 h-4 w-4" />
+                      Nova Reunião
+                    </Button>
                     <DialogContent className="sm:max-w-[520px]">
                       <DialogHeader>
                         <DialogTitle>Agendar Nova Reunião</DialogTitle>
-                        <DialogDescription>Selecione o órgão (conselho, comitê ou comissão) e preencha os dados</DialogDescription>
+                        <DialogDescription>Agende uma reunião avulsa ou vinculada a um órgão</DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="space-y-2">
-                          <Label>Tipo de Órgão</Label>
-                          <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
+                          <Label>Tipo</Label>
+                          <Select value={formModoReuniao} onValueChange={(v: "orgao" | "avulsa") => { setFormModoReuniao(v); setFormOrgaoId(""); setFormTituloAvulsa(""); }}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="conselho">Conselho</SelectItem>
-                              <SelectItem value="comite">Comitê</SelectItem>
-                              <SelectItem value="comissao">Comissão</SelectItem>
+                              <SelectItem value="avulsa">Reunião avulsa</SelectItem>
+                              <SelectItem value="orgao">Órgão (conselho/comitê/comissão)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Órgão</Label>
-                          <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
-                            <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
-                            <SelectContent>
-                              {orgaosPorTipo.map((o) => (
-                                <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {membrosOrgao.length > 0 && (
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
-                            <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
-                              {membrosOrgao.map((m) => (
-                                <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
-                              ))}
-                            </div>
+                        {formModoReuniao === "avulsa" ? (
+                          <div className="space-y-2">
+                            <Label>Título da reunião</Label>
+                            <Input
+                              value={formTituloAvulsa}
+                              onChange={(e) => setFormTituloAvulsa(e.target.value)}
+                              placeholder="Ex: Reunião de alinhamento, Reunião extraordinária..."
+                            />
                           </div>
+                        ) : (
+                          <>
+                            <div className="space-y-2">
+                              <Label>Tipo de Órgão</Label>
+                              <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="conselho">Conselho</SelectItem>
+                                  <SelectItem value="comite">Comitê</SelectItem>
+                                  <SelectItem value="comissao">Comissão</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Órgão</Label>
+                              <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
+                                <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
+                                <SelectContent>
+                                  {orgaosPorTipo.map((o) => (
+                                    <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {membrosOrgao.length > 0 && (
+                              <div className="space-y-1">
+                                <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
+                                <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
+                                  {membrosOrgao.map((m) => (
+                                    <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -552,7 +613,14 @@ const Agenda = () => {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button onClick={handleAgendar} disabled={insertReuniaoLoading || !formOrgaoId || !formData}>
+                        <Button
+                          onClick={handleAgendar}
+                          disabled={
+                            insertReuniaoLoading ||
+                            !formData ||
+                            (formModoReuniao === "avulsa" ? !formTituloAvulsa.trim() : !formOrgaoId)
+                          }
+                        >
                           Agendar
                         </Button>
                       </DialogFooter>
@@ -700,8 +768,11 @@ const Agenda = () => {
                                   <div
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => setSelectedDate(day)}
-                                    onKeyDown={(e) => e.key === "Enter" && setSelectedDate(day)}
+                                    onClick={() => {
+                                      setSelectedDate(day);
+                                      openNovaReuniaoParaData(day);
+                                    }}
+                                    onKeyDown={(e) => e.key === "Enter" && (setSelectedDate(day), openNovaReuniaoParaData(day))}
                                     className={`h-full min-h-[100px] rounded p-1 cursor-pointer ${isSelected || hasMeetings ? "bg-blue-100" : "bg-background"}`}
                                   >
                                     <div className={`text-sm font-medium mb-1 ${isSelected || hasMeetings ? "text-blue-700" : "text-foreground"}`}>

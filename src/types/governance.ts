@@ -81,6 +81,7 @@ export interface MembroComAlocacao {
   cargoPrincipal: string | null;
   orgaosAlocados: string[];
   email?: string | null;
+  user_id?: string | null;
 }
 
 export interface MembroInsertComAcesso {

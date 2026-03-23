@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Plus, FileText, Building2, Trash2, ChevronDown, Loader2, Pencil } from "lucide-react";
+import { Users, Plus, FileText, Building2, Trash2, ChevronDown, Loader2, Pencil, Eye } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -83,6 +92,12 @@ const Councils = () => {
   const [alocarOrgaoId, setAlocarOrgaoId] = useState("");
   const [alocarCargo, setAlocarCargo] = useState("");
 
+  const [verMembroOpen, setVerMembroOpen] = useState(false);
+  const [verMembro, setVerMembro] = useState<{ id: string; nome: string; email: string | null; user_id: string | null } | null>(null);
+  const [verSenhaGerada, setVerSenhaGerada] = useState<string | null>(null);
+
+  const [membroToExcluir, setMembroToExcluir] = useState<{ id: string; nome: string } | null>(null);
+
   const { empresas, firstEmpresaId } = useEmpresas();
   const empresaId = firstEmpresaId;
   const {
@@ -102,13 +117,16 @@ const Councils = () => {
     deleteConselho,
     deleteComite,
     deleteComissao,
-    deleteMembro,
     insertConselhoLoading,
     insertComiteLoading,
     insertComissaoLoading,
     insertMembroLoading,
     insertMembroComAcessoLoading,
     insertAlocacaoLoading,
+    redefinirSenhaMembro,
+    redefinirSenhaMembroLoading,
+    excluirMembroDefinitivo,
+    excluirMembroDefinitivoLoading,
     updateMembroLoading,
   } = useGovernance(empresaId);
 
@@ -745,6 +763,10 @@ const Councils = () => {
                               {m.orgaosAlocados.length > 0 ? m.orgaosAlocados.join(", ") : "Não alocado"}
                             </TableCell>
                             <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => { setVerMembro({ id: m.id, nome: m.nome, email: m.email ?? null, user_id: m.user_id ?? null }); setVerSenhaGerada(null); setVerMembroOpen(true); }}>
+                                <Eye className="h-4 w-4 mr-1" />
+                                Ver
+                              </Button>
                               <Button variant="ghost" size="sm" onClick={() => openEditarMembro(m)}>
                                 <Pencil className="h-4 w-4 mr-1" />
                                 Editar
@@ -758,11 +780,7 @@ const Councils = () => {
                                 size="icon"
                                 className="text-muted-foreground hover:text-destructive ml-1"
                                 aria-label="Excluir"
-                                onClick={async () => {
-                                  const { error } = await deleteMembro(m.id);
-                                  if (error) toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
-                                  else toast({ title: "Membro removido" });
-                                }}
+                                onClick={() => setMembroToExcluir({ id: m.id, nome: m.nome })}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -782,6 +800,64 @@ const Councils = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Dialog Ver Acesso do Membro */}
+          <Dialog open={verMembroOpen} onOpenChange={(open) => { setVerMembroOpen(open); if (!open) setVerSenhaGerada(null); }}>
+            <DialogContent className="sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle>Acesso do membro</DialogTitle>
+                <DialogDescription>
+                  Credenciais para login no portal
+                </DialogDescription>
+              </DialogHeader>
+              {verMembro && (
+                <div className="space-y-4 py-4">
+                  <p className="text-sm font-medium text-muted-foreground">{verMembro.nome}</p>
+                  {verMembro.email ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label>E-mail</Label>
+                        <p className="text-sm font-mono bg-muted px-3 py-2 rounded-md">{verMembro.email}</p>
+                      </div>
+                      {verSenhaGerada ? (
+                        <div className="space-y-2">
+                          <Label>Nova senha provisória</Label>
+                          <p className="text-sm font-mono bg-muted px-3 py-2 rounded-md">{verSenhaGerada}</p>
+                          <p className="text-xs text-amber-600 dark:text-amber-500">Copie e informe ao membro. Esta senha não será exibida novamente.</p>
+                        </div>
+                      ) : verMembro.user_id ? (
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            A senha provisória original é exibida apenas no momento da criação.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={redefinirSenhaMembroLoading}
+                            onClick={async () => {
+                              const { data, error } = await redefinirSenhaMembro(verMembro!.user_id!);
+                              if (error) {
+                                toast({ title: error, variant: "destructive" });
+                                return;
+                              }
+                              if (data?.senha_provisoria) setVerSenhaGerada(data.senha_provisoria);
+                            }}
+                          >
+                            {redefinirSenhaMembroLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Gerar nova senha provisória
+                          </Button>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Usuário sem user_id vinculado. Use Editar para corrigir.</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Sem acesso ao portal (nenhum e-mail cadastrado)</p>
+                  )}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
           {/* Dialog Editar Membro */}
           <Dialog open={editarMembroOpen} onOpenChange={setEditarMembroOpen}>
@@ -860,6 +936,35 @@ const Councils = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* AlertDialog Excluir Membro Definitivo */}
+          <AlertDialog open={!!membroToExcluir} onOpenChange={(open) => !open && setMembroToExcluir(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir membro</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir <strong>{membroToExcluir?.nome}</strong> definitivamente? O membro será removido do banco de dados, de todas as alocações e, se tiver acesso ao portal, a conta de login será removida. Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={excluirMembroDefinitivoLoading}>Cancelar</AlertDialogCancel>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!membroToExcluir) return;
+                    const { error } = await excluirMembroDefinitivo(membroToExcluir.id);
+                    setMembroToExcluir(null);
+                    if (error) toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
+                    else toast({ title: "Membro excluído definitivamente" });
+                  }}
+                  disabled={excluirMembroDefinitivoLoading}
+                >
+                  {excluirMembroDefinitivoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {excluirMembroDefinitivoLoading ? "Excluindo..." : "Excluir definitivamente"}
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </div>

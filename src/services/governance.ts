@@ -299,6 +299,8 @@ export async function fetchMembros(empresaId: string): Promise<MembroComAlocacao
     nome: m.nome,
     cargoPrincipal: m.cargo_principal ?? null,
     orgaosAlocados: orgaosMap.get(m.id) ?? [],
+    email: m.email ?? null,
+    user_id: m.user_id ?? null,
   }));
 }
 
@@ -347,6 +349,24 @@ export async function insertMembroComAcesso(
   };
 }
 
+/** Gera nova senha provisória para membro com acesso (via Edge Function) */
+export async function redefinirSenhaMembro(
+  user_id: string
+): Promise<{ data: { senha_provisoria: string } | null; error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{ senha_provisoria?: string; error?: string }>(
+    "redefinir-senha-membro",
+    { user_id }
+  );
+  if (error) return { data: null, error: error.message };
+  const err = data?.error;
+  if (err) return { data: null, error: err };
+  if (!data?.senha_provisoria) return { data: null, error: "Resposta inválida da Edge Function" };
+  return {
+    data: { senha_provisoria: data.senha_provisoria },
+    error: null,
+  };
+}
+
 export async function updateMembro(
   id: string,
   p: { nome?: string; cargo_principal?: string | null }
@@ -367,6 +387,7 @@ export async function updateMembro(
   return { error: null };
 }
 
+/** Exclusão direta no banco (pode falhar por RLS se não houver policy) */
 export async function deleteMembro(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: "Supabase não configurado" };
   const { error } = await supabase.from("membros_governanca").delete().eq("id", id);
@@ -374,6 +395,18 @@ export async function deleteMembro(id: string): Promise<{ error: string | null }
     console.error("[governance] deleteMembro:", error);
     return { error: error.message };
   }
+  return { error: null };
+}
+
+/** Exclusão definitiva via Edge Function: remove membro, alocações (CASCADE) e usuário Auth */
+export async function excluirMembroDefinitivo(membroId: string): Promise<{ error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{ ok?: boolean; error?: string }>(
+    "excluir-membro-definitivo",
+    { membro_id: membroId }
+  );
+  if (error) return { error: error.message };
+  if (data?.error) return { error: data.error };
+  if (!data?.ok) return { error: "Resposta inválida da Edge Function" };
   return { error: null };
 }
 
