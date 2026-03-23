@@ -370,6 +370,36 @@ export async function insertAlocacao(p: AlocacaoInsert): Promise<{ error: string
   return { error: null };
 }
 
+/** Retorna membros alocados em um órgão específico (conselho, comitê ou comissão) */
+export async function fetchMembrosPorOrgao(
+  empresaId: string,
+  tipo: "conselho" | "comite" | "comissao",
+  orgaoId: string
+): Promise<{ id: string; nome: string; cargo: string | null }[]> {
+  if (!supabase || !orgaoId) return [];
+  const campo = tipo === "conselho" ? "conselho_id" : tipo === "comite" ? "comite_id" : "comissao_id";
+  const { data: alocacoes, error: errA } = await supabase
+    .from("alocacoes_membros")
+    .select("membro_id, cargo")
+    .eq(campo, orgaoId)
+    .eq("ativo", true);
+  if (errA || !alocacoes?.length) return [];
+  const membroIds = [...new Set(alocacoes.map((a: { membro_id: string }) => a.membro_id))];
+  const cargoByMembro = new Map<string, string | null>();
+  for (const a of alocacoes) cargoByMembro.set(a.membro_id, a.cargo ?? null);
+  const { data: membros, error: errM } = await supabase
+    .from("membros_governanca")
+    .select("id, nome")
+    .eq("empresa_id", empresaId)
+    .in("id", membroIds);
+  if (errM || !membros) return [];
+  return membros.map((m: { id: string; nome: string }) => ({
+    id: m.id,
+    nome: m.nome,
+    cargo: cargoByMembro.get(m.id) ?? null,
+  }));
+}
+
 export async function removeAlocacao(id: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: "Supabase não configurado" };
   const { error } = await supabase.from("alocacoes_membros").delete().eq("id", id);
