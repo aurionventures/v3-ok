@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff, Shield } from "lucide-react";
 import { setUserType } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
+import { fetchMembroByUserId } from "@/services/governance";
 
 type LoginView = "select" | "company" | "member" | "admin";
 
@@ -23,25 +25,63 @@ const Login = () => {
   const [loginView, setLoginView] = useState<LoginView>(isAdminLogin ? "admin" : "select");
 
   const handleLogin = async (userType: string) => {
+    if (!email || !password) {
+      toast({ title: "Erro de Login", description: "Preencha todos os campos.", variant: "destructive" });
+      return;
+    }
+
+    if (userType === "member") {
+      if (!supabase) {
+        toast({ title: "Erro", description: "Supabase não configurado.", variant: "destructive" });
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+        if (error) {
+          toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
+          return;
+        }
+        const userId = data?.user?.id;
+        if (!userId) {
+          toast({ title: "Erro de Login", description: "Credenciais inválidas.", variant: "destructive" });
+          return;
+        }
+        const membro = await fetchMembroByUserId(userId);
+        if (!membro) {
+          await supabase.auth.signOut();
+          toast({ title: "Erro de Login", description: "Nenhum membro vinculado a esta conta.", variant: "destructive" });
+          return;
+        }
+        setUserType("member");
+        toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${membro.nome}.` });
+        if (membro.senha_alterada) {
+          navigate("/member/dashboard");
+        } else {
+          navigate("/member/alterar-senha");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      if (!email || !password) {
-        toast({ title: "Erro de Login", description: "Preencha todos os campos.", variant: "destructive" });
-        return;
-      }
       const valid =
         (userType === "company" && email === "empresa@legacy.com" && password === "123") ||
-        (userType === "member" && email === "membro@legacy.com" && password === "123") ||
         (userType === "admin" && email === "admin@legacy.com" && password === "123");
       if (!valid) {
         toast({ title: "Erro de Login", description: "Email ou senha inválidos.", variant: "destructive" });
         return;
       }
-      setUserType(userType as "company" | "member" | "admin");
+      setUserType(userType as "company" | "admin");
       toast({ title: "Login bem-sucedido", description: `Bem-vindo ao Legacy OS.` });
       if (userType === "admin") navigate("/admin");
-      else if (userType === "member") navigate("/member/dashboard");
       else navigate("/dashboard");
     }, 1000);
   };

@@ -8,6 +8,7 @@ import {
   insertComite,
   insertComissao,
   insertMembro,
+  insertMembroComAcesso,
   insertAlocacao,
   updateMembro,
   deleteConselho,
@@ -20,6 +21,7 @@ import type {
   ComiteInsert,
   ComissaoInsert,
   MembroInsert,
+  MembroInsertComAcesso,
   AlocacaoInsert,
 } from "@/types/governance";
 
@@ -78,6 +80,11 @@ export function useGovernance(empresaId: string | null) {
     onSuccess: inval,
   });
 
+  const insertMembroComAcessoMt = useMutation({
+    mutationFn: insertMembroComAcesso,
+    onSuccess: inval,
+  });
+
   const insertAlocacaoMt = useMutation({
     mutationFn: insertAlocacao,
     onSuccess: inval,
@@ -124,6 +131,7 @@ export function useGovernance(empresaId: string | null) {
     insertComite: insertComiteMt.mutateAsync,
     insertComissao: insertComissaoMt.mutateAsync,
     insertMembro: insertMembroMt.mutateAsync,
+    insertMembroComAcesso: insertMembroComAcessoMt.mutateAsync,
     insertAlocacao: insertAlocacaoMt.mutateAsync,
     updateMembro: updateMembroMt.mutateAsync,
     deleteConselho: deleteConselhoMt.mutateAsync,
@@ -134,6 +142,7 @@ export function useGovernance(empresaId: string | null) {
     insertComiteLoading: insertComiteMt.isPending,
     insertComissaoLoading: insertComissaoMt.isPending,
     insertMembroLoading: insertMembroMt.isPending,
+    insertMembroComAcessoLoading: insertMembroComAcessoMt.isPending,
     insertAlocacaoLoading: insertAlocacaoMt.isPending,
     updateMembroLoading: updateMembroMt.isPending,
   };

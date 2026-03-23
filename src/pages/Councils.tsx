@@ -30,6 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useEmpresas } from "@/hooks/useEmpresas";
@@ -68,6 +69,8 @@ const Councils = () => {
   const [membroOpen, setMembroOpen] = useState(false);
   const [membroNome, setMembroNome] = useState("");
   const [membroCargo, setMembroCargo] = useState("");
+  const [membroEmail, setMembroEmail] = useState("");
+  const [membroSenhaProvisoria, setMembroSenhaProvisoria] = useState("");
 
   const [editarMembroOpen, setEditarMembroOpen] = useState(false);
   const [editarMembroId, setEditarMembroId] = useState<string | null>(null);
@@ -93,6 +96,7 @@ const Councils = () => {
     insertComite,
     insertComissao,
     insertMembro,
+    insertMembroComAcesso,
     insertAlocacao,
     updateMembro,
     deleteConselho,
@@ -103,6 +107,7 @@ const Councils = () => {
     insertComiteLoading,
     insertComissaoLoading,
     insertMembroLoading,
+    insertMembroComAcessoLoading,
     insertAlocacaoLoading,
     updateMembroLoading,
   } = useGovernance(empresaId);
@@ -190,19 +195,45 @@ const Councils = () => {
       toast({ title: "Preencha o nome", variant: "destructive" });
       return;
     }
-    const { error } = await insertMembro({
+    const email = membroEmail.trim().toLowerCase();
+    const senha = membroSenhaProvisoria;
+    if (!email) {
+      toast({ title: "E-mail é obrigatório para acesso ao portal", variant: "destructive" });
+      return;
+    }
+    if (!senha || senha.length < 6) {
+      toast({ title: "A senha provisória deve ter pelo menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    const { error } = await insertMembroComAcesso({
       empresa_id: empresaId,
       nome: membroNome.trim(),
       cargo_principal: membroCargo.trim() || null,
+      email,
+      senha_provisoria: senha,
     });
     if (error) {
       toast({ title: "Erro ao criar membro", description: error, variant: "destructive" });
       return;
     }
-    toast({ title: "Membro criado" });
+    const credenciais = `E-mail: ${email}\nSenha provisória: ${senha}`;
+    toast({
+      title: "Membro criado com acesso",
+      description: `Envie as credenciais ao membro. Ele deve alterar a senha no primeiro acesso.`,
+      action: (
+        <ToastAction
+          altText="Copiar credenciais"
+          onClick={() => navigator.clipboard?.writeText(credenciais)}
+        >
+          Copiar credenciais
+        </ToastAction>
+      ),
+    });
     setMembroOpen(false);
     setMembroNome("");
     setMembroCargo("");
+    setMembroEmail("");
+    setMembroSenhaProvisoria("");
   };
 
   const handleAlocar = async () => {
@@ -651,7 +682,9 @@ const Councils = () => {
                         <DialogContent className="sm:max-w-[500px]">
                           <DialogHeader>
                             <DialogTitle>Adicionar Membro</DialogTitle>
-                            <DialogDescription>Preencha as informações do novo membro</DialogDescription>
+                            <DialogDescription>
+                              Preencha as informações e credenciais de acesso. O membro usará o e-mail e a senha provisória para entrar no Portal de Membros.
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="grid gap-4 py-4">
                             <div className="space-y-2">
@@ -662,10 +695,31 @@ const Councils = () => {
                               <Label>Cargo Principal</Label>
                               <Input value={membroCargo} onChange={(e) => setMembroCargo(e.target.value)} />
                             </div>
+                            <div className="space-y-2">
+                              <Label>E-mail de acesso</Label>
+                              <Input
+                                type="email"
+                                placeholder="membro@empresa.com"
+                                value={membroEmail}
+                                onChange={(e) => setMembroEmail(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Senha provisória (mín. 6 caracteres)</Label>
+                              <Input
+                                type="password"
+                                placeholder="••••••••"
+                                value={membroSenhaProvisoria}
+                                onChange={(e) => setMembroSenhaProvisoria(e.target.value)}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                O membro deve alterar a senha no primeiro acesso.
+                              </p>
+                            </div>
                           </div>
                           <DialogFooter>
-                            <Button onClick={handleCriarMembro} disabled={insertMembroLoading}>
-                              {insertMembroLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            <Button onClick={handleCriarMembro} disabled={insertMembroComAcessoLoading}>
+                              {insertMembroComAcessoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                               Adicionar
                             </Button>
                           </DialogFooter>

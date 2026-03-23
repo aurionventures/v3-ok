@@ -45,6 +45,9 @@ export interface MembroGovernancaRow {
   empresa_id: string;
   nome: string;
   cargo_principal: string | null;
+  user_id?: string | null;
+  email?: string | null;
+  senha_alterada?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +80,15 @@ export interface MembroComAlocacao {
   nome: string;
   cargoPrincipal: string | null;
   orgaosAlocados: string[];
+  email?: string | null;
+}
+
+export interface MembroInsertComAcesso {
+  empresa_id: string;
+  nome: string;
+  cargo_principal?: string | null;
+  email: string;
+  senha_provisoria: string;
 }
 
 export interface ConselhoInsert {

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { invokeEdgeFunction } from "@/lib/supabase";
 import type {
   ConselhoRow,
   ComiteRow,
@@ -11,6 +12,7 @@ import type {
   ComiteInsert,
   ComissaoInsert,
   MembroInsert,
+  MembroInsertComAcesso,
   AlocacaoInsert,
 } from "@/types/governance";
 
@@ -321,6 +323,30 @@ export async function insertMembro(p: MembroInsert): Promise<{ data: MembroComAl
   };
 }
 
+/** Cria membro com e-mail e senha provisória para acesso ao Dashboard de Membros (via Edge Function) */
+export async function insertMembroComAcesso(
+  p: MembroInsertComAcesso
+): Promise<{ data: { membro_id: string; email: string } | null; error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{ membro_id?: string; email?: string; error?: string }>(
+    "criar-membro-acesso",
+    {
+      email: p.email.trim().toLowerCase(),
+      senha_provisoria: p.senha_provisoria,
+      nome: p.nome.trim(),
+      cargo_principal: p.cargo_principal?.trim() || null,
+      empresa_id: p.empresa_id,
+    }
+  );
+  if (error) return { data: null, error: error.message };
+  const err = data?.error;
+  if (err) return { data: null, error: err };
+  if (!data?.membro_id || !data?.email) return { data: null, error: "Resposta inválida da Edge Function" };
+  return {
+    data: { membro_id: data.membro_id, email: data.email },
+    error: null,
+  };
+}
+
 export async function updateMembro(
   id: string,
   p: { nome?: string; cargo_principal?: string | null }
@@ -368,6 +394,30 @@ export async function insertAlocacao(p: AlocacaoInsert): Promise<{ error: string
     return { error: error.message };
   }
   return { error: null };
+}
+
+/** Retorna membro por user_id (auth) - para login do Dashboard de Membros */
+export async function fetchMembroByUserId(userId: string): Promise<{
+  id: string;
+  nome: string;
+  email: string | null;
+  senha_alterada: boolean;
+  empresa_id: string;
+} | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("membros_governanca")
+    .select("id, nome, email, senha_alterada, empresa_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    nome: data.nome,
+    email: data.email ?? null,
+    senha_alterada: data.senha_alterada ?? false,
+    empresa_id: data.empresa_id,
+  };
 }
 
 /** Retorna membros alocados em um órgão específico (conselho, comitê ou comissão) */

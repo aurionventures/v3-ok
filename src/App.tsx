@@ -15,6 +15,7 @@ import MemberAtasPendentes from "./pages/member/MemberAtasPendentes";
 import MemberPendencias from "./pages/member/MemberPendencias";
 import MemberDesempenho from "./pages/member/MemberDesempenho";
 import MemberSettings from "./pages/member/MemberSettings";
+import MemberAlterarSenha from "./pages/member/MemberAlterarSenha";
 import Index from "./pages/Index";
 import Login from "./pages/Login"; 
 import Start from "./pages/Start";
@@ -94,6 +95,7 @@ const App = () => (
           <Route path="pendencias" element={<MemberPendencias />} />
           <Route path="desempenho" element={<MemberDesempenho />} />
           <Route path="settings" element={<MemberSettings />} />
+          <Route path="alterar-senha" element={<MemberAlterarSenha />} />
         </Route>
         <Route element={<CompanyOrPublicGuard />}>
           <Route path="/" element={<Index />} />
