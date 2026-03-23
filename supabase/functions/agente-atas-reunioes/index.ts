@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const input = body.input ?? body.transcricaoOuNotas ?? "";
+    const systemPrompt = body.systemPrompt?.trim() || PROMPT_AGENTE_ATAS_REUNIOES;
 
     if (!input.trim()) {
       return new Response(
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
     }
 
     const result = await runAgent({
-      systemPrompt: PROMPT_AGENTE_ATAS_REUNIOES,
+      systemPrompt,
       userContent: input,
     });
 

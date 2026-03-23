@@ -35,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -48,6 +47,19 @@ import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchMembrosPorOrgao } from "@/services/governance";
+import {
+  fetchPautas,
+  insertPauta,
+  deletePauta,
+  fetchGestao,
+  upsertGestao,
+  fetchTarefas,
+  insertTarefa,
+  deleteTarefa,
+} from "@/services/gestaoReuniao";
+import { updateReuniaoStatus } from "@/services/agenda";
+import { fetchPromptPautaAta } from "@/services/promptsConfig";
+import { invokeEdgeFunction } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 
 const CHECK_ITEMS: { key: keyof ReturnType<typeof deriveChecklist>; label: string }[] = [
@@ -55,7 +67,6 @@ const CHECK_ITEMS: { key: keyof ReturnType<typeof deriveChecklist>; label: strin
   { key: "temPauta", label: "Pauta da reunião" },
   { key: "temDocumentosPrevios", label: "Documentos prévios" },
   { key: "temGravacao", label: "Gravação da reunião" },
-  { key: "participantesConfirmados", label: "Participantes confirmados" },
 ];
 
 const STATUS_LABEL: Record<string, string> = {
@@ -136,8 +147,9 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   const [assuntosSalvos, setAssuntosSalvos] = useState("");
 
   const [participantes, setParticipantes] = useState<Participante[]>([]);
-  const [participantesConfirmados, setParticipantesConfirmados] = useState<Set<string>>(new Set());
   const [statusOverride, setStatusOverride] = useState<string | null>(null);
+  const [ataGerando, setAtaGerando] = useState(false);
+  const [ataGeradaTexto, setAtaGeradaTexto] = useState<string | null>(null);
 
   const inputDocumentosRef = useRef<HTMLInputElement>(null);
   const inputGravacaoRef = useRef<HTMLInputElement>(null);
@@ -169,6 +181,47 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     });
   }, [open, empresaId, r]);
 
+  useEffect(() => {
+    if (!open) {
+      setAtaGeradaTexto(null);
+      return;
+    }
+    if (!r?.id) return;
+    fetchPautas(r.id).then(({ data }) => {
+      setAgendaItems(
+        data.map((p) => ({
+          id: p.id,
+          titulo: p.titulo,
+          descricao: p.descricao ?? "",
+          apresentador: p.apresentador ?? "",
+          duracao: p.tempo_estimado_min ?? 30,
+          tipo: p.tipo ?? "informativo",
+        }))
+      );
+    });
+    fetchTarefas(r.id).then(({ data }) => {
+      setTarefas(
+        data.map((t) => ({
+          id: t.id,
+          nome: t.nome,
+          responsavel: t.responsavel,
+          dataConclusao: t.data_conclusao ?? "",
+        }))
+      );
+    });
+    fetchGestao(r.id).then(({ data }) => {
+      if (data) {
+        setDocumentosCount(data.documentos_count);
+        setTranscricaoTexto(data.transcricao_texto ?? "");
+        setGravacaoArquivoNome(data.gravacao_arquivo_nome);
+        setGravacaoEnviada(!!(data.transcricao_texto || data.gravacao_arquivo_nome));
+        setGravacaoSalva(!!(data.transcricao_texto || data.gravacao_arquivo_nome));
+        setAtaEnviada(data.ata_enviada);
+        setAssuntosSalvos(data.assuntos_proxima ?? "");
+      }
+    });
+  }, [open, r?.id]);
+
   const reuniaoParaChecklist: ReuniaoGestao = {
     id: r?.id ?? "",
     titulo,
@@ -178,77 +231,113 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     pautas: agendaItems.length > 0 ? agendaItems.map((a) => ({ id: a.id, titulo: a.titulo })) : [],
     documentos_previos_count: documentosCount,
     gravacao_url: (gravacaoEnviada || transcricaoTexto.trim().length > 0) ? "ok" : undefined,
-    participantes_confirmados: participantes.filter((p) => participantesConfirmados.has(p.id)).map((p) => p.nome),
   };
   const checklist = r ? deriveChecklist(reuniaoParaChecklist) : null;
   const canGerar = checklist ? allChecksDone(checklist) : false;
   const pendentes = checklist ? CHECK_ITEMS.filter((c) => !checklist[c.key]).length : 5;
 
-  const progresso = Math.round(
-    ([
-      agendaItems.length > 0,
-      documentosCount > 0,
-      gravacaoEnviada || transcricaoTexto.trim().length > 0,
-      ataEnviada,
-      tarefas.length > 0,
-      participantesConfirmados.size > 0,
-    ].filter(Boolean).length / 6) * 100
-  );
-
-  const handleAdicionarItem = () => {
+  const handleAdicionarItem = async () => {
     if (!agendaTitulo.trim()) {
       toast({ title: "Preencha o título do item", variant: "destructive" });
       return;
     }
-    setAgendaItems((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        titulo: agendaTitulo,
-        descricao: agendaDescricao,
-        apresentador: agendaApresentador,
-        duracao: agendaDuracao,
-        tipo: agendaTipo,
-      },
-    ]);
+    if (!r?.id) {
+      toast({ title: "Reunião ainda não salva. Salve a reunião antes de adicionar itens.", variant: "destructive" });
+      return;
+    }
+    const { data, error } = await insertPauta({
+      reuniao_id: r.id,
+      titulo: agendaTitulo,
+      ordem: agendaItems.length,
+      tempo_estimado_min: agendaDuracao,
+      descricao: agendaDescricao || undefined,
+      apresentador: agendaApresentador || undefined,
+      tipo: agendaTipo,
+    });
+    if (error) {
+      toast({ title: "Erro ao salvar item", description: error, variant: "destructive" });
+      return;
+    }
+    if (data) {
+      setAgendaItems((prev) => [
+        ...prev,
+        {
+          id: data.id,
+          titulo: data.titulo,
+          descricao: data.descricao ?? "",
+          apresentador: data.apresentador ?? "",
+          duracao: data.tempo_estimado_min ?? 30,
+          tipo: data.tipo ?? "informativo",
+        },
+      ]);
+      toast({ title: "Item adicionado à pauta" });
+    }
     setAgendaTitulo("");
     setAgendaDescricao("");
     setAgendaApresentador("");
     setAgendaDuracao(30);
     setAgendaTipo("informativo");
-    toast({ title: "Item adicionado à pauta", description: agendaTitulo });
   };
 
-  const handleSalvarTarefa = () => {
+  const handleSalvarTarefa = async () => {
     if (!tarefaNome.trim()) {
       toast({ title: "Preencha o nome da tarefa", variant: "destructive" });
       return;
     }
-    setTarefas((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        nome: tarefaNome,
-        responsavel: tarefaResponsavel,
-        dataConclusao: tarefaData || format(new Date(), "yyyy-MM-dd"),
-      },
-    ]);
-    setTarefaNome("");
-    setTarefaResponsavel("");
-    setTarefaData("");
-    toast({ title: "Tarefa salva", description: tarefaNome });
+    if (!r?.id) {
+      toast({ title: "Reunião não encontrada", variant: "destructive" });
+      return;
+    }
+    const { data, error } = await insertTarefa({
+      reuniao_id: r.id,
+      nome: tarefaNome,
+      responsavel: tarefaResponsavel,
+      data_conclusao: tarefaData || format(new Date(), "yyyy-MM-dd"),
+    });
+    if (error) {
+      toast({ title: "Erro ao salvar tarefa", description: error, variant: "destructive" });
+      return;
+    }
+    if (data) {
+      setTarefas((prev) => [
+        ...prev,
+        {
+          id: data.id,
+          nome: data.nome,
+          responsavel: data.responsavel,
+          dataConclusao: data.data_conclusao ?? "",
+        },
+      ]);
+      setTarefaNome("");
+      setTarefaResponsavel("");
+      setTarefaData("");
+      toast({ title: "Tarefa salva", description: tarefaNome });
+    }
   };
 
-  const handleSalvarAssuntos = () => {
+  const handleSalvarAssuntos = async () => {
+    if (!r?.id) return;
+    const { error } = await upsertGestao(r.id, { assuntos_proxima: assuntosProxima });
+    if (error) {
+      toast({ title: "Erro ao salvar", variant: "destructive" });
+      return;
+    }
     setAssuntosSalvos(assuntosProxima);
     toast({ title: "Assuntos salvos", description: "Assuntos para próxima reunião registrados." });
   };
 
-  const handleFileDocumentos = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileDocumentos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files?.length) {
-      setDocumentosCount(files.length);
-      toast({ title: "Documentos enviados", description: `${files.length} arquivo(s) anexado(s) com sucesso.` });
+      const count = documentosCount + files.length;
+      setDocumentosCount(count);
+      if (r?.id) {
+        const { error } = await upsertGestao(r.id, { documentos_count: count });
+        if (error) toast({ title: "Erro ao salvar", description: error, variant: "destructive" });
+        else toast({ title: "Documentos enviados", description: `${files.length} arquivo(s) anexado(s) com sucesso.` });
+      } else {
+        toast({ title: "Documentos enviados", description: `${files.length} arquivo(s) anexado(s).` });
+      }
     }
     e.target.value = "";
   };
@@ -265,7 +354,14 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
 
   const temGravacaoOuTranscricao = gravacaoEnviada || transcricaoTexto.trim().length > 0;
 
-  const handleLimparGravacao = () => {
+  const handleLimparGravacao = async () => {
+    if (r?.id) {
+      const { error } = await upsertGestao(r.id, { transcricao_texto: null, gravacao_arquivo_nome: null });
+      if (error) {
+        toast({ title: "Erro ao remover", variant: "destructive" });
+        return;
+      }
+    }
     setGravacaoEnviada(false);
     setGravacaoArquivoNome(null);
     setTranscricaoTexto("");
@@ -273,7 +369,16 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     toast({ title: "Gravação/transcrição removida" });
   };
 
-  const handleSalvarGravacao = () => {
+  const handleSalvarGravacao = async () => {
+    if (!r?.id) return;
+    const { error } = await upsertGestao(r.id, {
+      transcricao_texto: transcricaoTexto.trim() || null,
+      gravacao_arquivo_nome: gravacaoArquivoNome ?? null,
+    });
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error, variant: "destructive" });
+      return;
+    }
     setGravacaoSalva(true);
     toast({ title: "Gravação salva", description: transcricaoTexto.trim() ? "Transcrição e/ou arquivo salvos com sucesso." : "Arquivo salvo com sucesso." });
   };
@@ -282,33 +387,97 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     setGravacaoSalva(false);
   };
 
-  const handleFileAta = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileAta = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (r?.id) {
+        const { error } = await upsertGestao(r.id, { ata_enviada: true });
+        if (error) {
+          toast({ title: "Erro ao salvar", variant: "destructive" });
+          e.target.value = "";
+          return;
+        }
+      }
       setAtaEnviada(true);
       toast({ title: "ATA enviada", description: `Arquivo "${file.name}" anexado com sucesso.` });
     }
     e.target.value = "";
   };
 
-  const toggleConfirmacao = (id: string) => {
-    setParticipantesConfirmados((prev) => {
-      const next = new Set(prev);
-      const p = participantes.find((x) => x.id === id);
-      if (next.has(id)) {
-        next.delete(id);
-        toast({ title: "Confirmação removida", description: `${p?.nome} não confirmado.` });
-      } else {
-        next.add(id);
-        toast({ title: "Participante confirmado", description: `${p?.nome} confirmou presença.` });
-      }
-      return next;
-    });
-  };
-
-  const handleMarcarRealizada = () => {
+  const handleMarcarRealizada = async () => {
+    if (!r?.id) return;
+    const { error } = await updateReuniaoStatus(r.id, "realizada");
+    if (error) {
+      toast({ title: "Erro ao atualizar status", variant: "destructive" });
+      return;
+    }
     setStatusOverride("realizada");
     toast({ title: "Status atualizado", description: "Reunião marcada como Realizada." });
+  };
+
+  const handleGerarPautaAtaIA = async () => {
+    if (!r || !empresaId) return;
+    setAtaGerando(true);
+    setAtaGeradaTexto(null);
+    try {
+      const partes: string[] = [];
+      partes.push(`REUNIÃO: ${titulo}`);
+      partes.push(`Data: ${dataReuniao ? format(dataReuniao, "dd/MM/yyyy") : "—"}`);
+      partes.push(`Horário: ${horario ?? "—"}`);
+      partes.push(`Status: ${statusLabel}`);
+      partes.push("");
+      if (agendaItems.length > 0) {
+        partes.push("PAUTA:");
+        agendaItems.forEach((a, i) => {
+          partes.push(`${i + 1}. ${a.titulo}${a.descricao ? ` - ${a.descricao}` : ""}`);
+          if (a.apresentador) partes.push(`   Apresentador: ${a.apresentador}`);
+          if (a.duracao) partes.push(`   Duração: ${a.duracao} min`);
+          if (a.tipo) partes.push(`   Tipo: ${a.tipo}`);
+        });
+        partes.push("");
+      }
+      if (transcricaoTexto.trim()) {
+        partes.push("TRANSCRIÇÃO / NOTAS:");
+        partes.push(transcricaoTexto.trim());
+        partes.push("");
+      }
+      if (tarefas.length > 0) {
+        partes.push("TAREFAS E COMBINADOS:");
+        tarefas.forEach((t) => {
+          partes.push(`- ${t.nome} | Responsável: ${t.responsavel}${t.dataConclusao ? ` | Prazo: ${t.dataConclusao}` : ""}`);
+        });
+        partes.push("");
+      }
+      if (assuntosSalvos) {
+        partes.push("ASSUNTOS PARA PRÓXIMA REUNIÃO:");
+        partes.push(assuntosSalvos);
+        partes.push("");
+      }
+      if (participantes.length > 0) {
+        partes.push("PARTICIPANTES:");
+        participantes.forEach((p) => partes.push(`- ${p.nome} (${p.cargo})`));
+      }
+      const input = partes.join("\n");
+
+      const { prompt } = await fetchPromptPautaAta(empresaId);
+      const { data, error } = await invokeEdgeFunction<{ textoCompleto?: string; error?: string }>(
+        "agente-atas-reunioes",
+        { input, systemPrompt: prompt }
+      );
+      if (error) {
+        toast({ title: "Erro ao gerar", description: error.message, variant: "destructive" });
+        return;
+      }
+      const texto = (data as { textoCompleto?: string })?.textoCompleto;
+      if (texto) {
+        setAtaGeradaTexto(texto);
+        toast({ title: "Pauta/ATA gerada", description: "O texto foi gerado com sucesso. Role até o final para visualizar." });
+      } else {
+        toast({ title: "Erro", description: "Resposta inesperada do servidor", variant: "destructive" });
+      }
+    } finally {
+      setAtaGerando(false);
+    }
   };
 
   const secao = (icon: React.ReactNode, tituloSecao: string, children: React.ReactNode) => (
@@ -367,13 +536,6 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   <strong>{diasRestantes} dias</strong> até a reunião
                 </p>
               )}
-              <div className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span>Progresso da Reunião</span>
-                  <span>{progresso}%</span>
-                </div>
-                <Progress value={progresso} className="h-2" />
-              </div>
             </CardContent>
           </Card>
 
@@ -416,11 +578,25 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   + Adicionar Item
                 </Button>
                 {agendaItems.length > 0 && (
-                  <ul className="text-sm space-y-1 mt-2">
+                  <ul className="text-sm space-y-2 mt-2">
                     {agendaItems.map((item) => (
-                      <li key={item.id} className="flex justify-between items-center py-1 border-b">
+                      <li key={item.id} className="flex justify-between items-center py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">
                         <span>{item.titulo}</span>
-                        <Button variant="ghost" size="sm" onClick={() => { setAgendaItems((p) => p.filter((i) => i.id !== item.id)); toast({ title: "Item removido da pauta" }); }}>Remover</Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            const { error } = await deletePauta(item.id);
+                            if (error) {
+                              toast({ title: "Erro ao remover item", description: error, variant: "destructive" });
+                              return;
+                            }
+                            setAgendaItems((p) => p.filter((i) => i.id !== item.id));
+                            toast({ title: "Item removido da pauta" });
+                          }}
+                        >
+                          Remover
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -446,9 +622,21 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                     <Button variant="outline" onClick={() => inputDocumentosRef.current?.click()}>Enviar Documentos</Button>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">
                     <p className="text-sm">{documentosCount} documento(s) anexado(s)</p>
-                    <Button variant="outline" size="sm" onClick={() => { setDocumentosCount(0); toast({ title: "Documentos removidos" }); }}>Remover</Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!r?.id) return;
+                        setDocumentosCount(0);
+                        const { error } = await upsertGestao(r.id, { documentos_count: 0 });
+                        if (error) toast({ title: "Erro ao remover", variant: "destructive" });
+                        else toast({ title: "Documentos removidos" });
+                      }}
+                    >
+                      Remover
+                    </Button>
                   </div>
                 )}
               </>
@@ -556,7 +744,22 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                 ) : (
                   <div className="flex items-center justify-between">
                     <p className="text-sm">ATA enviada</p>
-                    <Button variant="outline" size="sm" onClick={() => { setAtaEnviada(false); toast({ title: "ATA removida" }); }}>Remover</Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!r?.id) return;
+                        const { error } = await upsertGestao(r.id, { ata_enviada: false });
+                        if (error) {
+                          toast({ title: "Erro ao remover", variant: "destructive" });
+                          return;
+                        }
+                        setAtaEnviada(false);
+                        toast({ title: "ATA removida" });
+                      }}
+                    >
+                      Remover
+                    </Button>
                   </div>
                 )}
               </>
@@ -596,11 +799,25 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                 </div>
                 <Button className="w-full" onClick={handleSalvarTarefa}>Salvar</Button>
                 {tarefas.length > 0 && (
-                  <ul className="text-sm space-y-1 mt-2">
+                  <ul className="text-sm space-y-2 mt-2">
                     {tarefas.map((t) => (
-                      <li key={t.id} className="flex justify-between py-1 border-b">
+                      <li key={t.id} className="flex justify-between items-center py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">
                         <span>{t.nome} — {t.responsavel}</span>
-                        <Button variant="ghost" size="sm" onClick={() => { setTarefas((p) => p.filter((x) => x.id !== t.id)); toast({ title: "Tarefa removida" }); }}>Remover</Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            const { error } = await deleteTarefa(t.id);
+                            if (error) {
+                              toast({ title: "Erro ao remover", variant: "destructive" });
+                              return;
+                            }
+                            setTarefas((p) => p.filter((x) => x.id !== t.id));
+                            toast({ title: "Tarefa removida" });
+                          }}
+                        >
+                          Remover
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -618,7 +835,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   rows={4}
                 />
                 <Button className="w-full" onClick={handleSalvarAssuntos}>Salvar Assuntos</Button>
-                {assuntosSalvos && <p className="text-sm text-muted-foreground">Salvo.</p>}
+                {assuntosSalvos && <p className="text-sm text-muted-foreground py-2 px-3 rounded-lg bg-primary/5 border border-primary/20">Salvo.</p>}
               </>
             )}
           </div>
@@ -629,7 +846,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
             "Participantes da Reunião",
             <>
               <p className="text-sm text-muted-foreground">
-                {participantes.length} participantes • {participantesConfirmados.size} confirmados
+                {participantes.length} participantes
               </p>
               <div className="space-y-2">
                 {participantes.map((p) => (
@@ -642,13 +859,6 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                       <p className="text-xs text-muted-foreground truncate">{p.email}</p>
                     </div>
                     <Badge variant="outline">{p.cargo}</Badge>
-                    <Button
-                      variant={participantesConfirmados.has(p.id) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleConfirmacao(p.id)}
-                    >
-                      {participantesConfirmados.has(p.id) ? "Confirmado" : "Confirmar"}
-                    </Button>
                   </div>
                 ))}
                 {participantes.length === 0 && <p className="text-sm text-muted-foreground">Carregando participantes...</p>}
@@ -707,17 +917,25 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   })}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  className="flex-1"
-                  size="lg"
-                  disabled={!canGerar}
-                  onClick={() => canGerar && onGerarAtaIA?.()}
-                >
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Gerar ATA com IA
-                </Button>
-                {pendentes > 0 && <span className="text-sm text-muted-foreground">{pendentes} pendências</span>}
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Button
+                    className="flex-1"
+                    size="lg"
+                    disabled={!canGerar || ataGerando}
+                    onClick={() => canGerar && handleGerarPautaAtaIA()}
+                  >
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    {ataGerando ? "Gerando..." : "Gerar ATA com IA"}
+                  </Button>
+                  {pendentes > 0 && <span className="text-sm text-muted-foreground">{pendentes} pendências</span>}
+                </div>
+                {ataGeradaTexto && (
+                  <div className="rounded-lg border bg-muted/30 p-4 max-h-80 overflow-y-auto">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Pauta/ATA gerada:</p>
+                    <p className="text-sm whitespace-pre-wrap">{ataGeradaTexto}</p>
+                  </div>
+                )}
               </div>
             </>
           )}

@@ -252,8 +252,7 @@ const Agenda = () => {
   };
 
   const handleGerarAtaIA = () => {
-    toast({ title: "Gerar ATA com IA", description: "Esta funcionalidade estará disponível em breve." });
-    setGestaoOpen(false);
+    // Geração implementada internamente no GestaoReuniao
   };
 
   if (!empresaId) {

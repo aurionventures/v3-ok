@@ -11,8 +11,6 @@ export interface ReuniaoGestao {
   documentos_previos_count?: number;
   /** URL ou indicação de gravação disponível */
   gravacao_url?: string | null;
-  /** Participantes confirmados */
-  participantes_confirmados?: string[];
 }
 
 /** Checklist para habilitar "Gerar pauta com IA" / ATA */
@@ -21,7 +19,6 @@ export interface ChecklistReuniao {
   temPauta: boolean;
   temDocumentosPrevios: boolean;
   temGravacao: boolean;
-  participantesConfirmados: boolean;
 }
 
 export function deriveChecklist(r: ReuniaoGestao): ChecklistReuniao {
@@ -32,7 +29,6 @@ export function deriveChecklist(r: ReuniaoGestao): ChecklistReuniao {
     temPauta: (r.pautas?.length ?? 0) > 0,
     temDocumentosPrevios: (r.documentos_previos_count ?? 0) > 0,
     temGravacao: !!r.gravacao_url,
-    participantesConfirmados: (r.participantes_confirmados?.length ?? 0) > 0,
   };
 }
 
@@ -41,7 +37,6 @@ export function allChecksDone(c: ChecklistReuniao): boolean {
     c.statusConcluido &&
     c.temPauta &&
     c.temDocumentosPrevios &&
-    c.temGravacao &&
-    c.participantesConfirmados
+    c.temGravacao
   );
 }

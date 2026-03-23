@@ -54,8 +54,12 @@ http://localhost:54321/functions/v1/<NOME_DA_FUNCAO>
 
 ### agente-atas-reunioes
 ```json
-{ "input": "transcrição ou notas" }
+{
+  "input": "transcrição ou notas (obrigatório)",
+  "systemPrompt": "opcional – prompt customizado (prompts_config)"
+}
 ```
+**Nota:** Sem `OPENAI_API_KEY` configurado, retorna um rascunho placeholder. Ao definir o secret no Supabase, a IA será utilizada automaticamente.
 
 ### agente-diagnostico-governanca
 ```json
@@ -141,6 +145,17 @@ const { data, error } = await invokeEdgeFunction("agente-ata", {
 
 ---
 
+## Deploy das Edge Functions
+
+```bash
+supabase functions deploy agente-atas-reunioes
+```
+
+Para testar localmente:
+```bash
+supabase functions serve agente-atas-reunioes
+```
+
 ## Variáveis de Ambiente
 
 | Variável | Onde | Descrição |
@@ -150,3 +165,5 @@ const { data, error } = await invokeEdgeFunction("agente-ata", {
 | `OPENAI_API_KEY` | Supabase Secrets | Chave da API OpenAI |
 
 **Importante:** Nunca commite `.env` nem chaves. Use `.env.example` como template.
+
+**OPENAI_API_KEY:** As funções `agente-*` funcionam sem a chave (retornam placeholder). Para ativar a IA: Supabase Dashboard → Project Settings → Edge Functions → Secrets → `OPENAI_API_KEY`.

@@ -173,3 +173,19 @@ export async function insertReunioesEmLote(
   }
   return { count: rows.length, error: null };
 }
+
+export async function updateReuniaoStatus(
+  reuniaoId: string,
+  status: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("reunioes")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", reuniaoId);
+  if (error) {
+    console.error("[agenda] updateReuniaoStatus:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
