@@ -67,13 +67,22 @@ const FamilyStructure = () => {
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [showDetailsMember, setShowDetailsMember] = useState<FamilyMember | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<FamilyMember | null>(null);
+  const [memberToEdit, setMemberToEdit] = useState<FamilyMember | null>(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<string | null>(null);
 
   const { empresas, isLoading: loadingEmpresas, firstEmpresaId } = useEmpresas();
   const empresaId = selectedEmpresaId ?? firstEmpresaId;
-  const { members, isLoading, insertMember, insertLoading, deleteMember, deleteLoading } =
-    useFamilyMembers(empresaId);
+  const {
+    members,
+    isLoading,
+    insertMember,
+    insertLoading,
+    updateMember,
+    updateLoading,
+    deleteMember,
+    deleteLoading,
+  } = useFamilyMembers(empresaId);
 
   const filteredMembers = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -144,10 +153,57 @@ const FamilyStructure = () => {
   };
 
   const handleEditMember = (member: FamilyMember) => {
-    toast({
-      title: "Editar membro",
-      description: `Edição de ${member.name} será implementada em breve.`,
+    setShowDetailsMember(null);
+    setMemberToEdit(member);
+    setForm({
+      name: member.name,
+      age: member.age != null ? String(member.age) : "",
+      generation: member.generation ?? "",
+      role: member.role ?? "",
+      involvement: member.involvement ?? "",
+      status: member.status ?? "Ativo",
+      shareholding: member.shareholding ?? "",
     });
+  };
+
+  const handleSubmitEditMember = async () => {
+    if (!memberToEdit) return;
+    if (!form.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Informe o nome completo do familiar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { data, error } = await updateMember({
+      id: memberToEdit.id,
+      payload: {
+        nome: form.name.trim(),
+        idade: form.age ? parseInt(form.age, 10) : null,
+        geracao: form.generation || null,
+        papel: form.role || null,
+        envolvimento: form.involvement || null,
+        status: form.status || "Ativo",
+        participacao_societaria: form.shareholding || null,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Erro ao editar",
+        description: error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Membro atualizado",
+      description: `${data?.name ?? form.name} foi atualizado com sucesso!`,
+    });
+    setMemberToEdit(null);
   };
 
   const handleDeleteClick = (member: FamilyMember) => {
@@ -330,6 +386,110 @@ const FamilyStructure = () => {
           </Card>
         </div>
       </div>
+
+      {/* Dialog for editing family member */}
+      <Dialog open={!!memberToEdit} onOpenChange={(open) => !open && setMemberToEdit(null)}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Editar Familiar</DialogTitle>
+            <DialogDescription>
+              Atualize os dados do membro da família
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Nome Completo</Label>
+                <Input
+                  id="edit-name"
+                  placeholder="Nome completo"
+                  value={form.name}
+                  onChange={(e) => handleFormChange("name", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-age">Idade</Label>
+                <Input
+                  id="edit-age"
+                  type="number"
+                  placeholder="Idade"
+                  value={form.age}
+                  onChange={(e) => handleFormChange("age", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-generation">Geração</Label>
+                <Select
+                  value={form.generation}
+                  onValueChange={(v) => handleFormChange("generation", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1ª">1ª Geração</SelectItem>
+                    <SelectItem value="2ª">2ª Geração</SelectItem>
+                    <SelectItem value="3ª">3ª Geração</SelectItem>
+                    <SelectItem value="4ª">4ª Geração</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-role">Papel</Label>
+                <Input
+                  id="edit-role"
+                  placeholder="Ex: Fundador, Herdeiro, etc."
+                  value={form.role}
+                  onChange={(e) => handleFormChange("role", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-involvement">Envolvimento</Label>
+                <Input
+                  id="edit-involvement"
+                  placeholder="Ex: CEO, Conselheiro, etc."
+                  value={form.involvement}
+                  onChange={(e) => handleFormChange("involvement", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status</Label>
+                <Select value={form.status} onValueChange={(v) => handleFormChange("status", v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ativo">Ativo</SelectItem>
+                    <SelectItem value="Afastado">Afastado</SelectItem>
+                    <SelectItem value="Inativo">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-shareholding">Participação Societária</Label>
+              <Input
+                id="edit-shareholding"
+                placeholder="Ex: 25%"
+                value={form.shareholding}
+                onChange={(e) => handleFormChange("shareholding", e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMemberToEdit(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmitEditMember} disabled={updateLoading}>
+              {updateLoading ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog for adding new family member */}
       <Dialog open={isAddingMember} onOpenChange={setIsAddingMember}>

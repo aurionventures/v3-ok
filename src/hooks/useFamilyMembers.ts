@@ -2,9 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchFamilyMembers,
   insertFamilyMember,
+  updateFamilyMember,
   deleteFamilyMember,
 } from "@/services/familyStructure";
-import type { FamilyMemberInsert } from "@/types/familyStructure";
+import type {
+  FamilyMemberInsert,
+  FamilyMemberUpdate,
+} from "@/types/familyStructure";
 
 export const FAMILY_MEMBERS_QUERY_KEY = ["family-members"] as const;
 
@@ -23,6 +27,18 @@ export function useFamilyMembers(empresaId: string | null) {
       queryClient.invalidateQueries({
         queryKey: [...FAMILY_MEMBERS_QUERY_KEY, variables.empresa_id],
       });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: FamilyMemberUpdate }) =>
+      updateFamilyMember(id, payload),
+    onSuccess: () => {
+      if (empresaId) {
+        queryClient.invalidateQueries({
+          queryKey: [...FAMILY_MEMBERS_QUERY_KEY, empresaId],
+        });
+      }
     },
   });
 
@@ -45,6 +61,8 @@ export function useFamilyMembers(empresaId: string | null) {
     insertMember: insertMutation.mutateAsync,
     insertLoading: insertMutation.isPending,
     insertError: insertMutation.error,
+    updateMember: updateMutation.mutateAsync,
+    updateLoading: updateMutation.isPending,
     deleteMember: deleteMutation.mutateAsync,
     deleteLoading: deleteMutation.isPending,
   };

@@ -67,9 +67,31 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   agendada: "Agendada",
   pauta_definida: "Pauta Definida",
-  realizada: "Concluída",
+  realizada: "Realizada",
   ata_gerada: "ATA Gerada",
 };
+
+type TipoOrgaoReuniao = "conselho" | "comite" | "comissao" | "avulsa";
+const TIPO_ORGAO_LABEL: Record<TipoOrgaoReuniao, string> = {
+  conselho: "Conselho",
+  comite: "Comitê",
+  comissao: "Comissão",
+  avulsa: "Avulsa",
+};
+const TIPO_ORGAO_BADGE_CLASS: Record<TipoOrgaoReuniao, string> = {
+  conselho: "bg-blue-500 text-white border-0 hover:bg-blue-500",
+  comite: "bg-violet-500 text-white border-0 hover:bg-violet-500",
+  comissao: "bg-emerald-500 text-white border-0 hover:bg-emerald-500",
+  avulsa: "bg-amber-500 text-white border-0 hover:bg-amber-500",
+};
+function getTipoOrgaoReuniao(
+  r: { conselho_id?: string | null; comite_id?: string | null; comissao_id?: string | null }
+): TipoOrgaoReuniao {
+  if (r.conselho_id) return "conselho";
+  if (r.comite_id) return "comite";
+  if (r.comissao_id) return "comissao";
+  return "avulsa";
+}
 
 function getMonthGrid(month: Date): (Date | null)[][] {
   const start = startOfMonth(month);
@@ -1207,7 +1229,10 @@ onOpenChange={(open) => {
                                 const dataStr = r.data_reuniao ? format(new Date(r.data_reuniao), "d/M") : "";
                                 const hora = r.horario ? String(r.horario).slice(0, 5) : "";
                                 const statusLabel = STATUS_LABEL[r.status] ?? r.status;
-                                const badgeClass = STATUS_BADGE_CLASS[r.status] ?? "bg-gray-500";
+                                const statusBadgeClass = STATUS_BADGE_CLASS[r.status] ?? "bg-gray-500";
+                                const tipoOrgao = getTipoOrgaoReuniao(r);
+                                const tipoBadgeClass = TIPO_ORGAO_BADGE_CLASS[tipoOrgao];
+                                const tipoLabel = TIPO_ORGAO_LABEL[tipoOrgao];
                                 return (
                                   <div
                                     key={r.id}
@@ -1219,7 +1244,10 @@ onOpenChange={(open) => {
                                   >
                                     <div className="font-medium text-sm text-foreground">{titulo}</div>
                                     <div className="text-xs text-muted-foreground">{dataStr}{hora ? ` ${hora}` : ""}</div>
-                                    <Badge className={badgeClass} variant="outline">{statusLabel}</Badge>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      <Badge className={tipoBadgeClass} variant="outline">{tipoLabel}</Badge>
+                                      <Badge className={statusBadgeClass} variant="outline">{statusLabel}</Badge>
+                                    </div>
                                   </div>
                                 );
                               })
@@ -1293,11 +1321,23 @@ onOpenChange={(open) => {
                                         const isVirtualR = !r.conselho_id && !r.comite_id && !r.comissao_id;
                                         const titulo = r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || (isVirtualR ? "Pauta Virtual" : "Reunião");
                                         const hora = r.horario ? String(r.horario).slice(0, 5) : "";
+                                        const tipoOrgao = getTipoOrgaoReuniao(r);
+                                        const tipoBgClass =
+                                          tipoOrgao === "conselho"
+                                            ? "bg-blue-100 hover:bg-blue-200"
+                                            : tipoOrgao === "comite"
+                                              ? "bg-violet-100 hover:bg-violet-200"
+                                              : tipoOrgao === "comissao"
+                                                ? "bg-emerald-100 hover:bg-emerald-200"
+                                                : "bg-amber-100 hover:bg-amber-200";
                                         return (
                                           <button
                                             key={r.id}
                                             type="button"
-                                            className="w-full text-left rounded px-2 py-1.5 bg-green-100 hover:bg-green-200 text-xs transition-colors"
+                                            className={cn(
+                                              "w-full text-left rounded px-2 py-1.5 text-xs transition-colors",
+                                              tipoBgClass
+                                            )}
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               setSelectedDate(day);
@@ -1320,12 +1360,29 @@ onOpenChange={(open) => {
                     </table>
                   </div>
                   <div className="flex flex-wrap gap-6 mt-6 pt-4 border-t">
-                    {Object.entries(STATUS_LABEL).map(([k, v]) => (
-                      <div key={k} className="flex items-center gap-2">
-                        <span className={`h-2.5 w-2.5 rounded-full ${STATUS_BADGE_CLASS[k] ?? "bg-gray-500"}`} />
-                        <span className="text-sm text-muted-foreground">{v}</span>
-                      </div>
-                    ))}
+                    <div className="flex flex-wrap gap-6">
+                      <span className="text-sm font-medium text-muted-foreground">Tipo:</span>
+                      {Object.entries(TIPO_ORGAO_LABEL).map(([k, v]) => (
+                        <div key={k} className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "h-2.5 w-2.5 rounded-full",
+                              TIPO_ORGAO_BADGE_CLASS[k as TipoOrgaoReuniao].split(" ")[0]
+                            )}
+                          />
+                          <span className="text-sm text-muted-foreground">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-6 ml-4 pl-4 border-l">
+                      <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                      {Object.entries(STATUS_LABEL).map(([k, v]) => (
+                        <div key={k} className="flex items-center gap-2">
+                          <span className={`h-2.5 w-2.5 rounded-full ${STATUS_BADGE_CLASS[k] ?? "bg-gray-500"}`} />
+                          <span className="text-sm text-muted-foreground">{v}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}

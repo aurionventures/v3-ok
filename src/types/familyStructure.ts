@@ -50,10 +50,28 @@ export interface FamilyMember {
   companies: FamilyMemberCompany[];
 }
 
-/** Dados para inserir/atualizar no banco */
+/** Dados para inserir no banco */
 export interface FamilyMemberInsert {
   empresa_id: string;
   nome: string;
+  parentesco?: string | null;
+  idade?: number | null;
+  geracao?: string | null;
+  papel?: string | null;
+  envolvimento?: string | null;
+  status?: string | null;
+  imagem_url?: string | null;
+  participacao_societaria?: string | null;
+  formacao?: string | null;
+  experiencia?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  empresas?: FamilyMemberCompany[] | null;
+}
+
+/** Dados para atualizar no banco */
+export interface FamilyMemberUpdate {
+  nome?: string;
   parentesco?: string | null;
   idade?: number | null;
   geracao?: string | null;

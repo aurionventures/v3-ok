@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -14,6 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +42,7 @@ import { Plus, Upload, Mail, History, ChevronDown, Loader2, FileText } from "luc
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useEmpresas } from "@/hooks/useEmpresas";
+import { useFamilyMembers } from "@/hooks/useFamilyMembers";
 import { useEntrevistas } from "@/hooks/useEntrevistas";
 import type { Entrevista } from "@/types/entrevistas";
 
@@ -45,6 +58,7 @@ const Entrevistas = () => {
   const [transcricaoView, setTranscricaoView] = useState<Entrevista | null>(null);
 
   const [novoNome, setNovoNome] = useState("");
+  const [nomeComboboxOpen, setNomeComboboxOpen] = useState(false);
   const [novoPapel, setNovoPapel] = useState("");
   const [novaPrioridade, setNovaPrioridade] = useState<Prioridade>("Média");
 
@@ -63,6 +77,7 @@ const Entrevistas = () => {
 
   const { empresas, isLoading: loadingEmpresas, firstEmpresaId } = useEmpresas();
   const empresaId = firstEmpresaId;
+  const { members: familyMembers } = useFamilyMembers(empresaId);
   const {
     entrevistas,
     isLoading,
@@ -77,6 +92,12 @@ const Entrevistas = () => {
   const agendadas = entrevistas.filter((e) => e.status === "agendada").length;
   const pendentes = entrevistas.filter((e) => e.status === "pendente").length;
   const comTranscricao = entrevistas.filter((e) => e.transcricao).length;
+
+  const filteredFamilyMembers = useMemo(() => {
+    const term = novoNome.toLowerCase().trim();
+    if (!term) return familyMembers;
+    return familyMembers.filter((m) => m.name.toLowerCase().includes(term));
+  }, [familyMembers, novoNome]);
 
   const historicoFiltrado = useMemo(() => {
     let list = [...entrevistas];
@@ -197,12 +218,72 @@ const Entrevistas = () => {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div className="space-y-2">
                       <Label htmlFor="nome">Nome do Entrevistado</Label>
-                      <Input
-                        id="nome"
-                        placeholder="Digite o nome"
-                        value={novoNome}
-                        onChange={(e) => setNovoNome(e.target.value)}
-                      />
+                      <Popover open={nomeComboboxOpen} onOpenChange={setNomeComboboxOpen}>
+                        <PopoverTrigger asChild>
+                          <div role="combobox" aria-expanded={nomeComboboxOpen} className="flex">
+                            <Input
+                              id="nome"
+                              placeholder="Selecione da estrutura societária ou digite o nome"
+                              value={novoNome}
+                              onChange={(e) => setNovoNome(e.target.value)}
+                              onFocus={() => setNomeComboboxOpen(true)}
+                            />
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-[var(--radix-popover-trigger-width)] p-0"
+                          align="start"
+                          onOpenAutoFocus={(e) => e.preventDefault()}
+                        >
+                          <Command shouldFilter={false}>
+                            <CommandList>
+                              {filteredFamilyMembers.length > 0 && (
+                                <CommandGroup heading="Estrutura Societária">
+                                  {filteredFamilyMembers.map((member) => (
+                                    <CommandItem
+                                      key={member.id}
+                                      value={member.name}
+                                      onSelect={() => {
+                                        setNovoNome(member.name);
+                                        if (member.role && PAPEIS.includes(member.role)) {
+                                          setNovoPapel(member.role);
+                                        } else if (member.role) {
+                                          setNovoPapel("Outro");
+                                        }
+                                        setNomeComboboxOpen(false);
+                                      }}
+                                    >
+                                      {member.name}
+                                      {member.role && (
+                                        <span className="ml-2 text-muted-foreground text-xs">
+                                          ({member.role})
+                                        </span>
+                                      )}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              {novoNome.trim() && (
+                                <CommandGroup>
+                                  <CommandItem
+                                    value={`__new__${novoNome}`}
+                                    onSelect={() => setNomeComboboxOpen(false)}
+                                    className={filteredFamilyMembers.length > 0 ? "border-t" : ""}
+                                  >
+                                    Usar &quot;{novoNome}&quot; como novo entrevistado
+                                  </CommandItem>
+                                </CommandGroup>
+                              )}
+                              {filteredFamilyMembers.length === 0 && !novoNome.trim() && (
+                                <div className="py-6 px-2 text-center text-sm text-muted-foreground">
+                                  Digite para buscar na estrutura societária ou cadastrar novo
+                                  entrevistado
+                                </div>
+                              )}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div className="space-y-2">
                       <Label>Papel/Cargo/Função</Label>
@@ -437,6 +518,40 @@ const Entrevistas = () => {
                 </TabsContent>
 
                 <TabsContent value="historico" className="mt-0">
+                  {entrevistas.length > 0 && (
+                    <Card className="mb-6">
+                      <CardContent className="p-4">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                          Lista de Entrevistados da Agenda ({entrevistas.length})
+                        </h3>
+                        <ul className="space-y-1.5">
+                          {entrevistas.map((e) => (
+                            <li
+                              key={e.id}
+                              className="flex items-center gap-2 text-sm py-1.5 px-2 rounded-md hover:bg-muted/50"
+                            >
+                              <span className="font-medium">{e.nome}</span>
+                              {e.papel && (
+                                <span className="text-muted-foreground">– {e.papel}</span>
+                              )}
+                              <Badge
+                                variant={
+                                  e.status === "realizada"
+                                    ? "default"
+                                    : e.status === "agendada"
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                                className="ml-auto text-xs"
+                              >
+                                {e.status}
+                              </Badge>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
                   <Collapsible open={filtrosOpen} onOpenChange={setFiltrosOpen}>
                     <CollapsibleTrigger asChild>
                       <button className="flex items-center gap-2 text-sm font-medium text-foreground mb-4">

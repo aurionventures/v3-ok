@@ -111,6 +111,55 @@ function parseInsightsResponse(raw: string): InsightsEstrategicosResult | null {
 }
 
 /**
+ * Busca insights para membros via Edge Function server-side.
+ * Evita Invalid JWT ao usar service role no servidor.
+ */
+export async function fetchInsightsEstrategicosMember(
+  empresaId: string,
+  accessToken: string
+): Promise<InsightsEstrategicosResult> {
+  const empty: InsightsEstrategicosResult = {
+    riscos: [],
+    ameacas: [],
+    oportunidades: [],
+    resumo: "",
+  };
+
+  try {
+    const { data, error } = await invokeEdgeFunction<{
+      insights?: string;
+      raw?: string;
+      resultado?: string;
+      error?: string;
+    }>(
+      "member-insights-estrategicos",
+      { empresa_id: empresaId, access_token: accessToken },
+      { useAnonKey: true }
+    );
+
+    if (error) {
+      return { ...empty, error: error.message };
+    }
+
+    const rawResult = data?.insights ?? data?.raw ?? data?.resultado ?? "";
+    if (rawResult.toLowerCase().includes("openai_api_key") || rawResult.includes("Configure")) {
+      return {
+        ...empty,
+        error:
+          "Configure OPENAI_API_KEY no Supabase (Project Settings → Edge Functions → Secrets) para gerar insights com IA.",
+      };
+    }
+    const parsed = parseInsightsResponse(rawResult);
+    if (parsed) return parsed;
+
+    return empty;
+  } catch (err) {
+    console.error("[insightsEstrategicos] fetchMember:", err);
+    return { ...empty, error: err instanceof Error ? err.message : "Erro ao buscar insights" };
+  }
+}
+
+/**
  * Busca insights estratégicos com dados reais da empresa (indicadores, atas, riscos).
  * Usa o agente-insights-estrategicos para gerar riscos, ameaças e oportunidades.
  */
@@ -198,7 +247,8 @@ export async function fetchInsightsEstrategicos(
 
     const { data, error } = await invokeEdgeFunction<{ insights?: string; raw?: string; error?: string }>(
       "agente-insights-estrategicos",
-      { input }
+      { input },
+      { useAnonKey: true }
     );
 
     if (error) {

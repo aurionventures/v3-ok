@@ -42,7 +42,19 @@ import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { useEmpresas } from "@/hooks/useEmpresas";
+import { useFamilyMembers } from "@/hooks/useFamilyMembers";
 import { useGovernance } from "@/hooks/useGovernance";
 import type { OrgaoGovernanca } from "@/types/governance";
 
@@ -82,6 +94,7 @@ const Councils = () => {
   const [comissaoNivel, setComissaoNivel] = useState("");
 
   const [membroOpen, setMembroOpen] = useState(false);
+  const [membroNomeComboboxOpen, setMembroNomeComboboxOpen] = useState(false);
   const [membroNome, setMembroNome] = useState("");
   const [membroCargo, setMembroCargo] = useState("");
   const [membroEmail, setMembroEmail] = useState("");
@@ -107,6 +120,12 @@ const Councils = () => {
 
   const { empresas, firstEmpresaId } = useEmpresas();
   const empresaId = firstEmpresaId;
+  const { members: familyMembers } = useFamilyMembers(empresaId);
+  const filteredFamilyMembersForMembro = React.useMemo(() => {
+    const term = membroNome.toLowerCase().trim();
+    if (!term) return familyMembers;
+    return familyMembers.filter((m) => m.name.toLowerCase().includes(term));
+  }, [familyMembers, membroNome]);
   const {
     conselhos,
     comites,
@@ -696,7 +715,13 @@ const Councils = () => {
 
                   <TabsContent value="members">
                     <div className="flex justify-end mb-4">
-                      <Dialog open={membroOpen} onOpenChange={setMembroOpen}>
+                      <Dialog
+                        open={membroOpen}
+                        onOpenChange={(open) => {
+                          setMembroOpen(open);
+                          if (!open) setMembroNomeComboboxOpen(false);
+                        }}
+                      >
                         <DialogTrigger asChild>
                           <Button className="shrink-0">
                             <Plus className="mr-2 h-4 w-4" /> Criar Membro
@@ -712,7 +737,79 @@ const Councils = () => {
                           <div className="grid gap-4 py-4">
                             <div className="space-y-2">
                               <Label>Nome</Label>
-                              <Input value={membroNome} onChange={(e) => setMembroNome(e.target.value)} />
+                              <Popover
+                                open={membroNomeComboboxOpen}
+                                onOpenChange={setMembroNomeComboboxOpen}
+                              >
+                                <PopoverTrigger asChild>
+                                  <div
+                                    role="combobox"
+                                    aria-expanded={membroNomeComboboxOpen}
+                                    className="flex"
+                                  >
+                                    <Input
+                                      placeholder="Selecione da estrutura societária ou digite para cadastrar novo"
+                                      value={membroNome}
+                                      onChange={(e) => setMembroNome(e.target.value)}
+                                      onFocus={() => setMembroNomeComboboxOpen(true)}
+                                    />
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                  className="w-[var(--radix-popover-trigger-width)] p-0"
+                                  align="start"
+                                  onOpenAutoFocus={(e) => e.preventDefault()}
+                                >
+                                  <Command shouldFilter={false}>
+                                    <CommandList>
+                                      {filteredFamilyMembersForMembro.length > 0 && (
+                                        <CommandGroup heading="Estrutura Societária">
+                                          {filteredFamilyMembersForMembro.map((member) => (
+                                            <CommandItem
+                                              key={member.id}
+                                              value={member.name}
+                                              onSelect={() => {
+                                                setMembroNome(member.name);
+                                                if (member.role) setMembroCargo(member.role);
+                                                setMembroNomeComboboxOpen(false);
+                                              }}
+                                            >
+                                              {member.name}
+                                              {member.role && (
+                                                <span className="ml-2 text-muted-foreground text-xs">
+                                                  ({member.role})
+                                                </span>
+                                              )}
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      )}
+                                      {membroNome.trim() && (
+                                        <CommandGroup>
+                                          <CommandItem
+                                            value={`__new__${membroNome}`}
+                                            onSelect={() => setMembroNomeComboboxOpen(false)}
+                                            className={
+                                              filteredFamilyMembersForMembro.length > 0
+                                                ? "border-t"
+                                                : ""
+                                            }
+                                          >
+                                            Usar &quot;{membroNome}&quot; como novo membro
+                                          </CommandItem>
+                                        </CommandGroup>
+                                      )}
+                                      {filteredFamilyMembersForMembro.length === 0 &&
+                                        !membroNome.trim() && (
+                                          <div className="py-6 px-2 text-center text-sm text-muted-foreground">
+                                            Digite para buscar na estrutura societária ou cadastrar
+                                            novo membro
+                                          </div>
+                                        )}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                             </div>
                             <div className="space-y-2">
                               <Label>Cargo Principal</Label>

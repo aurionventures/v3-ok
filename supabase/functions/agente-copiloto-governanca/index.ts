@@ -211,15 +211,50 @@ async function fetchContext(supabase: ReturnType<typeof createClient>, empresaId
   };
 }
 
-function parseJsonResponse(raw: string): unknown {
-  const trimmed = raw.trim();
-  let jsonStr = trimmed;
+/** Extrai o primeiro objeto JSON completo, ignorando texto antes/depois (ex.: explicações da IA). */
+function extractFirstJson(str: string): string {
+  const trimmed = str.trim();
+  let candidate = trimmed;
   const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (jsonMatch) jsonStr = jsonMatch[1].trim();
-  else {
-    const braceStart = trimmed.indexOf("{");
-    if (braceStart >= 0) jsonStr = trimmed.slice(braceStart);
+  if (jsonMatch) candidate = jsonMatch[1].trim();
+  const braceStart = candidate.indexOf("{");
+  if (braceStart < 0) throw new Error("Nenhum objeto JSON encontrado na resposta");
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  let quote = "";
+  for (let i = braceStart; i < candidate.length; i++) {
+    const c = candidate[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if ((c === '"' || c === "'") && !inString) {
+      inString = true;
+      quote = c;
+      continue;
+    }
+    if (c === quote && inString) {
+      inString = false;
+      continue;
+    }
+    if (c === "\\" && inString) {
+      escape = true;
+      continue;
+    }
+    if (!inString) {
+      if (c === "{") depth++;
+      if (c === "}") {
+        depth--;
+        if (depth === 0) return candidate.slice(braceStart, i + 1);
+      }
+    }
   }
+  throw new Error("Objeto JSON incompleto na resposta");
+}
+
+function parseJsonResponse(raw: string): unknown {
+  const jsonStr = extractFirstJson(raw);
   return JSON.parse(jsonStr);
 }
 

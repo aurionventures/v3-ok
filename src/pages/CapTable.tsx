@@ -19,6 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -40,12 +51,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "@/hooks/use-toast";
 import { useEmpresas } from "@/hooks/useEmpresas";
+import { useFamilyMembers } from "@/hooks/useFamilyMembers";
 import { useCapTable } from "@/hooks/useCapTable";
 import type { CapTableShareholder } from "@/types/capTable";
 
@@ -66,13 +85,22 @@ const CapTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [participanteComboboxOpen, setParticipanteComboboxOpen] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
+  const [shareholderToView, setShareholderToView] = useState<CapTableShareholder | null>(null);
   const [shareholderToDelete, setShareholderToDelete] = useState<CapTableShareholder | null>(null);
 
   const { empresas, isLoading: loadingEmpresas, firstEmpresaId } = useEmpresas();
   const empresaId = firstEmpresaId;
+  const { members: familyMembers } = useFamilyMembers(empresaId);
   const { shareholders, isLoading, insertEntry, insertLoading, deleteEntry } =
     useCapTable(empresaId);
+
+  const filteredFamilyMembers = useMemo(() => {
+    const term = form.participante.toLowerCase().trim();
+    if (!term) return familyMembers;
+    return familyMembers.filter((m) => m.name.toLowerCase().includes(term));
+  }, [familyMembers, form.participante]);
 
   const filteredShareholders = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -153,6 +181,8 @@ const CapTable = () => {
     setIsAddOpen(false);
     setForm(INITIAL_FORM);
   };
+
+  const handleViewDetails = (s: CapTableShareholder) => setShareholderToView(s);
 
   const handleDeleteClick = (s: CapTableShareholder) => setShareholderToDelete(s);
 
@@ -409,7 +439,12 @@ const CapTable = () => {
                                 <TableCell>R$ {s.value.toLocaleString()}</TableCell>
                                 <TableCell>
                                   <div className="flex gap-1">
-                                    <Button variant="ghost" size="sm" title="Visualizar">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      title="Visualizar"
+                                      onClick={() => handleViewDetails(s)}
+                                    >
                                       <Eye className="h-4 w-4" />
                                     </Button>
                                     <Button variant="ghost" size="sm" title="Editar">
@@ -440,7 +475,13 @@ const CapTable = () => {
       </main>
 
       {/* Dialog Cadastrar Participante */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Dialog
+        open={isAddOpen}
+        onOpenChange={(open) => {
+          setIsAddOpen(open);
+          if (!open) setParticipanteComboboxOpen(false);
+        }}
+      >
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>Cadastrar Participante</DialogTitle>
@@ -451,12 +492,73 @@ const CapTable = () => {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="participante">Nome / Razão Social</Label>
-              <Input
-                id="participante"
-                placeholder="Ex: João Silva (Fundador)"
-                value={form.participante}
-                onChange={(e) => handleFormChange("participante", e.target.value)}
-              />
+              <Popover open={participanteComboboxOpen} onOpenChange={setParticipanteComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <div
+                    role="combobox"
+                    aria-expanded={participanteComboboxOpen}
+                    className="flex"
+                  >
+                    <Input
+                      id="participante"
+                      placeholder="Ex: João Silva (Fundador)"
+                      value={form.participante}
+                      onChange={(e) => handleFormChange("participante", e.target.value)}
+                      onFocus={() => setParticipanteComboboxOpen(true)}
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[var(--radix-popover-trigger-width)] p-0"
+                  align="start"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <Command shouldFilter={false}>
+                    <CommandList>
+                      {filteredFamilyMembers.length > 0 && (
+                        <CommandGroup heading="Estrutura Societária">
+                          {filteredFamilyMembers.map((member) => (
+                            <CommandItem
+                              key={member.id}
+                              value={member.name}
+                              onSelect={() => {
+                                handleFormChange("participante", member.name);
+                                setParticipanteComboboxOpen(false);
+                              }}
+                            >
+                              {member.name}
+                              {member.role && (
+                                <span className="ml-2 text-muted-foreground text-xs">
+                                  ({member.role})
+                                </span>
+                              )}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                      {form.participante.trim() && (
+                        <CommandGroup>
+                          <CommandItem
+                            value={`__new__${form.participante}`}
+                            onSelect={() => setParticipanteComboboxOpen(false)}
+                            className={filteredFamilyMembers.length > 0 ? "border-t" : ""}
+                          >
+                            Usar &quot;{form.participante}&quot; como novo participante
+                          </CommandItem>
+                        </CommandGroup>
+                      )}
+                      {filteredFamilyMembers.length === 0 && !form.participante.trim() && (
+                        <div className="py-6 px-2 text-center text-sm text-muted-foreground">
+                          Digite para buscar na estrutura societária ou cadastrar novo participante
+                        </div>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <p className="text-xs text-muted-foreground">
+                Selecione da estrutura societária ou digite para cadastrar um novo participante
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -557,6 +659,82 @@ const CapTable = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Sheet Detalhes do Participante */}
+      <Sheet
+        open={!!shareholderToView}
+        onOpenChange={(open) => !open && setShareholderToView(null)}
+      >
+        <SheetContent className="sm:max-w-[480px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Detalhes do Participante</SheetTitle>
+            <SheetDescription>
+              Informações completas da participação societária
+            </SheetDescription>
+          </SheetHeader>
+          {shareholderToView && (
+            <div className="py-6 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Building2 className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{shareholderToView.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">{shareholderToView.type}</Badge>
+                    {shareholderToView.family && (
+                      <Badge variant="secondary">Família</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">Participação</h4>
+                  <p className="text-lg font-semibold">{shareholderToView.percentage}%</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Quotas / Ações
+                  </h4>
+                  <p>{shareholderToView.shares.toLocaleString("pt-BR")}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Data de Entrada
+                  </h4>
+                  <p>
+                    {new Date(shareholderToView.entryDate).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Tipo de Aquisição
+                  </h4>
+                  <Badge variant="outline">{shareholderToView.acquisitionType}</Badge>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">Valor (R$)</h4>
+                  <p className="text-xl font-semibold text-legacy-500">
+                    {shareholderToView.value.toLocaleString("pt-BR")}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShareholderToView(null)}
+                className="w-full"
+              >
+                Fechar
+              </Button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* AlertDialog Excluir */}
       <AlertDialog

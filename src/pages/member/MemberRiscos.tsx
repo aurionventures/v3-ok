@@ -6,9 +6,21 @@ import { Shield, AlertTriangle, TrendingUp, RefreshCw, Loader2 } from "lucide-re
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 import { useInsightsEstrategicos } from "@/hooks/useInsightsEstrategicos";
 import { InsightCard } from "@/components/copilot/InsightCard";
+import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
 
 const MemberRiscos = () => {
   const { data: membro } = useCurrentMembro();
+  const { data: session } = useQuery({
+    queryKey: ["member", "session"],
+    queryFn: async () => {
+      if (!supabase) return null;
+      const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+    enabled: true,
+  });
+
   const {
     riscos,
     ameacas,
@@ -20,6 +32,7 @@ const MemberRiscos = () => {
   } = useInsightsEstrategicos({
     empresaId: membro?.empresa_id ?? null,
     autoFetch: true,
+    accessToken: session?.access_token ?? null,
   });
 
   const handleRefresh = () => {
@@ -62,6 +75,11 @@ const MemberRiscos = () => {
           <Card>
             <CardContent className="pt-6 text-sm text-destructive">
               {error}
+              {error === "Invalid JWT" && (
+                <p className="mt-2 text-muted-foreground">
+                  Faça logout e entre novamente para atualizar sua sessão.
+                </p>
+              )}
             </CardContent>
           </Card>
         ) : isLoading ? (

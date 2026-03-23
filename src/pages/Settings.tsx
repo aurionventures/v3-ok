@@ -92,7 +92,9 @@ function gerarSenhaAleatoria(len = 10): string {
 
 const Settings = () => {
   const { firstEmpresaId } = useEmpresas();
-  const { nome: profileNome, email: profileEmail, role: profileRole } = useCurrentAdminProfile();
+  const { nome: profileNome, email: profileEmail, role: profileRole, empresaId: profileEmpresaId } = useCurrentAdminProfile();
+  /** Para ADM Cliente: usa empresa_id do perfil (autoritativo); fallback para firstEmpresaId */
+  const clientEmpresaId = profileEmpresaId ?? firstEmpresaId;
 
   const [activeTab, setActiveTab] = useState("general");
   const [ataSubTab, setAtaSubTab] = useState<"simplificado" | "editor">("simplificado");
@@ -109,7 +111,7 @@ const Settings = () => {
     setAccessLogsLoading(true);
     const { logs, error } = await fetchAccessLogs({
       limite: 200,
-      empresa_id: firstEmpresaId,
+      empresa_id: clientEmpresaId ?? firstEmpresaId,
     });
     setAccessLogsLoading(false);
     if (error) {
@@ -117,7 +119,7 @@ const Settings = () => {
       return;
     }
     setAccessLogs(logs);
-  }, [firstEmpresaId]);
+  }, [clientEmpresaId, firstEmpresaId]);
 
   useEffect(() => {
     if (activeTab === "logs") loadAccessLogs();
@@ -148,15 +150,15 @@ const Settings = () => {
         setAtaConfigLoading(false);
         setPromptEditor(prompt);
       });
-    } else if (isClientAdm && firstEmpresaId) {
-      fetchPromptPautaAta(firstEmpresaId).then(({ prompt }) => {
+    } else if (isClientAdm && clientEmpresaId) {
+      fetchPromptPautaAta(clientEmpresaId).then(({ prompt }) => {
         setAtaConfigLoading(false);
         setPromptEditor(prompt);
       });
     } else {
       setAtaConfigLoading(false);
     }
-  }, [activeTab, firstEmpresaId, isSuperAdm, isClientAdm]);
+  }, [activeTab, clientEmpresaId, isSuperAdm, isClientAdm]);
 
   const handleTemplateSelect = (t: (typeof TEMPLATES_ATA)[number]) => {
     setTomVoz(t.tom);
@@ -179,12 +181,12 @@ const Settings = () => {
       });
       return;
     }
-    if (!firstEmpresaId) {
+    if (!clientEmpresaId) {
       toast({ title: "Empresa não disponível", variant: "destructive" });
       return;
     }
     setAtaConfigSaving(true);
-    const { error } = await upsertPromptPautaAta(firstEmpresaId, promptToSave);
+    const { error } = await upsertPromptPautaAta(clientEmpresaId, promptToSave);
     setAtaConfigSaving(false);
     if (error) {
       toast({ title: "Erro ao salvar configuração", description: error, variant: "destructive" });
@@ -258,7 +260,7 @@ const Settings = () => {
     const nome = empresaAdmNome.trim();
     const email = empresaAdmEmail.trim().toLowerCase();
     const senha = empresaAdmSenha;
-    if (!firstEmpresaId) {
+    if (!clientEmpresaId) {
       toast({ title: "Empresa não disponível", variant: "destructive" });
       return;
     }
@@ -276,7 +278,7 @@ const Settings = () => {
     }
     setEmpresaAdmLoading(true);
     const { data, error } = await insertEmpresaAdm({
-      empresa_id: firstEmpresaId,
+      empresa_id: clientEmpresaId,
       nome,
       email,
       senha_provisoria: senha,
@@ -486,7 +488,7 @@ const Settings = () => {
                       </div>
                     )}
 
-                    {isCompanyAdm() && firstEmpresaId && (
+                    {isCompanyAdm() && clientEmpresaId && (
                       <div className="pt-6 border-t">
                         <h3 className="text-lg font-medium mb-4">Cadastrar novo ADM do cliente</h3>
                         <p className="text-sm text-muted-foreground mb-4">
@@ -717,7 +719,7 @@ const Settings = () => {
 
                     <Button
                       onClick={handleSaveAtaConfig}
-                      disabled={ataConfigSaving || (!isSuperAdm && !firstEmpresaId)}
+                      disabled={ataConfigSaving || (!isSuperAdm && !clientEmpresaId)}
                     >
                       {ataConfigSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       {isSuperAdm ? "Salvar Prompt Padrão" : "Salvar Configuração de ATA"}

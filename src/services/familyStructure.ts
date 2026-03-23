@@ -1,5 +1,10 @@
 import { supabase } from "@/lib/supabase";
-import type { FamilyMember, FamilyMemberInsert, FamilyMemberRow } from "@/types/familyStructure";
+import type {
+  FamilyMember,
+  FamilyMemberInsert,
+  FamilyMemberRow,
+  FamilyMemberUpdate,
+} from "@/types/familyStructure";
 
 function rowToMember(row: FamilyMemberRow): FamilyMember {
   return {
@@ -70,6 +75,46 @@ export async function insertFamilyMember(
 
   if (error) {
     console.error("[familyStructure] insertFamilyMember:", error);
+    return { data: null, error: error.message };
+  }
+
+  return { data: data ? rowToMember(data as FamilyMemberRow) : null, error: null };
+}
+
+export async function updateFamilyMember(
+  id: string,
+  payload: FamilyMemberUpdate
+): Promise<{ data: FamilyMember | null; error: string | null }> {
+  if (!supabase) {
+    return { data: null, error: "Supabase não configurado" };
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (payload.nome !== undefined) updates.nome = payload.nome;
+  if (payload.parentesco !== undefined) updates.parentesco = payload.parentesco;
+  if (payload.idade !== undefined) updates.idade = payload.idade;
+  if (payload.geracao !== undefined) updates.geracao = payload.geracao;
+  if (payload.papel !== undefined) updates.papel = payload.papel;
+  if (payload.envolvimento !== undefined) updates.envolvimento = payload.envolvimento;
+  if (payload.status !== undefined) updates.status = payload.status;
+  if (payload.imagem_url !== undefined) updates.imagem_url = payload.imagem_url;
+  if (payload.participacao_societaria !== undefined)
+    updates.participacao_societaria = payload.participacao_societaria;
+  if (payload.formacao !== undefined) updates.formacao = payload.formacao;
+  if (payload.experiencia !== undefined) updates.experiencia = payload.experiencia;
+  if (payload.email !== undefined) updates.email = payload.email;
+  if (payload.telefone !== undefined) updates.telefone = payload.telefone;
+  if (payload.empresas !== undefined) updates.empresas = payload.empresas;
+
+  const { data, error } = await supabase
+    .from("estrutura_familiar")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("[familyStructure] updateFamilyMember:", error);
     return { data: null, error: error.message };
   }
 

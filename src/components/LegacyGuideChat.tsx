@@ -70,11 +70,14 @@ function findResponse(userText: string): { text: string; links: { href: string; 
     if (normalized.includes(keyNorm) || keyNorm.includes(normalized)) return value;
   }
   return {
-    text: "Não encontrei uma resposta exata. Tente perguntar: 'Por onde começar?', 'Como configuro a governança?' ou 'Como gero uma pauta ou ATA?'",
+    text: "Olá, sou o Guia Legacy, e irei te guiar no uso da plataforma. Abaixo as opções para começar.",
     links: [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/copiloto-governanca", label: "Copiloto de IA" },
+      { href: "/family-structure", label: "Estrutura Societária" },
+      { href: "/documents", label: "Checklist de Documentos" },
+      { href: "/councils", label: "Config. de Governança" },
+      { href: "/agenda", label: "Agenda" },
       { href: "/secretariado", label: "Secretariado" },
+      { href: "/copiloto-governanca", label: "Copiloto de IA" },
     ],
   };
 }

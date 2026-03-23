@@ -7,6 +7,8 @@ export interface CurrentAdminProfile {
   nome: string;
   email: string;
   role: string;
+  /** empresa_id do perfil (apenas para ADM de empresa) */
+  empresaId: string | null;
   loading: boolean;
 }
 
@@ -21,6 +23,7 @@ export function useCurrentAdminProfile(): CurrentAdminProfile {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
+  const [empresaId, setEmpresaId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -30,6 +33,7 @@ export function useCurrentAdminProfile(): CurrentAdminProfile {
       setNome("");
       setEmail("");
       setRole("");
+      setEmpresaId(null);
       setLoading(false);
       return;
     }
@@ -38,6 +42,7 @@ export function useCurrentAdminProfile(): CurrentAdminProfile {
 
     if (isAdminRoute) {
       const perfil = await fetchPerfilSuperAdminByUserId(session.user.id);
+      setEmpresaId(null);
       if (perfil) {
         setNome(perfil.nome ?? "Super Admin");
         setEmail(perfil.email ?? userEmail);
@@ -57,10 +62,12 @@ export function useCurrentAdminProfile(): CurrentAdminProfile {
         setNome(perfil.nome ?? "Administrador");
         setEmail(perfil.email ?? userEmail);
         setRole(perfil.role ?? "ADM Empresa");
+        setEmpresaId(perfil.empresa_id ?? null);
       } else {
         setNome("Administrador");
         setEmail(userEmail);
         setRole("ADM Empresa");
+        setEmpresaId(null);
       }
     }
     setLoading(false);
@@ -70,5 +77,5 @@ export function useCurrentAdminProfile(): CurrentAdminProfile {
     load();
   }, [load]);
 
-  return { nome, email, role, loading };
+  return { nome, email, role, empresaId, loading };
 }

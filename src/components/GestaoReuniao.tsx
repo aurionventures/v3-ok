@@ -57,7 +57,9 @@ import {
   insertTarefa,
   deleteTarefa,
 } from "@/services/gestaoReuniao";
+import { useQueryClient } from "@tanstack/react-query";
 import { updateReuniaoStatus, fetchConvidadosPorReuniao } from "@/services/agenda";
+import { AGENDA_QUERY_KEY } from "@/hooks/useAgenda";
 import { fetchPromptPautaAta } from "@/services/promptsConfig";
 import { invokeEdgeFunction } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -126,6 +128,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   onGerarAtaIA,
   empresaId,
 }) => {
+  const queryClient = useQueryClient();
   const r = reuniao as ReuniaoEnriquecida | null;
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
   const [agendaTitulo, setAgendaTitulo] = useState("");
@@ -161,6 +164,8 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   const inputDocumentosRef = useRef<HTMLInputElement>(null);
   const inputGravacaoRef = useRef<HTMLInputElement>(null);
   const inputAtaRef = useRef<HTMLInputElement>(null);
+  const reuniaoIdRef = useRef<string | null>(null);
+  reuniaoIdRef.current = r?.id ?? null;
 
   const titulo = r?.titulo || (r as ReuniaoEnriquecida)?.conselho_nome || (r as ReuniaoEnriquecida)?.comite_nome || (r as ReuniaoEnriquecida)?.comissao_nome || "Reunião";
   const dataReuniao = r?.data_reuniao ? new Date(r.data_reuniao) : null;
@@ -181,12 +186,14 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
       setParticipantes([]);
       return;
     }
+    const reuniaoIdAtual = r.id;
     fetchMembrosPorReuniao(empresaId, {
       conselho_id: rr.conselho_id,
       comite_id: rr.comite_id,
       comissao_id: rr.comissao_id,
       virtual_tipo: virtualTipo,
     }).then((membros) => {
+      if (reuniaoIdAtual !== reuniaoIdRef.current) return;
       setParticipantes(membros.map((m) => ({
         id: m.id,
         nome: m.nome,
@@ -197,18 +204,47 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     });
   }, [open, empresaId, r]);
 
+  const resetTodosCampos = () => {
+    setAgendaItems([]);
+    setAgendaTitulo("");
+    setAgendaDescricao("");
+    setAgendaApresentador("");
+    setAgendaDuracao(30);
+    setAgendaTipo("informativo");
+    setDocumentosCount(0);
+    setGravacaoEnviada(false);
+    setGravacaoArquivoNome(null);
+    setTranscricaoTexto("");
+    setGravacaoSalva(false);
+    setAtaEnviada(false);
+    setTarefas([]);
+    setTarefaNome("");
+    setTarefaResponsavel("");
+    setTarefaData("");
+    setAssuntosProxima("");
+    setAssuntosSalvos("");
+    setParticipantes([]);
+    setConvidados([]);
+    setStatusOverride(null);
+    setAtaGeradaTexto(null);
+    setAtaSalva(false);
+  };
+
   useEffect(() => {
     if (!open) {
-      setAtaGeradaTexto(null);
-      setAtaSalva(false);
-      setConvidados([]);
+      resetTodosCampos();
+      setParticipantes([]);
       return;
     }
+    resetTodosCampos();
     if (!r?.id) return;
-    fetchConvidadosPorReuniao(r.id).then(({ data: convData }) => {
+    const reuniaoId = r.id;
+    fetchConvidadosPorReuniao(reuniaoId).then(({ data: convData }) => {
+      if (reuniaoId !== reuniaoIdRef.current) return;
       setConvidados(convData);
     });
-    fetchAtas(r.id).then(({ data: atasData }) => {
+    fetchAtas(reuniaoId).then(({ data: atasData }) => {
+      if (reuniaoId !== reuniaoIdRef.current) return;
       if (atasData.length > 0) {
         setAtaSalva(true);
         setAtaGeradaTexto(atasData[0].conteudo ?? null);
@@ -216,7 +252,8 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
         setAtaSalva(false);
       }
     });
-    fetchPautas(r.id).then(({ data }) => {
+    fetchPautas(reuniaoId).then(({ data }) => {
+      if (reuniaoId !== reuniaoIdRef.current) return;
       setAgendaItems(
         data.map((p) => ({
           id: p.id,
@@ -228,7 +265,8 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
         }))
       );
     });
-    fetchTarefas(r.id).then(({ data }) => {
+    fetchTarefas(reuniaoId).then(({ data }) => {
+      if (reuniaoId !== reuniaoIdRef.current) return;
       setTarefas(
         data.map((t) => ({
           id: t.id,
@@ -239,7 +277,8 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
         }))
       );
     });
-    fetchGestao(r.id).then(({ data }) => {
+    fetchGestao(reuniaoId).then(({ data }) => {
+      if (reuniaoId !== reuniaoIdRef.current) return;
       if (data) {
         setDocumentosCount(data.documentos_count);
         setTranscricaoTexto(data.transcricao_texto ?? "");
@@ -440,10 +479,18 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     setAtaSalvando(true);
     const membroIds = participantes.map((p) => p.id);
     const { error } = await upsertAta(r.id, ataGeradaTexto, undefined, membroIds);
-    setAtaSalvando(false);
     if (error) {
+      setAtaSalvando(false);
       toast({ title: "Erro ao salvar", description: error, variant: "destructive" });
       return;
+    }
+    const { error: statusError } = await updateReuniaoStatus(r.id, "realizada");
+    setAtaSalvando(false);
+    if (statusError) {
+      toast({ title: "ATA salva", description: "Erro ao atualizar status da reunião.", variant: "destructive" });
+    } else {
+      setStatusOverride("realizada");
+      queryClient.invalidateQueries({ queryKey: AGENDA_QUERY_KEY });
     }
     setAtaSalva(true);
     toast({
@@ -462,6 +509,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
       return;
     }
     setStatusOverride("realizada");
+    queryClient.invalidateQueries({ queryKey: AGENDA_QUERY_KEY });
     toast({ title: "Status atualizado", description: "Reunião marcada como Realizada." });
   };
 

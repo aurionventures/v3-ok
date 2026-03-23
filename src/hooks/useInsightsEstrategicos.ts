@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import {
   fetchInsightsEstrategicos,
+  fetchInsightsEstrategicosMember,
   type InsightsEstrategicosResult,
 } from "@/services/insightsEstrategicos";
 
@@ -51,21 +52,28 @@ export interface UseInsightsEstrategicosOptions {
   empresaId?: string | null;
   /** Se true, busca automaticamente ao montar. Útil para members. ADM usa false e refetch manual. */
   autoFetch?: boolean;
+  /** Token de acesso do membro. Quando informado, usa Edge Function server-side (evita Invalid JWT). */
+  accessToken?: string | null;
 }
 
 export function useInsightsEstrategicos(options?: UseInsightsEstrategicosOptions) {
   const { firstEmpresaId } = useEmpresas();
   const empresaIdOverride = options?.empresaId;
   const autoFetch = options?.autoFetch ?? false;
+  const accessToken = options?.accessToken;
 
   const effectiveEmpresaId = empresaIdOverride ?? firstEmpresaId ?? null;
+  const useMemberFlow = !!accessToken && !!effectiveEmpresaId;
 
   const storedInitial = getStoredInsights(effectiveEmpresaId);
 
   const query = useQuery({
-    queryKey: [...INSIGHTS_ESTRATEGICOS_KEY, effectiveEmpresaId ?? "none"],
-    queryFn: () => fetchInsightsEstrategicos(effectiveEmpresaId),
-    enabled: !!effectiveEmpresaId && autoFetch,
+    queryKey: [...INSIGHTS_ESTRATEGICOS_KEY, effectiveEmpresaId ?? "none", useMemberFlow ? "member" : "adm"],
+    queryFn: () =>
+      useMemberFlow
+        ? fetchInsightsEstrategicosMember(effectiveEmpresaId!, accessToken!)
+        : fetchInsightsEstrategicos(effectiveEmpresaId),
+    enabled: !!effectiveEmpresaId && autoFetch && (!useMemberFlow || !!accessToken),
     staleTime: 1000 * 60 * 5,
     initialData: storedInitial ?? undefined,
   });
