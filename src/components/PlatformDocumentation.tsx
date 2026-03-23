@@ -352,7 +352,7 @@ Para mais informações sobre a Plataforma Legacy:
 
 Website: www.legacygovernance.com.br
 Email: contato@legacygovernance.com.br
-Telefone: +55 11 3000-0000
+Telefone: (11) 9999-9999
 Endereço: São Paulo, SP - Brasil
 
 Equipe Comercial: vendas@legacygovernance.com.br

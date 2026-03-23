@@ -84,7 +84,7 @@ const LandingCTA = () => {
                   <Label className="text-white/70 text-sm">Telefone</Label>
                   <Input
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                    placeholder="(11) 99999-9999"
+                    placeholder="(11) 9999-9999"
                     value={form.phone}
                     onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                   />

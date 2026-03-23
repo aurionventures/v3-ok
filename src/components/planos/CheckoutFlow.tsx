@@ -1,3 +1,20 @@
+/**
+ * CheckoutFlow - Fluxo de contratação de planos
+ *
+ * INSTRUÇÃO PARA FUTURA API DE PAGAMENTOS:
+ * Para habilitar checkout automático, implemente:
+ *
+ * 1. Gateway: Integre Stripe, PagSeguro, Asaas ou similar.
+ * 2. Step 2 (Forma de Pagamento): Substituir o botão "Falar com Especialista" por:
+ *    - Formulário de cartão (ou PIX/boleto)
+ *    - Chamada à API do gateway com: plan.planName, valorMensal, plan.setupFee, prazoMeses
+ * 3. 1ª Cobrança: cobrar primeiraCobranca (Setup + 1ª mensalidade) na aprovação
+ * 4. Recorrência: configurar cobrança mensal de valorMensal pelo prazoMeses
+ * 5. Sucesso: redirecionar para confirmação e ativar assinatura da empresa
+ *
+ * Dados disponíveis para envio: plan, valorMensal, valorTotalContrato, primeiraCobranca, prazoMeses
+ */
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, CreditCard, ShoppingCart, ArrowLeft, MessageCircle } from "lucide-react";
@@ -27,7 +44,7 @@ interface CheckoutFlowProps {
 
 export const CheckoutFlow = ({ plan, onClose }: CheckoutFlowProps) => {
   const [step, setStep] = useState<1 | 2>(1);
-  const [prazoMeses, setPrazoMeses] = useState(12);
+  const [prazoMeses, setPrazoMeses] = useState(plan.prazoMeses ?? 12);
 
   const discountMultiplier = prazoMeses === 12 ? 1 : prazoMeses === 24 ? 0.9 : 0.85;
   const valorMensal = Math.round(plan.monthlyPrice * discountMultiplier);
@@ -128,8 +145,12 @@ export const CheckoutFlow = ({ plan, onClose }: CheckoutFlowProps) => {
                   <CreditCard className="h-5 w-5" />
                   Forma de Pagamento
                 </h2>
+                {/* TODO: Integrar API de pagamento - ver JSDoc no início do arquivo */}
                 <p className="font-lato text-muted-foreground mb-6">
                   Em breve: integração com gateway de pagamento. Entre em contato com nosso especialista para concluir a contratação.
+                </p>
+                <p className="font-lato text-sm text-muted-foreground italic mb-6">
+                  [Área reservada para conectar API de pagamento – cartão, PIX ou boleto]
                 </p>
                 <Button
                   className="bg-green-600 hover:bg-green-700"

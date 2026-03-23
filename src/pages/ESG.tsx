@@ -264,7 +264,7 @@ const esgReportMockData = {
   responsavel: {
     nome: "Maria Souza",
     email: "maria.souza@exemplo.com",
-    telefone: "+55 11 98765-4321"
+    telefone: "(11) 9999-9999"
   }
 };
 

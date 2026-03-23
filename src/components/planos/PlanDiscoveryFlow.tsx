@@ -61,6 +61,7 @@ export interface CalculatedPlan {
   complexityPercent: number;
   description: string;
   monthlyPrice: number;
+  monthlyPriceDisplay: number;
   annualPrice: number;
   annualSavings: number;
   annualSavingsMonths: number;
@@ -93,8 +94,8 @@ function calculatePlan(form: DiscoveryFormData): CalculatedPlan {
   else if (complexity <= 7) percent = 65;
   else percent = 85;
   const label = percent <= 35 ? "BAIXA" : percent <= 55 ? "MODERADA" : percent <= 75 ? "ALTA" : "MUITO ALTA";
-  const planIndex = percent <= 35 ? 0 : percent <= 55 ? 1 : percent <= 75 ? 2 : 3;
-  const plano = planos[planIndex] ?? planos[planos.length - 1] ?? { name: "Business", description: "Ideal para sua empresa", valor: 7490 };
+  const planIndex = Math.min(percent <= 35 ? 0 : percent <= 55 ? 1 : percent <= 75 ? 2 : 3, planos.length - 1);
+  const plano = planos[Math.max(0, planIndex)] ?? planos[0] ?? { id: "1", name: "Essencial", description: "Plano básico", empresas: 1, usuarios: "∞", valor: 3490 };
   const monthlyPrice = plano.valor ?? 7490;
   const setupFee = monthlyPrice * 2;
   const discountMultiplier = prazoMeses === 12 ? 1 : prazoMeses === 24 ? 0.9 : 0.85;
@@ -102,6 +103,7 @@ function calculatePlan(form: DiscoveryFormData): CalculatedPlan {
   const annualPrice = valorMensalComDesconto * prazoMeses;
   const annualSavings = prazoMeses === 12 ? Math.round(monthlyPrice * 2) : Math.round(monthlyPrice * prazoMeses * (1 - discountMultiplier));
   const annualSavingsMonths = prazoMeses === 12 ? 2 : 0;
+  const monthlyPriceDisplay = prazoMeses === 12 ? monthlyPrice : valorMensalComDesconto;
   return {
     planName: plano.name,
     planSubtitle: plano.description ?? "Ideal para sua empresa",
@@ -109,7 +111,8 @@ function calculatePlan(form: DiscoveryFormData): CalculatedPlan {
     complexityLabel: label,
     complexityPercent: percent,
     description: `Sua empresa possui ${empresas} empresa(s), ${conselhos} conselho(s), com estimativa de ${reunioes} reuniões por ano. O plano ${plano.name} suporta até ${empresas} empresa(s) e usuários ilimitados, sendo ideal para sua governança.`,
-    monthlyPrice: prazoMeses === 12 ? monthlyPrice : valorMensalComDesconto,
+    monthlyPrice,
+    monthlyPriceDisplay,
     annualPrice,
     annualSavings,
     annualSavingsMonths,
@@ -383,15 +386,18 @@ export const PlanDiscoveryFlow = ({ open, onOpenChange, onContract }: PlanDiscov
                   </div>
                   <div>
                     <p className="font-lato text-sm text-muted-foreground">Mensal</p>
-                    <p className="font-montserrat text-2xl font-bold text-gray-900">{formatCurrency(result.monthlyPrice)} /mês</p>
+                    <p className="font-montserrat text-2xl font-bold text-gray-900">{formatCurrency(result.monthlyPriceDisplay)} /mês</p>
                   </div>
                   <div>
-                    <p className="font-lato text-sm text-muted-foreground">Anual</p>
-                    <p className="font-montserrat text-2xl font-bold text-gray-900">{formatCurrency(result.annualPrice)} /ano</p>
+                    <p className="font-lato text-sm text-muted-foreground">{result.prazoMeses === 12 ? "Anual" : `Valor (${result.prazoMeses} meses)`}</p>
+                    <p className="font-montserrat text-2xl font-bold text-gray-900">{formatCurrency(result.annualPrice)} {result.prazoMeses === 12 ? "/ano" : `/${result.prazoMeses} meses`}</p>
                   </div>
-                  <div className="rounded-full bg-green-600 text-white text-center py-2 px-3 text-sm font-medium">
-                    Economize {formatCurrency(result.annualSavings)} ({result.annualSavingsMonths} meses)
-                  </div>
+                  {result.annualSavings > 0 && (
+                    <div className="rounded-full bg-green-600 text-white text-center py-2 px-3 text-sm font-medium">
+                      Economize {formatCurrency(result.annualSavings)}
+                      {result.annualSavingsMonths > 0 ? ` (${result.annualSavingsMonths} meses)` : " com desconto"}
+                    </div>
+                  )}
                   <div>
                     <p className="font-lato text-sm text-muted-foreground">Taxa de Setup <span className="text-xs">Única vez</span></p>
                     <p className="font-montserrat font-bold text-gray-900">{formatCurrency(result.setupFee)}</p>
