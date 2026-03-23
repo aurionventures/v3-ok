@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Bot, Send, Sparkles, FileText, Download } from "lucide-react";
+import { Bot, Send, FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,17 +15,6 @@ import { buscarNasAtas } from "@/services/buscaAtas";
 import type { AtaComReuniao } from "@/services/atas";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-const SUGESTOES_ATAS = [
-  "Quais decisões foram tomadas sobre expansão internacional?",
-  "Mostre as políticas de governança aprovadas",
-  "Como está o planejamento de sucessão executiva?",
-  "Quais riscos operacionais foram identificados?",
-  "Qual o status de conformidade com LGPD e SOX?",
-  "Quais pautas trataram de ESG e sustentabilidade?",
-  "Resumo das deliberações sobre orçamento",
-  "Encaminhamentos pendentes do último trimestre",
-];
 
 interface Mensagem {
   tipo: "assistant" | "user";
@@ -247,23 +236,6 @@ export function BuscaConversacionalAtas() {
                 <Send className="h-4 w-4" />
               </Button>
             </form>
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs text-gray-500 w-full">Sugestões:</span>
-              {SUGESTOES_ATAS.map((s) => (
-                <Button
-                  key={s}
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="text-xs h-8 rounded-full font-normal"
-                  onClick={() => enviarPergunta(s)}
-                  disabled={pensando}
-                >
-                  <Sparkles className="h-3 w-3 mr-1 shrink-0" />
-                  {s.length > 45 ? s.slice(0, 45) + "..." : s}
-                </Button>
-              ))}
-            </div>
           </div>
         </CardContent>
       </Card>
