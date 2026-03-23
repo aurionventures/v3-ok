@@ -86,6 +86,7 @@ function GestaoTarefasIndicadores() {
     atasPendentes,
     atasAguardandoAprovacao,
     atasAguardandoAssinatura,
+    tarefasPendentesHistorico,
     isLoading,
   } = useSecretariadoIndicadores();
 
@@ -93,6 +94,8 @@ function GestaoTarefasIndicadores() {
   const [ataDetalheOpen, setAtaDetalheOpen] = useState(false);
   const [ataDetalheLoading, setAtaDetalheLoading] = useState(false);
   const [ataDetalhe, setAtaDetalhe] = useState<AtaFluxoDetalhe | null>(null);
+  const [tarefaDetalheOpen, setTarefaDetalheOpen] = useState(false);
+  const [tarefaSelecionadaId, setTarefaSelecionadaId] = useState<string | null>(null);
 
   const openAtaDetalhe = async (ata: AtaListItem) => {
     setAtaDetalheLoading(true);
@@ -101,6 +104,8 @@ function GestaoTarefasIndicadores() {
     setAtaDetalhe(data);
     setAtaDetalheLoading(false);
   };
+
+  const tarefaSelecionada = tarefasPendentesHistorico.find((t) => t.id === tarefaSelecionadaId) ?? null;
 
   const kpiCards = [
     {
@@ -421,6 +426,68 @@ function GestaoTarefasIndicadores() {
         </div>
       </section>
 
+      <section>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Histórico &gt; Tarefas Pendentes
+        </h2>
+        {tarefasPendentesHistorico.length === 0 ? (
+          <p className="text-sm text-gray-500">Nenhuma tarefa pendente no momento.</p>
+        ) : (
+          <div className="space-y-3">
+            {tarefasPendentesHistorico.map((tarefa) => (
+              <Card
+                key={tarefa.id}
+                className={cn(
+                  "border-l-4 hover:bg-red-50 transition-colors cursor-pointer",
+                  tarefa.etapa === "aprovacao"
+                    ? "border-l-amber-400 bg-amber-50/40"
+                    : tarefa.etapa === "assinatura"
+                      ? "border-l-blue-400 bg-blue-50/30"
+                      : "border-l-red-400 bg-red-50/40"
+                )}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setTarefaSelecionadaId(tarefa.id);
+                  setTarefaDetalheOpen(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setTarefaSelecionadaId(tarefa.id);
+                    setTarefaDetalheOpen(true);
+                  }
+                }}
+              >
+                <CardContent className="py-3 px-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{tarefa.nome}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <span className="font-medium">{tarefa.orgao}</span>
+                      {" • "}
+                      {tarefa.responsavel}
+                      {" • "}
+                      Prazo: {tarefa.prazo ? new Date(tarefa.prazo).toLocaleDateString("pt-BR") : "não definido"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={tarefa.etapa === "aprovacao" ? "border-amber-300 text-amber-700" : "border-blue-300 text-blue-700"}>
+                      {tarefa.etapa === "aprovacao"
+                        ? "Aprovação"
+                        : tarefa.etapa === "assinatura"
+                          ? "Assinatura"
+                          : "Tarefa e Combinado"}
+                    </Badge>
+                    <Button variant="outline" size="sm">
+                      Ver e Editar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
       <Dialog open={ataDetalheOpen} onOpenChange={setAtaDetalheOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
@@ -471,6 +538,54 @@ function GestaoTarefasIndicadores() {
                     </Card>
                   );
                 })}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={tarefaDetalheOpen} onOpenChange={setTarefaDetalheOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Tarefa Pendente</DialogTitle>
+          </DialogHeader>
+          {!tarefaSelecionada ? (
+            <p className="text-sm text-muted-foreground">Tarefa não encontrada.</p>
+          ) : (
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-muted-foreground">Tarefa</p>
+                <p className="font-medium">{tarefaSelecionada.nome}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Etapa</p>
+                <p className="font-medium">
+                  {tarefaSelecionada.etapa === "aprovacao"
+                    ? "Aprovação da ATA"
+                    : tarefaSelecionada.etapa === "assinatura"
+                      ? "Assinatura da ATA"
+                      : "Tarefas e Combinados"}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <p className="text-muted-foreground">Órgão</p>
+                  <p className="font-medium">{tarefaSelecionada.orgao}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Responsável</p>
+                  <p className="font-medium">{tarefaSelecionada.responsavel}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Prazo</p>
+                  <p className="font-medium">
+                    {tarefaSelecionada.prazo ? new Date(tarefaSelecionada.prazo).toLocaleDateString("pt-BR") : "Não definido"}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Reunião</p>
+                <p className="font-medium">{tarefaSelecionada.reuniao_titulo}</p>
               </div>
             </div>
           )}

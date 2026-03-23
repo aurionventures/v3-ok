@@ -46,6 +46,17 @@ export interface AtaFluxoDetalhe {
   assinados: number;
 }
 
+export interface TarefaPendenteHistorico {
+  id: string;
+  nome: string;
+  reuniao_id: string;
+  reuniao_titulo: string;
+  orgao: string;
+  responsavel: string;
+  prazo: string | null;
+  etapa: "aprovacao" | "assinatura" | "tarefa";
+}
+
 const CORES = {
   resolvidas: "#22c55e",
   pendentes: "#f97316",
@@ -262,4 +273,129 @@ export async function fetchAtaFluxoDetalhe(
     },
     error: null,
   };
+}
+
+/**
+ * Lista histórica de tarefas pendentes para visualização no painel de Secretariado.
+ */
+export async function fetchHistoricoTarefasPendentes(
+  empresaId: string | null
+): Promise<TarefaPendenteHistorico[]> {
+  if (!supabase || !empresaId) return [];
+
+  const reunioes = await fetchReunioes(empresaId);
+  const reuniaoIds = reunioes.map((r) => r.id);
+  if (reuniaoIds.length === 0) return [];
+
+  const reuniaoMap = new Map<string, ReuniaoEnriquecida>();
+  for (const r of reunioes) reuniaoMap.set(r.id, r);
+
+  const { data: aprovs, error: errAprovs } = await supabase
+    .from("ata_aprovacoes")
+    .select("ata_id, membro_id, aprovado_em, atas!inner(reuniao_id), membros_governanca(nome)")
+    .is("aprovado_em", null);
+  if (errAprovs) {
+    console.error("[secretariado] fetchHistoricoTarefasPendentes/aprov:", errAprovs);
+    return [];
+  }
+
+  const { data: assins, error: errAssins } = await supabase
+    .from("ata_assinaturas")
+    .select("ata_id, membro_id, assinado_em, atas!inner(reuniao_id), membros_governanca(nome)")
+    .is("assinado_em", null);
+  if (errAssins) {
+    console.error("[secretariado] fetchHistoricoTarefasPendentes/assin:", errAssins);
+    return [];
+  }
+
+  const itensAprovacao = (aprovs ?? []).map((row: {
+    ata_id: string;
+    membro_id: string;
+    atas: { reuniao_id: string }[] | { reuniao_id: string };
+    membros_governanca: { nome: string }[] | { nome: string } | null;
+  }) => {
+    const ata = Array.isArray(row.atas) ? row.atas[0] : row.atas;
+    const reuniao = reuniaoMap.get(ata?.reuniao_id ?? "");
+    const membro = Array.isArray(row.membros_governanca) ? row.membros_governanca[0] : row.membros_governanca;
+    const orgao = reuniao?.comissao_nome ?? reuniao?.comite_nome ?? reuniao?.conselho_nome ?? reuniao?.titulo ?? "Órgão";
+    return {
+      id: `aprov-${row.ata_id}-${row.membro_id}`,
+      nome: "Aprovar ATA",
+      reuniao_id: ata?.reuniao_id ?? "",
+      reuniao_titulo: reuniao?.titulo ?? orgao,
+      orgao,
+      responsavel: membro?.nome ?? "Membro",
+      prazo: reuniao?.data_reuniao ?? null,
+      etapa: "aprovacao" as const,
+    };
+  }).filter((i) => reuniaoIds.includes(i.reuniao_id));
+
+  const itensAssinatura = (assins ?? []).map((row: {
+    ata_id: string;
+    membro_id: string;
+    atas: { reuniao_id: string }[] | { reuniao_id: string };
+    membros_governanca: { nome: string }[] | { nome: string } | null;
+  }) => {
+    const ata = Array.isArray(row.atas) ? row.atas[0] : row.atas;
+    const reuniao = reuniaoMap.get(ata?.reuniao_id ?? "");
+    const membro = Array.isArray(row.membros_governanca) ? row.membros_governanca[0] : row.membros_governanca;
+    const orgao = reuniao?.comissao_nome ?? reuniao?.comite_nome ?? reuniao?.conselho_nome ?? reuniao?.titulo ?? "Órgão";
+    return {
+      id: `assin-${row.ata_id}-${row.membro_id}`,
+      nome: "Assinar ATA",
+      reuniao_id: ata?.reuniao_id ?? "",
+      reuniao_titulo: reuniao?.titulo ?? orgao,
+      orgao,
+      responsavel: membro?.nome ?? "Membro",
+      prazo: reuniao?.data_reuniao ?? null,
+      etapa: "assinatura" as const,
+    };
+  }).filter((i) => reuniaoIds.includes(i.reuniao_id));
+
+  const { data: membrosGov } = await supabase
+    .from("membros_governanca")
+    .select("nome")
+    .eq("empresa_id", empresaId);
+  const nomesMembros = new Set(
+    (membrosGov ?? [])
+      .map((m: { nome: string | null }) => (m.nome ?? "").trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  const { data: tarefasPendentes } = await supabase
+    .from("reuniao_tarefas")
+    .select("id, reuniao_id, nome, responsavel, data_conclusao")
+    .in("reuniao_id", reuniaoIds)
+    .is("data_conclusao", null)
+    .order("created_at", { ascending: false });
+
+  const itensTarefasCombinados = (tarefasPendentes ?? [])
+    .map((t: {
+      id: string;
+      reuniao_id: string;
+      nome: string;
+      responsavel: string;
+      data_conclusao: string | null;
+    }) => {
+      const reuniao = reuniaoMap.get(t.reuniao_id);
+      const orgao =
+        reuniao?.comissao_nome ??
+        reuniao?.comite_nome ??
+        reuniao?.conselho_nome ??
+        reuniao?.titulo ??
+        "Órgão";
+      return {
+        id: `tarefa-${t.id}`,
+        nome: t.nome,
+        reuniao_id: t.reuniao_id,
+        reuniao_titulo: reuniao?.titulo ?? orgao,
+        orgao,
+        responsavel: t.responsavel || "Não definido",
+        prazo: t.data_conclusao,
+        etapa: "tarefa" as const,
+      };
+    })
+    .filter((t) => nomesMembros.has((t.responsavel ?? "").trim().toLowerCase()));
+
+  return [...itensAprovacao, ...itensAssinatura, ...itensTarefasCombinados];
 }

@@ -3,6 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import {
@@ -15,14 +18,44 @@ import {
 } from "lucide-react";
 import MemberBriefing from "./MemberBriefing";
 import MemberCopiloto from "./MemberCopiloto";
+import { useCurrentMembro } from "@/hooks/useCurrentMembro";
+import { fetchReunioes } from "@/services/agenda";
+import { fetchAtasPendentesMembro } from "@/services/ataAprovacoes";
+import { supabase } from "@/lib/supabase";
 
 const MemberDashboard = () => {
+  const { data: membro } = useCurrentMembro();
+  const { data: dashboard } = useQuery({
+    queryKey: ["member", "dashboard", membro?.id, membro?.empresa_id],
+    enabled: !!membro?.id && !!membro?.empresa_id,
+    queryFn: async () => {
+      if (!membro?.id || !membro.empresa_id || !supabase) return null;
+      const { data: reunioes } = await fetchReunioes(membro.empresa_id);
+      const proximas = reunioes
+        .filter((r) => r.data_reuniao && new Date(r.data_reuniao) >= new Date())
+        .sort((a, b) => (a.data_reuniao ?? "").localeCompare(b.data_reuniao ?? ""));
+      const proxima = proximas[0] ?? null;
+      const { data: atasPendentes } = await fetchAtasPendentesMembro(membro.id);
+      const { data: tarefas } = await supabase
+        .from("reuniao_tarefas")
+        .select("id")
+        .is("data_conclusao", null)
+        .ilike("responsavel", membro.nome);
+      return {
+        proxima,
+        reunioesCount: proximas.length,
+        atasPendentes: atasPendentes.length,
+        tarefasPendentes: (tarefas ?? []).length,
+      };
+    },
+  });
+
   return (
     <>
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold">Bem-vindo, Roberto</h1>
+            <h1 className="text-xl font-semibold">Bem-vindo, {membro?.nome ?? "Membro"}</h1>
             <p className="text-sm text-muted-foreground">Portal do Membro de Governança</p>
           </div>
           <div className="flex items-center gap-2">
@@ -42,8 +75,15 @@ const MemberDashboard = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold">Próxima Reunião</h2>
-                  <p className="text-white/90 text-sm">segunda-feira, 13 de abril às 14:00</p>
-                  <p className="text-white/80 text-sm">Conselho de Administração</p>
+                  <p className="text-white/90 text-sm">
+                    {dashboard?.proxima?.data_reuniao
+                      ? format(new Date(dashboard.proxima.data_reuniao), "EEEE, dd 'de' MMMM", { locale: ptBR })
+                      : "Sem reunião agendada"}
+                    {dashboard?.proxima?.horario ? ` às ${String(dashboard.proxima.horario).slice(0, 5)}` : ""}
+                  </p>
+                  <p className="text-white/80 text-sm">
+                    {dashboard?.proxima?.titulo ?? dashboard?.proxima?.conselho_nome ?? dashboard?.proxima?.comite_nome ?? dashboard?.proxima?.comissao_nome ?? "—"}
+                  </p>
                   <div className="mt-3">
                     <p className="text-xs text-white/80 mb-1">Progresso do Briefing</p>
                     <Progress value={45} className="h-2 bg-white/20" />
@@ -52,8 +92,8 @@ const MemberDashboard = () => {
               </div>
               <div className="flex gap-6 text-sm">
                 <div className="text-center">
-                  <p className="font-semibold">47</p>
-                  <p className="text-white/80">dias restantes</p>
+                  <p className="font-semibold">{dashboard?.reunioesCount ?? 0}</p>
+                  <p className="text-white/80">reuniões futuras</p>
                 </div>
                 <div className="text-center">
                   <p className="font-semibold">45%</p>
@@ -106,8 +146,11 @@ const MemberDashboard = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold">Próximas Reuniões</h3>
-                        <p className="text-sm text-gray-600">3 reuniões agendadas</p>
-                        <p className="text-sm text-muted-foreground">Próxima: 10/12 às 14:00</p>
+                        <p className="text-sm text-gray-600">{dashboard?.reunioesCount ?? 0} reuniões agendadas</p>
+                        <p className="text-sm text-muted-foreground">
+                          Próxima: {dashboard?.proxima?.data_reuniao ? format(new Date(dashboard.proxima.data_reuniao), "dd/MM", { locale: ptBR }) : "--/--"}
+                          {dashboard?.proxima?.horario ? ` às ${String(dashboard.proxima.horario).slice(0, 5)}` : ""}
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -121,12 +164,12 @@ const MemberDashboard = () => {
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center relative">
                         <FileText className="h-6 w-6 text-orange-600" />
-                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-medium">2</span>
+                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-medium">{dashboard?.atasPendentes ?? 0}</span>
                       </div>
                       <div>
                         <h3 className="font-semibold">ATAs Pendentes</h3>
-                        <p className="text-sm text-gray-600">2 aguardando sua ação</p>
-                        <p className="text-sm text-red-600 font-medium">1 urgente</p>
+                        <p className="text-sm text-gray-600">{dashboard?.atasPendentes ?? 0} aguardando sua ação</p>
+                        <p className="text-sm text-red-600 font-medium">Priorize as mais recentes</p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -140,12 +183,12 @@ const MemberDashboard = () => {
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-lg bg-amber-100 flex items-center justify-center relative">
                         <ClipboardList className="h-6 w-6 text-amber-600" />
-                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">3</span>
+                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">{dashboard?.tarefasPendentes ?? 0}</span>
                       </div>
                       <div>
                         <h3 className="font-semibold">Tarefas Pendentes</h3>
-                        <p className="text-sm text-gray-600">3 tarefas pendentes</p>
-                        <p className="text-sm text-red-600 font-medium">1 atrasada</p>
+                        <p className="text-sm text-gray-600">{dashboard?.tarefasPendentes ?? 0} tarefas pendentes</p>
+                        <p className="text-sm text-red-600 font-medium">Acompanhe prazos e status</p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />

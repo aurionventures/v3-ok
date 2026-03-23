@@ -41,30 +41,6 @@ const DOCUMENTOS_MOCK: DocumentoConvidado[] = [
     dataReuniao: "18/02/2025",
     status: "Aguardando aprovação",
   },
-  {
-    id: "3",
-    nomeArquivo: "Relatório de Conformidade LGPD.pdf",
-    tipoArquivo: "PDF",
-    tamanho: "1.85 MB",
-    enviadoPor: "Paulo Mendes",
-    email: "paulo.mendes@compliance.com",
-    dataEnvio: "24/01/2025 às 16:00",
-    reuniao: "Comitê de Auditoria - Fevereiro/2025",
-    dataReuniao: "20/02/2025",
-    status: "Aguardando aprovação",
-  },
-  {
-    id: "4",
-    nomeArquivo: "Minuta de Ata - Assembleia Geral.doc",
-    tipoArquivo: "Word",
-    tamanho: "892 KB",
-    enviadoPor: "Carla Lima",
-    email: "carla.lima@juridico.com",
-    dataEnvio: "25/01/2025 às 09:15",
-    reuniao: "Assembleia Geral Ordinária - Março/2025",
-    dataReuniao: "10/03/2025",
-    status: "Aguardando aprovação",
-  },
 ];
 
 export function AprovacaoConvidadosContent() {

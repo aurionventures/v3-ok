@@ -3,48 +3,53 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ClipboardList, AlertTriangle, Eye, CheckCircle } from "lucide-react";
-
-const TAREFAS = [
-  {
-    id: 1,
-    title: "Elaborar parecer sobre proposta de M&A",
-    prazo: "26/02/2026",
-    restante: "2 dias restantes",
-    restanteClass: "text-red-600",
-    origem: "Conselho Admin 25/11",
-    prioridade: "Prioridade Alta",
-    prioridadeClass: "bg-red-600 text-white",
-    iconBg: "bg-red-100",
-    iconColor: "text-red-600",
-  },
-  {
-    id: 2,
-    title: "Revisar código de ética atualizado",
-    prazo: "05/03/2026",
-    restante: "9 dias restantes",
-    restanteClass: "text-green-600",
-    origem: "Comissão de Ética 20/11",
-    prioridade: "Prioridade Média",
-    prioridadeClass: "bg-gray-200 text-gray-800",
-    iconBg: "bg-green-100",
-    iconColor: "text-green-600",
-  },
-  {
-    id: 3,
-    title: "Avaliar relatório de riscos Q3",
-    prazo: "11/03/2026",
-    restante: "15 dias restantes",
-    restanteClass: "text-green-600",
-    origem: "Comitê de Auditoria 18/11",
-    prioridade: "Prioridade Média",
-    prioridadeClass: "bg-gray-200 text-gray-800",
-    iconBg: "bg-green-100",
-    iconColor: "text-green-600",
-  },
-];
+import { supabase } from "@/lib/supabase";
+import { useCurrentMembro } from "@/hooks/useCurrentMembro";
+import { fetchReunioes } from "@/services/agenda";
+import { fetchAtasPendentesMembro } from "@/services/ataAprovacoes";
 
 const MemberPendencias = () => {
+  const { data: membro } = useCurrentMembro();
+  const { data: pendencias = [] } = useQuery({
+    queryKey: ["member", "pendencias", membro?.id, membro?.empresa_id],
+    enabled: !!membro?.id && !!membro?.empresa_id,
+    queryFn: async (): Promise<Array<{ id: string; title: string; prazo: string | null; origem: string; tipo: "ata" | "tarefa" }>> => {
+      if (!membro?.id || !membro.empresa_id || !supabase) return [];
+      const { data: reunioes } = await fetchReunioes(membro.empresa_id);
+      const reuniaoMap = new Map(reunioes.map((r) => [r.id, r]));
+
+      const { data: atasPendentes } = await fetchAtasPendentesMembro(membro.id);
+      const pendAta = atasPendentes.map((a) => ({
+        id: `ata-${a.id}-${a.acao}`,
+        title: a.acao === "aprovacao" ? `Aprovar ATA - ${a.titulo}` : `Assinar ATA - ${a.titulo}`,
+        prazo: a.data_reuniao,
+        origem: a.reuniao_titulo ?? a.titulo,
+        tipo: "ata" as const,
+      }));
+
+      const { data: tarefas } = await supabase
+        .from("reuniao_tarefas")
+        .select("id, nome, responsavel, reuniao_id, data_conclusao")
+        .is("data_conclusao", null)
+        .ilike("responsavel", membro.nome);
+      const pendTarefas = (tarefas ?? []).map((t) => ({
+        id: `tarefa-${t.id}`,
+        title: t.nome,
+        prazo: t.data_conclusao,
+        origem: reuniaoMap.get(t.reuniao_id)?.titulo ?? "Tarefa e Combinado",
+        tipo: "tarefa" as const,
+      }));
+
+      return [...pendAta, ...pendTarefas];
+    },
+  });
+
+  const total = pendencias.length;
+  const urgentes = useMemo(() => pendencias.filter((p) => p.prazo && new Date(p.prazo) <= new Date()).length, [pendencias]);
+
   return (
     <>
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
@@ -67,23 +72,25 @@ const MemberPendencias = () => {
           <h2 className="font-semibold flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-amber-500" /> Tarefas Pendentes
           </h2>
-          <Badge variant="secondary">3 pendentes</Badge>
+          <Badge variant="secondary">{total} pendentes</Badge>
         </div>
         <div className="space-y-4">
-          {TAREFAS.map((t) => (
+          {pendencias.map((t) => (
             <Card key={t.id}>
               <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className={`h-12 w-12 rounded-full ${t.iconBg} flex items-center justify-center shrink-0 ${t.iconColor}`}>
+                <div className={`h-12 w-12 rounded-full ${t.tipo === "ata" ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"} flex items-center justify-center shrink-0`}>
                   <ClipboardList className="h-6 w-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">{t.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Prazo: {t.prazo} <span className={t.restanteClass}>({t.restante})</span>
+                    Prazo: {t.prazo ? new Date(t.prazo).toLocaleDateString("pt-BR") : "Não definido"}
                   </p>
                   <p className="text-sm text-muted-foreground">Origem: {t.origem}</p>
                 </div>
-                <Badge className={t.prioridadeClass + " w-fit shrink-0"}>{t.prioridade}</Badge>
+                <Badge className={`${t.tipo === "ata" ? "bg-red-600 text-white" : "bg-gray-200 text-gray-800"} w-fit shrink-0`}>
+                  {t.tipo === "ata" ? "Ação em ATA" : "Tarefa e Combinado"}
+                </Badge>
                 <div className="flex gap-2 shrink-0">
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-2" /> Ver Detalhes
@@ -95,7 +102,15 @@ const MemberPendencias = () => {
               </CardContent>
             </Card>
           ))}
+          {pendencias.length === 0 && (
+            <Card>
+              <CardContent className="p-6 text-sm text-muted-foreground">
+                Você não possui pendências no momento.
+              </CardContent>
+            </Card>
+          )}
         </div>
+        {urgentes > 0 && <p className="text-sm text-red-600 mt-3">{urgentes} pendência(s) urgente(s).</p>}
       </div>
     </>
   );
