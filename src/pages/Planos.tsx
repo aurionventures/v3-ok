@@ -91,7 +91,7 @@ const Planos = () => {
                 &ldquo;Cada empresa é única. Nosso preço também.&rdquo;
               </p>
               <Button
-                className="bg-legacy-gold text-legacy-500 hover:brightness-110 font-montserrat font-semibold text-base px-8 py-6 h-auto"
+                className="bg-legacy-gold text-legacy-500 hover:bg-legacy-gold hover:text-legacy-500 active:bg-legacy-gold active:text-legacy-500 focus:bg-legacy-gold focus:text-legacy-500 font-montserrat font-semibold text-base px-8 py-6 h-auto"
                 onClick={handleOpenDiscovery}
               >
                 <Compass className="h-5 w-5 mr-2" />

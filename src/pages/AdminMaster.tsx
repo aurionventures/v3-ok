@@ -1,9 +1,36 @@
-import { BarChart3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { BarChart3, Users, Mail, Phone } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { fetchLeadsDiagnostico } from "@/services/leadsDiagnostico";
 
 const AdminMaster = () => {
+  const { data: leads = [], isLoading } = useQuery({
+    queryKey: ["leads-diagnostico"],
+    queryFn: async () => {
+      const { data } = await fetchLeadsDiagnostico();
+      return data;
+    },
+  });
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const leadsUltimos7Dias = leads.filter(
+    (l) => new Date(l.created_at) >= sevenDaysAgo
+  ).length;
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -19,8 +46,19 @@ const AdminMaster = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Total de leads (7 dias)</CardDescription>
-                <CardTitle className="text-2xl">—</CardTitle>
-                <p className="text-xs text-gray-500">Integração em configuração</p>
+                <CardTitle className="text-2xl">
+                  {isLoading ? "—" : leadsUltimos7Dias}
+                </CardTitle>
+                <p className="text-xs text-gray-500">Diagnóstico + contato (landing)</p>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total de leads (todos)</CardDescription>
+                <CardTitle className="text-2xl">
+                  {isLoading ? "—" : leads.length}
+                </CardTitle>
+                <p className="text-xs text-gray-500">Leads capturados no CRM</p>
               </CardHeader>
             </Card>
             <Card>
@@ -88,6 +126,84 @@ const AdminMaster = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* CRM – Leads do Diagnóstico */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Leads do Diagnóstico (CRM)
+              </CardTitle>
+              <CardDescription>
+                Leads do diagnóstico de maturidade e do formulário &quot;Ou entre em contato&quot;
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>
+              ) : leads.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">Nenhum lead capturado ainda.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>E-mail</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Empresa</TableHead>
+                        <TableHead>Nível</TableHead>
+                        <TableHead>Score</TableHead>
+                        <TableHead>Data</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leads.map((l) => (
+                        <TableRow key={l.id}>
+                          <TableCell className="font-medium">{l.nome}</TableCell>
+                          <TableCell>
+                            <a href={`mailto:${l.email}`} className="text-primary hover:underline flex items-center gap-1">
+                              <Mail className="h-3.5 w-3.5" />
+                              {l.email}
+                            </a>
+                          </TableCell>
+                          <TableCell>
+                            {l.telefone ? (
+                              <a href={`tel:${l.telefone}`} className="flex items-center gap-1">
+                                <Phone className="h-3.5 w-3.5" />
+                                {l.telefone}
+                              </a>
+                            ) : (
+                              "—"
+                            )}
+                          </TableCell>
+                          <TableCell>{l.empresa || "—"}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                l.nivel_geral === "Alto"
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : l.nivel_geral === "Médio"
+                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                    : "bg-red-50 text-red-700 border-red-200"
+                              }
+                            >
+                              {l.nivel_geral ?? "—"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{l.overall_score != null ? l.overall_score.toFixed(1) : "—"}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {format(new Date(l.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

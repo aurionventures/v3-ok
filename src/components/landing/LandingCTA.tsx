@@ -1,23 +1,35 @@
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, CalendarCheck, Eye, BarChart3 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { insertLeadContato } from "@/services/leadsDiagnostico";
 
 const LandingCTA = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [form, setForm] = useState({ name: "", email: "", org: "", phone: "" });
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email) {
       toast({ title: "Preencha nome e email", variant: "destructive" });
       return;
     }
-    toast({ title: "Solicitação enviada!", description: "Entraremos em contato em breve." });
+    setSaving(true);
+    const { error } = await insertLeadContato({
+      nome: form.name.trim(),
+      email: form.email.trim(),
+      telefone: form.phone.trim() || undefined,
+      empresa: form.org.trim() || undefined,
+    });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Erro ao enviar", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Solicitação enviada!", description: "Em breve entraremos em contato." });
     setForm({ name: "", email: "", org: "", phone: "" });
   };
 
@@ -32,18 +44,6 @@ const LandingCTA = () => {
             <p className="font-lato text-lg text-white/70">
               Dê o próximo passo em direção a decisões mais claras e governança mais inteligente.
             </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
-            <Button className="legacy-button-primary text-base px-6 py-5 h-auto" onClick={() => navigate("/login")}>
-              <CalendarCheck className="h-5 w-5 mr-2" /> Agendar Demonstração
-            </Button>
-            <Button className="legacy-button-secondary text-base px-6 py-5 h-auto" onClick={() => navigate("/login")}>
-              <Eye className="h-5 w-5 mr-2" /> Conhecer a Legacy OS
-            </Button>
-            <Button className="legacy-button-secondary text-base px-6 py-5 h-auto" onClick={() => navigate("/login")}>
-              <BarChart3 className="h-5 w-5 mr-2" /> Fazer Diagnóstico
-            </Button>
           </div>
 
           <div className="max-w-lg mx-auto">
@@ -90,8 +90,8 @@ const LandingCTA = () => {
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full legacy-button-primary h-12">
-                Enviar Solicitação <ArrowRight className="h-4 w-4 ml-2" />
+              <Button type="submit" className="w-full legacy-button-primary h-12 bg-legacy-gold text-legacy-500 hover:bg-legacy-gold hover:text-legacy-500 active:bg-legacy-gold active:text-legacy-500 focus:bg-legacy-gold focus:text-legacy-500" disabled={saving}>
+                {saving ? "Enviando..." : "Enviar Solicitação"} <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </form>
           </div>

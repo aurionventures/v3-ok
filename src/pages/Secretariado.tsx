@@ -30,7 +30,6 @@ import {
 import Sidebar from "@/components/Sidebar";
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
-import GuidedNavigation from "@/components/GuidedNavigation";
 import {
   BarChart,
   Bar,
@@ -853,7 +852,6 @@ function GestaoTarefasIndicadores() {
 
 const Secretariado = () => {
   const [activeTab, setActiveTab] = useState("indicadores");
-  const [showGuidedNav, setShowGuidedNav] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -896,7 +894,7 @@ const Secretariado = () => {
               </Tabs>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <GuiaLegacyButton onClick={() => setShowGuidedNav(true)} />
+              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>
@@ -912,11 +910,6 @@ const Secretariado = () => {
           {activeTab === "convidados" && <AprovacaoConvidadosContent />}
         </main>
       </div>
-
-      <GuidedNavigation
-        isOpen={showGuidedNav}
-        onClose={() => setShowGuidedNav(false)}
-      />
     </div>
   );
 };

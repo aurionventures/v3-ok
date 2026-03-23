@@ -40,7 +40,6 @@ import DataInput from "./pages/DataInput";
 import GovernanceAssistant from "./components/GovernanceAssistant";
 import PeopleDevelopment from "./pages/PeopleDevelopment";
 import Subsystems from "./pages/Subsystems";
-import Legacy from "./pages/Legacy";
 import SystemicRisks from "./pages/SystemicRisks";
 import Admin from "./pages/Admin";
 import AdminFinances from "./pages/AdminFinances";
@@ -70,6 +69,7 @@ import AdminPartnersTiers from "./pages/AdminPartnersTiers";
 import AdminContracts from "./pages/AdminContracts";
 import CompanyAlterarSenha from "./pages/company/CompanyAlterarSenha";
 import AdminAlterarSenha from "./pages/admin/AdminAlterarSenha";
+import { GuiaLegacyProvider } from "./contexts/GuiaLegacyContext";
 
 
 const queryClient = new QueryClient();
@@ -87,6 +87,7 @@ const App = () => (
     <Toaster />
     <Sonner />
     <BrowserRouter>
+      <GuiaLegacyProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
@@ -116,7 +117,6 @@ const App = () => (
         <Route path="/family-structure" element={<FamilyStructure />} />
         <Route path="/people-development" element={<PeopleDevelopment />} />
         <Route path="/subsystems" element={<Subsystems />} />
-        <Route path="/legacy" element={<Legacy />} />
         <Route path="/councils" element={<Councils />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/rituals" element={<Rituals />} />
@@ -169,6 +169,7 @@ const App = () => (
         <Route path="*" element={<NotFound />} />
       </Routes>
       <GovernanceAssistant />
+      </GuiaLegacyProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );

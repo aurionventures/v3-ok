@@ -2,7 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Eye } from "lucide-react";
 
-const LandingHero = () => {
+interface LandingHeroProps {
+  onOpenDiagnostico?: () => void;
+}
+
+const LandingHero = ({ onOpenDiagnostico }: LandingHeroProps) => {
   const navigate = useNavigate();
 
   return (
@@ -23,8 +27,8 @@ const LandingHero = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              className="legacy-button-primary text-lg px-8 py-6 h-auto"
-              onClick={() => navigate("/login")}
+              className="legacy-button-primary text-lg px-8 py-6 h-auto bg-legacy-gold text-legacy-500 hover:bg-legacy-gold hover:text-legacy-500 active:bg-legacy-gold active:text-legacy-500 focus:bg-legacy-gold focus:text-legacy-500"
+              onClick={() => (onOpenDiagnostico ? onOpenDiagnostico() : navigate("/login"))}
             >
               <ArrowRight className="h-5 w-5 mr-2" />
               Fazer Diagnóstico Gratuito (5 min)

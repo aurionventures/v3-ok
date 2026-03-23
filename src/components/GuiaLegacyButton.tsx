@@ -1,16 +1,19 @@
-import { Link } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { useGuiaLegacy } from "@/contexts/GuiaLegacyContext";
 
 interface GuiaLegacyButtonProps {
-  /** When provided, renders as button with onClick instead of Link */
+  /** When provided, uses this onClick; otherwise opens GuidedNavigation via context */
   onClick?: () => void;
   className?: string;
 }
 
 const GuiaLegacyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, GuiaLegacyButtonProps>(
   ({ onClick, className }, ref) => {
+    const guiaLegacy = useGuiaLegacy();
+    const handleClick = onClick ?? guiaLegacy?.openGuidedNav;
+
     const baseStyles =
       "inline-flex items-center gap-2.5 px-5 py-2.5 rounded-[15px] font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BC9F6A] focus-visible:ring-offset-2 cursor-pointer border-none";
 
@@ -24,27 +27,15 @@ const GuiaLegacyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, GuiaL
       </>
     );
 
-    if (onClick) {
-      return (
-        <button
-          ref={ref as React.Ref<HTMLButtonElement>}
-          type="button"
-          onClick={onClick}
-          className={cn(baseStyles, visualStyles, className)}
-        >
-          {content}
-        </button>
-      );
-    }
-
     return (
-      <Link
-        ref={ref as React.Ref<HTMLAnchorElement>}
-        to="/legacy"
+      <button
+        ref={ref as React.Ref<HTMLButtonElement>}
+        type="button"
+        onClick={handleClick}
         className={cn(baseStyles, visualStyles, className)}
       >
         {content}
-      </Link>
+      </button>
     );
   }
 );

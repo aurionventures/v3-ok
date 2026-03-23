@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, CreditCard, ShoppingCart, ArrowLeft, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { whatsappUrl } from "@/config/contato";
 import type { CalculatedPlan } from "./PlanDiscoveryFlow";
 
 function formatCurrency(value: number) {
@@ -34,7 +35,7 @@ export const CheckoutFlow = ({ plan, onClose }: CheckoutFlowProps) => {
   const primeiraCobranca = plan.setupFee + valorMensal;
 
   const handleFalarEspecialista = () => {
-    window.open("https://wa.me/5511999999999", "_blank");
+    window.open(whatsappUrl(), "_blank");
   };
 
   return (

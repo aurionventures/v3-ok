@@ -14,7 +14,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Sidebar from "@/components/Sidebar";
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
-import GuidedNavigation from "@/components/GuidedNavigation";
 import { PautasSugeridasContent } from "@/components/copilot/PautasSugeridasContent";
 import { InsightCard } from "@/components/copilot/InsightCard";
 import { useInsightsEstrategicos } from "@/hooks/useInsightsEstrategicos";
@@ -134,7 +133,6 @@ function InsightsContent() {
 }
 
 const GovernanceCopilot = () => {
-  const [showGuidedNav, setShowGuidedNav] = useState(false);
   const [activeTab, setActiveTab] = useState("insights");
 
   return (
@@ -167,7 +165,7 @@ const GovernanceCopilot = () => {
               </Tabs>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <GuiaLegacyButton onClick={() => setShowGuidedNav(true)} />
+              <GuiaLegacyButton />
               <NotificationBell />
             </div>
           </div>
@@ -178,11 +176,6 @@ const GovernanceCopilot = () => {
           {activeTab === "agendas" && <PautasSugeridasContent />}
         </main>
       </div>
-
-      <GuidedNavigation
-        isOpen={showGuidedNav}
-        onClose={() => setShowGuidedNav(false)}
-      />
     </div>
   );
 };

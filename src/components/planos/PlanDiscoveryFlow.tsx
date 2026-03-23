@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { Calculator, X, MessageCircle, Sparkles, Target, Crown, TrendingUp, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { whatsappUrl } from "@/config/contato";
+import { getPlanos } from "@/data/planosStorage";
 
 const FATURAMENTO_OPCOES = [
   "Até R$ 5 mi",
@@ -34,6 +36,12 @@ const MATURIDADE_OPCOES = [
   "Profissional",
 ];
 
+const PRAZO_OPCOES = [
+  { meses: 12, label: "12 meses" },
+  { meses: 24, label: "24 meses", discount: "-10% OFF" },
+  { meses: 36, label: "36 meses", discount: "-15% OFF" },
+] as const;
+
 export interface DiscoveryFormData {
   faturamento: string;
   empresas: number;
@@ -42,6 +50,7 @@ export interface DiscoveryFormData {
   conselhos: number;
   comites: number;
   usuariosEsperados: number;
+  prazoMeses: 12 | 24 | 36;
 }
 
 export interface CalculatedPlan {
@@ -57,6 +66,7 @@ export interface CalculatedPlan {
   annualSavingsMonths: number;
   setupFee: number;
   setupFeeDiscount: string;
+  prazoMeses: 12 | 24 | 36;
 }
 
 const defaultForm: DiscoveryFormData = {
@@ -67,15 +77,15 @@ const defaultForm: DiscoveryFormData = {
   conselhos: 1,
   comites: 0,
   usuariosEsperados: 0,
+  prazoMeses: 12,
 };
 
 function calculatePlan(form: DiscoveryFormData): CalculatedPlan {
   const empresas = form.empresas || 1;
   const conselhos = form.conselhos || 1;
   const reunioes = form.reunioesAno || 12;
-  const baseMonthly = 7196;
-  const baseAnnual = 86352;
-  const baseSetup = 14392;
+  const prazoMeses = form.prazoMeses || 12;
+  const planos = getPlanos();
   const complexity = Math.min(10, Math.max(1, empresas * 0.8 + conselhos * 0.5 + reunioes / 12));
   let percent = 25;
   if (complexity <= 3) percent = 25;
@@ -83,20 +93,29 @@ function calculatePlan(form: DiscoveryFormData): CalculatedPlan {
   else if (complexity <= 7) percent = 65;
   else percent = 85;
   const label = percent <= 35 ? "BAIXA" : percent <= 55 ? "MODERADA" : percent <= 75 ? "ALTA" : "MUITO ALTA";
-  const annualSavings = Math.round(baseMonthly * 2);
+  const planIndex = percent <= 35 ? 0 : percent <= 55 ? 1 : percent <= 75 ? 2 : 3;
+  const plano = planos[planIndex] ?? planos[planos.length - 1] ?? { name: "Business", description: "Ideal para sua empresa", valor: 7490 };
+  const monthlyPrice = plano.valor ?? 7490;
+  const setupFee = monthlyPrice * 2;
+  const discountMultiplier = prazoMeses === 12 ? 1 : prazoMeses === 24 ? 0.9 : 0.85;
+  const valorMensalComDesconto = Math.round(monthlyPrice * discountMultiplier);
+  const annualPrice = valorMensalComDesconto * prazoMeses;
+  const annualSavings = prazoMeses === 12 ? Math.round(monthlyPrice * 2) : Math.round(monthlyPrice * prazoMeses * (1 - discountMultiplier));
+  const annualSavingsMonths = prazoMeses === 12 ? 2 : 0;
   return {
-    planName: "Business",
-    planSubtitle: "Ideal para sua empresa",
-    complexityIndex: 5.2,
+    planName: plano.name,
+    planSubtitle: plano.description ?? "Ideal para sua empresa",
+    complexityIndex: Math.round(complexity * 10) / 10,
     complexityLabel: label,
     complexityPercent: percent,
-    description: `Sua empresa possui ${empresas} empresa(s), ${conselhos} conselho(s), com estimativa de ${reunioes} reuniões por ano. O plano Business suporta até ${empresas} empresa(s) e usuários ilimitados, sendo ideal para sua governança.`,
-    monthlyPrice: baseMonthly,
-    annualPrice: baseAnnual,
+    description: `Sua empresa possui ${empresas} empresa(s), ${conselhos} conselho(s), com estimativa de ${reunioes} reuniões por ano. O plano ${plano.name} suporta até ${empresas} empresa(s) e usuários ilimitados, sendo ideal para sua governança.`,
+    monthlyPrice: prazoMeses === 12 ? monthlyPrice : valorMensalComDesconto,
+    annualPrice,
     annualSavings,
-    annualSavingsMonths: 2,
-    setupFee: baseSetup,
-    setupFeeDiscount: "50% OFF anual",
+    annualSavingsMonths,
+    setupFee,
+    setupFeeDiscount: prazoMeses === 12 ? "50% OFF anual" : prazoMeses === 24 ? "10% OFF" : "15% OFF",
+    prazoMeses,
   };
 }
 
@@ -151,15 +170,15 @@ export const PlanDiscoveryFlow = ({ open, onOpenChange, onContract }: PlanDiscov
   };
 
   const handleFalarEspecialista = () => {
-    window.open("https://wa.me/5511999999999", "_blank");
+    window.open(whatsappUrl(), "_blank");
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         className={cn(
-          "max-w-lg p-0 gap-0 overflow-hidden",
-          step === 2 && "max-w-3xl"
+          "max-w-2xl p-0 gap-0 overflow-hidden",
+          step === 2 && "max-w-4xl"
         )}
       >
         {step === 1 ? (
@@ -272,9 +291,33 @@ export const PlanDiscoveryFlow = ({ open, onOpenChange, onContract }: PlanDiscov
                     onChange={(e) => setForm((p) => ({ ...p, usuariosEsperados: parseInt(e.target.value, 10) || 0 }))}
                   />
                 </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="font-lato">Prazo do contrato</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PRAZO_OPCOES.map((op) => (
+                      <button
+                        key={op.meses}
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, prazoMeses: op.meses }))}
+                        className={cn(
+                          "rounded-lg border-2 p-3 flex flex-col items-center gap-1 transition-colors font-lato text-sm",
+                          form.prazoMeses === op.meses
+                            ? "border-legacy-gold bg-legacy-gold/10 text-legacy-500"
+                            : "border-gray-200 hover:border-gray-300"
+                        )}
+                      >
+                        <span className="font-montserrat font-semibold">{op.meses}</span>
+                        <span className="text-xs text-muted-foreground">meses</span>
+                        {op.discount && (
+                          <span className="text-xs font-medium text-green-600">{op.discount}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <Button
-                className="w-full mt-6 bg-legacy-gold text-legacy-500 hover:brightness-110 font-montserrat font-semibold py-6"
+                className="w-full mt-6 bg-legacy-gold text-legacy-500 hover:bg-legacy-gold hover:text-legacy-500 active:bg-legacy-gold active:text-legacy-500 focus:bg-legacy-gold focus:text-legacy-500 font-montserrat font-semibold py-6"
                 onClick={handleSubmit}
                 disabled={!form.faturamento || !form.maturidade}
               >

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
-import { ArrowLeft, ArrowRight, CheckCircle, MessageCircle, BarChart3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, MessageCircle, BarChart3, Gauge } from "lucide-react";
 
 import LandingNav from "@/components/landing/LandingNav";
 import LandingHero from "@/components/landing/LandingHero";
@@ -19,6 +20,8 @@ import LandingComparison from "@/components/landing/LandingComparison";
 import LandingCTA from "@/components/landing/LandingCTA";
 import LandingFAQ from "@/components/landing/LandingFAQ";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { insertLeadDiagnostico } from "@/services/leadsDiagnostico";
+import { whatsappUrl } from "@/config/contato";
 
 // --- Quiz data & types ---
 interface Question {
@@ -64,7 +67,7 @@ const Index = () => {
 
   const handleAnswer = (qId: number, val: number) => setAnswers((p) => ({ ...p, [qId]: val }));
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isQuestionsPhase && !answers[questions[currentStep].id]) {
       toast({ title: "Resposta obrigatória", description: "Selecione uma resposta.", variant: "destructive" });
       return;
@@ -72,6 +75,25 @@ const Index = () => {
     if (isContactPhase) {
       if (!contactInfo.name || !contactInfo.email || !contactInfo.phone) {
         toast({ title: "Campos obrigatórios", description: "Preencha todos os campos.", variant: "destructive" });
+        return;
+      }
+      const maturityData = calculateMaturityData();
+      const ovScore = Object.values(answers).length
+        ? Object.values(answers).reduce((a, b) => a + b, 0) / Object.values(answers).length
+        : 0;
+      const level = ovScore >= 4 ? "Alto" : ovScore >= 3 ? "Médio" : "Baixo";
+      const { error } = await insertLeadDiagnostico({
+        nome: contactInfo.name.trim(),
+        email: contactInfo.email.trim(),
+        telefone: contactInfo.phone.trim() || undefined,
+        empresa: contactInfo.company.trim() || undefined,
+        respostas: answers,
+        scores: maturityData,
+        nivel_geral: level,
+        overall_score: Math.round(ovScore * 100) / 100,
+      });
+      if (error) {
+        toast({ title: "Erro ao salvar", description: error, variant: "destructive" });
         return;
       }
       setShowResult(true);
@@ -104,14 +126,14 @@ const Index = () => {
 
   const handleWhatsAppClick = () => {
     const msg = `Olá! Realizei o diagnóstico de governança. Resultado: ${maturityLevel.level} (${overallScore.toFixed(1)}/5.0)`;
-    window.open(`https://wa.me/5511999999999?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open(whatsappUrl(msg), "_blank");
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNav />
       <main className="flex-1">
-        <LandingHero />
+        <LandingHero onOpenDiagnostico={() => setIsQuizOpen(true)} />
         <LandingWhatIs />
         <LandingFeatures />
         <LandingPillars />
@@ -129,11 +151,11 @@ const Index = () => {
 
             <Dialog open={isQuizOpen} onOpenChange={setIsQuizOpen}>
               <DialogTrigger asChild>
-                <Button className="legacy-button-primary text-lg px-8 py-6 h-auto">
+                <Button className="legacy-button-primary text-lg px-8 py-6 h-auto bg-legacy-gold text-legacy-500 hover:bg-legacy-gold hover:text-legacy-500 active:bg-legacy-gold active:text-legacy-500 focus:bg-legacy-gold focus:text-legacy-500">
                   <BarChart3 className="w-5 h-5 mr-2" /> Quero fazer o Diagnóstico
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl min-h-[85vh] max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-montserrat text-2xl font-bold text-center">
                     Diagnóstico de Maturidade em Governança
@@ -155,13 +177,29 @@ const Index = () => {
                         <MaturityRadarChart data={maturityData} />
                       </div>
                       <div className="space-y-4">
-                        <div>
-                          <h3 className="font-montserrat font-semibold mb-2">Nível Geral</h3>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${maturityLevel.color}`} />
-                            <span className={`font-medium ${maturityLevel.textColor}`}>
-                              {maturityLevel.level} ({overallScore.toFixed(1)}/5.0)
-                            </span>
+                        <div className="rounded-lg border-2 border-primary/20 p-4 bg-muted/30">
+                          <h3 className="font-montserrat font-semibold mb-3 text-sm text-muted-foreground">Score de Maturidade</h3>
+                          <div className="flex items-center gap-4">
+                            <div className={cn(
+                              "flex h-14 w-14 shrink-0 items-center justify-center rounded-full",
+                              maturityLevel.color,
+                              "text-white"
+                            )}>
+                              <Gauge className="h-7 w-7" />
+                            </div>
+                            <div>
+                              <p className="text-2xl font-bold text-foreground">
+                                {overallScore.toFixed(1)}
+                                <span className="text-base font-normal text-muted-foreground">/5.0</span>
+                              </p>
+                              <span className={cn(
+                                "inline-block mt-1 px-2.5 py-0.5 rounded-full text-sm font-medium",
+                                maturityLevel.color,
+                                maturityLevel.level === "Médio" ? "text-amber-950" : "text-white"
+                              )}>
+                                {maturityLevel.level}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <div className="space-y-2">
