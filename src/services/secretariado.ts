@@ -27,6 +27,25 @@ export interface AtaListItem {
   conteudo: string | null;
 }
 
+export interface AtaFluxoParticipante {
+  membro_id: string;
+  nome: string;
+  email: string | null;
+  cargo: string | null;
+  aprovado_em: string | null;
+  assinado_em: string | null;
+}
+
+export interface AtaFluxoDetalhe {
+  ata_id: string;
+  titulo: string;
+  data_reuniao: string | null;
+  status: string;
+  participantes: AtaFluxoParticipante[];
+  aprovados: number;
+  assinados: number;
+}
+
 const CORES = {
   resolvidas: "#22c55e",
   pendentes: "#f97316",
@@ -168,12 +187,79 @@ export async function fetchAtasPorStatus(
     return [];
   }
 
-  return (data ?? []).map((a: { id: string; reuniao_id: string; conteudo: string | null; status: string; reunioes?: { titulo: string; data_reuniao: string | null } | null }) => ({
-    id: a.id,
-    reuniao_id: a.reuniao_id,
-    titulo: a.reunioes?.titulo ?? "ATA",
-    data_reuniao: a.reunioes?.data_reuniao ?? null,
-    status: a.status,
-    conteudo: a.conteudo,
-  }));
+  return (data ?? []).map((a: { id: string; reuniao_id: string; conteudo: string | null; status: string; reunioes?: { titulo: string; data_reuniao: string | null }[] | { titulo: string; data_reuniao: string | null } | null }) => {
+    const reuniao = Array.isArray(a.reunioes) ? a.reunioes[0] : a.reunioes;
+    return {
+      id: a.id,
+      reuniao_id: a.reuniao_id,
+      titulo: reuniao?.titulo ?? "ATA",
+      data_reuniao: reuniao?.data_reuniao ?? null,
+      status: a.status,
+      conteudo: a.conteudo,
+    };
+  });
+}
+
+/**
+ * Detalha o fluxo de aprovação/assinatura de uma ATA para exibição no popup do Secretariado.
+ */
+export async function fetchAtaFluxoDetalhe(
+  ataId: string
+): Promise<{ data: AtaFluxoDetalhe | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Supabase não configurado" };
+
+  const { data: ata, error: errAta } = await supabase
+    .from("atas")
+    .select("id, status, reunioes(titulo, data_reuniao)")
+    .eq("id", ataId)
+    .maybeSingle();
+  if (errAta || !ata) {
+    return { data: null, error: errAta?.message ?? "ATA não encontrada" };
+  }
+
+  const { data: aprovs, error: errAprovs } = await supabase
+    .from("ata_aprovacoes")
+    .select("membro_id, aprovado_em, membros_governanca(nome, email, cargo_principal)")
+    .eq("ata_id", ataId);
+  if (errAprovs) {
+    return { data: null, error: errAprovs.message };
+  }
+
+  const { data: assins, error: errAssins } = await supabase
+    .from("ata_assinaturas")
+    .select("membro_id, assinado_em")
+    .eq("ata_id", ataId);
+  if (errAssins) {
+    return { data: null, error: errAssins.message };
+  }
+
+  const assinadoPorMembro = new Map<string, string | null>();
+  for (const row of assins ?? []) {
+    assinadoPorMembro.set(row.membro_id, row.assinado_em ?? null);
+  }
+
+  const participantes: AtaFluxoParticipante[] = (aprovs ?? []).map((row) => {
+    const membro = Array.isArray(row.membros_governanca) ? row.membros_governanca[0] : row.membros_governanca;
+    return {
+      membro_id: row.membro_id,
+      nome: membro?.nome ?? "Membro",
+      email: membro?.email ?? null,
+      cargo: membro?.cargo_principal ?? null,
+      aprovado_em: row.aprovado_em ?? null,
+      assinado_em: assinadoPorMembro.get(row.membro_id) ?? null,
+    };
+  });
+
+  return {
+    data: {
+      ata_id: ata.id,
+      titulo: (Array.isArray(ata.reunioes) ? ata.reunioes[0] : ata.reunioes)?.titulo ?? "ATA",
+      data_reuniao: (Array.isArray(ata.reunioes) ? ata.reunioes[0] : ata.reunioes)?.data_reuniao ?? null,
+      status: ata.status ?? "aguardando_aprovacao",
+      participantes,
+      aprovados: participantes.filter((p) => !!p.aprovado_em).length,
+      assinados: participantes.filter((p) => !!p.assinado_em).length,
+    },
+    error: null,
+  };
 }

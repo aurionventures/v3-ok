@@ -19,6 +19,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Sidebar from "@/components/Sidebar";
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
@@ -39,6 +45,7 @@ import { BuscaConversacionalAtas } from "@/components/secretariado/BuscaConversa
 import { AprovacaoConvidadosContent } from "@/components/secretariado/AprovacaoConvidadosContent";
 import { ListaAtasContent } from "@/components/secretariado/ListaAtasContent";
 import { useSecretariadoIndicadores } from "@/hooks/useSecretariadoIndicadores";
+import { fetchAtaFluxoDetalhe, type AtaFluxoDetalhe, type AtaListItem } from "@/services/secretariado";
 
 function BibliotecaContent() {
   const [subTab, setSubTab] = useState<"busca" | "atas">("busca");
@@ -83,6 +90,17 @@ function GestaoTarefasIndicadores() {
   } = useSecretariadoIndicadores();
 
   const { total, resolvidas, pendentes, taxaResolucao, statusPieData, tarefasPorOrgao } = indicadoresTarefas;
+  const [ataDetalheOpen, setAtaDetalheOpen] = useState(false);
+  const [ataDetalheLoading, setAtaDetalheLoading] = useState(false);
+  const [ataDetalhe, setAtaDetalhe] = useState<AtaFluxoDetalhe | null>(null);
+
+  const openAtaDetalhe = async (ata: AtaListItem) => {
+    setAtaDetalheLoading(true);
+    setAtaDetalheOpen(true);
+    const { data } = await fetchAtaFluxoDetalhe(ata.id);
+    setAtaDetalhe(data);
+    setAtaDetalheLoading(false);
+  };
 
   const kpiCards = [
     {
@@ -234,7 +252,13 @@ function GestaoTarefasIndicadores() {
               <div className="space-y-2">
                 {atasAguardandoAprovacao.map((ata) => (
                   <Card key={ata.id} className="border">
-                    <CardContent className="py-3 px-4 flex items-center justify-between">
+                    <CardContent
+                      className="py-3 px-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openAtaDetalhe(ata)}
+                      onKeyDown={(e) => e.key === "Enter" && openAtaDetalhe(ata)}
+                    >
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-amber-600 shrink-0" />
                         <div>
@@ -262,7 +286,13 @@ function GestaoTarefasIndicadores() {
               <div className="space-y-2">
                 {atasAguardandoAssinatura.map((ata) => (
                   <Card key={ata.id} className="border">
-                    <CardContent className="py-3 px-4 flex items-center justify-between">
+                    <CardContent
+                      className="py-3 px-4 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openAtaDetalhe(ata)}
+                      onKeyDown={(e) => e.key === "Enter" && openAtaDetalhe(ata)}
+                    >
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-blue-600 shrink-0" />
                         <div>
@@ -390,6 +420,62 @@ function GestaoTarefasIndicadores() {
           </Card>
         </div>
       </section>
+
+      <Dialog open={ataDetalheOpen} onOpenChange={setAtaDetalheOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>
+              {ataDetalhe?.titulo ?? "Andamento da ATA"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {ataDetalheLoading ? (
+            <div className="py-12 flex items-center justify-center gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Carregando andamento...
+            </div>
+          ) : !ataDetalhe ? (
+            <p className="text-sm text-muted-foreground">Não foi possível carregar os detalhes.</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">
+                  Aprovação: {ataDetalhe.aprovados}/{ataDetalhe.participantes.length}
+                </Badge>
+                <Badge variant="secondary">
+                  Assinatura: {ataDetalhe.assinados}/{ataDetalhe.participantes.length}
+                </Badge>
+              </div>
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                {ataDetalhe.participantes.map((p) => {
+                  const aprovou = !!p.aprovado_em;
+                  const assinou = !!p.assinado_em;
+                  return (
+                    <Card key={p.membro_id} className={cn("border", aprovou ? "border-emerald-200" : "border-amber-200")}>
+                      <CardContent className="py-3 px-4 flex items-center justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{p.nome}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {[p.email, p.cargo].filter(Boolean).join(" • ") || "Membro"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={aprovou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"} variant="outline">
+                            {aprovou ? "Aprovado" : "Aprovação pendente"}
+                          </Badge>
+                          <Badge className={assinou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"} variant="outline">
+                            {assinou ? "Assinado" : "Assinatura pendente"}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
