@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { FileText, Users, AlertTriangle, Loader2, Play } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
@@ -27,13 +27,11 @@ function SeverityBadge({ severity }: { severity: SeveridadeUI }) {
 }
 
 const AnaliseAcoes = () => {
-  const [resultado, setResultado] = useState<AnaliseAcoesResult | null>(null);
-
   const { empresas, firstEmpresaId } = useEmpresas();
   const empresaId = firstEmpresaId;
   const { documentos } = useDocumentos(empresaId);
   const { entrevistas } = useEntrevistas(empresaId);
-  const { executar, isLoading: analyzing } = useAnaliseAcoes();
+  const { resultado, executar, isLoading: analyzing, isLoadingResultado } = useAnaliseAcoes(empresaId);
 
   const hasEmpresas = empresas.length > 0;
   const docsComTranscricao = entrevistas.filter((e) => e.transcricao).length;
@@ -50,8 +48,7 @@ const AnaliseAcoes = () => {
       return;
     }
     if (data) {
-      setResultado(data);
-      toast({ title: "Análise concluída" });
+      toast({ title: "Análise concluída", description: "Resultados salvos e disponíveis na página." });
     }
   };
 
@@ -91,7 +88,7 @@ const AnaliseAcoes = () => {
                   ) : (
                     <Play className="h-5 w-5" />
                   )}
-                  {analyzing ? "Executando análise..." : "Executar Análise"}
+                  {analyzing ? "Executando análise..." : resultado ? "Executar Nova Análise" : "Executar Análise"}
                 </Button>
               </div>
 
@@ -99,7 +96,7 @@ const AnaliseAcoes = () => {
                 {documentos.length} documento(s) • {docsComTranscricao} entrevista(s) com transcrição
               </p>
 
-              {!resultado && !analyzing && (
+              {!resultado && !analyzing && !isLoadingResultado && (
                 <Card>
                   <CardContent className="py-12 text-center text-muted-foreground">
                     <AlertTriangle className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -107,6 +104,15 @@ const AnaliseAcoes = () => {
                     <p className="text-sm mt-1">
                       Clique em &quot;Executar Análise&quot; para analisar documentos e entrevistas com IA.
                     </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {isLoadingResultado && !resultado && (
+                <Card>
+                  <CardContent className="py-12 text-center text-muted-foreground">
+                    <Loader2 className="h-12 w-12 mx-auto mb-3 animate-spin opacity-50" />
+                    <p className="font-medium">Carregando última análise...</p>
                   </CardContent>
                 </Card>
               )}

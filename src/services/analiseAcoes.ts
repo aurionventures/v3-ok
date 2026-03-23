@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { invokeEdgeFunction } from "@/lib/supabase";
 import type { Documento } from "@/types/documentos";
 import type { Entrevista } from "@/types/entrevistas";
@@ -76,4 +77,49 @@ export async function executarAnaliseAcoes(
     return { data: null, error: "Habilite a API da Open AI" };
   }
   return { data: data ?? null, error: null };
+}
+
+/**
+ * Salva o resultado da análise no banco (por empresa).
+ */
+export async function salvarAnaliseAcoes(
+  empresaId: string,
+  resultado: AnaliseAcoesResult
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("analise_acoes")
+    .upsert(
+      {
+        empresa_id: empresaId,
+        resultado: resultado as unknown as Record<string, unknown>,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "empresa_id" }
+    );
+  if (error) {
+    console.error("[analiseAcoes] salvar:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+/**
+ * Busca a última análise salva para a empresa.
+ */
+export async function fetchAnaliseAcoes(
+  empresaId: string | null
+): Promise<{ data: AnaliseAcoesResult | null; error: string | null }> {
+  if (!supabase || !empresaId) return { data: null, error: null };
+  const { data, error } = await supabase
+    .from("analise_acoes")
+    .select("resultado")
+    .eq("empresa_id", empresaId)
+    .maybeSingle();
+  if (error) {
+    console.error("[analiseAcoes] fetch:", error);
+    return { data: null, error: error.message };
+  }
+  const resultado = data?.resultado as AnaliseAcoesResult | null;
+  return { data: resultado ?? null, error: null };
 }
