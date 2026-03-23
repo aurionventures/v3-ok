@@ -17,9 +17,26 @@ export interface MembroBriefingRow {
 }
 
 export async function fetchBriefingMembro(
-  membroId: string
+  membroId: string,
+  reuniaoIdPrioritaria?: string
 ): Promise<{ data: MembroBriefingRow | null; error: string | null }> {
   if (!supabase) return { data: null, error: "Supabase não configurado" };
+
+  // Se há reuniaoId prioritaria (ex: próxima reunião do membro), tenta buscar briefing dessa reunião primeiro
+  if (reuniaoIdPrioritaria) {
+    const { data: porReuniao, error: errReuniao } = await supabase
+      .from("membro_briefing")
+      .select("*")
+      .eq("membro_id", membroId)
+      .eq("reuniao_id", reuniaoIdPrioritaria)
+      .maybeSingle();
+
+    if (!errReuniao && porReuniao) {
+      const row = porReuniao as MembroBriefingRow;
+      normRow(row);
+      return { data: row, error: null };
+    }
+  }
 
   const { data, error } = await supabase
     .from("membro_briefing")
@@ -35,18 +52,21 @@ export async function fetchBriefingMembro(
   }
 
   const row = data as MembroBriefingRow | null;
-  if (row && Array.isArray(row.perguntas_criticas) === false && typeof row.perguntas_criticas === "string") {
+  if (row) normRow(row);
+  return { data: row, error: null };
+}
+
+function normRow(row: { perguntas_criticas?: unknown }): void {
+  if (Array.isArray(row.perguntas_criticas) === false && typeof row.perguntas_criticas === "string") {
     try {
-      row.perguntas_criticas = JSON.parse(row.perguntas_criticas as unknown as string) ?? [];
+      (row as MembroBriefingRow).perguntas_criticas = JSON.parse(row.perguntas_criticas as string) ?? [];
     } catch {
-      row.perguntas_criticas = [];
+      (row as MembroBriefingRow).perguntas_criticas = [];
     }
   }
-  if (row && !Array.isArray(row.perguntas_criticas)) {
-    row.perguntas_criticas = [];
+  if (!Array.isArray((row as MembroBriefingRow).perguntas_criticas)) {
+    (row as MembroBriefingRow).perguntas_criticas = [];
   }
-
-  return { data: row, error: null };
 }
 
 /** Lista todos os briefings do membro (para exibir múltiplas reuniões). */
@@ -68,14 +88,7 @@ export async function fetchBriefingsMembro(
 
   const rows = (data ?? []) as (MembroBriefingRow & { reunioes?: { titulo?: string; data_reuniao?: string } | null })[];
   for (const row of rows) {
-    if (Array.isArray(row.perguntas_criticas) === false && typeof row.perguntas_criticas === "string") {
-      try {
-        row.perguntas_criticas = JSON.parse(row.perguntas_criticas as unknown as string) ?? [];
-      } catch {
-        row.perguntas_criticas = [];
-      }
-    }
-    if (!Array.isArray(row.perguntas_criticas)) row.perguntas_criticas = [];
+    normRow(row);
   }
 
   return { data: rows, error: null };

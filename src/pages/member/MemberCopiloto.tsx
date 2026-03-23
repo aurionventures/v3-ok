@@ -10,7 +10,12 @@ import { perguntarComBriefing } from "@/services/memberCopiloto";
 
 type ChatEntry = { role: "user" | "assistant"; content: string };
 
-const MemberCopiloto = () => {
+interface MemberCopilotoProps {
+  /** ID da próxima reunião – prioriza briefing dessa reunião no contexto da conversa. */
+  reuniaoIdProxima?: string | null;
+}
+
+const MemberCopiloto = ({ reuniaoIdProxima }: MemberCopilotoProps) => {
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
   const [isAsking, setIsAsking] = useState(false);
@@ -18,8 +23,8 @@ const MemberCopiloto = () => {
 
   const { data: membro } = useCurrentMembro();
   const { data: briefingRes } = useQuery({
-    queryKey: ["member", "briefing", membro?.id],
-    queryFn: () => fetchBriefingMembro(membro!.id),
+    queryKey: ["member", "briefing", membro?.id, reuniaoIdProxima],
+    queryFn: () => fetchBriefingMembro(membro!.id, reuniaoIdProxima ?? undefined),
     enabled: !!membro?.id,
   });
 

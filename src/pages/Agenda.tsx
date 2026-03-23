@@ -1330,6 +1330,7 @@ onOpenChange={(open) => {
                                               : tipoOrgao === "comissao"
                                                 ? "bg-emerald-100 hover:bg-emerald-200"
                                                 : "bg-amber-100 hover:bg-amber-200";
+                                        const temPautaDefinida = r.status === "pauta_definida";
                                         return (
                                           <button
                                             key={r.id}
@@ -1345,7 +1346,12 @@ onOpenChange={(open) => {
                                             }}
                                           >
                                             <div className="font-medium text-foreground truncate">{titulo}</div>
-                                            <div className="text-muted-foreground">{hora}</div>
+                                            <div className="flex items-center gap-1">
+                                              <span className="text-muted-foreground">{hora}</span>
+                                              {temPautaDefinida && (
+                                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" title="Pauta Definida" />
+                                              )}
+                                            </div>
                                           </button>
                                         );
                                       })}

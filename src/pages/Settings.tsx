@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Settings as SettingsIcon, Save, FileText, Eye, EyeOff, RefreshCw, Loader2, Bell, Sparkles, Cpu } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
-import PlatformLogsViewer from "@/components/PlatformLogsViewer";
 import { Button } from "@/components/ui/button";
-import { fetchAccessLogs } from "@/services/accessLogs";
-import type { AccessLogEntry } from "@/services/accessLogs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,27 +100,7 @@ const Settings = () => {
   const [promptEditor, setPromptEditor] = useState("");
   const [ataConfigLoading, setAtaConfigLoading] = useState(false);
   const [ataConfigSaving, setAtaConfigSaving] = useState(false);
-  const [accessLogs, setAccessLogs] = useState<AccessLogEntry[]>([]);
-  const [accessLogsLoading, setAccessLogsLoading] = useState(false);
   const [profileForm, setProfileForm] = useState({ nome: "", email: "", role: "", department: "" });
-
-  const loadAccessLogs = useCallback(async () => {
-    setAccessLogsLoading(true);
-    const { logs, error } = await fetchAccessLogs({
-      limite: 200,
-      empresa_id: clientEmpresaId ?? firstEmpresaId,
-    });
-    setAccessLogsLoading(false);
-    if (error) {
-      setAccessLogs([]);
-      return;
-    }
-    setAccessLogs(logs);
-  }, [clientEmpresaId, firstEmpresaId]);
-
-  useEffect(() => {
-    if (activeTab === "logs") loadAccessLogs();
-  }, [activeTab, loadAccessLogs]);
 
   useEffect(() => {
     setProfileForm((p) => ({
@@ -334,10 +311,6 @@ const Settings = () => {
                   <TabsTrigger value="ata" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
                     <FileText className="h-4 w-4 mr-2" />
                     Parametrização de ATAs
-                  </TabsTrigger>
-                  <TabsTrigger value="logs" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Log de Atividades
                   </TabsTrigger>
                 </TabsList>
                 
@@ -724,21 +697,6 @@ const Settings = () => {
                       {ataConfigSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       {isSuperAdm ? "Salvar Prompt Padrão" : "Salvar Configuração de ATA"}
                     </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="logs">
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-medium mb-4">Log de Atividades</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Repositório geral de logs de acesso: login, logout e falhas de autenticação de clientes, usuários e membros.
-                    </p>
-                    <PlatformLogsViewer
-                      logs={accessLogs}
-                      loading={accessLogsLoading}
-                      onRefresh={loadAccessLogs}
-                      emptyMessage="Nenhum log de acesso encontrado. Os registros aparecem após logins na plataforma."
-                    />
                   </div>
                 </TabsContent>
               </Tabs>

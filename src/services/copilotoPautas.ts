@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import { invokeEdgeFunction } from "@/lib/supabase";
-import { upsertBriefingMembro } from "./membroBriefing";
 
 export interface PautaSugeridaIA {
   id: string;
@@ -119,68 +118,36 @@ export async function fetchPautasSugeridas(empresaId: string): Promise<PautaSuge
   return (data ?? []) as PautaSugeridaIA[];
 }
 
-/** Aprova pauta e entrega briefings aos membros (output_2b) */
+/** Aprova pauta via Edge Function (usa service role para garantir que briefings sejam gravados) */
 export async function aprovarPautaSugerida(
   pautaId: string,
   empresaId: string,
   reuniaoId: string
 ): Promise<{ error: string | null }> {
-  if (!supabase) return { error: "Supabase não configurado" };
+  const { data, error } = await invokeEdgeFunction<{ ok?: boolean; error?: string }>(
+    "aprovar-pauta-briefings",
+    { pauta_id: pautaId, empresa_id: empresaId, reuniao_id: reuniaoId }
+  );
 
-  const { data: pauta, error: fetchErr } = await supabase
-    .from("pauta_sugerida_ia")
-    .select("output_2a, output_2b, status")
-    .eq("id", pautaId)
-    .eq("empresa_id", empresaId)
-    .maybeSingle();
+  if (error) return { error: error.message };
+  if (data?.error) return { error: data.error };
+  if (!data?.ok) return { error: "Resposta inválida da Edge Function" };
+  return { error: null };
+}
 
-  if (fetchErr || !pauta) {
-    return { error: fetchErr?.message ?? "Pauta não encontrada" };
-  }
-  if (pauta.status !== "pendente") {
-    return { error: "Pauta já foi processada" };
-  }
+/** Sincroniza briefings para pautas já aprovadas (cria/atualiza para membros alocados). */
+export async function syncBriefingsPautasAprovadas(
+  empresaId: string,
+  pautaId?: string
+): Promise<{ error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{ ok?: boolean; error?: string }>(
+    "sync-briefings-pautas-aprovadas",
+    pautaId ? { empresa_id: empresaId, pauta_id: pautaId } : { empresa_id: empresaId }
+  );
 
-  const briefings = (pauta.output_2b as { member_briefings?: Array<Record<string, unknown>> })?.member_briefings ?? [];
-  const meetingAgenda = (pauta.output_2a as { meeting_agenda?: unknown[] })?.meeting_agenda ?? [];
-
-  for (const b of briefings) {
-    const membroId = b.membro_id;
-    if (!membroId || typeof membroId !== "string") continue;
-
-    const resumo = (b.resumo_executivo ?? "") as string;
-    const perguntas = Array.isArray(b.perguntas_criticas) ? (b.perguntas_criticas as string[]) : [];
-    const seuFoco = (b.seu_foco ?? "") as string;
-    const preparacao = (b.preparacao_recomendada ?? "") as string;
-    const alertas = (b.alertas_contextuais ?? "") as string;
-
-    const { error: upsertErr } = await upsertBriefingMembro({
-      membro_id: membroId,
-      empresa_id: empresaId,
-      reuniao_id: reuniaoId,
-      titulo: `Briefing - Reunião ${new Date().toLocaleDateString("pt-BR")}`,
-      resumo_executivo: resumo,
-      perguntas_criticas: perguntas,
-      seu_foco: seuFoco || undefined,
-      preparacao_recomendada: preparacao || undefined,
-      alertas_contextuais: alertas || undefined,
-      dados_completos: meetingAgenda.length > 0 ? { meeting_agenda: meetingAgenda } : undefined,
-    });
-
-    if (upsertErr) {
-      console.error("[copilotoPautas] upsertBriefing:", upsertErr);
-    }
-  }
-
-  const { error: updateErr } = await supabase
-    .from("pauta_sugerida_ia")
-    .update({ status: "aprovada", updated_at: new Date().toISOString() })
-    .eq("id", pautaId);
-
-  if (updateErr) {
-    return { error: updateErr.message };
-  }
-
+  if (error) return { error: error.message };
+  if (data?.error) return { error: data.error };
+  if (!data?.ok) return { error: "Resposta inválida da Edge Function" };
   return { error: null };
 }
 

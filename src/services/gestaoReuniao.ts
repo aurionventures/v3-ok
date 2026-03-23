@@ -87,6 +87,24 @@ export async function deletePauta(
   return { error: null };
 }
 
+/** Remove todas as pautas de uma reunião (usado ao sincronizar agenda da IA). */
+export async function deletePautasByReuniao(
+  reuniaoId: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+
+  const { error } = await supabase
+    .from("pautas")
+    .delete()
+    .eq("reuniao_id", reuniaoId);
+
+  if (error) {
+    console.error("[gestaoReuniao] deletePautasByReuniao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
 // --- reuniao_gestao ---
 export interface ReuniaoGestaoRow {
   reuniao_id: string;

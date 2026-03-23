@@ -24,13 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEmpresas } from "@/hooks/useEmpresas";
-import { useAgenda } from "@/hooks/useAgenda";
+import { useAgenda, AGENDA_QUERY_KEY } from "@/hooks/useAgenda";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   gerarPautaComIA,
   fetchPautasSugeridas,
   aprovarPautaSugerida,
   rejeitarPautaSugerida,
+  syncBriefingsPautasAprovadas,
   type PautaSugeridaIA,
 } from "@/services/copilotoPautas";
 import { toast } from "@/hooks/use-toast";
@@ -431,10 +432,13 @@ export function PautasSugeridasContent() {
       } else {
         context?.toastRef?.update?.({
           title: "Pauta aprovada",
-          description: "Briefings foram processados e enviados aos membros.",
+          description: "Agenda preenchida, calendário atualizado e briefings enviados aos membros.",
           variant: "default",
         });
         qc.invalidateQueries({ queryKey: [...COPILOTO_PAUTAS_KEY, empresaId ?? "none"] });
+        if (empresaId) {
+          qc.invalidateQueries({ queryKey: [...AGENDA_QUERY_KEY, empresaId] });
+        }
       }
     },
     onError: (_err, _variables, context) => {
@@ -451,6 +455,22 @@ export function PautasSugeridasContent() {
       } else {
         toast({ title: "Pauta rejeitada" });
         qc.invalidateQueries({ queryKey: [...COPILOTO_PAUTAS_KEY, empresaId ?? "none"] });
+      }
+    },
+  });
+
+  const syncBriefingsMt = useMutation({
+    mutationFn: () => syncBriefingsPautasAprovadas(empresaId!),
+    onSuccess: (result) => {
+      if (result.error) {
+        toast({ title: "Erro ao sincronizar", description: result.error, variant: "destructive" });
+      } else {
+        toast({
+          title: "Briefings sincronizados",
+          description: "Pre-briefings criados/atualizados para membros das pautas aprovadas.",
+        });
+        qc.invalidateQueries({ queryKey: [...COPILOTO_PAUTAS_KEY, empresaId ?? "none"] });
+        if (empresaId) qc.invalidateQueries({ queryKey: [...AGENDA_QUERY_KEY, empresaId] });
       }
     },
   });
@@ -597,6 +617,21 @@ export function PautasSugeridasContent() {
           >
             <Check className="h-4 w-4 mr-1" />
             Aprovadas ({aprovadasCount})
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => syncBriefingsMt.mutate()}
+            disabled={syncBriefingsMt.isPending || aprovadasCount === 0}
+            className="border-gray-300"
+            title="Cria/atualiza pre-briefings para membros das pautas já aprovadas"
+          >
+            {syncBriefingsMt.isPending ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 mr-1" />
+            )}
+            Sincronizar briefings
           </Button>
         </div>
         <div className="space-y-4">

@@ -272,11 +272,14 @@ const MemberDashboard = () => {
           </TabsContent>
 
           <TabsContent value="briefing">
-            <MemberBriefing onProgressChange={setBriefingProgress} />
+            <MemberBriefing
+              onProgressChange={setBriefingProgress}
+              reuniaoIdProxima={dashboard?.proxima?.id}
+            />
           </TabsContent>
 
           <TabsContent value="copiloto">
-            <MemberCopiloto />
+            <MemberCopiloto reuniaoIdProxima={dashboard?.proxima?.id} />
           </TabsContent>
         </Tabs>
       </div>

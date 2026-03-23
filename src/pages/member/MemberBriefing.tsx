@@ -10,16 +10,18 @@ import { fetchBriefingMembro } from "@/services/membroBriefing";
 
 interface MemberBriefingProps {
   onProgressChange?: (progress: number) => void;
+  /** ID da próxima reunião do membro – prioriza exibir o briefing dessa reunião. */
+  reuniaoIdProxima?: string | null;
 }
 
-const MemberBriefing = ({ onProgressChange }: MemberBriefingProps) => {
+const MemberBriefing = ({ onProgressChange, reuniaoIdProxima }: MemberBriefingProps) => {
   const { data: membro } = useCurrentMembro();
   const [confirmacaoLeitura, setConfirmacaoLeitura] = useState(false);
   const [abriuAnexos, setAbriuAnexos] = useState(false);
 
   const { data: briefing, isLoading } = useQuery({
-    queryKey: ["member", "briefing", membro?.id],
-    queryFn: () => fetchBriefingMembro(membro!.id),
+    queryKey: ["member", "briefing", membro?.id, reuniaoIdProxima],
+    queryFn: () => fetchBriefingMembro(membro!.id, reuniaoIdProxima ?? undefined),
     enabled: !!membro?.id,
   });
 

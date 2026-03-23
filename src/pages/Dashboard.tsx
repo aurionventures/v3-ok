@@ -204,7 +204,7 @@ const Dashboard = () => {
                 ) : (
                   <ul className="space-y-3">
                     <li className="flex justify-between text-sm">
-                      <span className="text-gray-600">Reuniões este mês</span>
+                      <span className="text-gray-600">Reuniões</span>
                       <span className="font-semibold text-gray-900">{indicadores.reunioesEsteMes}</span>
                     </li>
                     <li className="flex justify-between text-sm">
