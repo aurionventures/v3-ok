@@ -151,15 +151,17 @@ const Documents = () => {
     }
   };
 
-  const handleUpload = async (files: File[]) => {
+  const handleUpload = async (files: File[], options?: { silent?: boolean }) => {
     if (!empresaId) {
       throw new Error("Selecione uma empresa primeiro.");
     }
     await uploadFiles(files, uploadCategory);
-    toast({
-      title: "Documentos salvos",
-      description: `${files.length} documento(s) adicionado(s) ao histórico.`,
-    });
+    if (!options?.silent) {
+      toast({
+        title: "Documentos salvos",
+        description: `${files.length} documento(s) adicionado(s) ao histórico.`,
+      });
+    }
   };
 
   const getDocumentIcon = (type: string) => {
@@ -405,7 +407,13 @@ const Documents = () => {
                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
                                 onUpload={handleUpload}
                                 saveButtonLabel="Salvar no histórico"
+                                batchSize={5}
                               />
+                              {uploadCategory === "Atas e Registros" && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Para muitas ATAs antigas, os arquivos são enviados em lotes de 5 automaticamente.
+                                </p>
+                              )}
                             </>
                           )}
                         </div>

@@ -8,6 +8,10 @@ export interface MembroBriefingRow {
   titulo: string | null;
   resumo_executivo: string | null;
   perguntas_criticas: string[];
+  seu_foco?: string | null;
+  preparacao_recomendada?: string | null;
+  alertas_contextuais?: string | null;
+  dados_completos?: unknown;
   created_at?: string;
   updated_at?: string;
 }
@@ -52,6 +56,9 @@ export interface MembroBriefingInsert {
   titulo?: string | null;
   resumo_executivo?: string | null;
   perguntas_criticas?: string[];
+  seu_foco?: string | null;
+  preparacao_recomendada?: string | null;
+  alertas_contextuais?: string | null;
 }
 
 /**
@@ -88,6 +95,9 @@ export async function upsertBriefingMembro(
     titulo: p.titulo ?? null,
     resumo_executivo: p.resumo_executivo ?? null,
     perguntas_criticas: p.perguntas_criticas ?? [],
+    seu_foco: p.seu_foco ?? null,
+    preparacao_recomendada: p.preparacao_recomendada ?? null,
+    alertas_contextuais: p.alertas_contextuais ?? null,
     updated_at: new Date().toISOString(),
   };
 

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Download, HelpCircle, FileCheck, BookOpen, FileText } from "lucide-react";
+import { Clock, Download, HelpCircle, FileCheck, BookOpen, FileText, Target, Lightbulb, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 import { fetchBriefingMembro } from "@/services/membroBriefing";
@@ -19,7 +19,14 @@ const MemberBriefing = () => {
     enabled: !!membro?.id,
   });
 
-  const temBriefing = briefing?.data && (briefing.data.resumo_executivo || (briefing.data.perguntas_criticas?.length ?? 0) > 0);
+  const bData = briefing?.data;
+  const temBriefing =
+    bData &&
+    (bData.resumo_executivo ||
+      (bData.perguntas_criticas?.length ?? 0) > 0 ||
+      !!bData.seu_foco ||
+      !!bData.preparacao_recomendada ||
+      !!bData.alertas_contextuais);
   const progresso = temBriefing ? (confirmacaoLeitura ? 50 : 0) + (abriuAnexos ? 50 : 0) : 0;
 
   if (isLoading) {
@@ -114,6 +121,20 @@ const MemberBriefing = () => {
         </Card>
       )}
 
+      {b.seu_foco && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Seu Foco
+            </h3>
+            <div className="space-y-3 text-sm text-gray-700 whitespace-pre-wrap">
+              {b.seu_foco}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {perguntas.length > 0 && (
         <Card>
           <CardContent className="p-6">
@@ -129,6 +150,34 @@ const MemberBriefing = () => {
                 </li>
               ))}
             </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {b.preparacao_recomendada && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-primary" />
+              Preparação Recomendada
+            </h3>
+            <div className="space-y-3 text-sm text-gray-700 whitespace-pre-wrap">
+              {b.preparacao_recomendada}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {b.alertas_contextuais && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Alertas Contextuais
+            </h3>
+            <div className="space-y-3 text-sm text-gray-700 whitespace-pre-wrap">
+              {b.alertas_contextuais}
+            </div>
           </CardContent>
         </Card>
       )}

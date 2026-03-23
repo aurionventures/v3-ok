@@ -19,6 +19,7 @@ const AGENTES_ESPERADOS = [
   "agente",
   "agente-ata",
   "agente-atas-reunioes",
+  "agente-copiloto-governanca",
   "agente-diagnostico-governanca",
   "agente-sinais-mercado",
   "agente-insights-estrategicos",

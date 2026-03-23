@@ -13,7 +13,7 @@ export function useInsightsEstrategicos() {
   const query = useQuery({
     queryKey: [...INSIGHTS_ESTRATEGICOS_KEY, firstEmpresaId ?? "none"],
     queryFn: () => fetchInsightsEstrategicos(firstEmpresaId),
-    enabled: !!firstEmpresaId,
+    enabled: false, // Gera apenas ao clicar em "Gerar Insights"
     staleTime: 1000 * 60 * 5, // 5 min
   });
 
@@ -27,6 +27,7 @@ export function useInsightsEstrategicos() {
   return {
     ...data,
     isLoading: query.isLoading,
+    isFetched: query.isFetched,
     error: query.error ?? data.error,
     hasEmpresa: !!firstEmpresaId,
     refetch: query.refetch,

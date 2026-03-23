@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
@@ -8,9 +8,11 @@ interface FileUploadProps {
   multiple?: boolean;
   accept?: string;
   maxSize?: number; // in MB
-  /** Ao preencher, exibe botão "Salvar no histórico" e chama ao clicar (após sucesso, limpa a lista) */
-  onUpload?: (files: File[]) => Promise<void>;
+  /** Ao preencher, exibe botão "Salvar no histórico" e chama ao clicar (após sucesso, limpa a lista). Opção silent evita toast (usado internamente em upload em lotes). */
+  onUpload?: (files: File[], options?: { silent?: boolean }) => Promise<void>;
   saveButtonLabel?: string;
+  /** Envia os arquivos em lotes (ex: 5 ou 10 por vez). Útil para muitas ATAs antigas. */
+  batchSize?: number;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -20,17 +22,40 @@ const FileUpload: React.FC<FileUploadProps> = ({
   maxSize = 10,
   onUpload,
   saveButtonLabel = "Salvar no histórico",
+  batchSize,
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
 
   const handleSave = async () => {
     if (!onUpload || files.length === 0) return;
     setIsUploading(true);
+    setBatchProgress(null);
+
     try {
-      await onUpload(files);
-      setFiles([]);
+      const useBatches = batchSize != null && batchSize > 0 && files.length > batchSize;
+
+      if (useBatches) {
+        const batches: File[][] = [];
+        for (let i = 0; i < files.length; i += batchSize) {
+          batches.push(files.slice(i, i + batchSize));
+        }
+
+        for (let i = 0; i < batches.length; i++) {
+          setBatchProgress({ current: i + 1, total: batches.length });
+          await onUpload(batches[i], { silent: true });
+        }
+        setFiles([]);
+        toast({
+          title: "Documentos salvos",
+          description: `${files.length} arquivo(s) enviado(s) em ${batches.length} lote(s).`,
+        });
+      } else {
+        await onUpload(files);
+        setFiles([]);
+      }
     } catch (err) {
       toast({
         title: "Erro ao salvar",
@@ -39,6 +64,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       });
     } finally {
       setIsUploading(false);
+      setBatchProgress(null);
     }
   };
 
@@ -179,13 +205,21 @@ const FileUpload: React.FC<FileUploadProps> = ({
             ))}
           </ul>
           {onUpload && (
-            <Button
-              className="w-full"
-              onClick={handleSave}
-              disabled={isUploading}
-            >
-              {isUploading ? "Salvando..." : saveButtonLabel}
-            </Button>
+            <div className="space-y-2">
+              {batchProgress && (
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enviando lote {batchProgress.current} de {batchProgress.total}…
+                </p>
+              )}
+              <Button
+                className="w-full"
+                onClick={handleSave}
+                disabled={isUploading}
+              >
+                {isUploading ? "Salvando..." : saveButtonLabel}
+              </Button>
+            </div>
           )}
         </div>
       )}

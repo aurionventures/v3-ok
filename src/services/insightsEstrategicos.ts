@@ -96,9 +96,9 @@ function parseInsightsResponse(raw: string): InsightsEstrategicosResult | null {
 
   try {
     const parsed = JSON.parse(jsonStr) as ParsedInsights;
-    const riscos = (parsed.riscos ?? []).map((r, i) => toCardItem(r, i, "risco"));
-    const ameacas = (parsed.ameacas ?? []).map((a, i) => toCardItem(a, i, "ameaca"));
-    const oportunidades = (parsed.oportunidades ?? []).map((o, i) => toCardItem(o, i, "oportunidade"));
+    const riscos = (parsed.riscos ?? []).slice(0, 2).map((r, i) => toCardItem(r, i, "risco"));
+    const ameacas = (parsed.ameacas ?? []).slice(0, 2).map((a, i) => toCardItem(a, i, "ameaca"));
+    const oportunidades = (parsed.oportunidades ?? []).slice(0, 2).map((o, i) => toCardItem(o, i, "oportunidade"));
     return {
       riscos,
       ameacas,

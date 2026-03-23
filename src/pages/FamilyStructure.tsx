@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from "react";
-import { Search, UserPlus, Eye, Pencil, Trash2, Building2 } from "lucide-react";
+import { Search, UserPlus, Eye, Pencil, Trash2, Building2, Network } from "lucide-react";
 import Header from "@/components/Header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FamilyTreeFlow } from "@/components/FamilyTreeFlow";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -216,24 +218,34 @@ const FamilyStructure = () => {
                     Estrutura Societária.
                   </p>
                 </div>
-              ) : isLoading ? (
-                <div className="py-12 text-center text-muted-foreground">
-                  Carregando familiares...
-                </div>
-              ) : filteredMembers.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">
-                  <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p className="font-medium">
-                    {searchTerm ? "Nenhum resultado para a busca" : "Nenhum familiar cadastrado"}
-                  </p>
-                  <p className="text-sm mt-1">
-                    {searchTerm
-                      ? "Tente outro termo de busca"
-                      : "Clique em Adicionar Familiar para começar"}
-                  </p>
-                </div>
               ) : (
-                <Table>
+                <Tabs defaultValue="lista" className="mt-4">
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="lista">Lista de Membros</TabsTrigger>
+                    <TabsTrigger value="arvore">
+                      <Network className="h-4 w-4 mr-2" />
+                      Árvore Genealógica
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="lista">
+                    {isLoading ? (
+                      <div className="py-12 text-center text-muted-foreground">
+                        Carregando familiares...
+                      </div>
+                    ) : filteredMembers.length === 0 ? (
+                      <div className="py-12 text-center text-muted-foreground">
+                        <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p className="font-medium">
+                          {searchTerm ? "Nenhum resultado para a busca" : "Nenhum familiar cadastrado"}
+                        </p>
+                        <p className="text-sm mt-1">
+                          {searchTerm
+                            ? "Tente outro termo de busca"
+                            : "Clique em Adicionar Familiar para começar"}
+                        </p>
+                      </div>
+                    ) : (
+                      <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nome</TableHead>
@@ -296,6 +308,23 @@ const FamilyStructure = () => {
                     ))}
                   </TableBody>
                 </Table>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="arvore">
+                    {isLoading ? (
+                      <div className="py-12 text-center text-muted-foreground">
+                        Carregando árvore...
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          Visualização interativa das relações entre membros por geração
+                        </p>
+                        <FamilyTreeFlow members={filteredMembers} />
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               )}
             </CardContent>
           </Card>

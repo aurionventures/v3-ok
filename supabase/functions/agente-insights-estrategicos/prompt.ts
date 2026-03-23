@@ -39,7 +39,9 @@ FORMATO DE RESPOSTA (obrigatório):
 
 Regras:
 - Baseie-se APENAS nos dados do contexto. Não invente informações.
-- Priorize riscos e ameaças por impacto. Máximo 5 itens por categoria.
-- Para severidade use exatamente: critico, alto, medio ou baixo.
+- Gere exatamente 2 itens por categoria (riscos, ameacas, oportunidades). Priorize por impacto.
+- Para severidade em riscos use exatamente: critico, alto, medio ou baixo.
+- Para ameacas use tags: Imediato, 30 dias, Regulatório, Operacional.
+- Para oportunidades use tag: Estratégica.
 - Se não houver dados suficientes para uma categoria, retorne array vazio [].
 - Retorne somente o JSON, sem markdown nem explicações.`;
