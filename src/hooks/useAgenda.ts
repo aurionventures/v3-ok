@@ -1,8 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchReunioes, insertReuniao } from "@/services/agenda";
+import { fetchReunioes, insertReuniao, insertReunioesEmLote } from "@/services/agenda";
 import type { ReuniaoInsert } from "@/types/agenda";
 
 export const AGENDA_QUERY_KEY = ["agenda"] as const;
+
+type InsertEmLoteParams = {
+  empresaId: string;
+  itens: Omit<ReuniaoInsert, "empresa_id">[];
+};
 
 export function useAgenda(empresaId: string | null, ano?: number) {
   const qc = useQueryClient();
@@ -20,11 +25,22 @@ export function useAgenda(empresaId: string | null, ano?: number) {
       }
     },
   });
+  const insertEmLoteMt = useMutation({
+    mutationFn: ({ empresaId, itens }: InsertEmLoteParams) =>
+      insertReunioesEmLote(itens, empresaId),
+    onSuccess: (_data, variables) => {
+      if (variables.empresaId) {
+        qc.invalidateQueries({ queryKey: [...AGENDA_QUERY_KEY, variables.empresaId] });
+      }
+    },
+  });
   return {
     reunioes: query.data ?? [],
     isLoading: query.isLoading,
     refetch: query.refetch,
     insertReuniao: insertMt.mutateAsync,
     insertReuniaoLoading: insertMt.isPending,
+    insertReunioesEmLote: insertEmLoteMt.mutateAsync,
+    insertReunioesEmLoteLoading: insertEmLoteMt.isPending,
   };
 }

@@ -5,10 +5,12 @@ import {
   Settings,
   Filter,
   BarChart3,
-  ChevronLeft,
-  ChevronRight,
+  Building2,
+  Users,
+  UserCog,
+  Clock,
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDay, isSameDay } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
@@ -37,9 +39,11 @@ import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GestaoReuniao from "@/components/GestaoReuniao";
+import { cn } from "@/lib/utils";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useGovernance } from "@/hooks/useGovernance";
 import { useAgenda } from "@/hooks/useAgenda";
+import { gerarDatasReunioes } from "@/services/agenda";
 import { fetchMembrosPorOrgao } from "@/services/governance";
 import type { ReuniaoGestao } from "@/types/gestaoReuniao";
 import type { ReuniaoEnriquecida } from "@/types/agenda";
@@ -109,7 +113,7 @@ const Agenda = () => {
   const empresaId = firstEmpresaId;
   const { conselhos, comites, comissoes } = useGovernance(empresaId);
   const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear());
-  const { reunioes, isLoading, refetch, insertReuniao, insertReuniaoLoading } = useAgenda(empresaId, anoSelecionado);
+  const { reunioes, isLoading, refetch, insertReuniao, insertReuniaoLoading, insertReunioesEmLote, insertReunioesEmLoteLoading } = useAgenda(empresaId, anoSelecionado);
 
   const [currentMonth, setCurrentMonth] = useState(new Date(anoSelecionado, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -123,6 +127,14 @@ const Agenda = () => {
 
   const [configurarOpen, setConfigurarOpen] = useState(false);
   const [formAno, setFormAno] = useState(String(anoSelecionado));
+  const [configTipoOrgao, setConfigTipoOrgao] = useState<"conselho" | "comite" | "comissao">("conselho");
+  const [configOrgaoId, setConfigOrgaoId] = useState("");
+  const [configTipoReuniao, setConfigTipoReuniao] = useState("ordinaria");
+  const [configFrequencia, setConfigFrequencia] = useState("");
+  const [configDiaReuniao, setConfigDiaReuniao] = useState("");
+  const [configHorarioPadrao, setConfigHorarioPadrao] = useState("14:00");
+  const [configModalidade, setConfigModalidade] = useState("presencial");
+  const [configLocal, setConfigLocal] = useState("");
   const [formTipoOrgao, setFormTipoOrgao] = useState<"conselho" | "comite" | "comissao">("conselho");
   const [formOrgaoId, setFormOrgaoId] = useState("");
   const [formData, setFormData] = useState("");
@@ -135,8 +147,24 @@ const Agenda = () => {
   }, [anoSelecionado]);
 
   useEffect(() => {
-    if (configurarOpen) setFormAno(String(anoSelecionado));
+    if (configurarOpen) {
+      setFormAno(String(anoSelecionado));
+      setConfigTipoOrgao("conselho");
+      setConfigOrgaoId("");
+      setConfigTipoReuniao("ordinaria");
+      setConfigFrequencia("");
+      setConfigDiaReuniao("");
+      setConfigHorarioPadrao("14:00");
+      setConfigModalidade("presencial");
+      setConfigLocal("");
+    }
   }, [configurarOpen, anoSelecionado]);
+
+  const configOrgaosPorTipo = useMemo(() => {
+    if (configTipoOrgao === "conselho") return conselhos;
+    if (configTipoOrgao === "comite") return comites;
+    return comissoes;
+  }, [configTipoOrgao, conselhos, comites, comissoes]);
 
   const orgaosPorTipo = useMemo(() => {
     if (formTipoOrgao === "conselho") return conselhos;
@@ -264,120 +292,6 @@ const Agenda = () => {
         <header className="flex items-center justify-between border-b bg-background px-4 py-3">
           <h1 className="text-xl font-semibold">Agenda Anual</h1>
           <div className="flex items-center gap-2">
-            <Dialog open={configurarOpen} onOpenChange={setConfigurarOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configurar Calendário Anual
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader>
-                  <DialogTitle>Configurar Calendário Anual</DialogTitle>
-                  <DialogDescription>Defina o ano da agenda</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Ano</Label>
-                    <Input
-                      type="number"
-                      min={2020}
-                      max={2030}
-                      value={formAno}
-                      onChange={(e) => setFormAno(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    onClick={() => {
-                      const y = parseInt(formAno, 10);
-                      if (!isNaN(y)) {
-                        setAnoSelecionado(y);
-                        setConfigurarOpen(false);
-                        toast({ title: "Ano atualizado", description: `Agenda ${y}` });
-                      }
-                    }}
-                  >
-                    Aplicar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <CalendarPlus className="mr-2 h-4 w-4" />
-                  Nova Reunião
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[520px]">
-                <DialogHeader>
-                  <DialogTitle>Agendar Nova Reunião</DialogTitle>
-                  <DialogDescription>Selecione o órgão (conselho, comitê ou comissão) e preencha os dados</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Tipo de Órgão</Label>
-                    <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="conselho">Conselho</SelectItem>
-                        <SelectItem value="comite">Comitê</SelectItem>
-                        <SelectItem value="comissao">Comissão</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Órgão</Label>
-                    <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
-                      <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
-                      <SelectContent>
-                        {orgaosPorTipo.map((o) => (
-                          <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {membrosOrgao.length > 0 && (
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
-                      <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
-                        {membrosOrgao.map((m) => (
-                          <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Data</Label>
-                      <Input type="date" value={formData} onChange={(e) => setFormData(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Horário</Label>
-                      <Input type="time" value={formHorario} onChange={(e) => setFormHorario(e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Tipo de Reunião</Label>
-                    <Select value={formTipoReuniao} onValueChange={setFormTipoReuniao}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ordinaria">Ordinária</SelectItem>
-                        <SelectItem value="extraordinaria">Extraordinária</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAgendar} disabled={insertReuniaoLoading || !formOrgaoId || !formData}>
-                    Agendar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
             <GuiaLegacyButton />
             <NotificationBell />
           </div>
@@ -386,9 +300,284 @@ const Agenda = () => {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Filter className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-lg font-semibold">Filtrar Reuniões</h2>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold">Filtrar Reuniões</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Dialog open={configurarOpen} onOpenChange={setConfigurarOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Configurar Calendário Anual
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Configurador de Calendário Anual</DialogTitle>
+                        <DialogDescription>Crie automaticamente o calendário de reuniões para o ano todo</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-6 py-4">
+                        {/* 1. Informações Básicas */}
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-semibold text-foreground">1. Informações Básicas</h3>
+                          <div className="space-y-2">
+                            <Label>Ano do Calendário</Label>
+                            <Input
+                              type="number"
+                              min={2020}
+                              max={2030}
+                              value={formAno}
+                              onChange={(e) => setFormAno(e.target.value)}
+                              className="w-24"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Tipo de Órgão <span className="text-destructive">*</span></Label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {[
+                                { value: "conselho" as const, label: "Conselho", icon: Building2 },
+                                { value: "comite" as const, label: "Comitê", icon: Users },
+                                { value: "comissao" as const, label: "Comissão", icon: UserCog },
+                              ].map(({ value, label, icon: Icon }) => (
+                                <button
+                                  key={value}
+                                  type="button"
+                                  onClick={() => { setConfigTipoOrgao(value); setConfigOrgaoId(""); }}
+                                  className={cn(
+                                    "flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors",
+                                    configTipoOrgao === value
+                                      ? "border-primary bg-primary/5"
+                                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                                  )}
+                                >
+                                  <Icon className="h-8 w-8 text-muted-foreground" />
+                                  <span className="text-sm font-medium">{label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>
+                              {configTipoOrgao === "conselho" && "Conselho"}
+                              {configTipoOrgao === "comite" && "Comitê"}
+                              {configTipoOrgao === "comissao" && "Comissão"}
+                            </Label>
+                            <Select value={configOrgaoId} onValueChange={setConfigOrgaoId}>
+                              <SelectTrigger>
+                                <SelectValue placeholder={`Selecione o ${configTipoOrgao === "conselho" ? "conselho" : configTipoOrgao === "comite" ? "comitê" : "comissão"}`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {configOrgaosPorTipo.map((o) => (
+                                  <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Tipo de Reunião Padrão</Label>
+                            <Select value={configTipoReuniao} onValueChange={setConfigTipoReuniao}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ordinaria">Ordinária</SelectItem>
+                                <SelectItem value="extraordinaria">Extraordinária</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* 2. Configuração de Frequência */}
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-semibold text-foreground">2. Configuração de Frequência</h3>
+                          <div className="space-y-2">
+                            <Label>Frequência das Reuniões</Label>
+                            <Select value={configFrequencia} onValueChange={setConfigFrequencia}>
+                              <SelectTrigger><SelectValue placeholder="Selecione a frequência" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="mensal">Mensal</SelectItem>
+                                <SelectItem value="bimestral">Bimestral</SelectItem>
+                                <SelectItem value="trimestral">Trimestral</SelectItem>
+                                <SelectItem value="semestral">Semestral</SelectItem>
+                                <SelectItem value="anual">Anual</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Dia da Reunião</Label>
+                            <Select value={configDiaReuniao} onValueChange={setConfigDiaReuniao}>
+                              <SelectTrigger><SelectValue placeholder="Selecione a regra do dia" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="primeiro_segunda">Primeira segunda-feira</SelectItem>
+                                <SelectItem value="segundo_terca">Segunda terça-feira</SelectItem>
+                                <SelectItem value="terceira_quarta">Terceira quarta-feira</SelectItem>
+                                <SelectItem value="ultima_sexta">Última sexta-feira</SelectItem>
+                                <SelectItem value="dia_10">Dia 10 de cada mês</SelectItem>
+                                <SelectItem value="dia_15">Dia 15 de cada mês</SelectItem>
+                                <SelectItem value="dia_20">Dia 20 de cada mês</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* 3. Horário e Local */}
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-semibold text-foreground">3. Horário e Local</h3>
+                          <div className="space-y-2">
+                            <Label>Horário Padrão</Label>
+                            <Input
+                              type="time"
+                              value={configHorarioPadrao}
+                              onChange={(e) => setConfigHorarioPadrao(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Modalidade</Label>
+                            <Select value={configModalidade} onValueChange={setConfigModalidade}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="presencial">Presencial</SelectItem>
+                                <SelectItem value="hibrido">Híbrido</SelectItem>
+                                <SelectItem value="remoto">Remoto</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Local (opcional)</Label>
+                            <Input
+                              placeholder="Ex: Sala de reuniões - Sede"
+                              value={configLocal}
+                              onChange={(e) => setConfigLocal(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          disabled={!empresaId || !configOrgaoId || !configFrequencia || !configDiaReuniao || insertReunioesEmLoteLoading}
+                          onClick={async () => {
+                            const y = parseInt(formAno, 10);
+                            if (isNaN(y) || !empresaId || !configOrgaoId || !configFrequencia || !configDiaReuniao) {
+                              toast({
+                                title: "Campos obrigatórios",
+                                description: "Preencha Ano, Tipo de Órgão, Órgão, Frequência e Dia da Reunião.",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            const orgao = configOrgaosPorTipo.find((o) => o.id === configOrgaoId);
+                            const titulo = orgao?.nome ?? "Reunião";
+                            const datas = gerarDatasReunioes(y, configFrequencia, configDiaReuniao);
+                            const conselhoId = configTipoOrgao === "conselho" ? configOrgaoId : null;
+                            const comiteId = configTipoOrgao === "comite" ? configOrgaoId : null;
+                            const comissaoId = configTipoOrgao === "comissao" ? configOrgaoId : null;
+                            const itens = datas.map((data_reuniao) => ({
+                              conselho_id: conselhoId,
+                              comite_id: comiteId,
+                              comissao_id: comissaoId,
+                              titulo,
+                              data_reuniao: data_reuniao,
+                              horario: configHorarioPadrao || null,
+                              tipo: configTipoReuniao === "ordinaria" ? "ordinaria" : "extraordinaria",
+                              status: "agendada",
+                            }));
+                            const { count, error } = await insertReunioesEmLote({ empresaId, itens });
+                            if (error) {
+                              toast({
+                                title: "Erro ao gerar calendário",
+                                description: error,
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            setAnoSelecionado(y);
+                            setConfigurarOpen(false);
+                            toast({
+                              title: "Calendário configurado",
+                              description: `${count} reuniões agendadas para ${titulo} em ${y}.`,
+                            });
+                          }}
+                        >
+                          {insertReunioesEmLoteLoading ? "Gerando..." : "Gerar Calendário"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <CalendarPlus className="mr-2 h-4 w-4" />
+                        Nova Reunião
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[520px]">
+                      <DialogHeader>
+                        <DialogTitle>Agendar Nova Reunião</DialogTitle>
+                        <DialogDescription>Selecione o órgão (conselho, comitê ou comissão) e preencha os dados</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Tipo de Órgão</Label>
+                          <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="conselho">Conselho</SelectItem>
+                              <SelectItem value="comite">Comitê</SelectItem>
+                              <SelectItem value="comissao">Comissão</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Órgão</Label>
+                          <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
+                            <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
+                            <SelectContent>
+                              {orgaosPorTipo.map((o) => (
+                                <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {membrosOrgao.length > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
+                            <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
+                              {membrosOrgao.map((m) => (
+                                <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Data</Label>
+                            <Input type="date" value={formData} onChange={(e) => setFormData(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Horário</Label>
+                            <Input type="time" value={formHorario} onChange={(e) => setFormHorario(e.target.value)} />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Tipo de Reunião</Label>
+                          <Select value={formTipoReuniao} onValueChange={setFormTipoReuniao}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ordinaria">Ordinária</SelectItem>
+                              <SelectItem value="extraordinaria">Extraordinária</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={handleAgendar} disabled={insertReuniaoLoading || !formOrgaoId || !formData}>
+                          Agendar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div className="space-y-2">
@@ -447,35 +636,9 @@ const Agenda = () => {
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">Calendário Anual de Reuniões</h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-medium capitalize">
-                    {viewMode === "monthly"
-                      ? format(currentMonth, "MMMM yyyy", { locale: ptBR })
-                      : `Agenda ${anoSelecionado}`}
-                  </span>
-                  <Button
-                    variant={viewMode === "annual" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setViewMode("annual")}
-                  >
-                    Visão Anual
-                  </Button>
-                  {viewMode === "monthly" && (
-                    <div className="flex rounded-md border">
-                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setCurrentMonth((m) => subMonths(m, 1))}>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setCurrentMonth((m) => addMonths(m, 1))}>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
+              <div className="flex items-center gap-2 mb-4">
+                <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                <h2 className="text-lg font-semibold">Calendário Anual de Reuniões</h2>
               </div>
 
               <Tabs
@@ -484,7 +647,7 @@ const Agenda = () => {
                 className="w-full"
               >
                 <TabsList className="mb-4">
-                  <TabsTrigger value="agenda">Agenda {anoSelecionado}</TabsTrigger>
+                  <TabsTrigger value="agenda">Agenda anual</TabsTrigger>
                   <TabsTrigger value="mensal">Visão Mensal</TabsTrigger>
                 </TabsList>
 
