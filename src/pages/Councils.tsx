@@ -41,6 +41,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useGovernance } from "@/hooks/useGovernance";
 import type { OrgaoGovernanca } from "@/types/governance";
@@ -781,20 +782,30 @@ const Councils = () => {
                         <TableRow>
                           <TableHead>Nome</TableHead>
                           <TableHead>Cargo Principal</TableHead>
-                          <TableHead>Conselho(s)</TableHead>
-                          <TableHead>Comitê(s)</TableHead>
-                          <TableHead>Comissão(ões)</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {membros.map((m) => (
                           <TableRow key={m.id}>
-                            <TableCell className="font-medium">{m.nome}</TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>{m.nome}</span>
+                                {m.conselhos.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-800 border-0 hover:bg-blue-100">Conselho</Badge>
+                                )}
+                                {m.comites.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs font-normal bg-violet-100 text-violet-800 border-0 hover:bg-violet-100">Comitê</Badge>
+                                )}
+                                {m.comissoes.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs font-normal bg-emerald-100 text-emerald-800 border-0 hover:bg-emerald-100">Comissão</Badge>
+                                )}
+                                {m.conselhos.length === 0 && m.comites.length === 0 && m.comissoes.length === 0 && (
+                                  <Badge variant="outline" className="text-xs font-normal text-muted-foreground border-gray-200">Não alocado</Badge>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell>{m.cargoPrincipal ?? "—"}</TableCell>
-                            <TableCell>{m.conselhos.length > 0 ? m.conselhos.join(", ") : "—"}</TableCell>
-                            <TableCell>{m.comites.length > 0 ? m.comites.join(", ") : "—"}</TableCell>
-                            <TableCell>{m.comissoes.length > 0 ? m.comissoes.join(", ") : "—"}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" onClick={() => { setVerMembro({ id: m.id, nome: m.nome, email: m.email ?? null, user_id: m.user_id ?? null }); setVerSenhaGerada(null); setVerMembroOpen(true); }}>
                                 <Eye className="h-4 w-4 mr-1" />
