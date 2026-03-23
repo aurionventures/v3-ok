@@ -92,6 +92,12 @@ const MaturityQuiz = () => {
     }
   };
 
+  const getQuestionAtStep = (step: number) => {
+    if (step < COMPANY_DATA.length) return null;
+    const idx = step - COMPANY_DATA.length;
+    return idx < QUESTIONS.length ? QUESTIONS[idx] : null;
+  };
+
   const handleNext = (validateRequired = true) => {
     if (validateRequired) {
       if (isCompanyDataPhase) {
@@ -116,7 +122,14 @@ const MaturityQuiz = () => {
       }
     }
 
-    const newStep = currentStep + 1;
+    let newStep = currentStep + 1;
+    // Pular questões condicionais quando não se aplicam
+    while (newStep < totalSteps) {
+      const q = getQuestionAtStep(newStep);
+      if (!q || !shouldSkipQuestion(q)) break;
+      newStep++;
+    }
+
     if (newStep >= totalSteps) {
       const result = calcularPontuacao(answers, isFamilyBusiness);
       saveMaturityAssessment(result, answers.companyData);
@@ -137,19 +150,18 @@ const MaturityQuiz = () => {
   };
 
   const shouldSkipQuestion = (question: any): boolean => {
-    // Lógica para questões condicionais (ex: 4.1 só aparece se 4 = "sim")
-    if (question.numero === "4.1") {
-      return answers.questions["4"] !== "sim";
-    }
-    if (question.numero === "10.1") {
-      return answers.questions["10"] !== "sim";
-    }
-    // Adicionar outras condições conforme necessário
+    if (question.numero === "4.1") return answers.questions["4"] !== "sim";
+    if (question.numero === "10.1") return answers.questions["10"] !== "sim";
     return false;
   };
 
   const handlePrevious = () => {
-    const prevStep = currentStep - 1;
+    let prevStep = currentStep - 1;
+    while (prevStep >= COMPANY_DATA.length) {
+      const q = getQuestionAtStep(prevStep);
+      if (!q || !shouldSkipQuestion(q)) break;
+      prevStep--;
+    }
     setCurrentStep(prevStep);
     setCurrentSection(prevStep < COMPANY_DATA.length ? 'company' : 'questions');
   };

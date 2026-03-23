@@ -57,7 +57,7 @@ import {
   insertTarefa,
   deleteTarefa,
 } from "@/services/gestaoReuniao";
-import { updateReuniaoStatus } from "@/services/agenda";
+import { updateReuniaoStatus, fetchConvidadosPorReuniao } from "@/services/agenda";
 import { fetchPromptPautaAta } from "@/services/promptsConfig";
 import { invokeEdgeFunction } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -150,6 +150,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   const [assuntosSalvos, setAssuntosSalvos] = useState("");
 
   const [participantes, setParticipantes] = useState<Participante[]>([]);
+  const [convidados, setConvidados] = useState<{ id: string; email: string }[]>([]);
   const [statusOverride, setStatusOverride] = useState<string | null>(null);
   const [ataGerando, setAtaGerando] = useState(false);
   const [ataGeradaTexto, setAtaGeradaTexto] = useState<string | null>(null);
@@ -200,9 +201,13 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     if (!open) {
       setAtaGeradaTexto(null);
       setAtaSalva(false);
+      setConvidados([]);
       return;
     }
     if (!r?.id) return;
+    fetchConvidadosPorReuniao(r.id).then(({ data: convData }) => {
+      setConvidados(convData);
+    });
     fetchAtas(r.id).then(({ data: atasData }) => {
       if (atasData.length > 0) {
         setAtaSalva(true);
@@ -498,9 +503,10 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
         partes.push(assuntosSalvos);
         partes.push("");
       }
-      if (participantes.length > 0) {
+      if (participantes.length > 0 || convidados.length > 0) {
         partes.push("PARTICIPANTES:");
         participantes.forEach((p) => partes.push(`- ${p.nome} (${p.cargo})`));
+        convidados.forEach((c) => partes.push(`- Convidado (${c.email})`));
       }
       const input = partes.join("\n");
 
@@ -899,7 +905,8 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
             "Participantes da Reunião",
             <>
               <p className="text-sm text-muted-foreground">
-                {participantes.length} participantes
+                {participantes.length + convidados.length} participantes
+                {convidados.length > 0 && ` (${convidados.length} convidado${convidados.length > 1 ? "s" : ""})`}
               </p>
               <div className="space-y-2">
                 {participantes.map((p) => (
@@ -914,7 +921,19 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                     <Badge variant="outline">{p.cargo}</Badge>
                   </div>
                 ))}
-                {participantes.length === 0 && <p className="text-sm text-muted-foreground">Carregando participantes...</p>}
+                {convidados.map((c) => (
+                  <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3 border-dashed">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-amber-100 text-amber-700">{c.email[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">Convidado</p>
+                      <p className="text-xs text-muted-foreground truncate">{c.email}</p>
+                    </div>
+                    <Badge variant="secondary">Convidado</Badge>
+                  </div>
+                ))}
+                {participantes.length === 0 && convidados.length === 0 && <p className="text-sm text-muted-foreground">Carregando participantes...</p>}
               </div>
             </>
           )}

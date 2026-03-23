@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { isMember } from "@/lib/auth";
 import MemberLayout from "./layouts/MemberLayout";
+import ConvidadoLayout from "./layouts/ConvidadoLayout";
 import MemberDashboard from "./pages/member/MemberDashboard";
 import MemberMaturidade from "./pages/member/MemberMaturidade";
 import MemberRiscos from "./pages/member/MemberRiscos";
@@ -16,6 +17,7 @@ import MemberPendencias from "./pages/member/MemberPendencias";
 import MemberDesempenho from "./pages/member/MemberDesempenho";
 import MemberSettings from "./pages/member/MemberSettings";
 import MemberAlterarSenha from "./pages/member/MemberAlterarSenha";
+import ConvidadoLanding from "./pages/ConvidadoLanding";
 import Index from "./pages/Index";
 import Login from "./pages/Login"; 
 import Start from "./pages/Start";
@@ -86,6 +88,9 @@ const App = () => (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/convidado" element={<ConvidadoLayout />}>
+          <Route index element={<ConvidadoLanding />} />
+        </Route>
         <Route path="/member" element={<MemberLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<MemberDashboard />} />

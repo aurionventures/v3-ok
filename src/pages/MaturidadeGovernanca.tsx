@@ -12,6 +12,7 @@ import {
   getMaturityHistory,
   convertStoredDataToRadarData,
   clearMaturityData,
+  type StoredMaturityAssessment,
 } from "@/utils/maturityStorage";
 import { upsertDiagnosticoMaturidade } from "@/services/maturidade";
 import {
@@ -32,6 +33,15 @@ function getMaturityLevel(score: number): { level: string; className: string } {
   return { level: "Baixo", className: "bg-red-500 text-white" };
 }
 
+const shortLabels: Record<string, string> = {
+  "Sócios": "Sócios",
+  "Conselho": "Conselho",
+  "Diretoria": "Diretoria",
+  "Órgãos de fiscalização e controle": "Órgãos fiscalização",
+  "Conduta e conflitos de interesses": "Conduta",
+  "Empresas Familiares": "Empresas Familiares",
+};
+
 const MaturidadeGovernanca = () => {
   const navigate = useNavigate();
   const { firstEmpresaId } = useEmpresas();
@@ -41,18 +51,24 @@ const MaturidadeGovernanca = () => {
   );
 
   const [historyData, setHistoryData] = useState<{ data: string; pontuacao: number; fullDate: Date }[]>([]);
+  const [historyAssessments, setHistoryAssessments] = useState<StoredMaturityAssessment[]>([]);
   const [overallScore, setOverallScore] = useState<{ score: number; estagio: string } | null>(null);
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const stored = getCurrentMaturityAssessment();
+  const loadAssessment = (stored: StoredMaturityAssessment | null) => {
     setMaturidadeData(convertStoredDataToRadarData(stored));
-
     if (stored?.result) {
       const score = Math.round(stored.result.pontuacao_total * 5 * 10) / 10;
       setOverallScore({ score, estagio: stored.result.estagio });
     } else {
       setOverallScore(null);
     }
+    setSelectedAssessmentId(stored?.id ?? null);
+  };
+
+  useEffect(() => {
+    const stored = getCurrentMaturityAssessment();
+    loadAssessment(stored);
 
     const history = getMaturityHistory();
     const sorted = [...history].sort(
@@ -68,6 +84,7 @@ const MaturidadeGovernanca = () => {
         fullDate: new Date(a.timestamp),
       }))
     );
+    setHistoryAssessments(sorted);
 
     if (stored && firstEmpresaId) {
       upsertDiagnosticoMaturidade(firstEmpresaId, stored).then(({ error }) => {
@@ -83,7 +100,9 @@ const MaturidadeGovernanca = () => {
       clearMaturityData();
       setMaturidadeData(convertStoredDataToRadarData(null));
       setHistoryData([]);
+      setHistoryAssessments([]);
       setOverallScore(null);
+      setSelectedAssessmentId(null);
     }
   };
 
@@ -258,6 +277,72 @@ const MaturidadeGovernanca = () => {
                         <p className="text-xs text-muted-foreground mt-2">
                           Escala de 0 a 5. Quanto maior, mais avançada a maturidade em governança.
                         </p>
+
+                        <div className="mt-6 pt-4 border-t">
+                          <h4 className="text-sm font-semibold text-foreground mb-3">
+                            Histórico de avaliações (clique para visualizar)
+                          </h4>
+                          <ul className="space-y-2">
+                            {[...historyAssessments].reverse().map((a) => {
+                              const score = Math.round(a.result.pontuacao_total * 5 * 10) / 10;
+                              const dataLabel = new Intl.DateTimeFormat("pt-BR", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }).format(new Date(a.timestamp));
+                              const isSelected = selectedAssessmentId === a.id;
+                              const dims = a.result?.pontuacao_dimensoes ?? {};
+                              return (
+                                <li key={a.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => loadAssessment(a)}
+                                    className={cn(
+                                      "w-full text-left rounded-lg border p-3 transition-colors hover:bg-muted/50",
+                                      isSelected
+                                        ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                                        : "border-border bg-card"
+                                    )}
+                                  >
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                      <span className="font-medium text-foreground">
+                                        {dataLabel}
+                                      </span>
+                                      <span className="text-sm text-muted-foreground">
+                                        Score: <strong className="text-foreground">{score}/5.0</strong>
+                                      </span>
+                                      <span className={cn(
+                                        "text-xs font-medium px-2 py-0.5 rounded-full",
+                                        getMaturityLevel(score).className
+                                      )}>
+                                        {getMaturityLevel(score).level}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                      {Object.entries(dims).map(([nome, percentual]) => {
+                                        const s = Number.isFinite(percentual) ? percentual * 5 : 0;
+                                        return (
+                                          <span
+                                            key={nome}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              loadAssessment(a);
+                                            }}
+                                            className="inline-flex items-center gap-1 rounded-md bg-muted/80 px-2 py-0.5 text-xs font-medium text-foreground cursor-pointer hover:bg-muted"
+                                          >
+                                            {shortLabels[nome] ?? nome}: {s.toFixed(1)}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
                       </CardContent>
                     </Card>
                   )}

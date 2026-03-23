@@ -96,12 +96,12 @@ const Dashboard = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Riscos Críticos</p>
-                    <p className="text-xl font-bold text-gray-900 mt-0.5">{indicadores.riscosCriticos}</p>
+                    <p className="text-xl font-bold text-gray-900 mt-0.5">{riscos.length}</p>
                   </div>
                   <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
                 </div>
                 <Progress
-                  value={indicadores.riscosCriticos > 0 ? Math.min(indicadores.riscosCriticos * 25, 100) : 0}
+                  value={riscos.length > 0 ? Math.min(riscos.length * 25, 100) : 0}
                   className="h-2 mt-3 bg-red-100 [&>div]:bg-red-500"
                 />
               </CardContent>

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchReunioes, insertReuniao, insertReunioesEmLote } from "@/services/agenda";
+import { fetchReunioes, insertReuniao, insertReunioesEmLote, deleteReunioesPorEmpresaAno } from "@/services/agenda";
 import type { ReuniaoInsert } from "@/types/agenda";
 
 export const AGENDA_QUERY_KEY = ["agenda"] as const;
@@ -34,6 +34,17 @@ export function useAgenda(empresaId: string | null, ano?: number) {
       }
     },
   });
+  const deleteMt = useMutation({
+    mutationFn: ({ empresaId, ano }: { empresaId: string; ano: number }) =>
+      deleteReunioesPorEmpresaAno(empresaId, ano),
+    onSuccess: (_data, variables) => {
+      if (variables.empresaId) {
+        qc.invalidateQueries({ queryKey: [...AGENDA_QUERY_KEY, variables.empresaId] });
+        qc.invalidateQueries({ queryKey: [...AGENDA_QUERY_KEY, variables.empresaId, variables.ano] });
+        qc.invalidateQueries({ queryKey: [...AGENDA_QUERY_KEY, variables.empresaId, "all"] });
+      }
+    },
+  });
   return {
     reunioes: query.data ?? [],
     isLoading: query.isLoading,
@@ -42,5 +53,7 @@ export function useAgenda(empresaId: string | null, ano?: number) {
     insertReuniaoLoading: insertMt.isPending,
     insertReunioesEmLote: insertEmLoteMt.mutateAsync,
     insertReunioesEmLoteLoading: insertEmLoteMt.isPending,
+    limparAgendas: deleteMt.mutateAsync,
+    limparAgendasLoading: deleteMt.isPending,
   };
 }

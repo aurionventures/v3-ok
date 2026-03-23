@@ -29,7 +29,8 @@ file_size_limit = "50MiB"
 [auth]
 enabled = true
 site_url = "http://localhost:5173"
-additional_redirect_urls = ["https://localhost:5173"]
+# Inclui localhost:8080 para magic links e testes locais
+additional_redirect_urls = ["https://localhost:5173", "http://localhost:8080", "http://localhost:8080/**", "http://localhost:5173/**"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -44,6 +45,10 @@ enable_confirmations = false
 # Edge Functions – cada pasta em supabase/functions/ é exposta em:
 # https://<project-ref>.supabase.co/functions/v1/<nome-da-pasta>
 # Ex.: agente-ata -> /functions/v1/agente-ata
+verify_jwt = false
+
+# criar-convidado-reuniao: sem verificação JWT para gerar magic links (incl. modo teste)
+[functions.criar-convidado-reuniao]
 verify_jwt = false
 
 [analytics]

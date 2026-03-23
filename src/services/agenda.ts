@@ -6,8 +6,10 @@ import type { ReuniaoRow, ReuniaoEnriquecida, ReuniaoInsert } from "@/types/agen
 export interface ConvidadoInsert {
   reuniao_id: string;
   email: string;
-  senha_provisoria: string;
+  senha_provisoria?: string;
   senha_valida_ate: string;
+  use_magic_link?: boolean;
+  redirect_to?: string;
 }
 
 /** Gera datas de reunião para um ano com base em frequência e regra do dia */
@@ -185,26 +187,210 @@ export async function insertReunioesEmLote(
   return { count: rows.length, error: null };
 }
 
+/** Gera magic link para teste (apenas email + redirect) – não cria reuniao_convidados */
+export async function gerarMagicLinkTeste(
+  email: string,
+  redirect_to?: string
+): Promise<{ data: { magic_link: string; email: string } | null; error: string | null }> {
+  const body: Record<string, unknown> = {
+    email: email.trim().toLowerCase(),
+    use_magic_link: true,
+    gerar_link_teste: true,
+  };
+  if (redirect_to) body.redirect_to = redirect_to;
+
+  const { data, error } = await invokeEdgeFunction<{
+    email?: string;
+    magic_link?: string;
+    error?: string;
+  }>("criar-convidado-reuniao", body, { useAnonKey: true });
+
+  if (error) return { data: null, error: error.message };
+  if (data?.error) return { data: null, error: data.error };
+  if (!data?.magic_link || !data?.email) return { data: null, error: "Resposta inválida da Edge Function" };
+
+  return {
+    data: { magic_link: data.magic_link, email: data.email },
+    error: null,
+  };
+}
+
 /** Cria convidado de reunião (auth + reuniao_convidados) via Edge Function */
 export async function criarConvidadoReuniao(
   p: ConvidadoInsert
-): Promise<{ data: { convidado_id: string; email: string } | null; error: string | null }> {
-  const { data, error } = await invokeEdgeFunction<{ convidado_id?: string; email?: string; error?: string }>(
-    "criar-convidado-reuniao",
-    {
-      reuniao_id: p.reuniao_id,
-      email: p.email.trim().toLowerCase(),
-      senha_provisoria: p.senha_provisoria,
-      senha_valida_ate: p.senha_valida_ate,
-    }
-  );
+): Promise<{ data: { convidado_id: string; email: string; magic_link?: string } | null; error: string | null }> {
+  const body: Record<string, unknown> = {
+    reuniao_id: p.reuniao_id,
+    email: p.email.trim().toLowerCase(),
+    senha_valida_ate: p.senha_valida_ate,
+  };
+  if (p.use_magic_link) {
+    body.use_magic_link = true;
+    if (p.redirect_to) body.redirect_to = p.redirect_to;
+  } else if (p.senha_provisoria) {
+    body.senha_provisoria = p.senha_provisoria;
+  }
+
+  const { data, error } = await invokeEdgeFunction<{
+    convidado_id?: string;
+    email?: string;
+    magic_link?: string;
+    error?: string;
+  }>("criar-convidado-reuniao", body);
+
   if (error) return { data: null, error: error.message };
   if (data?.error) return { data: null, error: data.error };
   if (!data?.convidado_id || !data?.email) return { data: null, error: "Resposta inválida da Edge Function" };
+
   return {
-    data: { convidado_id: data.convidado_id, email: data.email },
+    data: {
+      convidado_id: data.convidado_id,
+      email: data.email,
+      ...(data.magic_link && { magic_link: data.magic_link }),
+    },
     error: null,
   };
+}
+
+/** Busca convidado ativo pelo user_id (auth) - para landing do convidado */
+export async function fetchConvidadoByUserId(
+  userId: string
+): Promise<{ data: { id: string; reuniao_id: string; email: string } | null; error: string | null }> {
+  if (!supabase || !userId) return { data: null, error: null };
+  const { data, error } = await supabase
+    .from("reuniao_convidados")
+    .select("id, reuniao_id, email")
+    .eq("user_id", userId)
+    .eq("ativo", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("[agenda] fetchConvidadoByUserId:", error);
+    return { data: null, error: error.message };
+  }
+  return { data: data as { id: string; reuniao_id: string; email: string } | null, error: null };
+}
+
+/** Busca reunião por ID (convidados precisam para o cabeçalho) */
+export async function fetchReuniaoById(
+  reuniaoId: string
+): Promise<{ data: ReuniaoEnriquecida | null; error: string | null }> {
+  if (!supabase || !reuniaoId) return { data: null, error: null };
+  const { data, error } = await supabase
+    .from("reunioes")
+    .select("*")
+    .eq("id", reuniaoId)
+    .single();
+  if (error) {
+    console.error("[agenda] fetchReuniaoById:", error);
+    return { data: null, error: error.message };
+  }
+  const row = data as ReuniaoRow;
+  let result: ReuniaoEnriquecida = { ...row };
+  if (row.conselho_id) {
+    const { data: c } = await supabase.from("conselhos").select("nome").eq("id", row.conselho_id).single();
+    result.conselho_nome = c?.nome ?? null;
+  }
+  if (row.comite_id) {
+    const { data: c } = await supabase.from("comites").select("nome").eq("id", row.comite_id).single();
+    result.comite_nome = c?.nome ?? null;
+  }
+  if (row.comissao_id) {
+    const { data: c } = await supabase.from("comissoes").select("nome").eq("id", row.comissao_id).single();
+    result.comissao_nome = c?.nome ?? null;
+  }
+  return { data: result, error: null };
+}
+
+/** Lista convidados ativos da reunião */
+export async function fetchConvidadosPorReuniao(
+  reuniaoId: string
+): Promise<{ data: { id: string; email: string }[]; error: string | null }> {
+  if (!supabase || !reuniaoId) return { data: [], error: null };
+  const { data, error } = await supabase
+    .from("reuniao_convidados")
+    .select("id, email")
+    .eq("reuniao_id", reuniaoId)
+    .eq("ativo", true);
+  if (error) {
+    console.error("[agenda] fetchConvidadosPorReuniao:", error);
+    return { data: [], error: error.message };
+  }
+  return { data: (data ?? []) as { id: string; email: string }[], error: null };
+}
+
+const BUCKET_DOCUMENTOS = "documentos";
+
+/** Upload de documento por convidado (Doc, PDF, PPTX) - max 10MB */
+export async function uploadDocumentoConvidado(
+  reuniaoId: string,
+  convidadoId: string,
+  file: File
+): Promise<{ data: { id: string } | null; error: string | null }> {
+  if (!supabase) return { data: null, error: "Supabase não configurado" };
+  const ext = (file.name.split(".").pop() ?? "").toLowerCase();
+  const allowed = ["doc", "docx", "pdf", "ppt", "pptx"];
+  if (!allowed.includes(ext)) {
+    return { data: null, error: "Apenas DOC, DOCX, PDF, PPT ou PPTX são permitidos." };
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return { data: null, error: "Tamanho máximo: 10MB." };
+  }
+
+  const path = `reuniao_convidados/${reuniaoId}/${convidadoId}/${crypto.randomUUID()}-${file.name}`;
+
+  const { error: uploadError } = await supabase.storage.from(BUCKET_DOCUMENTOS).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+
+  if (uploadError) {
+    console.error("[agenda] uploadDocumentoConvidado storage:", uploadError);
+    return { data: null, error: uploadError.message };
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(BUCKET_DOCUMENTOS).getPublicUrl(path);
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("reuniao_documentos_convidados")
+    .insert({
+      reuniao_id: reuniaoId,
+      convidado_id: convidadoId,
+      nome_arquivo: file.name,
+      storage_path: path,
+      arquivo_url: publicUrl,
+      tamanho: file.size,
+      mime_type: file.type || null,
+      status: "pendente",
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    console.error("[agenda] uploadDocumentoConvidado insert:", insertError);
+    return { data: null, error: insertError.message };
+  }
+
+  return { data: inserted ? { id: (inserted as { id: string }).id } : null, error: null };
+}
+
+/** Confirma participação do convidado */
+export async function confirmarParticipacaoConvidado(
+  convidadoId: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("reuniao_convidados")
+    .update({ confirmado_em: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("id", convidadoId);
+  if (error) {
+    console.error("[agenda] confirmarParticipacaoConvidado:", error);
+    return { error: error.message };
+  }
+  return { error: null };
 }
 
 /** Inativa um convidado de reunião */
@@ -235,4 +421,23 @@ export async function updateReuniaoStatus(
     return { error: error.message };
   }
   return { error: null };
+}
+
+/** Deleta todas as reuniões da empresa no ano selecionado (CASCADE remove pautas, atas, convidados) */
+export async function deleteReunioesPorEmpresaAno(
+  empresaId: string,
+  ano: number
+): Promise<{ count: number; error: string | null }> {
+  if (!supabase) return { count: 0, error: "Supabase não configurado" };
+  const reunioes = await fetchReunioes(empresaId, ano);
+  if (reunioes.length === 0) return { count: 0, error: null };
+
+  const ids = reunioes.map((r) => r.id);
+  const { error } = await supabase.from("reunioes").delete().in("id", ids);
+
+  if (error) {
+    console.error("[agenda] deleteReunioesPorEmpresaAno:", error);
+    return { count: 0, error: error.message };
+  }
+  return { count: ids.length, error: null };
 }

@@ -8,12 +8,39 @@ function _pontuar_questao(questao: Question, resposta: string | string[] | numbe
   if (!resposta) return [0, pontuacao_maxima];
 
   if (questao.tipo === "multipla_escolha_unica") {
-    // Assume que a primeira opção é geralmente negativa ("não", "nenhuma")
-    if (typeof resposta === 'string' && 
-        resposta.toLowerCase() !== questao.opcoes[0]?.toLowerCase() && 
-        resposta.toLowerCase() !== "nenhuma das anteriores") {
-      pontuacao = 1;
+    if (typeof resposta !== "string") return [0, pontuacao_maxima];
+    const r = resposta.toLowerCase();
+    // Não aplicável / não há: não conta (0 pontos, 0 no máximo)
+    if (r.includes("não aplicável") || r.includes("não há comitê") || r.includes("não há conselho") || r.includes("não há auditoria") || r.includes("não há plano") || r.includes("não há política")) {
+      return [0, 0];
     }
+    if (r.includes("nenhuma das anteriores")) return [0, pontuacao_maxima];
+    // Parcialmente: meio termo (0.5)
+    if (r === "parcialmente") return [0.5, pontuacao_maxima];
+    // Q6: estatutário (1ª) = melhor, consultivo (2ª) = médio, nenhuma (3ª) = 0
+    if (questao.numero === "6") {
+      const o0 = questao.opcoes[0]?.toLowerCase() ?? "";
+      const o1 = questao.opcoes[1]?.toLowerCase() ?? "";
+      if (r === o0) return [1, pontuacao_maxima];
+      if (r === o1) return [0.5, pontuacao_maxima];
+      return [0, pontuacao_maxima];
+    }
+    // Primeira opção geralmente negativa
+    if (r !== (questao.opcoes[0] ?? "").toLowerCase()) pontuacao = 1;
+  } else if (questao.tipo === "numerico_multiplo") {
+    // Q7: total de membros e mulheres no conselho
+    if (typeof resposta === "string") {
+      try {
+        const parsed = JSON.parse(resposta) as { totalMembros?: number; totalMulheres?: number };
+        const total = Number(parsed?.totalMembros) || 0;
+        const mulheres = Number(parsed?.totalMulheres) || 0;
+        if (total >= 1) {
+          pontuacao = 0.5;
+          if (total >= 3 && mulheres >= 1) pontuacao = 1;
+        }
+      } catch { /* ignore */ }
+    }
+    pontuacao_maxima = 1;
   } else if (questao.tipo === "multipla_escolha_multipla") {
     const opcoes_positivas = questao.opcoes.filter(opt => 
       !opt.toLowerCase().includes("nenhuma")
@@ -48,10 +75,16 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
     pontuacao_indicadores[id] = { pontos: 0, max_pontos: 0, percentual: 0 };
   });
 
+  const shouldSkipQuestionInScore = (num_questao: string): boolean => {
+    if (num_questao === "4.1") return respostas_usuario.questions["4"] !== "sim";
+    if (num_questao === "10.1") return respostas_usuario.questions["10"] !== "sim";
+    return false;
+  };
+
   // Calcular pontuação de cada indicador
   Object.entries(MATURITY_STRUCTURE.indicadores).forEach(([id_indicador, info_indicador]) => {
     info_indicador.questoes.forEach(num_questao => {
-      if (questoes_map[num_questao]) {
+      if (questoes_map[num_questao] && !shouldSkipQuestionInScore(num_questao)) {
         const questao = questoes_map[num_questao];
         const resposta = respostas_usuario.questions[num_questao];
         const [pontos, max_pontos] = _pontuar_questao(questao, resposta);

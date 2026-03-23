@@ -5,11 +5,13 @@ import { isMember, setUserType } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { fetchMembroByUserId } from "@/services/governance";
 import { fetchEmpresaById } from "@/services/empresas";
+import { fetchConvidadoByUserId } from "@/services/agenda";
 
 const MemberLayout = () => {
   const [checking, setChecking] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [redirectState, setRedirectState] = useState<{ error: string } | null>(null);
+  const [isConvidado, setIsConvidado] = useState(false);
 
   useEffect(() => {
     const check = async () => {
@@ -26,6 +28,13 @@ const MemberLayout = () => {
       }
       const membro = await fetchMembroByUserId(session.user.id);
       if (!membro) {
+        const { data: convidado } = await fetchConvidadoByUserId(session.user.id);
+        if (convidado) {
+          setIsConvidado(true);
+          setAuthorized(false);
+          setChecking(false);
+          return;
+        }
         setAuthorized(false);
         setChecking(false);
         return;
@@ -58,6 +67,10 @@ const MemberLayout = () => {
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
       </div>
     );
+  }
+
+  if (isConvidado) {
+    return <Navigate to="/convidado" replace />;
   }
 
   if (!authorized) {

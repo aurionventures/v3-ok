@@ -14,6 +14,10 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Copy,
+  Link2,
+  Loader2,
+  UserPlus,
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -48,7 +52,7 @@ import { cn } from "@/lib/utils";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useGovernance } from "@/hooks/useGovernance";
 import { useAgenda } from "@/hooks/useAgenda";
-import { gerarDatasReunioes, criarConvidadoReuniao } from "@/services/agenda";
+import { gerarDatasReunioes, criarConvidadoReuniao, gerarMagicLinkTeste } from "@/services/agenda";
 import { fetchMembrosPorOrgao } from "@/services/governance";
 import type { ReuniaoEnriquecida } from "@/types/agenda";
 
@@ -98,7 +102,7 @@ const Agenda = () => {
   const empresaId = firstEmpresaId;
   const { conselhos, comites, comissoes } = useGovernance(empresaId);
   const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear());
-  const { reunioes, isLoading, refetch, insertReuniao, insertReuniaoLoading, insertReunioesEmLote, insertReunioesEmLoteLoading } = useAgenda(empresaId, anoSelecionado);
+  const { reunioes, isLoading, refetch, insertReuniao, insertReuniaoLoading, insertReunioesEmLote, insertReunioesEmLoteLoading, limparAgendas, limparAgendasLoading } = useAgenda(empresaId, anoSelecionado);
 
   const [currentMonth, setCurrentMonth] = useState(new Date(anoSelecionado, 0, 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -132,7 +136,21 @@ const Agenda = () => {
   const [formTituloAvulsa, setFormTituloAvulsa] = useState("");
   const [formModalidade, setFormModalidade] = useState("presencial");
   const [formLocal, setFormLocal] = useState("");
-  const [formConvidados, setFormConvidados] = useState<{ id: string; email: string; senha_provisoria: string; senha_valida_ate: string }[]>([]);
+  const [magicLinksDialog, setMagicLinksDialog] = useState<{ email: string; link: string }[]>([]);
+  const [convidadoLinks, setConvidadoLinks] = useState<Record<string, string>>({});
+  const [convidadoLinksLoading, setConvidadoLinksLoading] = useState<Record<string, boolean>>({});
+  const [formConvidados, setFormConvidados] = useState<{
+    id: string;
+    nome: string;
+    email: string;
+    cargo?: string;
+    permissoes: "upload" | "visualizar" | "comentar";
+    senha_valida_ate: string;
+  }[]>([]);
+  const [formConvidadoNome, setFormConvidadoNome] = useState("");
+  const [formConvidadoEmail, setFormConvidadoEmail] = useState("");
+  const [formConvidadoCargo, setFormConvidadoCargo] = useState("");
+  const [formConvidadoPermissoes, setFormConvidadoPermissoes] = useState<"upload" | "visualizar" | "comentar">("visualizar");
 
   useEffect(() => {
     setCurrentMonth(new Date(anoSelecionado, 0, 1));
@@ -241,6 +259,10 @@ const Agenda = () => {
     setFormTituloAvulsa("");
     setFormOrgaoId("");
     setFormConvidados([]);
+    setFormConvidadoNome("");
+    setFormConvidadoEmail("");
+    setFormConvidadoCargo("");
+    setFormConvidadoPermissoes("visualizar");
     setFormHorario(configHorarioPadrao || "14:00");
     setFormModalidade(configModalidade || "presencial");
     setFormLocal(configLocal);
@@ -248,19 +270,77 @@ const Agenda = () => {
     setNovaReuniaoOpen(true);
   };
 
+  const senhaValidaAtePadrao = (): string => {
+    const ano = formData ? parseInt(formData.substring(0, 4), 10) : new Date().getFullYear();
+    return `${ano}-12-31`;
+  };
+
   const addConvidado = () => {
+    const nome = formConvidadoNome.trim();
+    const email = formConvidadoEmail.trim();
+    if (!nome || !email) {
+      toast({ title: "Preencha nome e e-mail", variant: "destructive" });
+      return;
+    }
+    const id = `conv-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setFormConvidados((prev) => [
       ...prev,
-      { id: `conv-${Date.now()}-${Math.random().toString(36).slice(2)}`, email: "", senha_provisoria: "", senha_valida_ate: "" },
+      {
+        id,
+        nome,
+        email,
+        cargo: formConvidadoCargo.trim() || undefined,
+        permissoes: formConvidadoPermissoes,
+        senha_valida_ate: senhaValidaAtePadrao(),
+      },
     ]);
+    setFormConvidadoNome("");
+    setFormConvidadoEmail("");
+    setFormConvidadoCargo("");
+    setFormConvidadoPermissoes("visualizar");
+    setConvidadoLinks((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   const removeConvidado = (id: string) => {
     setFormConvidados((prev) => prev.filter((c) => c.id !== id));
+    setConvidadoLinks((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
-  const updateConvidado = (id: string, field: "email" | "senha_provisoria" | "senha_valida_ate", value: string) => {
-    setFormConvidados((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
+  const gerarLinkConvidado = async (c: { id: string; email: string }): Promise<string | null> => {
+    if (!c.email.trim()) return null;
+    setConvidadoLinksLoading((prev) => ({ ...prev, [c.id]: true }));
+    setConvidadoLinks((prev) => ({ ...prev, [c.id]: "" }));
+    const { data, error } = await gerarMagicLinkTeste(c.email.trim(), window.location.origin);
+    setConvidadoLinksLoading((prev) => ({ ...prev, [c.id]: false }));
+    if (error) {
+      toast({ title: "Erro ao gerar link", description: error, variant: "destructive" });
+      return null;
+    }
+    if (data?.magic_link) {
+      setConvidadoLinks((prev) => ({ ...prev, [c.id]: data.magic_link }));
+      toast({ title: "Link gerado", description: "Copie e envie ao convidado." });
+      return data.magic_link;
+    }
+    return null;
+  };
+
+  const copiarOuGerarLink = async (c: (typeof formConvidados)[0]) => {
+    const link = convidadoLinks[c.id];
+    if (link) {
+      navigator.clipboard.writeText(link);
+      toast({ title: "Link copiado", description: "Pronto para enviar ao convidado." });
+      return;
+    }
+    const novoLink = await gerarLinkConvidado(c);
+    if (novoLink) navigator.clipboard.writeText(novoLink);
   };
 
   const handleAgendar = async () => {
@@ -315,23 +395,30 @@ const Agenda = () => {
       return;
     }
     const reuniaoId = reuniaoCriada?.id;
-    const convidadosValidos = formConvidados.filter((c) => c.email.trim() && c.senha_provisoria.length >= 6 && c.senha_valida_ate);
+    const convidadosValidos = formConvidados.filter((c) => c.email.trim() && c.senha_valida_ate);
+    const magicLinks: { email: string; link: string }[] = [];
     for (const c of convidadosValidos) {
       if (!reuniaoId) break;
-      const { error: errConv } = await criarConvidadoReuniao({
+      const { data: convData, error: errConv } = await criarConvidadoReuniao({
         reuniao_id: reuniaoId,
         email: c.email.trim(),
-        senha_provisoria: c.senha_provisoria,
         senha_valida_ate: c.senha_valida_ate,
+        use_magic_link: true,
+        redirect_to: window.location.origin,
       });
       if (errConv) {
         toast({ title: "Reunião criada, mas erro em convidado", description: `${c.email}: ${errConv}`, variant: "destructive" });
+      } else if (convData?.magic_link) {
+        magicLinks.push({ email: convData.email, link: convData.magic_link });
       }
     }
     if (convidadosValidos.length > 0 && reuniaoId) {
-      toast({ title: "Reunião agendada", description: `${titulo} em ${formData}${convidadosValidos.length > 0 ? ` • ${convidadosValidos.length} convidado(s)` : ""}` });
+      toast({ title: "Reunião agendada", description: `${titulo} em ${formData} • ${convidadosValidos.length} convidado(s)` });
     } else {
       toast({ title: "Reunião agendada", description: `${titulo} em ${formData}` });
+    }
+    if (magicLinks.length > 0) {
+      setMagicLinksDialog(magicLinks);
     }
     setNovaReuniaoOpen(false);
     setFormOrgaoId("");
@@ -628,6 +715,8 @@ const Agenda = () => {
                         setFormTituloAvulsa("");
                         setFormOrgaoId("");
                         setFormConvidados([]);
+                        setConvidadoLinks({});
+                        setConvidadoLinksLoading({});
                       }
                     }}
                   >
@@ -649,7 +738,7 @@ const Agenda = () => {
                       <CalendarPlus className="mr-2 h-4 w-4" />
                       Nova Reunião
                     </Button>
-                    <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="sm:max-w-[800px] min-h-[85vh] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Nova Reunião</DialogTitle>
                         <DialogDescription>Preencha os dados para agendar uma nova reunião</DialogDescription>
@@ -759,52 +848,108 @@ const Agenda = () => {
                             <Input value={formLocal} onChange={(e) => setFormLocal(e.target.value)} placeholder="Ex: Sala de Reuniões - 3º Andar" />
                           </div>
                         </TabsContent>
-                        <TabsContent value="participantes" className="space-y-4 pt-4">
+                        <TabsContent value="participantes" className="space-y-6 pt-4">
                           {formModoReuniao === "orgao" && formOrgaoId && membrosOrgao.length > 0 && (
                             <p className="text-sm text-muted-foreground">
-                              Os <strong>{membrosOrgao.length} membros</strong> do órgão selecionado são participantes automáticos. Adicione convidados externos abaixo (com acesso provisório por e-mail e senha).
+                              Os <strong>{membrosOrgao.length} membros</strong> do órgão selecionado são participantes automáticos. Adicione convidados externos abaixo.
                             </p>
                           )}
-                          {!(formModoReuniao === "orgao" && formOrgaoId) && (
-                            <p className="text-sm text-muted-foreground">Adicione convidados com acesso provisório por e-mail e senha.</p>
-                          )}
-                          <Button type="button" variant="outline" size="sm" onClick={addConvidado}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Adicionar convidado
-                          </Button>
-                          <div className="space-y-3 max-h-[200px] overflow-y-auto">
-                            {formConvidados.map((c) => (
-                              <div key={c.id} className="rounded-lg border p-4 space-y-3 bg-muted/30">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm font-medium">Convidado</span>
-                                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeConvidado(c.id)} aria-label="Inativar">
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  <div className="space-y-1">
-                                    <Label className="text-xs">E-mail</Label>
-                                    <Input type="email" value={c.email} onChange={(e) => updateConvidado(c.id, "email", e.target.value)} placeholder="convidado@email.com" />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label className="text-xs">Senha provisória (visível)</Label>
-                                    <Input type="text" value={c.senha_provisoria} onChange={(e) => updateConvidado(c.id, "senha_provisoria", e.target.value)} placeholder="Mín. 6 caracteres" autoComplete="off" />
-                                  </div>
-                                  <div className="space-y-1 sm:col-span-2">
-                                    <Label className="text-xs">Senha válida até</Label>
-                                    <Input type="date" value={c.senha_valida_ate} onChange={(e) => updateConvidado(c.id, "senha_valida_ate", e.target.value)} />
-                                  </div>
-                                </div>
+                          <div className="space-y-4">
+                            <h3 className="text-sm font-semibold">Adicionar Convidados Externos</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="conv-nome">Nome do Convidado</Label>
+                                <Input
+                                  id="conv-nome"
+                                  value={formConvidadoNome}
+                                  onChange={(e) => setFormConvidadoNome(e.target.value)}
+                                  placeholder="Nome completo"
+                                />
                               </div>
-                            ))}
-                            {formConvidados.length === 0 && (
-                              <p className="text-sm text-muted-foreground py-4 text-center">Nenhum convidado adicionado. Clique em &quot;Adicionar convidado&quot; para incluir.</p>
-                            )}
-                            <Button type="button" variant="outline" size="sm" onClick={addConvidado} className="w-full sm:w-auto">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Adicionar convidado
+                              <div className="space-y-2">
+                                <Label htmlFor="conv-email">Email</Label>
+                                <Input
+                                  id="conv-email"
+                                  type="email"
+                                  value={formConvidadoEmail}
+                                  onChange={(e) => setFormConvidadoEmail(e.target.value)}
+                                  placeholder="email@exemplo.com"
+                                />
+                              </div>
+                              <div className="space-y-2 sm:col-span-2">
+                                <Label htmlFor="conv-cargo">Cargo (opcional)</Label>
+                                <Input
+                                  id="conv-cargo"
+                                  value={formConvidadoCargo}
+                                  onChange={(e) => setFormConvidadoCargo(e.target.value)}
+                                  placeholder="Ex: Consultor de Compliance, Auditoria"
+                                />
+                              </div>
+                            </div>
+                            <Button type="button" onClick={addConvidado} className="w-full">
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Adicionar Convidado
                             </Button>
                           </div>
+                          {formConvidados.length > 0 && (
+                            <div className="space-y-3">
+                              <h3 className="text-sm font-semibold">Links de Demonstração</h3>
+                              <div className="space-y-3">
+                                {formConvidados.map((c) => (
+                                    <div
+                                      key={c.id}
+                                      className="rounded-lg border p-4 flex flex-col gap-3 bg-muted/30"
+                                    >
+                                      <div className="flex justify-between items-start gap-2">
+                                        <div>
+                                          <p className="font-medium text-sm">{c.nome}{c.cargo ? ` - ${c.cargo}` : ""}</p>
+                                          <p className="text-xs text-muted-foreground mt-0.5">{c.email}</p>
+                                        </div>
+                                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0" onClick={() => removeConvidado(c.id)} aria-label="Remover convidado">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copiarOuGerarLink(c)}
+                                        disabled={convidadoLinksLoading[c.id]}
+                                        className="w-full sm:w-auto bg-background"
+                                      >
+                                        {convidadoLinksLoading[c.id] ? (
+                                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        ) : (
+                                          <Copy className="h-4 w-4 mr-2" />
+                                        )}
+                                        Gerar / Copiar Link
+                                      </Button>
+                                      {convidadoLinks[c.id] && (
+                                        <div className="flex gap-2">
+                                          <Input
+                                            readOnly
+                                            value={convidadoLinks[c.id]}
+                                            className="text-xs font-mono flex-1"
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(convidadoLinks[c.id]);
+                                              toast({ title: "Link copiado", description: "Pronto para enviar ao convidado." });
+                                            }}
+                                            aria-label="Copiar link"
+                                          >
+                                            <Copy className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      )}
+                                    </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </TabsContent>
                       </Tabs>
                       <DialogFooter className="mt-4 pt-4 border-t">
@@ -821,6 +966,45 @@ const Agenda = () => {
                         >
                           Criar Reunião
                         </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={magicLinksDialog.length > 0} onOpenChange={(open) => !open && setMagicLinksDialog([])}>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Link2 className="h-5 w-5 text-primary" />
+                          Links de acesso para convidados
+                        </DialogTitle>
+                        <DialogDescription>
+                          Copie e envie cada link ao respectivo convidado. O link dá acesso ao Portal de Membros sem precisar de senha.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                        {magicLinksDialog.map(({ email, link }) => (
+                          <div key={email} className="flex flex-col gap-2 rounded-lg border p-3 bg-muted/30">
+                            <Label className="text-xs text-muted-foreground">{email}</Label>
+                            <div className="flex gap-2">
+                              <Input readOnly value={link} className="text-xs font-mono flex-1" />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(link);
+                                  toast({ title: "Link copiado", description: `Link de ${email} copiado para a área de transferência.` });
+                                }}
+                                aria-label="Copiar link"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={() => setMagicLinksDialog([])}>Fechar</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -893,9 +1077,31 @@ const Agenda = () => {
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-lg font-semibold">Calendário Anual de Reuniões</h2>
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold">Calendário Anual de Reuniões</h2>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (!empresaId) return;
+                    if (!window.confirm(`Tem certeza que deseja limpar todas as ${reunioes.length} reuniões de ${anoSelecionado}? Esta ação não pode ser desfeita.`)) return;
+                    const { count, error } = await limparAgendas({ empresaId, ano: anoSelecionado });
+                    if (error) toast({ title: "Erro ao limpar agendas", description: error, variant: "destructive" });
+                    else {
+                      toast({ title: "Agendas limpas", description: `${count} reunião(ões) removida(s).` });
+                      setReuniaoGestao(null);
+                      setGestaoOpen(false);
+                    }
+                  }}
+                  disabled={!empresaId || reunioes.length === 0 || limparAgendasLoading}
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  Limpar agendas
+                </Button>
               </div>
 
               <Tabs
