@@ -185,12 +185,12 @@ async function fetchContext(supabase: ReturnType<typeof createClient>, empresaId
     "\nPAUTAS ANTERIORES:\n" + pautasTexto,
   ].join("\n");
 
-  const councilMembers = membros
-    .map((m) => `- ID: ${m.id} | Nome: ${m.nome} | Cargo: ${m.cargo ?? "—"} | Email: ${m.email ?? "—"}`)
-    .join("\n");
-  if (!councilMembers) {
-    throw new Error("Nenhum membro encontrado para a reunião. Cadastre membros no órgão antes de gerar a pauta.");
-  }
+  const councilMembers =
+    membros.length > 0
+      ? membros
+          .map((m) => `- ID: ${m.id} | Nome: ${m.nome} | Cargo: ${m.cargo ?? "—"} | Email: ${m.email ?? "—"}`)
+          .join("\n")
+      : "Nenhum membro cadastrado no órgão desta reunião. Gere output_1 e output_2a normalmente. Para output_2b, retorne member_briefings como array vazio [].";
 
   const meetingDate = reuniao.data_reuniao ? new Date(reuniao.data_reuniao).toLocaleDateString("pt-BR") : "Não definida";
   const meetingDuration = "2";

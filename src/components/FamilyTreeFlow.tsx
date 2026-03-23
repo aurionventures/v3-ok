@@ -110,12 +110,23 @@ function membersToFlow(members: FamilyMember[]): { nodes: Node[]; edges: Edge[] 
       });
 
       if (prevLevelNodes.length > 0) {
-        const parentIdx = Math.floor((i / count) * prevLevelNodes.length);
-        const parentId = prevLevelNodes[Math.min(parentIdx, prevLevelNodes.length - 1)];
+        for (const parentId of prevLevelNodes) {
+          edges.push({
+            id: `e-${parentId}-${id}`,
+            source: parentId,
+            target: id,
+            style: { stroke: "#3b82f6", strokeWidth: 2 },
+          });
+        }
+      }
+
+      if (i > 0) {
+        const prevId = currIds[i - 1];
         edges.push({
-          id: `e-${parentId}-${id}`,
-          source: parentId,
+          id: `e-sibling-${prevId}-${id}`,
+          source: prevId,
           target: id,
+          style: { stroke: "#94a3b8", strokeWidth: 2, strokeDasharray: "5 5" },
         });
       }
     }

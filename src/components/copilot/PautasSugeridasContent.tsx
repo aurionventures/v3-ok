@@ -326,9 +326,24 @@ export function PautasSugeridasContent() {
   return (
     <div className="space-y-8 mt-6">
       <section>
-        <div className="flex items-center gap-2 mb-2">
-          <Calendar className="h-5 w-5 text-gray-600" />
-          <h2 className="font-semibold text-gray-900">Próximas Reuniões</h2>
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-gray-600" />
+            <h2 className="font-semibold text-gray-900">Próximas Reuniões</h2>
+          </div>
+          <Button
+            className="bg-gray-900 hover:bg-gray-800 text-white shrink-0"
+            size="lg"
+            onClick={handleGerar}
+            disabled={gerarMt.isPending || !selectedMeetingId}
+          >
+            {gerarMt.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            ) : (
+              <Sparkles className="h-5 w-5 mr-2" />
+            )}
+            Gerar Nova Pauta com IA
+          </Button>
         </div>
         <p className="text-sm text-gray-600 mb-4">Selecione uma reunião para gerar pautas com IA</p>
         <div className="flex flex-wrap items-stretch gap-4">
@@ -341,21 +356,6 @@ export function PautasSugeridasContent() {
               />
             </div>
           ))}
-          <div className="flex items-center min-w-[200px]">
-            <Button
-              className="bg-gray-900 hover:bg-gray-800 text-white h-full min-h-[120px] px-6"
-              size="lg"
-              onClick={handleGerar}
-              disabled={gerarMt.isPending || !selectedMeetingId}
-            >
-              {gerarMt.isPending ? (
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              ) : (
-                <Sparkles className="h-5 w-5 mr-2" />
-              )}
-              Gerar Nova Pauta com IA
-            </Button>
-          </div>
         </div>
       </section>
 
