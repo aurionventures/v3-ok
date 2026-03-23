@@ -148,6 +148,7 @@ const AdminMaster = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Origem</TableHead>
                         <TableHead>Nome</TableHead>
                         <TableHead>E-mail</TableHead>
                         <TableHead>Telefone</TableHead>
@@ -158,8 +159,15 @@ const AdminMaster = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {leads.map((l) => (
+                      {leads.map((l) => {
+                        const isContato = l.nivel_geral == null && l.overall_score == null;
+                        return (
                         <TableRow key={l.id}>
+                          <TableCell>
+                            <Badge variant={isContato ? "secondary" : "default"}>
+                              {isContato ? "Contato" : "Diagnóstico"}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="font-medium">{l.nome}</TableCell>
                           <TableCell>
                             <a href={`mailto:${l.email}`} className="text-primary hover:underline flex items-center gap-1">
@@ -197,7 +205,8 @@ const AdminMaster = () => {
                             {format(new Date(l.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                           </TableCell>
                         </TableRow>
-                      ))}
+                      );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

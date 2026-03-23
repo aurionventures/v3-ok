@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_BUSCA_ATAS,
       userContent,
+      agentKey: "BUSCA_CONVERSACIONAL_ATAS",
     });
 
     return new Response(

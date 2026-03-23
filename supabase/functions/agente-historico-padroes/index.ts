@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_HISTORICO_PADROES,
       userContent: input,
+      agentKey: "HISTORICO_PADROES",
     });
 
     return new Response(

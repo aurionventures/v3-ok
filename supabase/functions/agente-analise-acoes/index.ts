@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
       systemPrompt: PROMPT_AGENTE_ANALISE_ACOES,
       userContent,
       model: "gpt-4o-mini",
+      agentKey: "ANALISE_COMPLIANCE",
     });
 
     let parsed: unknown = null;

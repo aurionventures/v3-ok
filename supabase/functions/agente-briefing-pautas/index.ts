@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_BRIEFING_PAUTAS,
       userContent: input,
+      agentKey: "BRIEFING_PAUTAS",
     });
 
     return new Response(

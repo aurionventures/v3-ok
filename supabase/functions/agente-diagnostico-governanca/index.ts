@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_DIAGNOSTICO_GOVERNANCA,
       userContent,
+      agentKey: "DIAGNOSTICO_GOVERNANCA",
     });
 
     return new Response(

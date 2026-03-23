@@ -259,9 +259,9 @@ const Sidebar = () => {
         <div className="flex items-center justify-between gap-2">
           <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2 min-w-0 flex-1">
             <img
-              src="/lovable-uploads/nova-logo-branca.png"
+              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
               alt="Legacy OS"
-              className="h-8 w-auto"
+              className="h-8 w-auto brightness-0 invert"
             />
           </Link>
           <div className="flex items-center gap-1 shrink-0">

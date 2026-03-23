@@ -150,11 +150,11 @@ const Login = () => {
           password,
         });
         if (error?.message?.includes("Invalid login") && email.trim().toLowerCase() === "admin@legacy.com") {
-          const { error: seedErr } = await invokeEdgeFunction("seed-admin", {});
+          const { error: seedErr } = await invokeEdgeFunction("seed-admin", {}, { useAnonKey: true });
           if (!seedErr) {
             const retry = await supabase.auth.signInWithPassword({
               email: "admin@legacy.com",
-              password,
+              password: "123",
             });
             data = retry.data;
             error = retry.error;
@@ -165,8 +165,8 @@ const Login = () => {
           return;
         }
         const userId = data?.user?.id;
-        const email = data?.user?.email?.toLowerCase() ?? "";
-        const isLegacyAdmin = email === "admin@legacy.com";
+        const userEmail = (data?.user?.email ?? "").toLowerCase();
+        const isLegacyAdmin = userEmail === "admin@legacy.com";
         const perfilSuperAdmin = userId ? await fetchPerfilSuperAdminByUserId(userId) : null;
 
         if (!isLegacyAdmin && !perfilSuperAdmin) {
@@ -298,8 +298,13 @@ const Login = () => {
                   ? "Entre com suas credenciais de membro"
                   : "Entre com suas credenciais de administrador"}
               </p>
-
-              <div className="space-y-4">
+              <form
+                className="space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleLogin(loginView);
+                }}
+              >
                 <div>
                   <Label className="font-lato text-sm font-medium text-foreground">Email</Label>
                   <Input
@@ -308,6 +313,7 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="mt-1"
+                    autoComplete="email"
                   />
                 </div>
                 <div>
@@ -319,11 +325,12 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pr-10"
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -332,27 +339,32 @@ const Login = () => {
 
                 <div className="flex gap-3 pt-2">
                   <Button
+                    type="button"
                     variant="outline"
-                    className="flex-1 font-montserrat"
+                    className="flex-1 font-montserrat cursor-pointer"
                     onClick={() => setLoginView("select")}
                   >
                     Voltar
                   </Button>
                   <Button
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-montserrat"
+                    type="submit"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-montserrat cursor-pointer"
                     disabled={isLoading}
-                    onClick={() => handleLogin(loginView)}
                   >
                     {isLoading ? "Entrando..." : "Entrar"}
                   </Button>
                 </div>
 
                 <div className="text-center pt-2">
-                  <a href="#" className="font-lato text-sm text-muted-foreground hover:text-secondary transition-colors">
+                  <button
+                    type="button"
+                    onClick={(e) => e.preventDefault()}
+                    className="font-lato text-sm text-muted-foreground hover:text-secondary transition-colors cursor-pointer"
+                  >
                     Esqueceu sua senha?
-                  </a>
+                  </button>
                 </div>
-              </div>
+              </form>
             </div>
           )}
         </div>

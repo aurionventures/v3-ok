@@ -34,6 +34,21 @@ const PROMPTS: Record<string, string> = {
   "agente-briefing-pautas": PROMPT_AGENTE_BRIEFING_PAUTAS,
 };
 
+const AGENT_KEYS: Record<string, string> = {
+  agente: "AGENTE",
+  "agente-ata": "ATA_REUNIAO",
+  "agente-atas-reunioes": "ATA_REUNIAO",
+  "agente-diagnostico-governanca": "DIAGNOSTICO_GOVERNANCA",
+  "agente-sinais-mercado": "SINAIS_MERCADO",
+  "agente-insights-estrategicos": "INSIGHTS_ESTRATEGICOS",
+  "agente-processamento-documentos": "PROCESSAMENTO_DOCUMENTOS",
+  "agente-pdi-conselho": "PDI_CONSELHO",
+  "agente-historico-padroes": "HISTORICO_PADROES",
+  "agente-prioridade-agenda": "PRIORIDADE_AGENDA",
+  "agente-pautas-sugestoes": "SUGESTOES_PAUTAS",
+  "agente-briefing-pautas": "BRIEFING_PAUTAS",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -75,6 +90,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: prompt,
       userContent: userContent || "Execute a tarefa solicitada.",
+      agentKey: AGENT_KEYS[agenteId],
     });
 
     return new Response(

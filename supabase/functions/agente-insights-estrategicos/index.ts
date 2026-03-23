@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_INSIGHTS_ESTRATEGICOS,
       userContent: input,
+      agentKey: "INSIGHTS_ESTRATEGICOS",
     });
 
     return new Response(

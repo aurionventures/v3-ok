@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_PRIORIDADE_AGENDA,
       userContent: input,
+      agentKey: "PRIORIDADE_AGENDA",
     });
 
     return new Response(

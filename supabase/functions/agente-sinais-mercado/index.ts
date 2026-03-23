@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_SINAIS_MERCADO,
       userContent: input,
+      agentKey: "SINAIS_MERCADO",
     });
 
     return new Response(

@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_ATA,
       userContent,
+      agentKey: "ATA_REUNIAO",
     });
 
     return new Response(

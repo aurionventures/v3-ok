@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_PAUTAS_SUGESTOES,
       userContent,
+      agentKey: "SUGESTOES_PAUTAS",
     });
 
     return new Response(

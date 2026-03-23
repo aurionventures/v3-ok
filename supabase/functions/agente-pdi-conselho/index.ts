@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_PDI_CONSELHO,
       userContent: input,
+      agentKey: "PDI_CONSELHO",
     });
 
     return new Response(

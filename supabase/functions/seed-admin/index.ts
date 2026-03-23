@@ -68,6 +68,35 @@ Deno.serve(async (req) => {
       userId = authData?.user?.id ?? "";
     }
 
+    // Garantir perfil super_admin em perfis (para RLS e fluxo completo)
+    const perfilPayload = {
+      user_id: userId,
+      empresa_id: null,
+      nome: "Administrador Legacy OS",
+      email: EMAIL,
+      role: "super_admin",
+      senha_alterada: false,
+    };
+    const { data: perfilExistente } = await supabase
+      .from("perfis")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (perfilExistente) {
+      await supabase.from("perfis").update(perfilPayload).eq("id", perfilExistente.id);
+    } else {
+      const { error: perfilErr } = await supabase.from("perfis").insert(perfilPayload);
+      if (perfilErr) {
+        console.error("[seed-admin] insert perfis:", perfilErr);
+        return new Response(
+          JSON.stringify({ error: perfilErr.message ?? "Erro ao criar perfil Super Admin" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     return new Response(
       JSON.stringify({
         ok: true,

@@ -2,19 +2,49 @@
  * Helper para chamadas OpenAI nas Edge Functions.
  * Usa OPENAI_API_KEY das variáveis de ambiente do projeto.
  * Quando a chave não estiver configurada, retorna texto placeholder até a API ser ativada.
+ * Opcionalmente registra uso de tokens em token_usage quando agentKey é informado.
  */
 
 import OpenAI from "https://deno.land/x/openai@v4.24.0/mod.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 export interface AgentRunOptions {
   systemPrompt: string;
   userContent: string;
   model?: string;
+  /** Chave do agente para registro de consumo (ex: ATA_REUNIAO) */
+  agentKey?: string;
 }
 
 /** Indica se a API OpenAI está disponível (chave configurada). */
 export function isOpenAIAvailable(): boolean {
   return !!Deno.env.get("OPENAI_API_KEY");
+}
+
+async function logTokenUsage(
+  data: string,
+  totalTokens: number,
+  promptTokens: number,
+  completionTokens: number,
+  agentKey: string
+): Promise<void> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !key) return;
+    const supabase = createClient(url, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    await supabase.from("token_usage").insert({
+      data,
+      total_tokens: totalTokens,
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+      agent_key: agentKey,
+    });
+  } catch (_e) {
+    // Silencioso para não afetar o fluxo principal
+  }
 }
 
 export async function runAgent(options: AgentRunOptions): Promise<string> {
@@ -34,6 +64,18 @@ export async function runAgent(options: AgentRunOptions): Promise<string> {
     ],
     stream: false,
   });
+
+  const usage = completion.usage;
+  if (options.agentKey && usage?.total_tokens) {
+    const hoje = new Date().toISOString().slice(0, 10);
+    logTokenUsage(
+      hoje,
+      usage.total_tokens,
+      usage.prompt_tokens ?? 0,
+      usage.completion_tokens ?? 0,
+      options.agentKey
+    );
+  }
 
   const content = completion.choices[0]?.message?.content;
   if (!content) {

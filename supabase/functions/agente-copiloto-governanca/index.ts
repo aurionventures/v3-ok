@@ -275,6 +275,7 @@ Deno.serve(async (req) => {
       systemPrompt,
       userContent: finalUserContent,
       model: "gpt-4o",
+      agentKey: "BUSCA_CONVERSACIONAL_ATAS",
     });
 
     const parsed = parseJsonResponse(result) as {

@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Settings, Bot, Check, AlertCircle, ChevronDown, ChevronUp, Shield, Users, BookOpen, Leaf, Trash2, Edit, Save, Plus, FileText, ClipboardList, Calendar, TrendingUp, Target, LayoutGrid, List } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Settings, Bot, Check, AlertCircle, ChevronDown, ChevronUp, Shield, Users, BookOpen, Leaf, Trash2, Edit, Save, Plus, FileText, ClipboardList, Calendar, TrendingUp, Target, LayoutGrid, List, Eye, BarChart3, Loader2 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { invokeEdgeFunction } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,13 +32,15 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { AGENTES_SRC } from "@/data/agentesSrcData";
+import { PROMPTS_AGENTES } from "@/prompts-agentes/prompts";
 
-// Agent configuration interface
+// Agent configuration interface (1:1 com chave de PROMPTS_AGENTES)
 interface Agent {
   id: number;
+  promptKey: string;
   name: string;
   description: string;
   icon: string;
@@ -52,85 +55,30 @@ interface Agent {
   isSystemDefault: boolean;
 }
 
-// Sample agent data
-const initialAgents: Agent[] = [
-  {
-    id: 1,
-    name: "Consilium",
-    description: "Assistente especialista em organização e condução de Conselhos e Comitês.",
-    icon: "Shield",
-    color: "#8b5cf6",
-    integrations: ["Conselhos", "Comitês", "Rituais"],
-    status: "active",
+// Agentes derivados de PROMPTS_AGENTES (1:1 com a biblioteca de prompts)
+const AGENT_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#6366f1"];
+const AGENT_ICONS = ["Shield", "FileText", "Bot", "TrendingUp", "Target", "BookOpen"];
+
+const initialAgents: Agent[] = Object.entries(PROMPTS_AGENTES).map(([key, text], idx) => {
+  const name = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const firstLine = text.split("\n")[0]?.slice(0, 120) || "";
+  return {
+    id: idx + 1,
+    promptKey: key,
+    name,
+    description: firstLine,
+    icon: AGENT_ICONS[idx % AGENT_ICONS.length],
+    color: AGENT_COLORS[idx % AGENT_COLORS.length],
+    integrations: [],
+    status: "active" as const,
     type: "governance",
-    capabilities: [
-      "Gerar automaticamente pautas e atas de reuniões formais",
-      "Sugerir boas práticas de governança conforme porte e complexidade",
-      "Alertar sobre prazos legais e obrigações do conselho"
-    ],
+    capabilities: [firstLine],
     maxTokens: 4096,
     model: "gpt-4",
     temperature: 0.7,
-    isSystemDefault: true
-  },
-  {
-    id: 2,
-    name: "Succession Mentor",
-    description: "Orientador e coach digital para a gestão da sucessão e desenvolvimento dos herdeiros.",
-    icon: "Users",
-    color: "#3b82f6",
-    integrations: ["Sucessão", "Indivíduos-Chave", "Desenvolvimento Familiar"],
-    status: "active",
-    type: "succession",
-    capabilities: [
-      "Sugerir trilhas de capacitação para herdeiros conforme perfil",
-      "Aplicar avaliações periódicas de prontidão sucessória",
-      "Gerar relatórios sobre o andamento dos planos sucessórios"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.5,
-    isSystemDefault: true
-  },
-  {
-    id: 3,
-    name: "Legacy Curator",
-    description: "Curador do legado familiar, preserva, organiza e sugere ações ligadas ao propósito e cultura familiar.",
-    icon: "BookOpen",
-    color: "#f59e0b",
-    integrations: ["Existencial", "Legado", "Rituais"],
-    status: "active",
-    type: "succession",
-    capabilities: [
-      "Facilitar a escrita e atualização do Manifesto de Legado",
-      "Sugerir rituais e celebrações alinhados à identidade familiar",
-      "Organizar Timeline do Legado com marcos históricos importantes"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.6,
-    isSystemDefault: true
-  },
-  {
-    id: 4,
-    name: "ESG Advisor",
-    description: "Consultor para estruturação, monitoramento e evolução das práticas ESG.",
-    icon: "Leaf",
-    color: "#10b981",
-    integrations: ["ESG", "Diagnóstico Sistêmico"],
-    status: "active",
-    type: "esg",
-    capabilities: [
-      "Sugerir políticas e práticas ESG adequadas ao perfil da empresa",
-      "Gerar relatórios ESG a partir dos dados da plataforma",
-      "Propor metas e indicadores com base em benchmarks"
-    ],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.4,
-    isSystemDefault: true
-  }
-];
+    isSystemDefault: true,
+  };
+});
 
 const modelOptions = [
   { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
@@ -156,12 +104,8 @@ const availableModules = [
 ];
 
 const AdminAgentConfig = () => {
-  const { pathname } = useLocation();
-  const isConfiguracaoIA = pathname === "/configuracao-ia";
-  const pageTitle = isConfiguracaoIA ? "Configuração de IA" : "Configuração de Agentes";
-  const pageDescription = isConfiguracaoIA
-    ? "Gerencie os agentes de IA e as configurações do assistente"
-    : "Gerencie os agentes de IA disponíveis na plataforma";
+  const pageTitle = "Configuração de IA";
+  const pageDescription = "Gerencie os agentes de IA e a biblioteca de prompts";
 
   const [agents, setAgents] = useState<Agent[]>(initialAgents);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
@@ -173,24 +117,46 @@ const AdminAgentConfig = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<"mosaico" | "lista">("mosaico");
+  const [viewMode, setViewMode] = useState<"mosaico" | "lista">("lista");
 
-  // Create new agent dialog state
-  const [showCreateAgentDialog, setShowCreateAgentDialog] = useState(false);
-  const [newAgent, setNewAgent] = useState<Omit<Agent, 'id'>>({
-    name: "",
-    description: "",
-    icon: "Bot",
-    color: "#8b5cf6",
-    integrations: [],
-    status: "inactive",
-    type: "governance",
-    capabilities: [""],
-    maxTokens: 4096,
-    model: "gpt-4",
-    temperature: 0.7,
-    isSystemDefault: false
+  // Biblioteca de prompts - edição
+  const [editingPromptKey, setEditingPromptKey] = useState<string | null>(null);
+  const [editingPromptText, setEditingPromptText] = useState("");
+  const [promptOverrides, setPromptOverrides] = useState<Record<string, string>>({});
+
+  // Consumo de tokens
+  const [usageData, setUsageData] = useState<{
+    daily: { data: string; total_tokens: number }[];
+    total: number;
+  } | null>(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [usagePeriodo, setUsagePeriodo] = useState<"ultimos_30" | "mes">("ultimos_30");
+  const [usageMes, setUsageMes] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
+
+  const fetchUsage = useCallback(async () => {
+    setUsageLoading(true);
+    const { data, error } = await invokeEdgeFunction<{
+      daily: { data: string; total_tokens: number }[];
+      total: number;
+    }>("usage-openai", {
+      periodo: usagePeriodo,
+      ...(usagePeriodo === "mes" && { mes: usageMes }),
+    });
+    setUsageLoading(false);
+    if (error) {
+      toast({ title: "Erro ao carregar consumo", description: error.message, variant: "destructive" });
+      setUsageData(null);
+      return;
+    }
+    setUsageData(data ?? null);
+  }, [usagePeriodo, usageMes]);
+
+  useEffect(() => {
+    fetchUsage();
+  }, [fetchUsage]);
 
   // Get available icon components
   const getIconComponent = (iconName: string) => {
@@ -218,44 +184,41 @@ const AdminAgentConfig = () => {
     }
   };
 
-  // ID base para agentes sintéticos (originados de src/agente-*)
-  const SYNTHETIC_AGENT_ID_BASE = 1000;
-
-  // Lista unificada para o mosaico: agentes da página (Consilium, etc.) + agentes em src/ (sem duplicar os que já foram adicionados como sintéticos)
-  const mosaicAgents = [
-    ...agents.map((a) => ({
+  // Lista para o mosaico (1:1 com PROMPTS_AGENTES)
+  const mosaicAgents = agents
+    .map((a) => ({
       id: String(a.id),
       name: a.name,
       description: a.description,
       status: a.status,
       color: a.color,
       icon: a.icon,
-    })),
-    ...AGENTES_SRC.filter(
-      (_, idx) => !agents.some((a) => a.id === SYNTHETIC_AGENT_ID_BASE + idx)
-    ),
-  ].filter((a) => {
+    }))
+    .filter((a) => {
     const matchesSearch =
       a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
     return matchesSearch && matchesStatus;
-  });
+  })
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Filter agents based on search term, status filter and type filter
-  const filteredAgents = agents.filter((agent) => {
-    const matchesSearch = 
-      agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      agent.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = 
-      statusFilter === "all" || agent.status === statusFilter;
-    
-    const matchesType =
-      typeFilter === "all" || agent.type === typeFilter;
+  const filteredAgents = agents
+    .filter((agent) => {
+      const matchesSearch = 
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-    return matchesSearch && matchesStatus && matchesType;
-  });
+      const matchesStatus = 
+        statusFilter === "all" || agent.status === statusFilter;
+      
+      const matchesType =
+        typeFilter === "all" || agent.type === typeFilter;
+        
+      return matchesSearch && matchesStatus && matchesType;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Handle toggle agent status
   const handleToggleStatus = (agentId: number) => {
@@ -286,36 +249,7 @@ const AdminAgentConfig = () => {
     agent: { id: string; name: string; description: string; status: "active" | "inactive"; color: string; icon: string }
   ) => {
     const fullAgent = agents.find((a) => String(a.id) === agent.id);
-    if (fullAgent) {
-      handleEditAgent(fullAgent);
-      return;
-    }
-    const srcIndex = AGENTES_SRC.findIndex((e) => e.id === agent.id);
-    if (srcIndex === -1) return;
-    const syntheticId = SYNTHETIC_AGENT_ID_BASE + srcIndex;
-    const existing = agents.find((a) => a.id === syntheticId);
-    if (existing) {
-      handleEditAgent(existing);
-      return;
-    }
-    const synthetic: Agent = {
-      id: syntheticId,
-      name: agent.name,
-      description: agent.description,
-      icon: agent.icon,
-      color: agent.color,
-      integrations: [],
-      status: agent.status,
-      type: "governance",
-      capabilities: [""],
-      maxTokens: 4096,
-      model: "gpt-4",
-      temperature: 0.7,
-      isSystemDefault: false,
-    };
-    setAgents((prev) => [...prev, synthetic]);
-    setEditingAgent({ ...synthetic });
-    setShowEditDialog(true);
+    if (fullAgent) handleEditAgent(fullAgent);
   };
 
   // Handle save edited agent
@@ -404,43 +338,18 @@ const AdminAgentConfig = () => {
     }
   };
 
-  // Handle create new agent
-  const handleCreateAgent = () => {
-    // Validation
-    if (!newAgent.name || !newAgent.description) {
-      toast({
-        title: "Dados incompletos",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const newId = Math.max(...agents.map(a => a.id)) + 1;
-    
-    setAgents([...agents, { ...newAgent, id: newId }]);
-    setShowCreateAgentDialog(false);
-    
-    // Reset form
-    setNewAgent({
-      name: "",
-      description: "",
-      icon: "Bot",
-      color: "#8b5cf6",
-      integrations: [],
-      status: "inactive",
-      type: "governance",
-      capabilities: [""],
-      maxTokens: 4096,
-      model: "gpt-4",
-      temperature: 0.7,
-      isSystemDefault: false
-    });
-    
-    toast({
-      title: "Agente criado",
-      description: "O novo agente foi criado com sucesso.",
-    });
+  const handleVerEditarPrompt = (key: string) => {
+    const text = promptOverrides[key] ?? PROMPTS_AGENTES[key as keyof typeof PROMPTS_AGENTES] ?? "";
+    setEditingPromptKey(key);
+    setEditingPromptText(text);
+  };
+
+  const handleSalvarPrompt = () => {
+    if (!editingPromptKey) return;
+    setPromptOverrides((prev) => ({ ...prev, [editingPromptKey]: editingPromptText }));
+    setEditingPromptKey(null);
+    setEditingPromptText("");
+    toast({ title: "Prompt salvo", description: `"${editingPromptKey}" foi atualizado.` });
   };
 
   return (
@@ -449,13 +358,23 @@ const AdminAgentConfig = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={pageTitle} />
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
-              <p className="text-gray-600 mt-1">
-                {pageDescription}
-              </p>
-            </div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
+            <p className="text-gray-600 mt-1">{pageDescription}</p>
+          </div>
+
+          <Tabs defaultValue="agentes" className="space-y-4">
+            <TabsList className="grid w-full max-w-2xl grid-cols-3">
+              <TabsTrigger value="agentes">Agentes</TabsTrigger>
+              <TabsTrigger value="biblioteca">Biblioteca de prompts</TabsTrigger>
+              <TabsTrigger value="consumo-tokens" className="gap-1.5">
+                <BarChart3 className="h-4 w-4" />
+                Consumo de tokens
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="agentes" className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex items-center gap-2">
               <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
                 <button
@@ -481,10 +400,6 @@ const AdminAgentConfig = () => {
                   Lista
                 </button>
               </div>
-              <Button onClick={() => setShowCreateAgentDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Novo Agente
-              </Button>
             </div>
           </div>
 
@@ -550,15 +465,26 @@ const AdminAgentConfig = () => {
                   </p>
                 </div>
               ) : (
-                mosaicAgents.map((agent) => (
+                mosaicAgents.map((agent, index) => {
+                  const letraRef = String.fromCharCode(65 + index);
+                  return (
                   <Card key={agent.id} className="flex flex-col overflow-hidden">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-2">
-                        <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: `${agent.color}20` }}
-                        >
-                          {getIconComponent(agent.icon)}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white font-bold text-sm"
+                            style={{ backgroundColor: agent.color }}
+                            title={`Referência ${letraRef}`}
+                          >
+                            {letraRef}
+                          </div>
+                          <div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${agent.color}20` }}
+                          >
+                            {getIconComponent(agent.icon)}
+                          </div>
                         </div>
                         <Badge variant={agent.status === "active" ? "default" : "outline"} className="shrink-0">
                           {agent.status === "active" ? "Ativo" : "Inativo"}
@@ -579,7 +505,8 @@ const AdminAgentConfig = () => {
                       </Button>
                     </CardFooter>
                   </Card>
-                ))
+                  );
+                })
               )}
             </div>
           ) : (
@@ -593,11 +520,20 @@ const AdminAgentConfig = () => {
                 </p>
               </div>
             ) : (
-              filteredAgents.map((agent) => (
+              filteredAgents.map((agent, index) => {
+                const letraRef = String.fromCharCode(65 + index);
+                return (
                 <Accordion type="single" collapsible key={agent.id}>
                   <AccordionItem value={`item-${agent.id}`}>
                     <AccordionTrigger>
                       <div className="flex items-center gap-4 w-full">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+                          style={{ backgroundColor: agent.color }}
+                          title={`Referência ${letraRef}`}
+                        >
+                          {letraRef}
+                        </div>
                         <div
                           className="w-10 h-10 rounded-full flex items-center justify-center"
                           style={{ backgroundColor: `${agent.color}20` }}
@@ -676,32 +612,254 @@ const AdminAgentConfig = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
+                            onClick={() => handleVerEditarPrompt(agent.promptKey)}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />
+                            Ver prompt
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
                             onClick={() => handleEditAgent(agent)}
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Editar
                           </Button>
-                          {!agent.isSystemDefault && (
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => handleDeleteAgent(agent)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Remover
-                            </Button>
-                          )}
                         </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-              ))
+                );
+              })
             )}
           </div>
           )}
+            </TabsContent>
+
+            <TabsContent value="biblioteca" className="space-y-4">
+              <div className="rounded-lg border bg-white">
+                <ul className="divide-y divide-gray-200">
+                  {[...Object.keys(PROMPTS_AGENTES)].sort((a, b) => a.localeCompare(b)).map((key) => (
+                    <li
+                      key={key}
+                      className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-gray-50"
+                    >
+                      <span className="text-sm font-medium text-gray-900 truncate flex-1">
+                        {key.replace(/_/g, " ")}
+                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleVerEditarPrompt(key)}
+                          className="gap-1.5"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Ver e editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => editingPromptKey === key ? handleSalvarPrompt() : handleVerEditarPrompt(key)}
+                          className="gap-1.5"
+                        >
+                          <Save className="h-4 w-4" />
+                          Salvar
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="consumo-tokens" className="space-y-4">
+              <Card className="overflow-hidden">
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <CardTitle className="text-lg font-semibold">
+                      Uso de Tokens
+                    </CardTitle>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex rounded-lg border bg-muted/30 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setUsagePeriodo("ultimos_30")}
+                          className={cn(
+                            "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                            usagePeriodo === "ultimos_30"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Últimos 30 dias
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUsagePeriodo("mes")}
+                          className={cn(
+                            "rounded-md px-3 py-2 text-sm font-medium transition-colors flex items-center gap-2",
+                            usagePeriodo === "mes"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          <Calendar className="h-4 w-4" />
+                          Mês
+                        </button>
+                      </div>
+                      {usagePeriodo === "mes" && (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="usage-mes"
+                            type="month"
+                            value={usageMes}
+                            onChange={(e) => setUsageMes(e.target.value)}
+                            className="h-9 w-[145px] rounded-lg border bg-background text-sm"
+                          />
+                        </div>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchUsage}
+                        disabled={usageLoading}
+                        className="h-9 shrink-0"
+                      >
+                        {usageLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Atualizar"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {usageLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div className="relative h-[240px]">
+                      {(() => {
+                        const chartData = (() => {
+                          if (usageData?.daily?.length) return usageData.daily;
+                          if (usagePeriodo === "mes") {
+                            const [y, m] = usageMes.split("-").map(Number);
+                            const days = new Date(y, m, 0).getDate();
+                            return Array.from({ length: days }, (_, i) => {
+                              const data = `${y}-${String(m).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`;
+                              return { data, total_tokens: 0 };
+                            });
+                          }
+                          return Array.from({ length: 30 }, (_, i) => {
+                            const d = new Date();
+                            d.setDate(d.getDate() - 29 + i);
+                            const data = d.toISOString().slice(0, 10);
+                            return { data, total_tokens: 0 };
+                          });
+                        })();
+                        const xTicks =
+                          chartData.length > 0
+                            ? [chartData[0].data, chartData[chartData.length - 1].data]
+                            : undefined;
+                        return (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={chartData}
+                            margin={{ top: 20, right: 16, left: 0, bottom: 24 }}
+                          >
+                            <XAxis
+                              dataKey="data"
+                              tick={{ fontSize: 11, fill: "#6b7280" }}
+                              tickLine={false}
+                              axisLine={false}
+                              ticks={xTicks}
+                              tickFormatter={(val) =>
+                                new Date(val + "T12:00:00").toLocaleDateString("pt-BR", {
+                                  day: "2-digit",
+                                  month: "short",
+                                })
+                              }
+                            />
+                          <YAxis hide />
+                          <Tooltip
+                            content={({ active, payload }) => {
+                              if (!active || !payload?.[0]) return null;
+                              const d = payload[0].payload;
+                              return (
+                                <div className="rounded-lg border bg-background px-3 py-2 shadow-md">
+                                  <p className="text-sm font-medium">
+                                    {new Date(d.data + "T12:00:00").toLocaleDateString("pt-BR", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {d.total_tokens.toLocaleString("pt-BR")} tokens
+                                  </p>
+                                </div>
+                              );
+                            }}
+                            cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                          />
+                            <Bar
+                              dataKey="total_tokens"
+                              fill="#374151"
+                              radius={[4, 4, 0, 0]}
+                              barCategoryGap="12%"
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                        );
+                      })()}
+                      {usageData && usageData.total === 0 && usageData.daily?.length > 0 && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Nenhum consumo registrado
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Os tokens serão exibidos quando os agentes de IA forem utilizados.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
+      
+      {/* Editar Prompt Dialog */}
+      <Dialog open={!!editingPromptKey} onOpenChange={(open) => !open && (setEditingPromptKey(null), setEditingPromptText(""))}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Ver e editar prompt</DialogTitle>
+            <DialogDescription>
+              {editingPromptKey?.replace(/_/g, " ")}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={editingPromptText}
+            onChange={(e) => setEditingPromptText(e.target.value)}
+            className="flex-1 min-h-[300px] font-mono text-sm resize-none"
+            placeholder="Conteúdo do prompt..."
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => (setEditingPromptKey(null), setEditingPromptText(""))}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSalvarPrompt}>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Edit Agent Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -929,96 +1087,6 @@ const AdminAgentConfig = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Create Agent Dialog */}
-      <Dialog open={showCreateAgentDialog} onOpenChange={setShowCreateAgentDialog}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Criar Novo Agente</DialogTitle>
-            <DialogDescription>
-              Configure um novo agente de IA para a plataforma.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Nome</label>
-                <Input
-                  value={newAgent.name}
-                  onChange={(e) => 
-                    setNewAgent({
-                      ...newAgent,
-                      name: e.target.value
-                    })
-                  }
-                  placeholder="Ex: Finance Advisor"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Cor</label>
-                <Input
-                  type="color"
-                  value={newAgent.color}
-                  onChange={(e) => 
-                    setNewAgent({
-                      ...newAgent,
-                      color: e.target.value
-                    })
-                  }
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">Descrição</label>
-              <Textarea
-                value={newAgent.description}
-                onChange={(e) => 
-                  setNewAgent({
-                    ...newAgent,
-                    description: e.target.value
-                  })
-                }
-                placeholder="Descreva a função e especialidade deste agente..."
-                rows={3}
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">Tipo</label>
-              <Select
-                value={newAgent.type}
-                onValueChange={(value) => 
-                  setNewAgent({
-                    ...newAgent,
-                    type: value
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="governance">Governança</SelectItem>
-                  <SelectItem value="succession">Sucessão</SelectItem>
-                  <SelectItem value="esg">ESG e Riscos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* More configuration fields would be added here similar to the edit form */}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateAgentDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleCreateAgent}>
-              Criar Agente
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

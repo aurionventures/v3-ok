@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const result = await runAgent({
       systemPrompt: PROMPT_AGENTE_PROCESSAMENTO_DOCUMENTOS,
       userContent: input,
+      agentKey: "PROCESSAMENTO_DOCUMENTOS",
     });
 
     return new Response(

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, UserCog, ActivitySquare, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { Settings as SettingsIcon, Save, UserCog, ActivitySquare, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,13 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { isAdmin, isCompanyAdm } from "@/lib/auth";
 import { insertSuperAdmin, insertEmpresaAdm } from "@/services/empresas";
-import { fetchPromptPautaAta, upsertPromptPautaAta, PROMPT_PADRAO } from "@/services/promptsConfig";
 
 function gerarSenhaAleatoria(len = 10): string {
   const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -26,9 +24,6 @@ function gerarSenhaAleatoria(len = 10): string {
 
 const Settings = () => {
   const { firstEmpresaId } = useEmpresas();
-  const [promptPautaAta, setPromptPautaAta] = useState(PROMPT_PADRAO);
-  const [promptPautaAtaLoading, setPromptPautaAtaLoading] = useState(false);
-  const [promptPautaAtaSaving, setPromptPautaAtaSaving] = useState(false);
 
   const [superAdminNome, setSuperAdminNome] = useState("");
   const [superAdminEmail, setSuperAdminEmail] = useState("");
@@ -42,30 +37,6 @@ const Settings = () => {
   const [empresaAdmSenhaVisivel, setEmpresaAdmSenhaVisivel] = useState(false);
   const [empresaAdmLoading, setEmpresaAdmLoading] = useState(false);
 
-  useEffect(() => {
-    if (!firstEmpresaId) return;
-    setPromptPautaAtaLoading(true);
-    fetchPromptPautaAta(firstEmpresaId).then(({ prompt }) => {
-      setPromptPautaAta(prompt);
-      setPromptPautaAtaLoading(false);
-    });
-  }, [firstEmpresaId]);
-
-  const handleSavePromptPautaAta = async () => {
-    if (!firstEmpresaId) {
-      toast({ title: "Selecione uma empresa", variant: "destructive" });
-      return;
-    }
-    setPromptPautaAtaSaving(true);
-    const { error } = await upsertPromptPautaAta(firstEmpresaId, promptPautaAta);
-    setPromptPautaAtaSaving(false);
-    if (error) {
-      toast({ title: "Erro ao salvar prompt", description: error, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Prompt salvo", description: "O prompt de geração de Pauta/ATA foi atualizado." });
-  };
-  
   const handleSaveSettings = () => {
     toast({
       title: "Configurações salvas",
@@ -193,10 +164,6 @@ const Settings = () => {
                   <TabsTrigger value="activities">
                     <ActivitySquare className="h-4 w-4 mr-2" />
                     Atividades
-                  </TabsTrigger>
-                  <TabsTrigger value="prompts">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Prompts IA
                   </TabsTrigger>
                 </TabsList>
                 
@@ -417,31 +384,6 @@ const Settings = () => {
                   <div className="space-y-6">
                     <h3 className="text-lg font-medium mb-4">Histórico de Atividades</h3>
                     <ActivityList activities={allActivities} showViewAll={false} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="prompts">
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-medium mb-4">Geração de Pauta/ATA com IA</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Edite o prompt usado pelo assistente para gerar a pauta e a ATA das reuniões. O texto será enviado como instrução de estilo para o modelo de IA.
-                    </p>
-                    <div className="space-y-2">
-                      <Label htmlFor="prompt-pauta-ata">Prompt do sistema</Label>
-                      <Textarea
-                        id="prompt-pauta-ata"
-                        value={promptPautaAta}
-                        onChange={(e) => setPromptPautaAta(e.target.value)}
-                        placeholder={PROMPT_PADRAO}
-                        rows={12}
-                        className="font-mono text-sm"
-                        disabled={promptPautaAtaLoading}
-                      />
-                    </div>
-                    <Button onClick={handleSavePromptPautaAta} disabled={promptPautaAtaSaving || promptPautaAtaLoading}>
-                      <Save className="h-4 w-4 mr-2" />
-                      {promptPautaAtaSaving ? "Salvando..." : "Salvar Prompt"}
-                    </Button>
                   </div>
                 </TabsContent>
               </Tabs>
