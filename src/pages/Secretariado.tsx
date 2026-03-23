@@ -13,6 +13,8 @@ import {
   LayoutGrid,
   Search,
   Loader2,
+  Check,
+  XCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,9 @@ import { AprovacaoConvidadosContent } from "@/components/secretariado/AprovacaoC
 import { ListaAtasContent } from "@/components/secretariado/ListaAtasContent";
 import { useSecretariadoIndicadores } from "@/hooks/useSecretariadoIndicadores";
 import { fetchAtaFluxoDetalhe, type AtaFluxoDetalhe, type AtaListItem } from "@/services/secretariado";
+import { adminAceitarReprovacao, adminReprovarReprovacao } from "@/services/ataAprovacoes";
+import { supabase } from "@/lib/supabase";
+import { toast } from "@/hooks/use-toast";
 
 function BibliotecaContent() {
   const [subTab, setSubTab] = useState<"busca" | "atas">("busca");
@@ -96,6 +101,7 @@ function GestaoTarefasIndicadores() {
   const [ataDetalhe, setAtaDetalhe] = useState<AtaFluxoDetalhe | null>(null);
   const [tarefaDetalheOpen, setTarefaDetalheOpen] = useState(false);
   const [tarefaSelecionadaId, setTarefaSelecionadaId] = useState<string | null>(null);
+  const [adminRevisando, setAdminRevisando] = useState<string | null>(null);
 
   const openAtaDetalhe = async (ata: AtaListItem) => {
     setAtaDetalheLoading(true);

@@ -34,6 +34,9 @@ export interface AtaFluxoParticipante {
   cargo: string | null;
   aprovado_em: string | null;
   assinado_em: string | null;
+  reprovado_em: string | null;
+  reprovacao_comentario: string | null;
+  admin_revisao: "pendente" | "aceito" | "reprovado" | null;
 }
 
 export interface AtaFluxoDetalhe {
@@ -328,7 +331,7 @@ export async function fetchAtaFluxoDetalhe(
 
   const { data: aprovs, error: errAprovs } = await supabase
     .from("ata_aprovacoes")
-    .select("membro_id, aprovado_em, membros_governanca(nome, email, cargo_principal)")
+    .select("membro_id, aprovado_em, reprovado_em, reprovacao_comentario, admin_revisao, membros_governanca(nome, email, cargo_principal)")
     .eq("ata_id", ataId);
   if (errAprovs) {
     return { data: null, error: errAprovs.message };
@@ -347,7 +350,14 @@ export async function fetchAtaFluxoDetalhe(
     assinadoPorMembro.set(row.membro_id, row.assinado_em ?? null);
   }
 
-  const participantes: AtaFluxoParticipante[] = (aprovs ?? []).map((row) => {
+  const participantes: AtaFluxoParticipante[] = (aprovs ?? []).map((row: {
+    membro_id: string;
+    aprovado_em: string | null;
+    reprovado_em?: string | null;
+    reprovacao_comentario?: string | null;
+    admin_revisao?: string | null;
+    membros_governanca?: { nome?: string; email?: string; cargo_principal?: string } | Array<{ nome?: string; email?: string; cargo_principal?: string }>;
+  }) => {
     const membro = Array.isArray(row.membros_governanca) ? row.membros_governanca[0] : row.membros_governanca;
     return {
       membro_id: row.membro_id,
@@ -356,6 +366,9 @@ export async function fetchAtaFluxoDetalhe(
       cargo: membro?.cargo_principal ?? null,
       aprovado_em: row.aprovado_em ?? null,
       assinado_em: assinadoPorMembro.get(row.membro_id) ?? null,
+      reprovado_em: row.reprovado_em ?? null,
+      reprovacao_comentario: row.reprovacao_comentario ?? null,
+      admin_revisao: (row.admin_revisao as "pendente" | "aceito" | "reprovado") ?? null,
     };
   });
 

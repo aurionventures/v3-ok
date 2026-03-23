@@ -19,33 +19,75 @@ import {
 import MemberBriefing from "./MemberBriefing";
 import MemberCopiloto from "./MemberCopiloto";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
+import { useMaturidadeScore } from "@/hooks/useMaturidadeScore";
 import { fetchReunioes } from "@/services/agenda";
 import { fetchAtasPendentesMembro } from "@/services/ataAprovacoes";
 import { supabase } from "@/lib/supabase";
 
+function responsavelCoincideComMembro(responsavel: string, nomeMembro: string): boolean {
+  const r = (responsavel ?? "").trim().toLowerCase();
+  const n = (nomeMembro ?? "").trim().toLowerCase();
+  if (!r || !n) return false;
+  return r.includes(n) || n.includes(r) || n.split(/\s+/)[0] === r || r.split(/\s+/)[0] === n;
+}
+
 const MemberDashboard = () => {
   const { data: membro } = useCurrentMembro();
+  const { score: maturidadeScore, fullMark: maturidadeFullMark, isLoading: maturidadeLoading } = useMaturidadeScore();
+
   const { data: dashboard } = useQuery({
-    queryKey: ["member", "dashboard", membro?.id, membro?.empresa_id],
+    queryKey: ["member", "dashboard", membro?.id, membro?.empresa_id, membro?.nome],
     enabled: !!membro?.id && !!membro?.empresa_id,
     queryFn: async () => {
       if (!membro?.id || !membro.empresa_id || !supabase) return null;
-      const { data: reunioes } = await fetchReunioes(membro.empresa_id);
+
+      const todasReunioes = await fetchReunioes(membro.empresa_id);
+      const { data: alocacoes } = await supabase
+        .from("alocacoes_membros")
+        .select("conselho_id, comite_id, comissao_id")
+        .eq("membro_id", membro.id)
+        .eq("ativo", true);
+      const conselhoIds = new Set((alocacoes ?? []).map((a) => a.conselho_id).filter(Boolean));
+      const comiteIds = new Set((alocacoes ?? []).map((a) => a.comite_id).filter(Boolean));
+      const comissaoIds = new Set((alocacoes ?? []).map((a) => a.comissao_id).filter(Boolean));
+      const temAlocacao = conselhoIds.size > 0 || comiteIds.size > 0 || comissaoIds.size > 0;
+
+      const reunioes =
+        temAlocacao
+          ? todasReunioes.filter(
+              (r) =>
+                (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
+                (r.comite_id && comiteIds.has(r.comite_id)) ||
+                (r.comissao_id && comissaoIds.has(r.comissao_id)) ||
+                (!r.conselho_id && !r.comite_id && !r.comissao_id)
+            )
+          : todasReunioes;
+
       const proximas = reunioes
         .filter((r) => r.data_reuniao && new Date(r.data_reuniao) >= new Date())
         .sort((a, b) => (a.data_reuniao ?? "").localeCompare(b.data_reuniao ?? ""));
       const proxima = proximas[0] ?? null;
+      const reuniaoIds = reunioes.map((r) => r.id);
+
       const { data: atasPendentes } = await fetchAtasPendentesMembro(membro.id);
-      const { data: tarefas } = await supabase
-        .from("reuniao_tarefas")
-        .select("id")
-        .is("data_conclusao", null)
-        .ilike("responsavel", membro.nome);
+
+      let tarefasPendentes = 0;
+      if (reuniaoIds.length > 0) {
+        const { data: tarefas } = await supabase
+          .from("reuniao_tarefas")
+          .select("id, responsavel")
+          .in("reuniao_id", reuniaoIds)
+          .is("data_conclusao", null);
+        tarefasPendentes = (tarefas ?? []).filter((t) =>
+          responsavelCoincideComMembro(t.responsavel ?? "", membro.nome ?? "")
+        ).length;
+      }
+
       return {
         proxima,
         reunioesCount: proximas.length,
         atasPendentes: atasPendentes.length,
-        tarefasPendentes: (tarefas ?? []).length,
+        tarefasPendentes,
       };
     },
   });
@@ -128,7 +170,9 @@ const MemberDashboard = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold">Maturidade</h3>
-                        <p className="text-2xl font-bold text-gray-900">4.0/5.0</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {maturidadeLoading ? "--" : maturidadeScore != null ? `${maturidadeScore.toFixed(1)}/${maturidadeFullMark}` : "--"}
+                        </p>
                         <p className="text-sm text-muted-foreground">Ver análise completa</p>
                       </div>
                     </div>

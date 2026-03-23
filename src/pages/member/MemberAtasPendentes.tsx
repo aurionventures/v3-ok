@@ -5,6 +5,7 @@ import {
   fetchAtasPendentesMembro,
   aprovarAta,
   assinarAta,
+  reprovarAta,
   type AtaPendenteMembro,
 } from "@/services/ataAprovacoes";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FileText, Eye, Check, PenLine, Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { FileText, Eye, Check, PenLine, Loader2, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -29,6 +31,7 @@ const MemberAtasPendentes = () => {
   const [membroId, setMembroId] = useState<string | null>(null);
   const [viewAta, setViewAta] = useState<AtaPendenteMembro | null>(null);
   const [actionando, setActionando] = useState<string | null>(null);
+  const [reprovacaoComentario, setReprovacaoComentario] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -77,6 +80,26 @@ const MemberAtasPendentes = () => {
     refetch();
   };
 
+  const handleReprovar = async (ata: AtaPendenteMembro) => {
+    if (!membroId) return;
+    const comentario = reprovacaoComentario.trim();
+    if (!comentario) {
+      toast({ title: "Comentário obrigatório", description: "Informe o que não está de acordo para reprovar.", variant: "destructive" });
+      return;
+    }
+    setActionando(ata.id);
+    const { error } = await reprovarAta(ata.id, membroId, comentario);
+    setActionando(null);
+    if (error) {
+      toast({ title: "Erro ao reprovar", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "ATA reprovada", description: "Sua objeção foi enviada para análise do Secretariado." });
+    setReprovacaoComentario("");
+    setViewAta(null);
+    refetch();
+  };
+
   const handleAssinar = async (ata: AtaPendenteMembro) => {
     if (!membroId) return;
     setActionando(ata.id);
@@ -89,6 +112,11 @@ const MemberAtasPendentes = () => {
     toast({ title: "ATA assinada", description: "Aguardando as demais assinaturas." });
     setViewAta(null);
     refetch();
+  };
+
+  const handleCloseViewAta = () => {
+    setViewAta(null);
+    setReprovacaoComentario("");
   };
 
   return (
@@ -193,7 +221,7 @@ const MemberAtasPendentes = () => {
         </Card>
       </div>
 
-      <Dialog open={!!viewAta} onOpenChange={() => setViewAta(null)}>
+      <Dialog open={!!viewAta} onOpenChange={(open) => !open && handleCloseViewAta()}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>
@@ -206,27 +234,65 @@ const MemberAtasPendentes = () => {
           <div className="flex-1 overflow-y-auto rounded border bg-muted/30 p-4 text-sm whitespace-pre-wrap">
             {viewAta?.conteudo ?? "Conteúdo não disponível."}
           </div>
-          {viewAta && (
+          {viewAta?.acao === "aprovacao" && (
+            <div className="pt-4 border-t space-y-3">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Comentário (obrigatório ao reprovar)
+                </label>
+                <Textarea
+                  placeholder="Descreva o que não está de acordo com esta ATA..."
+                  value={reprovacaoComentario}
+                  onChange={(e) => setReprovacaoComentario(e.target.value)}
+                  className="mt-1 min-h-[80px] resize-none"
+                  disabled={!!actionando}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleCloseViewAta}>
+                  Fechar
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={!!actionando}
+                  onClick={() => handleReprovar(viewAta)}
+                >
+                  {actionando === viewAta.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <XCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Reprovar
+                </Button>
+                <Button
+                  disabled={!!actionando}
+                  onClick={() => handleAprovar(viewAta)}
+                >
+                  {actionando === viewAta.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Check className="h-4 w-4 mr-2" />
+                  )}
+                  Aprovar
+                </Button>
+              </div>
+            </div>
+          )}
+          {viewAta?.acao === "assinatura" && (
             <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => setViewAta(null)}>
+              <Button variant="outline" onClick={handleCloseViewAta}>
                 Fechar
               </Button>
               <Button
                 disabled={!!actionando}
-                onClick={() =>
-                  viewAta.acao === "aprovacao"
-                    ? handleAprovar(viewAta)
-                    : handleAssinar(viewAta)
-                }
+                onClick={() => handleAssinar(viewAta)}
               >
                 {actionando === viewAta.id ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : viewAta.acao === "aprovacao" ? (
-                  <Check className="h-4 w-4 mr-2" />
                 ) : (
                   <PenLine className="h-4 w-4 mr-2" />
                 )}
-                {viewAta.acao === "aprovacao" ? "Aprovar" : "Assinar"}
+                Assinar
               </Button>
             </div>
           )}

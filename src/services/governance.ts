@@ -285,13 +285,42 @@ export async function fetchMembros(empresaId: string): Promise<MembroComAlocacao
   }
 
   const orgaosMap = new Map<string, string[]>();
+  const conselhosMap = new Map<string, string[]>();
+  const comitesMap = new Map<string, string[]>();
+  const comissoesMap = new Map<string, string[]>();
+
   for (const a of alocacoes ?? []) {
     const arr = orgaosMap.get(a.membro_id) ?? [];
-    const nome = (a.conselho_id && nomesConselhos.get(a.conselho_id)) ||
-      (a.comite_id && nomesComites.get(a.comite_id)) ||
-      (a.comissao_id && nomesComissoes.get(a.comissao_id)) || "";
-    if (nome) arr.push(nome);
+    const conselhos = conselhosMap.get(a.membro_id) ?? [];
+    const comites = comitesMap.get(a.membro_id) ?? [];
+    const comissoes = comissoesMap.get(a.membro_id) ?? [];
+
+    if (a.conselho_id) {
+      const nome = nomesConselhos.get(a.conselho_id);
+      if (nome && !conselhos.includes(nome)) {
+        conselhos.push(nome);
+        arr.push(nome);
+      }
+    }
+    if (a.comite_id) {
+      const nome = nomesComites.get(a.comite_id);
+      if (nome && !comites.includes(nome)) {
+        comites.push(nome);
+        arr.push(nome);
+      }
+    }
+    if (a.comissao_id) {
+      const nome = nomesComissoes.get(a.comissao_id);
+      if (nome && !comissoes.includes(nome)) {
+        comissoes.push(nome);
+        arr.push(nome);
+      }
+    }
+
     orgaosMap.set(a.membro_id, arr);
+    conselhosMap.set(a.membro_id, conselhos);
+    comitesMap.set(a.membro_id, comites);
+    comissoesMap.set(a.membro_id, comissoes);
   }
 
   return membros.map((m: MembroGovernancaRow) => ({
@@ -299,6 +328,9 @@ export async function fetchMembros(empresaId: string): Promise<MembroComAlocacao
     nome: m.nome,
     cargoPrincipal: m.cargo_principal ?? null,
     orgaosAlocados: orgaosMap.get(m.id) ?? [],
+    conselhos: conselhosMap.get(m.id) ?? [],
+    comites: comitesMap.get(m.id) ?? [],
+    comissoes: comissoesMap.get(m.id) ?? [],
     email: m.email ?? null,
     user_id: m.user_id ?? null,
   }));
@@ -320,7 +352,17 @@ export async function insertMembro(p: MembroInsert): Promise<{ data: MembroComAl
     return { data: null, error: error.message };
   }
   return {
-    data: data ? { id: data.id, nome: data.nome, cargoPrincipal: data.cargo_principal ?? null, orgaosAlocados: [] } : null,
+    data: data
+      ? {
+          id: data.id,
+          nome: data.nome,
+          cargoPrincipal: data.cargo_principal ?? null,
+          orgaosAlocados: [],
+          conselhos: [],
+          comites: [],
+          comissoes: [],
+        }
+      : null,
     error: null,
   };
 }

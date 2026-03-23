@@ -80,6 +80,9 @@ export interface MembroComAlocacao {
   nome: string;
   cargoPrincipal: string | null;
   orgaosAlocados: string[];
+  conselhos: string[];
+  comites: string[];
+  comissoes: string[];
   email?: string | null;
   user_id?: string | null;
 }

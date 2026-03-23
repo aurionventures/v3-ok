@@ -73,6 +73,88 @@ export async function aprovarAta(ataId: string, membroId: string): Promise<{ err
 }
 
 /**
+ * Membro reprova a ATA com comentário (objeção). Aparece para o ADM revisar.
+ */
+export async function reprovarAta(
+  ataId: string,
+  membroId: string,
+  comentario: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const comentarioTrim = (comentario ?? "").trim();
+  if (!comentarioTrim) return { error: "O comentário é obrigatório ao reprovar." };
+
+  const { error: updError } = await supabase
+    .from("ata_aprovacoes")
+    .update({
+      reprovado_em: new Date().toISOString(),
+      reprovacao_comentario: comentarioTrim,
+      admin_revisao: "pendente",
+    })
+    .eq("ata_id", ataId)
+    .eq("membro_id", membroId)
+    .is("aprovado_em", null)
+    .is("reprovado_em", null);
+  if (updError) {
+    console.error("[ataAprovacoes] reprovar:", updError);
+    return { error: updError.message };
+  }
+  return { error: null };
+}
+
+/**
+ * ADM aceita a reprovação do membro (concorda com a objeção).
+ */
+export async function adminAceitarReprovacao(
+  ataId: string,
+  membroId: string,
+  adminUserId: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("ata_aprovacoes")
+    .update({
+      admin_revisao: "aceito",
+      admin_revisao_em: new Date().toISOString(),
+      admin_revisao_por: adminUserId,
+    })
+    .eq("ata_id", ataId)
+    .eq("membro_id", membroId)
+    .not("reprovado_em", "is", null);
+  if (error) {
+    console.error("[ataAprovacoes] adminAceitarReprovacao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+/**
+ * ADM reprova a objeção do membro (mantém ATA como está; membro pode reavaliar).
+ */
+export async function adminReprovarReprovacao(
+  ataId: string,
+  membroId: string,
+  adminUserId: string
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("ata_aprovacoes")
+    .update({
+      admin_revisao: "reprovado",
+      admin_revisao_em: new Date().toISOString(),
+      admin_revisao_por: adminUserId,
+    })
+    .eq("ata_id", ataId)
+    .eq("membro_id", membroId)
+    .not("reprovado_em", "is", null);
+  if (error) {
+    console.error("[ataAprovacoes] adminReprovarReprovacao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+/**
  * Membro assina a ATA.
  * Se todos assinaram, atualiza status para finalizada.
  */
@@ -115,7 +197,8 @@ export async function fetchAtasPendentesMembro(
     .from("ata_aprovacoes")
     .select("ata_id")
     .eq("membro_id", membroId)
-    .is("aprovado_em", null);
+    .is("aprovado_em", null)
+    .is("reprovado_em", null);
   const ataIdsAprovacao = [...new Set((aprovPendentes ?? []).map((r: { ata_id: string }) => r.ata_id))];
 
   const { data: assinPendentes } = await supabase

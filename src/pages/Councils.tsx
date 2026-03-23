@@ -781,7 +781,9 @@ const Councils = () => {
                         <TableRow>
                           <TableHead>Nome</TableHead>
                           <TableHead>Cargo Principal</TableHead>
-                          <TableHead>Órgãos Alocados</TableHead>
+                          <TableHead>Conselho(s)</TableHead>
+                          <TableHead>Comitê(s)</TableHead>
+                          <TableHead>Comissão(ões)</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -790,9 +792,9 @@ const Councils = () => {
                           <TableRow key={m.id}>
                             <TableCell className="font-medium">{m.nome}</TableCell>
                             <TableCell>{m.cargoPrincipal ?? "—"}</TableCell>
-                            <TableCell>
-                              {m.orgaosAlocados.length > 0 ? m.orgaosAlocados.join(", ") : "Não alocado"}
-                            </TableCell>
+                            <TableCell>{m.conselhos.length > 0 ? m.conselhos.join(", ") : "—"}</TableCell>
+                            <TableCell>{m.comites.length > 0 ? m.comites.join(", ") : "—"}</TableCell>
+                            <TableCell>{m.comissoes.length > 0 ? m.comissoes.join(", ") : "—"}</TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" onClick={() => { setVerMembro({ id: m.id, nome: m.nome, email: m.email ?? null, user_id: m.user_id ?? null }); setVerSenhaGerada(null); setVerMembroOpen(true); }}>
                                 <Eye className="h-4 w-4 mr-1" />
