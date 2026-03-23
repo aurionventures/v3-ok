@@ -58,6 +58,9 @@ export interface TarefaPendenteHistorico {
   responsavel: string;
   prazo: string | null;
   etapa: "aprovacao" | "assinatura" | "tarefa";
+  /** Preenchido quando etapa é aprovação ou assinatura */
+  ata_id?: string;
+  membro_id?: string;
 }
 
 export interface DashboardIndicadores {
@@ -438,6 +441,8 @@ export async function fetchHistoricoTarefasPendentes(
       responsavel: membro?.nome ?? "Membro",
       prazo: reuniao?.data_reuniao ?? null,
       etapa: "aprovacao" as const,
+      ata_id: row.ata_id,
+      membro_id: row.membro_id,
     };
   }).filter((i) => reuniaoIds.includes(i.reuniao_id));
 
@@ -460,6 +465,8 @@ export async function fetchHistoricoTarefasPendentes(
       responsavel: membro?.nome ?? "Membro",
       prazo: reuniao?.data_reuniao ?? null,
       etapa: "assinatura" as const,
+      ata_id: row.ata_id,
+      membro_id: row.membro_id,
     };
   }).filter((i) => reuniaoIds.includes(i.reuniao_id));
 

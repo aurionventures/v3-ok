@@ -49,7 +49,7 @@ import { ListaAtasContent } from "@/components/secretariado/ListaAtasContent";
 import { useSecretariadoIndicadores } from "@/hooks/useSecretariadoIndicadores";
 import { fetchAtaFluxoDetalhe, type AtaFluxoDetalhe, type AtaListItem } from "@/services/secretariado";
 import { adminAceitarReprovacao, adminReprovarReprovacao, aprovarAta, assinarAta } from "@/services/ataAprovacoes";
-import { isCompanyAdm } from "@/lib/auth";
+import { isCompanyAdm, isAdmin } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 
@@ -105,7 +105,9 @@ function GestaoTarefasIndicadores() {
   const [tarefaSelecionadaId, setTarefaSelecionadaId] = useState<string | null>(null);
   const [adminRevisando, setAdminRevisando] = useState<string | null>(null);
   const [adminAcaoEmAndamento, setAdminAcaoEmAndamento] = useState<string | null>(null);
+  const [adminTarefaAprovarEmAndamento, setAdminTarefaAprovarEmAndamento] = useState(false);
   const isAdm = isCompanyAdm();
+  const isSuperAdm = isAdmin();
 
   const openAtaDetalhe = async (ata: AtaListItem) => {
     setAtaDetalheLoading(true);
@@ -191,6 +193,24 @@ function GestaoTarefasIndicadores() {
       const { data } = await fetchAtaFluxoDetalhe(ataId);
       setAtaDetalhe(data);
     }
+  };
+
+  const handleAprovarTarefaComoAdm = async () => {
+    if (!tarefaSelecionada?.ata_id || !tarefaSelecionada?.membro_id) return;
+    const { ata_id, membro_id, etapa } = tarefaSelecionada;
+    setAdminTarefaAprovarEmAndamento(true);
+    const fn = etapa === "aprovacao" ? aprovarAta : assinarAta;
+    const { error } = await fn(ata_id, membro_id);
+    setAdminTarefaAprovarEmAndamento(false);
+    if (error) {
+      toast({ title: "Erro", description: error, variant: "destructive" });
+      return;
+    }
+    const msg = etapa === "aprovacao" ? "ATA aprovada em nome do membro." : "ATA assinada em nome do membro.";
+    toast({ title: "Sucesso", description: msg });
+    refetchAtas?.();
+    setTarefaDetalheOpen(false);
+    setTarefaSelecionadaId(null);
   };
 
   const tarefaSelecionada = tarefasPendentesHistorico.find((t) => t.id === tarefaSelecionadaId) ?? null;
@@ -601,6 +621,64 @@ function GestaoTarefasIndicadores() {
                   Assinatura: {ataDetalhe.assinados}/{ataDetalhe.participantes.length}
                 </Badge>
               </div>
+              {(ataDetalhe.participantes.some((p) => !p.aprovado_em && !p.reprovado_em) ||
+                ataDetalhe.participantes.some((p) => p.aprovado_em && !p.assinado_em)) && (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                  <p className="text-sm font-medium">Pendências para gestão</p>
+                  {ataDetalhe.participantes.some((p) => !p.aprovado_em && !p.reprovado_em) && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Aguardando aprovação</p>
+                      <ul className="text-sm space-y-1">
+                        {ataDetalhe.participantes
+                          .filter((p) => !p.aprovado_em && !p.reprovado_em)
+                          .map((p) => (
+                            <li key={p.membro_id} className="flex items-center gap-2">
+                              <span className="font-medium">{p.nome}</span>
+                              {p.email && (
+                                <a
+                                  href={`mailto:${p.email}`}
+                                  className="text-blue-600 hover:underline truncate"
+                                  title={`Enviar e-mail para ${p.nome}`}
+                                >
+                                  {p.email}
+                                </a>
+                              )}
+                              {!p.email && p.cargo && (
+                                <span className="text-muted-foreground">— {p.cargo}</span>
+                              )}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
+                  {ataDetalhe.participantes.some((p) => p.aprovado_em && !p.assinado_em) && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Aguardando assinatura</p>
+                      <ul className="text-sm space-y-1">
+                        {ataDetalhe.participantes
+                          .filter((p) => p.aprovado_em && !p.assinado_em)
+                          .map((p) => (
+                            <li key={p.membro_id} className="flex items-center gap-2">
+                              <span className="font-medium">{p.nome}</span>
+                              {p.email && (
+                                <a
+                                  href={`mailto:${p.email}`}
+                                  className="text-blue-600 hover:underline truncate"
+                                  title={`Enviar e-mail para ${p.nome}`}
+                                >
+                                  {p.email}
+                                </a>
+                              )}
+                              {!p.email && p.cargo && (
+                                <span className="text-muted-foreground">— {p.cargo}</span>
+                              )}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
                 {ataDetalhe.participantes.map((p) => {
                   const aprovou = !!p.aprovado_em;
@@ -633,7 +711,7 @@ function GestaoTarefasIndicadores() {
                             <Badge className={aprovou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : reprovou ? "bg-red-100 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200"} variant="outline">
                               {aprovou ? "Aprovado" : reprovou ? "Reprovado" : "Aprovação pendente"}
                             </Badge>
-                            {reprovou && adminPendente && (
+                            {(isAdm || isSuperAdm) && reprovou && adminPendente && (
                               <>
                                 <Badge variant="secondary">Aguardando sua revisão</Badge>
                                 <Button size="sm" variant="outline" disabled={!!revisando} onClick={() => handleAdminAceitar(ataDetalhe.ata_id, p.membro_id)}>
@@ -652,7 +730,7 @@ function GestaoTarefasIndicadores() {
                             {reprovou && adminReprovado && (
                               <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-200">Objeção reprovada</Badge>
                             )}
-                            {isAdm && !aprovou && !reprovou && (
+                            {(isAdm || isSuperAdm) && !aprovou && !reprovou && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -670,7 +748,7 @@ function GestaoTarefasIndicadores() {
                                 )}
                               </Button>
                             )}
-                            {isAdm && aprovou && !assinou && (
+                            {(isAdm || isSuperAdm) && aprovou && !assinou && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -746,6 +824,25 @@ function GestaoTarefasIndicadores() {
                 <p className="text-muted-foreground">Reunião</p>
                 <p className="font-medium">{tarefaSelecionada.reuniao_titulo}</p>
               </div>
+              {(isAdm || isSuperAdm) && (tarefaSelecionada.etapa === "aprovacao" || tarefaSelecionada.etapa === "assinatura") && tarefaSelecionada.ata_id && tarefaSelecionada.membro_id && (
+                <div className="pt-4 border-t">
+                  <Button
+                    onClick={handleAprovarTarefaComoAdm}
+                    disabled={adminTarefaAprovarEmAndamento}
+                    variant="outline"
+                    className="bg-white border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    {adminTarefaAprovarEmAndamento ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Aprovar como ADM
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

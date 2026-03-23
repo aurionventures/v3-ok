@@ -29,18 +29,6 @@ const DOCUMENTOS_MOCK: DocumentoConvidado[] = [
     dataReuniao: "15/02/2025",
     status: "Aguardando aprovação",
   },
-  {
-    id: "2",
-    nomeArquivo: "Apresentação Estratégia 2025.pptx",
-    tipoArquivo: "PowerPoint",
-    tamanho: "5.00 MB",
-    enviadoPor: "Ana Costa",
-    email: "ana.costa@consultoria.com",
-    dataEnvio: "23/01/2025 às 10:20",
-    reuniao: "Conselho de Administração - Fevereiro/2025",
-    dataReuniao: "18/02/2025",
-    status: "Aguardando aprovação",
-  },
 ];
 
 export function AprovacaoConvidadosContent() {
