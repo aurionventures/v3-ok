@@ -19,6 +19,7 @@ export function useMaturidadeScore() {
   return {
     score: scoreData?.score ?? null,
     fullMark: scoreData?.fullMark ?? 5,
+    estagio: scoreData?.estagio,
     isLoading: query.isLoading,
     error: query.error,
   };

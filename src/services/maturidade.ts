@@ -10,6 +10,7 @@ import { convertStoredDataToRadarData } from "@/utils/maturityStorage";
 export interface MaturidadeScore {
   score: number;
   fullMark: number;
+  estagio?: string;
 }
 
 /**
@@ -34,14 +35,21 @@ export async function fetchMaturidadeScore(
   if (!conteudo || typeof conteudo !== "object") return null;
 
   const stored = conteudo as unknown as StoredMaturityAssessment;
+  if (!stored?.result) return null;
+
   const dimensions = convertStoredDataToRadarData(stored);
   const valid = dimensions.filter((d) => d.score > 0);
-
   if (valid.length === 0) return null;
 
-  const score =
-    valid.reduce((s, d) => s + d.score, 0) / valid.length;
-  return { score: Math.round(score * 10) / 10, fullMark: 5 };
+  const score = stored.result.pontuacao_total != null
+    ? Math.round(stored.result.pontuacao_total * 5 * 10) / 10
+    : Math.round(valid.reduce((s, d) => s + d.score, 0) / valid.length * 10) / 10;
+
+  return {
+    score,
+    fullMark: 5,
+    estagio: stored.result.estagio,
+  };
 }
 
 /**

@@ -1,10 +1,13 @@
 export type SeveridadeAPI = "critical" | "high" | "medium" | "low";
 export type SeveridadeUI = "Alta" | "Média" | "Baixa";
 
+export type NivelRiscoGeral = "baixo" | "médio" | "alto" | "crítico";
+
 export interface ResumoExecutivo {
   statusDocumentos?: { completos: number; incompletos: number; divergentes: number };
   analiseEntrevistas?: { alinhamentoGeral: number; totalEntrevistas: number; totalConflitos: number };
   governanceHealthScore?: number;
+  nivelRiscoGeral?: NivelRiscoGeral;
 }
 
 export interface Incongruencia {

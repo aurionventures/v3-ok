@@ -62,13 +62,24 @@ export async function upsertBriefingMembro(
 ): Promise<{ data: MembroBriefingRow | null; error: string | null }> {
   if (!supabase) return { data: null, error: "Supabase não configurado" };
 
-  const { data: existing } = await supabase
-    .from("membro_briefing")
-    .select("id")
-    .eq("membro_id", p.membro_id)
-    .eq("reuniao_id", p.reuniao_id ?? null)
-    .is("reuniao_id", p.reuniao_id ? null : null)
-    .maybeSingle();
+  let existing: { id: string } | null = null;
+  if (p.reuniao_id) {
+    const { data } = await supabase
+      .from("membro_briefing")
+      .select("id")
+      .eq("membro_id", p.membro_id)
+      .eq("reuniao_id", p.reuniao_id)
+      .maybeSingle();
+    existing = data as { id: string } | null;
+  } else {
+    const { data } = await supabase
+      .from("membro_briefing")
+      .select("id")
+      .eq("membro_id", p.membro_id)
+      .is("reuniao_id", null)
+      .maybeSingle();
+    existing = data as { id: string } | null;
+  }
 
   const payload = {
     membro_id: p.membro_id,
@@ -80,11 +91,11 @@ export async function upsertBriefingMembro(
     updated_at: new Date().toISOString(),
   };
 
-  if ((existing as { id?: string } | null)?.id) {
+  if (existing?.id) {
     const { data, error } = await supabase
       .from("membro_briefing")
       .update(payload)
-      .eq("id", (existing as { id: string }).id)
+      .eq("id", existing.id)
       .select()
       .single();
     if (error) return { data: null, error: error.message };

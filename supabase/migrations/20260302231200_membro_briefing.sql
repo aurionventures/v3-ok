@@ -25,3 +25,24 @@ CREATE POLICY membro_briefing_select_own ON membro_briefing
       WHERE m.id = membro_briefing.membro_id AND m.user_id = auth.uid()
     )
   );
+
+-- Perfil da empresa (admin/secretariado) pode inserir e atualizar briefings
+DROP POLICY IF EXISTS membro_briefing_insert_admin ON membro_briefing;
+CREATE POLICY membro_briefing_insert_admin ON membro_briefing
+  FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM perfis p
+      WHERE p.user_id = auth.uid() AND p.empresa_id = membro_briefing.empresa_id
+    )
+  );
+
+DROP POLICY IF EXISTS membro_briefing_update_admin ON membro_briefing;
+CREATE POLICY membro_briefing_update_admin ON membro_briefing
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM perfis p
+      WHERE p.user_id = auth.uid() AND p.empresa_id = membro_briefing.empresa_id
+    )
+  );

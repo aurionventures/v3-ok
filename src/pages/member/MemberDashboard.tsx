@@ -15,19 +15,27 @@ import {
   BarChart3,
   ClipboardList,
   ChevronRight,
+  Gauge,
 } from "lucide-react";
 import MemberBriefing from "./MemberBriefing";
 import MemberCopiloto from "./MemberCopiloto";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 import { useMaturidadeScore } from "@/hooks/useMaturidadeScore";
+import { cn } from "@/lib/utils";
 import { useMemberPendencias } from "@/hooks/useMemberPendencias";
 import { fetchReunioes } from "@/services/agenda";
 import { fetchAtasPendentesMembro } from "@/services/ataAprovacoes";
 import { supabase } from "@/lib/supabase";
 
+function getMaturityLevel(score: number): { level: string; className: string } {
+  if (score >= 4) return { level: "Alto", className: "bg-purple-500 text-white" };
+  if (score >= 3) return { level: "Médio", className: "bg-orange-500 text-white" };
+  return { level: "Baixo", className: "bg-red-500 text-white" };
+}
+
 const MemberDashboard = () => {
   const { data: membro } = useCurrentMembro();
-  const { score: maturidadeScore, fullMark: maturidadeFullMark, isLoading: maturidadeLoading } = useMaturidadeScore();
+  const { score: maturidadeScore, fullMark: maturidadeFullMark, estagio: maturidadeEstagio, isLoading: maturidadeLoading } = useMaturidadeScore();
   const { data: pendencias = [] } = useMemberPendencias();
 
   const { data: dashboard } = useQuery({
@@ -125,6 +133,44 @@ const MemberDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {maturidadeScore != null && !maturidadeLoading && (
+          <Link to="/member/maturidade">
+            <Card className="mb-6 border-2 border-primary/20 cursor-pointer hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className={cn(
+                      "flex h-16 w-16 items-center justify-center rounded-full",
+                      getMaturityLevel(maturidadeScore).className
+                    )}>
+                      <Gauge className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Score de Maturidade</p>
+                      <p className="text-3xl font-bold text-foreground">
+                        {maturidadeScore.toFixed(1)}<span className="text-lg font-normal text-muted-foreground">/{maturidadeFullMark}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-wrap items-center gap-2 sm:gap-4">
+                    <span className={cn(
+                      "inline-block px-3 py-1.5 rounded-full text-sm font-medium",
+                      getMaturityLevel(maturidadeScore).className
+                    )}>
+                      {getMaturityLevel(maturidadeScore).level}
+                    </span>
+                    {maturidadeEstagio && (
+                      <span className="text-sm text-muted-foreground">
+                        Estágio: <strong className="text-foreground">{maturidadeEstagio}</strong>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="bg-muted p-1">

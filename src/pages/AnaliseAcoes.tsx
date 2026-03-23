@@ -161,10 +161,33 @@ const AnaliseAcoes = () => {
                           ) : (
                             <p className="text-sm text-muted-foreground">Dados não disponíveis</p>
                           )}
-                          {resumo?.governanceHealthScore != null && (
-                            <div className="mt-4 pt-4 border-t">
-                              <p className="text-sm font-medium">Governance Health Score</p>
-                              <p className="text-2xl font-bold text-legacy-500">{resumo.governanceHealthScore}/100</p>
+                          {(resumo?.governanceHealthScore != null || resumo?.nivelRiscoGeral) && (
+                            <div className="mt-4 pt-4 border-t space-y-2">
+                              {resumo?.governanceHealthScore != null && (
+                                <>
+                                  <p className="text-sm font-medium">Governance Health Score</p>
+                                  <p className="text-2xl font-bold text-legacy-500">{resumo.governanceHealthScore}/100</p>
+                                </>
+                              )}
+                              {resumo?.nivelRiscoGeral && (
+                                <div>
+                                  <p className="text-sm font-medium">Nível de Risco Geral</p>
+                                  <Badge
+                                    variant="secondary"
+                                    className={
+                                      resumo.nivelRiscoGeral === "crítico"
+                                        ? "bg-red-100 text-red-800"
+                                        : resumo.nivelRiscoGeral === "alto"
+                                          ? "bg-orange-100 text-orange-800"
+                                          : resumo.nivelRiscoGeral === "médio"
+                                            ? "bg-amber-100 text-amber-800"
+                                            : "bg-green-100 text-green-800"
+                                    }
+                                  >
+                                    {resumo.nivelRiscoGeral.charAt(0).toUpperCase() + resumo.nivelRiscoGeral.slice(1)}
+                                  </Badge>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

@@ -24,7 +24,7 @@ import {
   AreaChart,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Gauge } from "lucide-react";
 
 function getMaturityLevel(score: number): { level: string; className: string } {
   if (score >= 4) return { level: "Alto", className: "bg-purple-500 text-white" };
@@ -41,10 +41,18 @@ const MaturidadeGovernanca = () => {
   );
 
   const [historyData, setHistoryData] = useState<{ data: string; pontuacao: number; fullDate: Date }[]>([]);
+  const [overallScore, setOverallScore] = useState<{ score: number; estagio: string } | null>(null);
 
   useEffect(() => {
     const stored = getCurrentMaturityAssessment();
     setMaturidadeData(convertStoredDataToRadarData(stored));
+
+    if (stored?.result) {
+      const score = Math.round(stored.result.pontuacao_total * 5 * 10) / 10;
+      setOverallScore({ score, estagio: stored.result.estagio });
+    } else {
+      setOverallScore(null);
+    }
 
     const history = getMaturityHistory();
     const sorted = [...history].sort(
@@ -75,6 +83,7 @@ const MaturidadeGovernanca = () => {
       clearMaturityData();
       setMaturidadeData(convertStoredDataToRadarData(null));
       setHistoryData([]);
+      setOverallScore(null);
     }
   };
 
@@ -141,6 +150,38 @@ const MaturidadeGovernanca = () => {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {overallScore && (
+                    <Card className="mb-6 border-2 border-primary/20">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className={cn(
+                              "flex h-16 w-16 items-center justify-center rounded-full",
+                              getMaturityLevel(overallScore.score).className
+                            )}>
+                              <Gauge className="h-8 w-8" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Score de Maturidade</p>
+                              <p className="text-3xl font-bold text-foreground">{overallScore.score.toFixed(1)}<span className="text-lg font-normal text-muted-foreground">/5.0</span></p>
+                            </div>
+                          </div>
+                          <div className="flex-1 flex flex-wrap items-center gap-2 sm:gap-4">
+                            <span className={cn(
+                              "inline-block px-3 py-1.5 rounded-full text-sm font-medium",
+                              getMaturityLevel(overallScore.score).className
+                            )}>
+                              {getMaturityLevel(overallScore.score).level}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              Estágio: <strong className="text-foreground">{overallScore.estagio}</strong>
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {maturidadeData.map((item) => {
