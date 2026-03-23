@@ -24,3 +24,8 @@ export function isMember(): boolean {
 export function isAdmin(): boolean {
   return getUserType() === "admin";
 }
+
+/** ADM da empresa (empresa_adm) – pode aprovar/assinar ATAs em nome dos membros */
+export function isCompanyAdm(): boolean {
+  return getUserType() === "company";
+}

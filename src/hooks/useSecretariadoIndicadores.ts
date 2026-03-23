@@ -67,6 +67,13 @@ export function useSecretariadoIndicadores() {
       aguardandoAssinatura: 0,
       finalizadas: 0,
     }) as AtasPendentesResumo,
+    refetchAtas: () => {
+      tarefasQuery.refetch();
+      atasQuery.refetch();
+      atasAprovacaoQuery.refetch();
+      atasAssinaturaQuery.refetch();
+      tarefasPendentesQuery.refetch();
+    },
     atasAguardandoAprovacao: (atasAprovacaoQuery.data ?? []) as AtaListItem[],
     atasAguardandoAssinatura: (atasAssinaturaQuery.data ?? []) as AtaListItem[],
     tarefasPendentesHistorico: (tarefasPendentesQuery.data ?? []) as TarefaPendenteHistorico[],

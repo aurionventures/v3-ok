@@ -48,7 +48,8 @@ import { AprovacaoConvidadosContent } from "@/components/secretariado/AprovacaoC
 import { ListaAtasContent } from "@/components/secretariado/ListaAtasContent";
 import { useSecretariadoIndicadores } from "@/hooks/useSecretariadoIndicadores";
 import { fetchAtaFluxoDetalhe, type AtaFluxoDetalhe, type AtaListItem } from "@/services/secretariado";
-import { adminAceitarReprovacao, adminReprovarReprovacao } from "@/services/ataAprovacoes";
+import { adminAceitarReprovacao, adminReprovarReprovacao, aprovarAta, assinarAta } from "@/services/ataAprovacoes";
+import { isCompanyAdm } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 
@@ -93,6 +94,7 @@ function GestaoTarefasIndicadores() {
     atasAguardandoAssinatura,
     tarefasPendentesHistorico,
     isLoading,
+    refetchAtas,
   } = useSecretariadoIndicadores();
 
   const { total, resolvidas, pendentes, taxaResolucao, statusPieData, tarefasPorOrgao } = indicadoresTarefas;
@@ -102,6 +104,8 @@ function GestaoTarefasIndicadores() {
   const [tarefaDetalheOpen, setTarefaDetalheOpen] = useState(false);
   const [tarefaSelecionadaId, setTarefaSelecionadaId] = useState<string | null>(null);
   const [adminRevisando, setAdminRevisando] = useState<string | null>(null);
+  const [adminAcaoEmAndamento, setAdminAcaoEmAndamento] = useState<string | null>(null);
+  const isAdm = isCompanyAdm();
 
   const openAtaDetalhe = async (ata: AtaListItem) => {
     setAtaDetalheLoading(true);
@@ -126,6 +130,7 @@ function GestaoTarefasIndicadores() {
       return;
     }
     toast({ title: "Objeção aceita", description: "A objeção do membro foi aceita." });
+    refetchAtas?.();
     if (ataDetalhe?.ata_id === ataId) {
       const { data } = await fetchAtaFluxoDetalhe(ataId);
       setAtaDetalhe(data);
@@ -147,6 +152,41 @@ function GestaoTarefasIndicadores() {
       return;
     }
     toast({ title: "Objeção reprovada", description: "A objeção do membro foi reprovada." });
+    refetchAtas?.();
+    if (ataDetalhe?.ata_id === ataId) {
+      const { data } = await fetchAtaFluxoDetalhe(ataId);
+      setAtaDetalhe(data);
+    }
+  };
+
+  const handleAdminAprovar = async (ataId: string, membroId: string) => {
+    const key = `${ataId}-${membroId}-aprov`;
+    setAdminAcaoEmAndamento(key);
+    const { error } = await aprovarAta(ataId, membroId);
+    setAdminAcaoEmAndamento(null);
+    if (error) {
+      toast({ title: "Erro ao aprovar", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "ATA aprovada", description: "Aprovação registrada em nome do membro." });
+    refetchAtas?.();
+    if (ataDetalhe?.ata_id === ataId) {
+      const { data } = await fetchAtaFluxoDetalhe(ataId);
+      setAtaDetalhe(data);
+    }
+  };
+
+  const handleAdminAssinar = async (ataId: string, membroId: string) => {
+    const key = `${ataId}-${membroId}-ass`;
+    setAdminAcaoEmAndamento(key);
+    const { error } = await assinarAta(ataId, membroId);
+    setAdminAcaoEmAndamento(null);
+    if (error) {
+      toast({ title: "Erro ao assinar", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "ATA assinada", description: "Assinatura registrada em nome do membro." });
+    refetchAtas?.();
     if (ataDetalhe?.ata_id === ataId) {
       const { data } = await fetchAtaFluxoDetalhe(ataId);
       setAtaDetalhe(data);
@@ -611,6 +651,42 @@ function GestaoTarefasIndicadores() {
                             )}
                             {reprovou && adminReprovado && (
                               <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-200">Objeção reprovada</Badge>
+                            )}
+                            {isAdm && !aprovou && !reprovou && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                                disabled={adminAcaoEmAndamento === `${ataDetalhe.ata_id}-${p.membro_id}-aprov`}
+                                onClick={() => handleAdminAprovar(ataDetalhe.ata_id, p.membro_id)}
+                              >
+                                {adminAcaoEmAndamento === `${ataDetalhe.ata_id}-${p.membro_id}-aprov` ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Aprovar
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            {isAdm && aprovou && !assinou && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                disabled={adminAcaoEmAndamento === `${ataDetalhe.ata_id}-${p.membro_id}-ass`}
+                                onClick={() => handleAdminAssinar(ataDetalhe.ata_id, p.membro_id)}
+                              >
+                                {adminAcaoEmAndamento === `${ataDetalhe.ata_id}-${p.membro_id}-ass` ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <PenLine className="h-4 w-4 mr-1" />
+                                    Assinar
+                                  </>
+                                )}
+                              </Button>
                             )}
                             <Badge className={assinou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"} variant="outline">
                               {assinou ? "Assinado" : "Assinatura pendente"}

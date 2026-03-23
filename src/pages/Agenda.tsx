@@ -579,17 +579,12 @@ const Agenda = () => {
                       <CalendarPlus className="mr-2 h-4 w-4" />
                       Nova Reunião
                     </Button>
-                    <DialogContent className="sm:max-w-[600px]">
+                    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Nova Reunião</DialogTitle>
                         <DialogDescription>Preencha os dados para agendar uma nova reunião</DialogDescription>
                       </DialogHeader>
-                      <Tabs defaultValue="informacoes" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                          <TabsTrigger value="informacoes">Informações</TabsTrigger>
-                          <TabsTrigger value="participantes">Participantes</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="informacoes" className="space-y-4 pt-4">
+                      <div className="space-y-6 pt-2">
                           <div className="space-y-2">
                             <Label>Tipo de Órgão <span className="text-destructive">*</span></Label>
                             <Select value={formModoReuniao} onValueChange={(v: "orgao" | "avulsa") => { setFormModoReuniao(v); setFormOrgaoId(""); setFormTituloAvulsa(""); }}>
@@ -655,6 +650,7 @@ const Agenda = () => {
                               <Input type="time" value={formHorario} onChange={(e) => setFormHorario(e.target.value)} placeholder="12:30" />
                             </div>
                           </div>
+                          </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label>Tipo <span className="text-destructive">*</span></Label>
@@ -682,14 +678,19 @@ const Agenda = () => {
                             <Label>Local</Label>
                             <Input value={formLocal} onChange={(e) => setFormLocal(e.target.value)} placeholder="Ex: Sala de Reuniões - 3º Andar" />
                           </div>
-                        </TabsContent>
-                        <TabsContent value="participantes" className="space-y-4 pt-4">
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t">
+                          <h3 className="text-sm font-semibold flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Participantes
+                          </h3>
                           <p className="text-sm text-muted-foreground">Adicione convidados com acesso provisório por e-mail e senha.</p>
                           <Button type="button" variant="outline" size="sm" onClick={addConvidado}>
                             <Plus className="h-4 w-4 mr-2" />
                             Adicionar convidado
                           </Button>
-                          <div className="space-y-3 max-h-[280px] overflow-y-auto">
+                          <div className="space-y-3 max-h-[200px] overflow-y-auto">
                             {formConvidados.map((c) => (
                               <div key={c.id} className="rounded-lg border p-4 space-y-3 bg-muted/30">
                                 <div className="flex justify-between items-center">
@@ -718,8 +719,8 @@ const Agenda = () => {
                               <p className="text-sm text-muted-foreground py-4 text-center">Nenhum convidado adicionado. Clique em &quot;Adicionar convidado&quot; para incluir.</p>
                             )}
                           </div>
-                        </TabsContent>
-                      </Tabs>
+                        </div>
+                      </div>
                       <DialogFooter className="mt-4 pt-4 border-t">
                         <Button variant="outline" onClick={() => setNovaReuniaoOpen(false)}>
                           Cancelar
