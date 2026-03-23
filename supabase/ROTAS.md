@@ -30,6 +30,7 @@ http://localhost:54321/functions/v1/<NOME_DA_FUNCAO>
 | `/functions/v1/agente-prioridade-agenda` | POST | Prioridade de temas para agenda |
 | `/functions/v1/agente-pautas-sugestoes` | POST | Sugestões de pautas |
 | `/functions/v1/agente-briefing-pautas` | POST | Briefing por pauta |
+| `/functions/v1/agente-busca-atas` | POST | Busca semântica em atas |
 | `/functions/v1/pipeline-agentes` | POST | Orquestra qualquer agente por ID |
 | `/functions/v1/openai-proxy` | POST | Proxy genérico para OpenAI |
 
@@ -112,6 +113,17 @@ http://localhost:54321/functions/v1/<NOME_DA_FUNCAO>
 ```json
 { "input": "pautas para briefing" }
 ```
+
+### agente-busca-atas
+```json
+{
+  "pergunta": "Quais decisões foram tomadas sobre ESG?",
+  "atas": [
+    { "titulo": "Reunião Ordinária", "data_reuniao": "2025-01-15", "conteudo": "..." }
+  ]
+}
+```
+Busca semântica nas atas. Retorna temas encontrados, trechos relevantes, decisões, padrões, riscos e resumo executivo.
 
 ### pipeline-agentes
 ```json

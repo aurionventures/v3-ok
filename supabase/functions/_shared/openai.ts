@@ -49,9 +49,18 @@ export async function runAgent(options: AgentRunOptions): Promise<string> {
  */
 function generatePlaceholderResponse(userContent: string): string {
   const lines = userContent.split("\n").filter((l) => l.trim());
+  const hasPerguntaUsuario = lines.some((l) => l.includes("Pergunta do usuário"));
   const hasPauta = lines.some((l) => l.includes("PAUTA:") || /^\d+\./.test(l));
   const hasTranscricao = lines.some((l) => l.includes("TRANSCRIÇÃO"));
   const hasTarefas = lines.some((l) => l.includes("TAREFAS"));
+
+  if (hasPerguntaUsuario) {
+    return [
+      "## Temas encontrados\n\n*Configure OPENAI_API_KEY nas variáveis de ambiente do Supabase para habilitar a busca semântica nas atas.*\n\n",
+      "## Trechos relevantes\n\nPor enquanto, utilize a aba **ATAs** na Biblioteca para visualizar os documentos completos.\n\n",
+      "## Resumo executivo\n\nA busca em atas por IA estará disponível após configurar a chave da OpenAI.",
+    ].join("");
+  }
 
   let body = "";
   if (hasPauta) {

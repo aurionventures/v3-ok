@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  ClipboardList,
+  Library,
   CheckCircle,
   Clock,
   FileText,
@@ -11,6 +11,7 @@ import {
   BarChart3,
   Users,
   LayoutGrid,
+  Search,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,10 +114,35 @@ const TAREFAS_POR_ORGAO = [
 ];
 
 
-function GestaoTarefasContent() {
+function BibliotecaContent() {
+  const [subTab, setSubTab] = useState<"busca" | "atas">("busca");
+
   return (
     <div className="space-y-6 mt-6">
-      <BuscaConversacionalAtas />
+      <Tabs value={subTab} onValueChange={(v) => setSubTab(v as "busca" | "atas")} className="w-full">
+        <TabsList className="h-9 bg-transparent p-0 gap-0 border-b rounded-none mb-4">
+          <TabsTrigger
+            value="busca"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-2 mr-6 text-gray-600 data-[state=active]:text-gray-900"
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Busca conversacional
+          </TabsTrigger>
+          <TabsTrigger
+            value="atas"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-2 text-gray-600 data-[state=active]:text-gray-900"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            ATAs
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="busca" className="mt-0">
+          <BuscaConversacionalAtas />
+        </TabsContent>
+        <TabsContent value="atas" className="mt-0">
+          <ListaAtasContent />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -335,11 +361,11 @@ const Secretariado = () => {
                     Indicadores
                   </TabsTrigger>
                   <TabsTrigger
-                    value="tarefas"
+                    value="biblioteca"
                     className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-1 mr-6 text-gray-600 data-[state=active]:text-gray-900"
                   >
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    Gestão de Tarefas
+                    <Library className="h-4 w-4 mr-2" />
+                    Biblioteca
                   </TabsTrigger>
                   <TabsTrigger
                     value="convidados"
@@ -347,13 +373,6 @@ const Secretariado = () => {
                   >
                     <Users className="h-4 w-4 mr-2" />
                     Aprovação de Convidados
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="atas"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-1 mr-6 text-gray-600 data-[state=active]:text-gray-900"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    ATAs
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -371,13 +390,8 @@ const Secretariado = () => {
               <GestaoTarefasIndicadores />
             </div>
           )}
-          {activeTab === "tarefas" && <GestaoTarefasContent />}
+          {activeTab === "biblioteca" && <BibliotecaContent />}
           {activeTab === "convidados" && <AprovacaoConvidadosContent />}
-          {activeTab === "atas" && (
-            <div className="mt-6">
-              <ListaAtasContent />
-            </div>
-          )}
         </main>
       </div>
 

@@ -28,6 +28,7 @@ const AGENTES_ESPERADOS = [
   "agente-prioridade-agenda",
   "agente-pautas-sugestoes",
   "agente-briefing-pautas",
+  "agente-busca-atas",
 ];
 
 const MIGRATION_REGEX = /^\d{14}_.+\.sql$/;
