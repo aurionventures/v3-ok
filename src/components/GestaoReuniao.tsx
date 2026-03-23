@@ -173,9 +173,10 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
 
   useEffect(() => {
     if (!open || !empresaId || !r) return;
-    const rr = r as ReuniaoEnriquecida;
+    const rr = r as ReuniaoEnriquecida & { virtual_tipo?: string | null };
     const temOrgao = rr.conselho_id || rr.comite_id || rr.comissao_id;
-    if (!temOrgao) {
+    const virtualTipo = rr.virtual_tipo && (rr.virtual_tipo === "conselho" || rr.virtual_tipo === "comite" || rr.virtual_tipo === "comissao") ? rr.virtual_tipo : null;
+    if (!temOrgao && !virtualTipo) {
       setParticipantes([]);
       return;
     }
@@ -183,6 +184,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
       conselho_id: rr.conselho_id,
       comite_id: rr.comite_id,
       comissao_id: rr.comissao_id,
+      virtual_tipo: virtualTipo,
     }).then((membros) => {
       setParticipantes(membros.map((m) => ({
         id: m.id,

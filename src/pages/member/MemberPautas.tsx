@@ -1,21 +1,34 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FileText } from "lucide-react";
+import { FileText, ChevronDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { fetchReunioes } from "@/services/agenda";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 
 const MemberPautas = () => {
   const { data: membro } = useCurrentMembro();
-  const { data: pautas = [] } = useQuery({
+  const { data: pautasData } = useQuery({
     queryKey: ["member", "pautas", membro?.id, membro?.empresa_id],
     enabled: !!membro?.id && !!membro?.empresa_id,
-    queryFn: async (): Promise<Array<{ id: string; titulo: string; data: string | null }>> => {
-      if (!membro?.id || !membro.empresa_id || !supabase) return [];
+    queryFn: async (): Promise<{
+      pautas: Array<{
+        id: string;
+        titulo: string;
+        data: string | null;
+        reuniao_id: string;
+        ata: { id: string; conteudo: string | null; resumo: string | null } | null;
+      }>;
+      resumoPerfil: { conselhos: number; comites: number; comissoes: number; reunioesElegiveis: number };
+    }> => {
+      if (!membro?.id || !membro.empresa_id || !supabase) {
+        return { pautas: [], resumoPerfil: { conselhos: 0, comites: 0, comissoes: 0, reunioesElegiveis: 0 } };
+      }
       const { data: alocacoes } = await supabase
         .from("alocacoes_membros")
         .select("conselho_id, comite_id, comissao_id")
@@ -43,21 +56,44 @@ const MemberPautas = () => {
         );
       });
       const reuniaoIds = reunioesMembro.map((r) => r.id);
-      if (reuniaoIds.length === 0) return [];
+      const resumoPerfil = {
+        conselhos: conselhoIds.size,
+        comites: comiteIds.size,
+        comissoes: comissaoIds.size,
+        reunioesElegiveis: reunioesMembro.length,
+      };
+      if (reuniaoIds.length === 0) {
+        return { pautas: [], resumoPerfil };
+      }
 
-      const { data: rows } = await supabase
-        .from("pautas")
-        .select("id, titulo, reuniao_id")
-        .in("reuniao_id", reuniaoIds)
-        .order("created_at", { ascending: false });
+      const [{ data: rows }, { data: atasRows }] = await Promise.all([
+        supabase
+          .from("pautas")
+          .select("id, titulo, reuniao_id")
+          .in("reuniao_id", reuniaoIds)
+          .order("created_at", { ascending: false }),
+        supabase.from("atas").select("id, reuniao_id, conteudo, resumo").in("reuniao_id", reuniaoIds),
+      ]);
       const reuniaoMap = new Map(reunioesMembro.map((r) => [r.id, r]));
-      return (rows ?? []).map((p) => ({
+      const ataPorReuniao = new Map(
+        (atasRows ?? []).map((a: { id: string; reuniao_id: string; conteudo: string | null; resumo: string | null }) => [
+          a.reuniao_id,
+          { id: a.id, conteudo: a.conteudo, resumo: a.resumo },
+        ])
+      );
+      const pautas = (rows ?? []).map((p) => ({
         id: p.id,
         titulo: p.titulo,
         data: reuniaoMap.get(p.reuniao_id)?.data_reuniao ?? null,
+        reuniao_id: p.reuniao_id,
+        ata: ataPorReuniao.get(p.reuniao_id) ?? null,
       }));
+      return { pautas, resumoPerfil };
     },
   });
+
+  const pautas = (pautasData?.pautas ?? []);
+  const resumoPerfil = pautasData?.resumoPerfil ?? { conselhos: 0, comites: 0, comissoes: 0, reunioesElegiveis: 0 };
 
   return (
     <>
@@ -78,23 +114,59 @@ const MemberPautas = () => {
         <div className="space-y-4">
           {pautas.map((p) => (
             <Card key={p.id}>
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                  <FileText className="h-6 w-6 text-muted-foreground" />
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <FileText className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{p.titulo}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Disponível em {p.data ? format(new Date(p.data), "dd/MM/yyyy", { locale: ptBR }) : "data não definida"}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">{p.titulo}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Disponível em {p.data ? format(new Date(p.data), "dd/MM/yyyy", { locale: ptBR }) : "data não definida"}
-                  </p>
-                </div>
+                {p.ata && (p.ata.conteudo || p.ata.resumo) && (
+                  <Collapsible className="mt-4">
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="w-full justify-between text-left font-medium group">
+                        ATA da Reunião
+                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-2">
+                      <div className="rounded-lg border bg-muted/30 p-4 text-sm whitespace-pre-wrap">
+                        {p.ata.resumo ? (
+                          <>
+                            <p className="font-medium text-muted-foreground mb-2">Resumo</p>
+                            <p className="text-foreground">{p.ata.resumo}</p>
+                          </>
+                        ) : null}
+                        {p.ata.conteudo && (
+                          <>
+                            {p.ata.resumo && <p className="font-medium text-muted-foreground mt-4 mb-2">Conteúdo</p>}
+                            <p className="text-foreground">{p.ata.conteudo}</p>
+                          </>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </CardContent>
             </Card>
           ))}
           {pautas.length === 0 && (
             <Card>
-              <CardContent className="p-6 text-sm text-muted-foreground">
-                Nenhuma pauta disponível para seus órgãos.
+              <CardContent className="p-6 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Nenhuma pauta disponível para seus órgãos.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Perfil: {resumoPerfil.conselhos} conselho(s), {resumoPerfil.comites} comitê(s), {resumoPerfil.comissoes} comissão(ões).
+                  {resumoPerfil.reunioesElegiveis === 0
+                    ? " Não há reuniões (Pauta Virtual ou de seus órgãos) com pautas cadastradas."
+                    : ` ${resumoPerfil.reunioesElegiveis} reunião(ões) elegível(eis) sem pautas.`}
+                </p>
               </CardContent>
             </Card>
           )}

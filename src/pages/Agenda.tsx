@@ -12,8 +12,10 @@ import {
   Clock,
   Plus,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Sidebar from "@/components/Sidebar";
 import NotificationBell from "@/components/NotificationBell";
@@ -115,6 +117,7 @@ const Agenda = () => {
   const [configTipoReuniao, setConfigTipoReuniao] = useState("ordinaria");
   const [configFrequencia, setConfigFrequencia] = useState("");
   const [configDiaReuniao, setConfigDiaReuniao] = useState("");
+  const [configDataAvulsa, setConfigDataAvulsa] = useState("");
   const [configHorarioPadrao, setConfigHorarioPadrao] = useState("14:00");
   const [configModalidade, setConfigModalidade] = useState("presencial");
   const [configLocal, setConfigLocal] = useState("");
@@ -143,6 +146,7 @@ const Agenda = () => {
       setConfigTipoReuniao("ordinaria");
       setConfigFrequencia("");
       setConfigDiaReuniao("");
+      setConfigDataAvulsa("");
       setConfigHorarioPadrao("14:00");
       setConfigModalidade("presencial");
       setConfigLocal("");
@@ -237,6 +241,10 @@ const Agenda = () => {
     setFormTituloAvulsa("");
     setFormOrgaoId("");
     setFormConvidados([]);
+    setFormHorario(configHorarioPadrao || "14:00");
+    setFormModalidade(configModalidade || "presencial");
+    setFormLocal(configLocal);
+    setFormTipoReuniao(configTipoReuniao || "ordinaria");
     setNovaReuniaoOpen(true);
   };
 
@@ -462,7 +470,14 @@ const Agenda = () => {
                           <h3 className="text-sm font-semibold text-foreground">2. Configuração de Frequência</h3>
                           <div className="space-y-2">
                             <Label>Frequência das Reuniões</Label>
-                            <Select value={configFrequencia} onValueChange={setConfigFrequencia}>
+                            <Select
+                              value={configFrequencia}
+                              onValueChange={(v) => {
+                                setConfigFrequencia(v);
+                                if (v === "avulsa") setConfigDiaReuniao("");
+                                else setConfigDataAvulsa("");
+                              }}
+                            >
                               <SelectTrigger><SelectValue placeholder="Selecione a frequência" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="mensal">Mensal</SelectItem>
@@ -474,21 +489,34 @@ const Agenda = () => {
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="space-y-2">
-                            <Label>Dia da Reunião</Label>
-                            <Select value={configDiaReuniao} onValueChange={setConfigDiaReuniao}>
-                              <SelectTrigger><SelectValue placeholder="Selecione a regra do dia" /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="primeiro_segunda">Primeira segunda-feira</SelectItem>
-                                <SelectItem value="segundo_terca">Segunda terça-feira</SelectItem>
-                                <SelectItem value="terceira_quarta">Terceira quarta-feira</SelectItem>
-                                <SelectItem value="ultima_sexta">Última sexta-feira</SelectItem>
-                                <SelectItem value="dia_10">Dia 10 de cada mês</SelectItem>
-                                <SelectItem value="dia_15">Dia 15 de cada mês</SelectItem>
-                                <SelectItem value="dia_20">Dia 20 de cada mês</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          {configFrequencia === "avulsa" ? (
+                            <div className="space-y-2">
+                              <Label>Data da Reunião</Label>
+                              <Input
+                                type="date"
+                                value={configDataAvulsa}
+                                onChange={(e) => setConfigDataAvulsa(e.target.value)}
+                                min={`${formAno}-01-01`}
+                                max={`${formAno}-12-31`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <Label>Dia da Reunião</Label>
+                              <Select value={configDiaReuniao} onValueChange={setConfigDiaReuniao}>
+                                <SelectTrigger><SelectValue placeholder="Selecione a regra do dia" /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="primeiro_segunda">Primeira segunda-feira</SelectItem>
+                                  <SelectItem value="segundo_terca">Segunda terça-feira</SelectItem>
+                                  <SelectItem value="terceira_quarta">Terceira quarta-feira</SelectItem>
+                                  <SelectItem value="ultima_sexta">Última sexta-feira</SelectItem>
+                                  <SelectItem value="dia_10">Dia 10 de cada mês</SelectItem>
+                                  <SelectItem value="dia_15">Dia 15 de cada mês</SelectItem>
+                                  <SelectItem value="dia_20">Dia 20 de cada mês</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
                         </div>
 
                         {/* 3. Horário e Local */}
@@ -525,20 +553,26 @@ const Agenda = () => {
                       </div>
                       <DialogFooter>
                         <Button
-                          disabled={!empresaId || !configOrgaoId || !configFrequencia || !configDiaReuniao || insertReunioesEmLoteLoading}
+                          disabled={
+                            !empresaId || !configOrgaoId || !configFrequencia ||
+                            (configFrequencia === "avulsa" ? !configDataAvulsa : !configDiaReuniao) ||
+                            insertReunioesEmLoteLoading
+                          }
                           onClick={async () => {
                             const y = parseInt(formAno, 10);
-                            if (isNaN(y) || !empresaId || !configOrgaoId || !configFrequencia || !configDiaReuniao) {
+                            const isAvulsa = configFrequencia === "avulsa";
+                            const faltaCampo = isAvulsa ? !configDataAvulsa : !configDiaReuniao;
+                            if (isNaN(y) || !empresaId || !configOrgaoId || !configFrequencia || faltaCampo) {
                               toast({
                                 title: "Campos obrigatórios",
-                                description: "Preencha Ano, Tipo de Órgão, Órgão, Frequência e Dia da Reunião.",
+                                description: isAvulsa ? "Preencha a Data da Reunião." : "Preencha Ano, Tipo de Órgão, Órgão, Frequência e Dia da Reunião.",
                                 variant: "destructive",
                               });
                               return;
                             }
                             const orgao = configOrgaosPorTipo.find((o) => o.id === configOrgaoId);
                             const titulo = orgao?.nome ?? "Reunião";
-                            const datas = gerarDatasReunioes(y, configFrequencia, configDiaReuniao);
+                            const datas = isAvulsa ? [configDataAvulsa] : gerarDatasReunioes(y, configFrequencia, configDiaReuniao);
                             const conselhoId = configTipoOrgao === "conselho" ? configOrgaoId : null;
                             const comiteId = configTipoOrgao === "comite" ? configOrgaoId : null;
                             const comissaoId = configTipoOrgao === "comissao" ? configOrgaoId : null;
@@ -605,13 +639,17 @@ const Agenda = () => {
                         setFormModoReuniao("avulsa");
                         setFormOrgaoId("");
                         setFormConvidados([]);
+                        setFormHorario(configHorarioPadrao || "14:00");
+                        setFormModalidade(configModalidade || "presencial");
+                        setFormLocal(configLocal);
+                        setFormTipoReuniao(configTipoReuniao || "ordinaria");
                         setNovaReuniaoOpen(true);
                       }}
                     >
                       <CalendarPlus className="mr-2 h-4 w-4" />
                       Nova Reunião
                     </Button>
-                    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Nova Reunião</DialogTitle>
                         <DialogDescription>Preencha os dados para agendar uma nova reunião</DialogDescription>
@@ -623,12 +661,29 @@ const Agenda = () => {
                         </TabsList>
                         <TabsContent value="informacoes" className="space-y-4 pt-4">
                           <div className="space-y-2">
-                            <Label>Tipo de Órgão <span className="text-destructive">*</span></Label>
-                            <Select value={formModoReuniao} onValueChange={(v: "orgao" | "avulsa") => { setFormModoReuniao(v); setFormOrgaoId(""); setFormTituloAvulsa(""); }}>
-                              <SelectTrigger><SelectValue placeholder="Selecione o tipo de órgão" /></SelectTrigger>
+                            <Label>Tipo de Reunião <span className="text-destructive">*</span></Label>
+                            <Select
+                              value={formModoReuniao === "avulsa" ? "avulsa" : formTipoOrgao}
+                              onValueChange={(v) => {
+                                if (v === "avulsa") {
+                                  setFormModoReuniao("avulsa");
+                                  setFormTipoOrgao("conselho");
+                                  setFormOrgaoId("");
+                                } else {
+                                  setFormModoReuniao("orgao");
+                                  setFormTipoOrgao(v as "conselho" | "comite" | "comissao" | "virtual");
+                                  setFormOrgaoId("");
+                                }
+                                setFormTituloAvulsa("");
+                              }}
+                            >
+                              <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="avulsa">Reunião avulsa</SelectItem>
-                                <SelectItem value="orgao">Conselho / Comitê / Comissão</SelectItem>
+                                <SelectItem value="conselho">Conselho</SelectItem>
+                                <SelectItem value="comite">Comitê</SelectItem>
+                                <SelectItem value="comissao">Comissão</SelectItem>
+                                <SelectItem value="virtual">Pauta Virtual</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -644,19 +699,7 @@ const Agenda = () => {
                           ) : (
                             <>
                               <div className="space-y-2">
-                                <Label>Tipo de Órgão</Label>
-                                <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao" | "virtual"); setFormOrgaoId(""); }}>
-                                  <SelectTrigger><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="conselho">Conselho</SelectItem>
-                                    <SelectItem value="comite">Comitê</SelectItem>
-                                    <SelectItem value="comissao">Comissão</SelectItem>
-                                    <SelectItem value="virtual">Pauta Virtual</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>{formTipoOrgao === "virtual" ? "Tipo de Órgão" : "Órgão"}</Label>
+                                <Label>{formTipoOrgao === "virtual" ? "Tipo de Órgão" : "Órgão"} <span className="text-destructive">*</span></Label>
                                 <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
                                   <SelectTrigger><SelectValue placeholder={formTipoOrgao === "virtual" ? "Selecione o tipo de órgão" : "Selecione o órgão"} /></SelectTrigger>
                                   <SelectContent>
@@ -668,7 +711,7 @@ const Agenda = () => {
                               </div>
                               {membrosOrgao.length > 0 && (
                                 <div className="space-y-1">
-                                  <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
+                                  <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length}) — participantes automáticos</Label>
                                   <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
                                     {membrosOrgao.map((m) => (
                                       <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
@@ -717,7 +760,14 @@ const Agenda = () => {
                           </div>
                         </TabsContent>
                         <TabsContent value="participantes" className="space-y-4 pt-4">
-                          <p className="text-sm text-muted-foreground">Adicione convidados com acesso provisório por e-mail e senha.</p>
+                          {formModoReuniao === "orgao" && formOrgaoId && membrosOrgao.length > 0 && (
+                            <p className="text-sm text-muted-foreground">
+                              Os <strong>{membrosOrgao.length} membros</strong> do órgão selecionado são participantes automáticos. Adicione convidados externos abaixo (com acesso provisório por e-mail e senha).
+                            </p>
+                          )}
+                          {!(formModoReuniao === "orgao" && formOrgaoId) && (
+                            <p className="text-sm text-muted-foreground">Adicione convidados com acesso provisório por e-mail e senha.</p>
+                          )}
                           <Button type="button" variant="outline" size="sm" onClick={addConvidado}>
                             <Plus className="h-4 w-4 mr-2" />
                             Adicionar convidado
@@ -750,6 +800,10 @@ const Agenda = () => {
                             {formConvidados.length === 0 && (
                               <p className="text-sm text-muted-foreground py-4 text-center">Nenhum convidado adicionado. Clique em &quot;Adicionar convidado&quot; para incluir.</p>
                             )}
+                            <Button type="button" variant="outline" size="sm" onClick={addConvidado} className="w-full sm:w-auto">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Adicionar convidado
+                            </Button>
                           </div>
                         </TabsContent>
                       </Tabs>
@@ -900,6 +954,27 @@ const Agenda = () => {
 
               {viewMode === "monthly" && (
                 <>
+                  <div className="flex items-center justify-between mb-4">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
+                      aria-label="Mês anterior"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <h3 className="text-lg font-semibold capitalize">
+                      {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                    </h3>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
+                      aria-label="Próximo mês"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>

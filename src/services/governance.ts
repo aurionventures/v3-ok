@@ -495,13 +495,20 @@ export async function fetchMembroByUserId(userId: string): Promise<{
   };
 }
 
-/** Retorna membros alocados em qualquer órgão da reunião (conselho, comitê, comissão) */
+/** Retorna membros alocados em qualquer órgão da reunião (conselho, comitê, comissão) ou, se virtual, membros do tipo indicado em virtual_tipo */
 export async function fetchMembrosPorReuniao(
   empresaId: string,
-  reuniao: { conselho_id?: string | null; comite_id?: string | null; comissao_id?: string | null }
+  reuniao: {
+    conselho_id?: string | null;
+    comite_id?: string | null;
+    comissao_id?: string | null;
+    virtual_tipo?: string | null;
+  }
 ): Promise<{ id: string; nome: string; email: string | null; cargo: string | null }[]> {
   const seen = new Set<string>();
   const result: { id: string; nome: string; email: string | null; cargo: string | null }[] = [];
+  const vt = reuniao.virtual_tipo;
+
   if (reuniao.conselho_id) {
     const membros = await fetchMembrosPorOrgao(empresaId, "conselho", reuniao.conselho_id);
     for (const m of membros) {
@@ -529,7 +536,49 @@ export async function fetchMembrosPorReuniao(
       }
     }
   }
+
+  if (result.length > 0) return result;
+
+  if (vt === "conselho" || vt === "comite" || vt === "comissao") {
+    const membros = await fetchMembrosPorVirtualTipo(empresaId, vt);
+    return membros;
+  }
+
   return result;
+}
+
+/** Retorna membros alocados em qualquer órgão do tipo indicado (Pauta Virtual) */
+async function fetchMembrosPorVirtualTipo(
+  empresaId: string,
+  virtualTipo: "conselho" | "comite" | "comissao"
+): Promise<{ id: string; nome: string; email: string | null; cargo: string | null }[]> {
+  if (!supabase) return [];
+  const campo = virtualTipo === "conselho" ? "conselho_id" : virtualTipo === "comite" ? "comite_id" : "comissao_id";
+  const tabela = virtualTipo === "conselho" ? "conselhos" : virtualTipo === "comite" ? "comites" : "comissoes";
+  const { data: orgaos } = await supabase.from(tabela).select("id").eq("empresa_id", empresaId).eq("ativo", true);
+  const orgaoIds = (orgaos ?? []).map((o: { id: string }) => o.id);
+  if (orgaoIds.length === 0) return [];
+  const { data: alocacoes, error: errA } = await supabase
+    .from("alocacoes_membros")
+    .select("membro_id, cargo")
+    .in(campo, orgaoIds)
+    .eq("ativo", true);
+  if (errA || !alocacoes?.length) return [];
+  const membroIds = [...new Set(alocacoes.map((a: { membro_id: string }) => a.membro_id))];
+  const cargoByMembro = new Map<string, string | null>();
+  for (const a of alocacoes) cargoByMembro.set(a.membro_id, a.cargo ?? null);
+  const { data: membros, error: errM } = await supabase
+    .from("membros_governanca")
+    .select("id, nome, email")
+    .eq("empresa_id", empresaId)
+    .in("id", membroIds);
+  if (errM || !membros) return [];
+  return membros.map((m: { id: string; nome: string; email?: string | null }) => ({
+    id: m.id,
+    nome: m.nome,
+    email: m.email ?? null,
+    cargo: cargoByMembro.get(m.id) ?? null,
+  }));
 }
 
 /** Retorna membros alocados em um órgão específico (conselho, comitê, comissão ou virtual) */
