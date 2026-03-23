@@ -25,9 +25,8 @@ export interface ChecklistReuniao {
 }
 
 export function deriveChecklist(r: ReuniaoGestao): ChecklistReuniao {
-  const statusConcluido =
-    (r.status ?? "").toLowerCase() === "concluída" ||
-    (r.status ?? "").toLowerCase() === "realizada";
+  const s = (r.status ?? "").toLowerCase().replace(/ /g, "_");
+  const statusConcluido = s === "concluída" || s === "realizada";
   return {
     statusConcluido,
     temPauta: (r.pautas?.length ?? 0) > 0,

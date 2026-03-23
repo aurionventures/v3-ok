@@ -45,7 +45,6 @@ import { useGovernance } from "@/hooks/useGovernance";
 import { useAgenda } from "@/hooks/useAgenda";
 import { gerarDatasReunioes } from "@/services/agenda";
 import { fetchMembrosPorOrgao } from "@/services/governance";
-import type { ReuniaoGestao } from "@/types/gestaoReuniao";
 import type { ReuniaoEnriquecida } from "@/types/agenda";
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -91,23 +90,6 @@ function getMonthGrid(month: Date): (Date | null)[][] {
 
 type ViewMode = "annual" | "monthly";
 
-function reuniaoToGestao(r: ReuniaoEnriquecida): ReuniaoGestao {
-  const titulo = r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || "Reunião";
-  const dataStr = r.data_reuniao ? format(new Date(r.data_reuniao), "dd/MM/yyyy") : undefined;
-  const horario = r.horario ? String(r.horario).slice(0, 5) : undefined;
-  return {
-    id: r.id,
-    titulo,
-    data_reuniao: dataStr,
-    tipo: r.tipo ?? undefined,
-    status: r.status,
-    pautas: [],
-    documentos_previos_count: 0,
-    gravacao_url: undefined,
-    participantes_confirmados: [],
-  };
-}
-
 const Agenda = () => {
   const { firstEmpresaId } = useEmpresas();
   const empresaId = firstEmpresaId;
@@ -123,7 +105,7 @@ const Agenda = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterMeetingType, setFilterMeetingType] = useState("all");
   const [gestaoOpen, setGestaoOpen] = useState(false);
-  const [reuniaoGestao, setReuniaoGestao] = useState<ReuniaoGestao | null>(null);
+  const [reuniaoGestao, setReuniaoGestao] = useState<ReuniaoEnriquecida | null>(null);
 
   const [configurarOpen, setConfigurarOpen] = useState(false);
   const [formAno, setFormAno] = useState(String(anoSelecionado));
@@ -265,12 +247,12 @@ const Agenda = () => {
   };
 
   const handleViewDetails = (r: ReuniaoEnriquecida) => {
-    setReuniaoGestao(reuniaoToGestao(r));
+    setReuniaoGestao(r);
     setGestaoOpen(true);
   };
 
-  const handleGerarPautaIA = () => {
-    toast({ title: "Gerar pauta com IA", description: "Esta funcionalidade estará disponível em breve." });
+  const handleGerarAtaIA = () => {
+    toast({ title: "Gerar ATA com IA", description: "Esta funcionalidade estará disponível em breve." });
     setGestaoOpen(false);
   };
 
@@ -775,7 +757,8 @@ const Agenda = () => {
         reuniao={reuniaoGestao}
         open={gestaoOpen}
         onOpenChange={setGestaoOpen}
-        onGerarPautaIA={handleGerarPautaIA}
+        onGerarAtaIA={handleGerarAtaIA}
+        empresaId={empresaId}
       />
     </div>
   );
