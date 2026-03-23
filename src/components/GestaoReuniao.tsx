@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Check,
   X,
@@ -15,6 +15,7 @@ import {
   Info,
   Calendar,
   Clock,
+  Pencil,
 } from "lucide-react";
 import {
   Dialog,
@@ -47,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchMembrosPorOrgao } from "@/services/governance";
+import { toast } from "@/hooks/use-toast";
 
 const CHECK_ITEMS: { key: keyof ReturnType<typeof deriveChecklist>; label: string }[] = [
   { key: "statusConcluido", label: "Status da reunião deve ser 'Realizada'" },
@@ -111,15 +113,6 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   empresaId,
 }) => {
   const r = reuniao as ReuniaoEnriquecida | null;
-  const titulo = r?.titulo || (r as ReuniaoEnriquecida)?.conselho_nome || (r as ReuniaoEnriquecida)?.comite_nome || (r as ReuniaoEnriquecida)?.comissao_nome || "Reunião";
-  const dataReuniao = r?.data_reuniao ? new Date(r.data_reuniao) : null;
-  const horario = (r as ReuniaoEnriquecida)?.horario ? String((r as ReuniaoEnriquecida).horario).slice(0, 5) : null;
-  const status = (r?.status ?? "agendada").toLowerCase().replace(/ /g, "_");
-  const statusLabel = STATUS_LABEL[status] ?? r?.status ?? "Agendada";
-  const tipoRaw = (r as ReuniaoEnriquecida)?.tipo ?? "";
-  const modalidade = MODALIDADE_LABEL[tipoRaw.toLowerCase()] ?? "Presencial";
-  const diasRestantes = dataReuniao ? differenceInDays(dataReuniao, new Date()) : 0;
-
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
   const [agendaTitulo, setAgendaTitulo] = useState("");
   const [agendaDescricao, setAgendaDescricao] = useState("");
@@ -129,6 +122,9 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
 
   const [documentosCount, setDocumentosCount] = useState(0);
   const [gravacaoEnviada, setGravacaoEnviada] = useState(false);
+  const [gravacaoArquivoNome, setGravacaoArquivoNome] = useState<string | null>(null);
+  const [transcricaoTexto, setTranscricaoTexto] = useState("");
+  const [gravacaoSalva, setGravacaoSalva] = useState(false);
   const [ataEnviada, setAtaEnviada] = useState(false);
 
   const [tarefas, setTarefas] = useState<Tarefa[]>([]);
@@ -141,6 +137,21 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
 
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [participantesConfirmados, setParticipantesConfirmados] = useState<Set<string>>(new Set());
+  const [statusOverride, setStatusOverride] = useState<string | null>(null);
+
+  const inputDocumentosRef = useRef<HTMLInputElement>(null);
+  const inputGravacaoRef = useRef<HTMLInputElement>(null);
+  const inputAtaRef = useRef<HTMLInputElement>(null);
+
+  const titulo = r?.titulo || (r as ReuniaoEnriquecida)?.conselho_nome || (r as ReuniaoEnriquecida)?.comite_nome || (r as ReuniaoEnriquecida)?.comissao_nome || "Reunião";
+  const dataReuniao = r?.data_reuniao ? new Date(r.data_reuniao) : null;
+  const horario = (r as ReuniaoEnriquecida)?.horario ? String((r as ReuniaoEnriquecida).horario).slice(0, 5) : null;
+  const statusEfetivo = statusOverride ?? r?.status ?? "agendada";
+  const status = statusEfetivo.toLowerCase().replace(/ /g, "_");
+  const statusLabel = STATUS_LABEL[status] ?? statusEfetivo ?? "Agendada";
+  const tipoRaw = (r as ReuniaoEnriquecida)?.tipo ?? "";
+  const modalidade = MODALIDADE_LABEL[tipoRaw.toLowerCase()] ?? "Presencial";
+  const diasRestantes = dataReuniao ? differenceInDays(dataReuniao, new Date()) : 0;
 
   useEffect(() => {
     if (!open || !empresaId || !r) return;
@@ -163,10 +174,10 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     titulo,
     data_reuniao: dataReuniao ? format(dataReuniao, "dd/MM/yyyy") : undefined,
     tipo: (r as ReuniaoEnriquecida)?.tipo ?? undefined,
-    status: r?.status,
+    status: statusEfetivo,
     pautas: agendaItems.length > 0 ? agendaItems.map((a) => ({ id: a.id, titulo: a.titulo })) : [],
     documentos_previos_count: documentosCount,
-    gravacao_url: gravacaoEnviada ? "ok" : undefined,
+    gravacao_url: (gravacaoEnviada || transcricaoTexto.trim().length > 0) ? "ok" : undefined,
     participantes_confirmados: participantes.filter((p) => participantesConfirmados.has(p.id)).map((p) => p.nome),
   };
   const checklist = r ? deriveChecklist(reuniaoParaChecklist) : null;
@@ -177,7 +188,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     ([
       agendaItems.length > 0,
       documentosCount > 0,
-      gravacaoEnviada,
+      gravacaoEnviada || transcricaoTexto.trim().length > 0,
       ataEnviada,
       tarefas.length > 0,
       participantesConfirmados.size > 0,
@@ -185,7 +196,10 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   );
 
   const handleAdicionarItem = () => {
-    if (!agendaTitulo.trim()) return;
+    if (!agendaTitulo.trim()) {
+      toast({ title: "Preencha o título do item", variant: "destructive" });
+      return;
+    }
     setAgendaItems((prev) => [
       ...prev,
       {
@@ -202,10 +216,14 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     setAgendaApresentador("");
     setAgendaDuracao(30);
     setAgendaTipo("informativo");
+    toast({ title: "Item adicionado à pauta", description: agendaTitulo });
   };
 
   const handleSalvarTarefa = () => {
-    if (!tarefaNome.trim()) return;
+    if (!tarefaNome.trim()) {
+      toast({ title: "Preencha o nome da tarefa", variant: "destructive" });
+      return;
+    }
     setTarefas((prev) => [
       ...prev,
       {
@@ -218,15 +236,79 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     setTarefaNome("");
     setTarefaResponsavel("");
     setTarefaData("");
+    toast({ title: "Tarefa salva", description: tarefaNome });
+  };
+
+  const handleSalvarAssuntos = () => {
+    setAssuntosSalvos(assuntosProxima);
+    toast({ title: "Assuntos salvos", description: "Assuntos para próxima reunião registrados." });
+  };
+
+  const handleFileDocumentos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files?.length) {
+      setDocumentosCount(files.length);
+      toast({ title: "Documentos enviados", description: `${files.length} arquivo(s) anexado(s) com sucesso.` });
+    }
+    e.target.value = "";
+  };
+
+  const handleFileGravacao = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setGravacaoEnviada(true);
+      setGravacaoArquivoNome(file.name);
+      toast({ title: "Gravação enviada", description: `Arquivo "${file.name}" anexado com sucesso.` });
+    }
+    e.target.value = "";
+  };
+
+  const temGravacaoOuTranscricao = gravacaoEnviada || transcricaoTexto.trim().length > 0;
+
+  const handleLimparGravacao = () => {
+    setGravacaoEnviada(false);
+    setGravacaoArquivoNome(null);
+    setTranscricaoTexto("");
+    setGravacaoSalva(false);
+    toast({ title: "Gravação/transcrição removida" });
+  };
+
+  const handleSalvarGravacao = () => {
+    setGravacaoSalva(true);
+    toast({ title: "Gravação salva", description: transcricaoTexto.trim() ? "Transcrição e/ou arquivo salvos com sucesso." : "Arquivo salvo com sucesso." });
+  };
+
+  const handleEditarGravacao = () => {
+    setGravacaoSalva(false);
+  };
+
+  const handleFileAta = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAtaEnviada(true);
+      toast({ title: "ATA enviada", description: `Arquivo "${file.name}" anexado com sucesso.` });
+    }
+    e.target.value = "";
   };
 
   const toggleConfirmacao = (id: string) => {
     setParticipantesConfirmados((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      const p = participantes.find((x) => x.id === id);
+      if (next.has(id)) {
+        next.delete(id);
+        toast({ title: "Confirmação removida", description: `${p?.nome} não confirmado.` });
+      } else {
+        next.add(id);
+        toast({ title: "Participante confirmado", description: `${p?.nome} confirmou presença.` });
+      }
       return next;
     });
+  };
+
+  const handleMarcarRealizada = () => {
+    setStatusOverride("realizada");
+    toast({ title: "Status atualizado", description: "Reunião marcada como Realizada." });
   };
 
   const secao = (icon: React.ReactNode, tituloSecao: string, children: React.ReactNode) => (
@@ -338,7 +420,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                     {agendaItems.map((item) => (
                       <li key={item.id} className="flex justify-between items-center py-1 border-b">
                         <span>{item.titulo}</span>
-                        <Button variant="ghost" size="sm" onClick={() => setAgendaItems((p) => p.filter((i) => i.id !== item.id))}>Remover</Button>
+                        <Button variant="ghost" size="sm" onClick={() => { setAgendaItems((p) => p.filter((i) => i.id !== item.id)); toast({ title: "Item removido da pauta" }); }}>Remover</Button>
                       </li>
                     ))}
                   </ul>
@@ -349,16 +431,24 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
               <Upload className="h-4 w-4" />,
               "Documentos Prévios",
               <>
+                <input
+                  ref={inputDocumentosRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx"
+                  className="hidden"
+                  onChange={handleFileDocumentos}
+                />
                 {documentosCount === 0 ? (
                   <div className="text-center py-6 border border-dashed rounded-lg">
                     <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground mb-2">Nenhum documento enviado</p>
-                    <Button variant="outline" onClick={() => setDocumentosCount(1)}>Enviar Documentos</Button>
+                    <Button variant="outline" onClick={() => inputDocumentosRef.current?.click()}>Enviar Documentos</Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
                     <p className="text-sm">{documentosCount} documento(s) anexado(s)</p>
-                    <Button variant="outline" size="sm" onClick={() => setDocumentosCount(0)}>Remover</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setDocumentosCount(0); toast({ title: "Documentos removidos" }); }}>Remover</Button>
                   </div>
                 )}
               </>
@@ -371,16 +461,77 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
               <Mic className="h-4 w-4" />,
               "Gravação da Reunião",
               <>
-                {!gravacaoEnviada ? (
-                  <div className="text-center py-6 border border-dashed rounded-lg">
-                    <Mic className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">Aguardando gravação da reunião</p>
-                    <Button variant="outline" onClick={() => setGravacaoEnviada(true)}>Subir arquivo da reunião</Button>
+                <input
+                  ref={inputGravacaoRef}
+                  type="file"
+                  accept="audio/*,video/*,.mp3,.mp4,.webm,.wav,.txt"
+                  className="hidden"
+                  onChange={handleFileGravacao}
+                />
+                {!temGravacaoOuTranscricao ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">Cole a transcrição ou envie um arquivo de áudio/vídeo</p>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Transcrição (cole o texto)</Label>
+                      <Textarea
+                        value={transcricaoTexto}
+                        onChange={(e) => setTranscricaoTexto(e.target.value)}
+                        placeholder="Cole aqui a transcrição da reunião..."
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">ou</p>
+                    <Button variant="outline" className="w-full" onClick={() => inputGravacaoRef.current?.click()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Subir arquivo da reunião
+                    </Button>
+                  </div>
+                ) : gravacaoSalva ? (
+                  <div className="space-y-2">
+                    {gravacaoEnviada && gravacaoArquivoNome && (
+                      <div className="rounded border p-2 text-sm bg-muted/30">
+                        <span className="truncate">Arquivo: {gravacaoArquivoNome}</span>
+                      </div>
+                    )}
+                    {transcricaoTexto.trim().length > 0 && (
+                      <div className="rounded border p-2 text-sm max-h-32 overflow-y-auto bg-muted/30">
+                        <p className="text-muted-foreground text-xs mb-1">Transcrição colada:</p>
+                        <p className="text-xs break-words whitespace-pre-wrap">{transcricaoTexto.trim()}</p>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={handleEditarGravacao}>
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={handleLimparGravacao}>Remover</Button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm">Gravação enviada</p>
-                    <Button variant="outline" size="sm" onClick={() => setGravacaoEnviada(false)}>Remover</Button>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Transcrição (cole o texto)</Label>
+                      <Textarea
+                        value={transcricaoTexto}
+                        onChange={(e) => setTranscricaoTexto(e.target.value)}
+                        placeholder="Cole aqui a transcrição da reunião..."
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">ou</p>
+                    <Button variant="outline" className="w-full" onClick={() => inputGravacaoRef.current?.click()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Subir arquivo da reunião
+                    </Button>
+                    {gravacaoEnviada && gravacaoArquivoNome && (
+                      <p className="text-xs text-muted-foreground">Arquivo anexado: {gravacaoArquivoNome}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSalvarGravacao}>Salvar</Button>
+                      <Button variant="outline" size="sm" onClick={handleLimparGravacao}>Remover</Button>
+                    </div>
                   </div>
                 )}
               </>
@@ -389,16 +540,23 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
               <FileText className="h-4 w-4" />,
               "Ata da reunião",
               <>
+                <input
+                  ref={inputAtaRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={handleFileAta}
+                />
                 {!ataEnviada ? (
                   <div className="text-center py-6 border border-dashed rounded-lg">
                     <FileText className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground mb-2">Nenhum arquivo de ATA enviado</p>
-                    <Button variant="outline" onClick={() => setAtaEnviada(true)}>Enviar Arquivo de ATA</Button>
+                    <Button variant="outline" onClick={() => inputAtaRef.current?.click()}>Enviar Arquivo de ATA</Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
                     <p className="text-sm">ATA enviada</p>
-                    <Button variant="outline" size="sm" onClick={() => setAtaEnviada(false)}>Remover</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setAtaEnviada(false); toast({ title: "ATA removida" }); }}>Remover</Button>
                   </div>
                 )}
               </>
@@ -417,7 +575,20 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                 </div>
                 <div className="space-y-2">
                   <Label>Responsável</Label>
-                  <Input value={tarefaResponsavel} onChange={(e) => setTarefaResponsavel(e.target.value)} placeholder="Nome do responsável" />
+                  <Select value={tarefaResponsavel} onValueChange={setTarefaResponsavel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {participantes.length === 0 ? (
+                        <SelectItem value="_loading" disabled>Carregando membros...</SelectItem>
+                      ) : (
+                        participantes.map((p) => (
+                          <SelectItem key={p.id} value={p.nome}>{p.nome}{p.cargo ? ` (${p.cargo})` : ""}</SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Data Conclusão</Label>
@@ -429,7 +600,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                     {tarefas.map((t) => (
                       <li key={t.id} className="flex justify-between py-1 border-b">
                         <span>{t.nome} — {t.responsavel}</span>
-                        <Button variant="ghost" size="sm" onClick={() => setTarefas((p) => p.filter((x) => x.id !== t.id))}>Remover</Button>
+                        <Button variant="ghost" size="sm" onClick={() => { setTarefas((p) => p.filter((x) => x.id !== t.id)); toast({ title: "Tarefa removida" }); }}>Remover</Button>
                       </li>
                     ))}
                   </ul>
@@ -446,7 +617,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   placeholder="Assuntos que não foram discutidos e devem ir para a próxima reunião..."
                   rows={4}
                 />
-                <Button className="w-full" onClick={() => setAssuntosSalvos(assuntosProxima)}>Salvar Assuntos</Button>
+                <Button className="w-full" onClick={handleSalvarAssuntos}>Salvar Assuntos</Button>
                 {assuntosSalvos && <p className="text-sm text-muted-foreground">Salvo.</p>}
               </>
             )}
@@ -495,7 +666,14 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   <Clock className="h-4 w-4" />
                   Status da Reunião — {dataReuniao ? format(dataReuniao, "dd/MM/yyyy") : "—"} às {horario ?? "—"}
                 </span>
-                <Badge>{statusLabel}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge>{statusLabel}</Badge>
+                  {status === "agendada" && (
+                    <Button variant="outline" size="sm" onClick={handleMarcarRealizada}>
+                      Marcar como Realizada
+                    </Button>
+                  )}
+                </div>
               </div>
               {status === "agendada" && dataReuniao && new Date() < dataReuniao && (
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-1">
