@@ -179,32 +179,6 @@ const FamilyStructure = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title="Estrutura Societária" />
         <div className="flex-1 overflow-y-auto p-6">
-          {hasEmpresas && (
-            <Card className="mb-6">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-muted-foreground" />
-                  <Label className="text-sm font-medium">Empresa</Label>
-                  <Select
-                    value={empresaId ?? ""}
-                    onValueChange={(v) => setSelectedEmpresaId(v || null)}
-                  >
-                    <SelectTrigger className="w-[280px]">
-                      <SelectValue placeholder="Selecione a empresa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {empresas.map((e) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {e.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           <Card className="mb-6">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
