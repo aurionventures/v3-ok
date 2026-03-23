@@ -18,6 +18,15 @@ export interface AtasPendentesResumo {
   finalizadas: number;
 }
 
+export interface AtaListItem {
+  id: string;
+  reuniao_id: string;
+  titulo: string;
+  data_reuniao: string | null;
+  status: string;
+  conteudo: string | null;
+}
+
 const CORES = {
   resolvidas: "#22c55e",
   pendentes: "#f97316",
@@ -93,8 +102,7 @@ export async function fetchIndicadoresTarefas(
 }
 
 /**
- * Conta atas por status. Como não existem tabelas de aprovação/assinatura,
- * consideramos todas as atas existentes como finalizadas.
+ * Conta atas por status (aguardando aprovação, aguardando assinatura, finalizadas).
  */
 export async function fetchAtasPendentesResumo(
   empresaId: string | null
@@ -111,9 +119,9 @@ export async function fetchAtasPendentesResumo(
   const reuniaoIds = reunioes.map((r) => r.id);
   if (reuniaoIds.length === 0) return empty;
 
-  const { count, error } = await supabase
+  const { data: atasRows, error } = await supabase
     .from("atas")
-    .select("id", { count: "exact", head: true })
+    .select("id, status")
     .in("reuniao_id", reuniaoIds);
 
   if (error) {
@@ -121,9 +129,51 @@ export async function fetchAtasPendentesResumo(
     return empty;
   }
 
+  const rows = (atasRows ?? []) as Array<{ id: string; status: string | null }>;
+  const aguardandoAprovacao = rows.filter((a) => a.status === "aguardando_aprovacao").length;
+  const aguardandoAssinatura = rows.filter((a) => a.status === "aguardando_assinatura").length;
+  const finalizadas = rows.filter(
+    (a) => a.status === "finalizada" || !a.status
+  ).length;
+
   return {
-    aguardandoAprovacao: 0,
-    aguardandoAssinatura: 0,
-    finalizadas: count ?? 0,
+    aguardandoAprovacao,
+    aguardandoAssinatura,
+    finalizadas,
   };
+}
+
+/**
+ * Lista ATAs por status para a empresa.
+ */
+export async function fetchAtasPorStatus(
+  empresaId: string | null,
+  status: "aguardando_aprovacao" | "aguardando_assinatura"
+): Promise<AtaListItem[]> {
+  if (!supabase || !empresaId) return [];
+
+  const reunioes = await fetchReunioes(empresaId);
+  const reuniaoIds = reunioes.map((r) => r.id);
+  if (reuniaoIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("atas")
+    .select("id, reuniao_id, conteudo, status, reunioes(titulo, data_reuniao)")
+    .eq("status", status)
+    .in("reuniao_id", reuniaoIds)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[secretariado] fetchAtasPorStatus:", error);
+    return [];
+  }
+
+  return (data ?? []).map((a: { id: string; reuniao_id: string; conteudo: string | null; status: string; reunioes?: { titulo: string; data_reuniao: string | null } | null }) => ({
+    id: a.id,
+    reuniao_id: a.reuniao_id,
+    titulo: a.reunioes?.titulo ?? "ATA",
+    data_reuniao: a.reunioes?.data_reuniao ?? null,
+    status: a.status,
+    conteudo: a.conteudo,
+  }));
 }

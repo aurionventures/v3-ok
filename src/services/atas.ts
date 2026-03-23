@@ -1,10 +1,12 @@
 import { supabase } from "@/lib/supabase";
+import { initAtaAprovacoes } from "./ataAprovacoes";
 
 export interface AtaRow {
   id: string;
   reuniao_id: string;
   conteudo: string | null;
   resumo: string | null;
+  status?: string;
   created_at?: string;
 }
 
@@ -33,36 +35,57 @@ export async function fetchAtas(reuniaoId?: string): Promise<{ data: AtaComReuni
 export async function upsertAta(
   reuniaoId: string,
   conteudo: string,
-  resumo?: string
+  resumo?: string,
+  membroIds?: string[]
 ): Promise<{ data: AtaRow | null; error: string | null }> {
   if (!supabase) return { data: null, error: "Supabase não configurado" };
 
   const { data: existing } = await supabase
     .from("atas")
-    .select("id")
+    .select("id, status")
     .eq("reuniao_id", reuniaoId)
     .maybeSingle();
 
-  const payload = { reuniao_id: reuniaoId, conteudo, resumo: resumo ?? conteudo.slice(0, 300) };
+  const basePayload = {
+    reuniao_id: reuniaoId,
+    conteudo,
+    resumo: resumo ?? conteudo.slice(0, 300),
+  };
+  const isNew = !existing;
+  const payload = isNew
+    ? { ...basePayload, status: "aguardando_aprovacao" as const }
+    : basePayload;
+
+  let ataId: string;
 
   if (existing) {
+    ataId = (existing as { id: string }).id;
     const { data, error } = await supabase
       .from("atas")
       .update(payload)
-      .eq("id", (existing as { id: string }).id)
+      .eq("id", ataId)
       .select()
       .single();
     if (error) {
       console.error("[atas] update:", error);
       return { data: null, error: error.message };
     }
-    return { data: data as AtaRow, error: null };
+  } else {
+    const { data, error } = await supabase.from("atas").insert(payload).select().single();
+    if (error) {
+      console.error("[atas] insert:", error);
+      return { data: null, error: error.message };
+    }
+    ataId = (data as AtaRow).id;
   }
 
-  const { data, error } = await supabase.from("atas").insert(payload).select().single();
-  if (error) {
-    console.error("[atas] insert:", error);
-    return { data: null, error: error.message };
+  if (isNew && membroIds && membroIds.length > 0) {
+    const { error: errInit } = await initAtaAprovacoes(ataId, membroIds);
+    if (errInit) {
+      console.error("[atas] initAtaAprovacoes:", errInit);
+    }
   }
-  return { data: data as AtaRow, error: null };
+
+  const { data: final } = await supabase.from("atas").select("*").eq("id", ataId).single();
+  return { data: final as AtaRow, error: null };
 }

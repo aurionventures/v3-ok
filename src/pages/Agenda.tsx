@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import GestaoReuniao from "@/components/GestaoReuniao";
 import { cn } from "@/lib/utils";
 import { useEmpresas } from "@/hooks/useEmpresas";

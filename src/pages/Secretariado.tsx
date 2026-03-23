@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import Sidebar from "@/components/Sidebar";
@@ -76,6 +77,8 @@ function GestaoTarefasIndicadores() {
   const {
     indicadoresTarefas,
     atasPendentes,
+    atasAguardandoAprovacao,
+    atasAguardandoAssinatura,
     isLoading,
   } = useSecretariadoIndicadores();
 
@@ -223,14 +226,60 @@ function GestaoTarefasIndicadores() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="aprovacao" className="mt-4">
-            <p className="text-sm text-gray-500">
-              Lista de atas aguardando aprovação.
-            </p>
+            {atasAguardandoAprovacao.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhuma ATA aguardando aprovação.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {atasAguardandoAprovacao.map((ata) => (
+                  <Card key={ata.id} className="border">
+                    <CardContent className="py-3 px-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-amber-600 shrink-0" />
+                        <div>
+                          <p className="font-medium">{ata.titulo}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {ata.data_reuniao
+                              ? new Date(ata.data_reuniao).toLocaleDateString("pt-BR")
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary">Aguardando membros</Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="assinaturas" className="mt-4">
-            <p className="text-sm text-gray-500">
-              Lista de atas aguardando assinaturas.
-            </p>
+            {atasAguardandoAssinatura.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Nenhuma ATA aguardando assinaturas.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {atasAguardandoAssinatura.map((ata) => (
+                  <Card key={ata.id} className="border">
+                    <CardContent className="py-3 px-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600 shrink-0" />
+                        <div>
+                          <p className="font-medium">{ata.titulo}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {ata.data_reuniao
+                              ? new Date(ata.data_reuniao).toLocaleDateString("pt-BR")
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary">Aguardando assinaturas</Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </section>

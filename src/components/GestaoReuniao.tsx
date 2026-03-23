@@ -179,7 +179,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
       setParticipantes(membros.map((m) => ({
         id: m.id,
         nome: m.nome,
-        email: `${m.nome.toLowerCase().replace(/\s/g, ".")}@empresa.com`,
+        email: m.email?.trim() || `${m.nome.toLowerCase().replace(/\s/g, ".")}@empresa.com`,
         cargo: m.cargo ?? "Membro",
         confirmado: false,
       })));
@@ -421,14 +421,20 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   const handleSalvarAta = async () => {
     if (!r?.id || !ataGeradaTexto) return;
     setAtaSalvando(true);
-    const { error } = await upsertAta(r.id, ataGeradaTexto);
+    const membroIds = participantes.map((p) => p.id);
+    const { error } = await upsertAta(r.id, ataGeradaTexto, undefined, membroIds);
     setAtaSalvando(false);
     if (error) {
       toast({ title: "Erro ao salvar", description: error, variant: "destructive" });
       return;
     }
     setAtaSalva(true);
-    toast({ title: "ATA salva", description: "Disponível em Secretariado > ATAs." });
+    toast({
+      title: "ATA salva",
+      description: membroIds.length > 0
+        ? "Os membros receberão a ATA para aprovação em suas telas."
+        : "Disponível em Secretariado > ATAs.",
+    });
   };
 
   const handleMarcarRealizada = async () => {
@@ -951,6 +957,9 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                     );
                   })}
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Ao salvar a ATA, os participantes receberão para aprovação. Após todos aprovarem, cada um receberá novamente para assinatura. O status será atualizado em &quot;ATAS Pendentes de Aprovação/Assinatura&quot; no Secretariado.
+                </p>
               </div>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">

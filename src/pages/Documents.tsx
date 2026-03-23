@@ -77,10 +77,6 @@ const Documents = () => {
     [documentos]
   );
 
-  const handleSelectCategory = (categoryName: string) => {
-    setSelectedCategory(categoryName === selectedCategory ? null : categoryName);
-  };
-
   const handleViewDocument = (doc: Documento) => {
     setViewDocument(doc);
   };
@@ -176,6 +172,40 @@ const Documents = () => {
                 </TabsList>
 
                 <TabsContent value="all">
+                  {hasEmpresas && !isLoading && documentos.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Filtrar por tipo:
+                      </Label>
+                      <Select
+                        value={selectedCategory ?? "all"}
+                        onValueChange={(v) => setSelectedCategory(v === "all" ? null : v)}
+                      >
+                        <SelectTrigger className="w-[220px]">
+                          <SelectValue placeholder="Todos os tipos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os tipos</SelectItem>
+                          {categoriasUnicas.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedCategory && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedCategory(null)}
+                          className="text-muted-foreground"
+                        >
+                          Limpar filtro
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
                   {!hasEmpresas ? (
                     <div className="py-12 text-center text-muted-foreground">
                       <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -202,38 +232,6 @@ const Documents = () => {
                     </div>
                   ) : (
                     <>
-                      {categoriasUnicas.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                          {categoriasUnicas.map((cat) => (
-                            <div
-                              key={cat}
-                              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                                selectedCategory === cat
-                                  ? "bg-legacy-purple-500 text-white border-legacy-purple-500"
-                                  : "bg-white border-gray-200 hover:border-legacy-purple-500"
-                              }`}
-                              onClick={() => handleSelectCategory(cat)}
-                            >
-                              <div className="flex items-center mb-2">
-                                <FolderOpen
-                                  className={`h-5 w-5 mr-2 ${
-                                    selectedCategory === cat ? "text-white" : "text-legacy-purple-500"
-                                  }`}
-                                />
-                                <span className="font-medium">{cat}</span>
-                              </div>
-                              <div
-                                className={`text-sm ${
-                                  selectedCategory === cat ? "text-white" : "text-gray-500"
-                                }`}
-                              >
-                                {documentos.filter((d) => d.category === cat).length} documento(s)
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
                       <Table>
                         <TableHeader>
                           <TableRow>

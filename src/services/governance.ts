@@ -458,7 +458,7 @@ export async function fetchMembrosPorOrgao(
   empresaId: string,
   tipo: "conselho" | "comite" | "comissao",
   orgaoId: string
-): Promise<{ id: string; nome: string; cargo: string | null }[]> {
+): Promise<{ id: string; nome: string; email: string | null; cargo: string | null }[]> {
   if (!supabase || !orgaoId) return [];
   const campo = tipo === "conselho" ? "conselho_id" : tipo === "comite" ? "comite_id" : "comissao_id";
   const { data: alocacoes, error: errA } = await supabase
@@ -472,13 +472,14 @@ export async function fetchMembrosPorOrgao(
   for (const a of alocacoes) cargoByMembro.set(a.membro_id, a.cargo ?? null);
   const { data: membros, error: errM } = await supabase
     .from("membros_governanca")
-    .select("id, nome")
+    .select("id, nome, email")
     .eq("empresa_id", empresaId)
     .in("id", membroIds);
   if (errM || !membros) return [];
-  return membros.map((m: { id: string; nome: string }) => ({
+  return membros.map((m: { id: string; nome: string; email?: string | null }) => ({
     id: m.id,
     nome: m.nome,
+    email: m.email ?? null,
     cargo: cargoByMembro.get(m.id) ?? null,
   }));
 }
