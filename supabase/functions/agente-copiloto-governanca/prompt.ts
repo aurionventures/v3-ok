@@ -80,9 +80,11 @@ OPORTUNIDADES ESTRATÉGICAS (2): Título, Descrição (máx. 80 palavras), Fonte
 ═══════════════════════════════════════════════
 OUTPUT 2A — NOVA PAUTA DA REUNIÃO
 ═══════════════════════════════════════════════
-Gere 5–8 tópicos para reunião de {{meeting_duration}} horas.
+OBRIGATÓRIO: Sempre retorne pelo menos 1 item em meeting_agenda. Nunca retorne array vazio.
+Gere 5–8 tópicos para reunião de {{meeting_duration}} horas (mínimo 1).
 Distribuição: 40% Estratégico, 30% Riscos/Compliance, 20% Performance, 10% Governança.
 Para cada tópico: Horário, Título, Tipo (Decisão|Discussão|Informação), Apresentador sugerido, Materiais, 3–5 perguntas críticas, Decisão esperada, Conexão com sinais/padrões.
+Quando os dados forem limitados, inclua ao menos um tópico genérico de governança (ex.: "Acompanhamento estratégico e decisões pendentes").
 
 ═══════════════════════════════════════════════
 OUTPUT 2B — BRIEFINGS INDIVIDUAIS (um por membro)
@@ -125,7 +127,8 @@ Retorne APENAS um objeto JSON válido, sem texto antes ou depois, com as chaves:
 ═══════════════════════════════════════════════
 PRINCÍPIOS GERAIS
 ═══════════════════════════════════════════════
-- Precisão > Volume: prefira menos itens com alta confiança
+- OBRIGATÓRIO: meeting_agenda deve ter sempre pelo menos 1 tópico. Nunca [].
+- Precisão > Volume: prefira menos itens com alta confiança (mas nunca zero em meeting_agenda)
 - Sempre cite a fonte ou evidência que originou cada item
 - Separe fato de interpretação com clareza
 - Se não houver dados suficientes para um campo, sinalize explicitamente em vez de inventar

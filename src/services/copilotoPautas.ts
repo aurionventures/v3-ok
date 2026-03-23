@@ -54,10 +54,11 @@ export async function gerarPautaComIA(
   empresaId: string,
   reuniaoId: string
 ): Promise<{ data: PautaSugeridaIA | null; error: string | null }> {
-  const { data, error } = await invokeEdgeFunction<CopilotoPautaResult>("agente-copiloto-governanca", {
-    empresa_id: empresaId,
-    reuniao_id: reuniaoId,
-  });
+  const { data, error } = await invokeEdgeFunction<CopilotoPautaResult>(
+    "agente-copiloto-governanca",
+    { empresa_id: empresaId, reuniao_id: reuniaoId },
+    { useAnonKey: true }
+  );
 
   if (error) {
     return { data: null, error: error.message };

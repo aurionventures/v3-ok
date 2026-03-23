@@ -38,10 +38,10 @@ FORMATO DE RESPOSTA (obrigatório):
 \`\`\`
 
 Regras:
-- Baseie-se APENAS nos dados do contexto. Não invente informações.
-- Gere exatamente 2 itens por categoria (riscos, ameacas, oportunidades). Priorize por impacto.
+- Baseie-se nos dados do contexto quando disponíveis. Quando os dados forem limitados, use boas práticas de governança corporativa para inferir riscos, ameaças e oportunidades plausíveis.
+- OBRIGATÓRIO: Sempre retorne exatamente 2 riscos, 2 ameacas e 2 oportunidades. Nunca retorne arrays vazios.
+- Priorize por impacto e relevância para governança.
 - Para severidade em riscos use exatamente: critico, alto, medio ou baixo.
 - Para ameacas use tags: Imediato, 30 dias, Regulatório, Operacional.
 - Para oportunidades use tag: Estratégica.
-- Se não houver dados suficientes para uma categoria, retorne array vazio [].
 - Retorne somente o JSON, sem markdown nem explicações.`;

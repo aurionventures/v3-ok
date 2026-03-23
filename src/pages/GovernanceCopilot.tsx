@@ -31,15 +31,6 @@ function InsightsContent() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
-        <p className="text-sm text-muted-foreground">Gerando insights com IA...</p>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="rounded-lg border border-red-100 bg-red-50/50 p-6 text-red-800">
@@ -58,20 +49,23 @@ function InsightsContent() {
   }
 
   const vazio = riscos.length === 0 && ameacas.length === 0 && oportunidades.length === 0;
-  if (!isFetched || vazio) {
+  if (vazio) {
     return (
       <div className="rounded-lg border border-dashed bg-gray-50 p-8 text-center">
         <p className="text-gray-500 mb-4">
-          {!isFetched
-            ? "Clique em Gerar Insights para que a IA analise os dados da empresa e identifique riscos, ameaças e oportunidades estratégicas."
-            : "Nenhum insight identificado com os dados atuais. Cadastre riscos, reuniões e atas para que a IA possa gerar riscos, ameaças e oportunidades estratégicas."}
+          Clique em Gerar Insights para que a IA analise os dados da empresa e identifique 2 riscos, 2 ameaças e 2 oportunidades estratégicas. Os insights serão salvos e só atualizados ao clicar em &quot;Gerar nova insight&quot;.
         </p>
         <Button
           onClick={() => refetch()}
+          disabled={isLoading}
           className="bg-violet-600 hover:bg-violet-700"
         >
-          <Sparkles className="h-4 w-4 mr-2" />
-          Gerar Insights
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Sparkles className="h-4 w-4 mr-2" />
+          )}
+          {isLoading ? "Gerando..." : "Gerar Insights"}
         </Button>
       </div>
     );
