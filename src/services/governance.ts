@@ -495,6 +495,60 @@ export async function fetchMembroByUserId(userId: string): Promise<{
   };
 }
 
+export interface MembroPerfilCompleto {
+  id: string;
+  nome: string;
+  email: string | null;
+  cargo_principal: string | null;
+  formacao: string | null;
+  linkedin: string | null;
+  certificados: string | null;
+  bio: string | null;
+}
+
+/** Retorna perfil completo do membro por user_id (para tela de configurações) */
+export async function fetchMembroPerfil(userId: string): Promise<MembroPerfilCompleto | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("membros_governanca")
+    .select("id, nome, email, cargo_principal, formacao, linkedin, certificados, bio")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    nome: data.nome ?? "",
+    email: data.email ?? null,
+    cargo_principal: data.cargo_principal ?? null,
+    formacao: data.formacao ?? null,
+    linkedin: data.linkedin ?? null,
+    certificados: data.certificados ?? null,
+    bio: data.bio ?? null,
+  };
+}
+
+/** Atualiza perfil do membro (apenas campos editáveis pelo próprio membro) */
+export async function updateMembroPerfil(
+  membroId: string,
+  userId: string,
+  updates: Partial<Pick<MembroPerfilCompleto, "nome" | "cargo_principal" | "formacao" | "linkedin" | "certificados" | "bio">>
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("membros_governanca")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", membroId)
+    .eq("user_id", userId);
+  if (error) {
+    console.error("[governance] updateMembroPerfil:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
 /** Retorna membros alocados em qualquer órgão da reunião (conselho, comitê, comissão) ou, se virtual, membros do tipo indicado em virtual_tipo */
 export async function fetchMembrosPorReuniao(
   empresaId: string,

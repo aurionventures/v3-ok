@@ -45,6 +45,10 @@ export interface MembroGovernancaRow {
   empresa_id: string;
   nome: string;
   cargo_principal: string | null;
+  formacao?: string | null;
+  linkedin?: string | null;
+  certificados?: string | null;
+  bio?: string | null;
   user_id?: string | null;
   email?: string | null;
   senha_alterada?: boolean;
