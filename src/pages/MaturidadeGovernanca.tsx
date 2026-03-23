@@ -14,7 +14,12 @@ import {
   clearMaturityData,
   type StoredMaturityAssessment,
 } from "@/utils/maturityStorage";
-import { upsertDiagnosticoMaturidade } from "@/services/maturidade";
+import {
+  upsertDiagnosticoMaturidade,
+  fetchDiagnosticoMaturidade,
+  fetchDiagnosticosHistory,
+  deleteDiagnosticosMaturidade,
+} from "@/services/maturidade";
 import {
   XAxis,
   YAxis,
@@ -67,43 +72,98 @@ const MaturidadeGovernanca = () => {
   };
 
   useEffect(() => {
-    const stored = getCurrentMaturityAssessment();
-    loadAssessment(stored);
+    let cancelled = false;
 
-    const history = getMaturityHistory();
-    const sorted = [...history].sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-    setHistoryData(
-      sorted.map((a) => ({
-        data: new Intl.DateTimeFormat("pt-BR", {
-          month: "short",
-          year: "numeric",
-        }).format(new Date(a.timestamp)),
-        pontuacao: Math.round(a.result.pontuacao_total * 5 * 10) / 10,
-        fullDate: new Date(a.timestamp),
-      }))
-    );
-    setHistoryAssessments(sorted);
+    async function load() {
+      if (!firstEmpresaId) {
+        const stored = getCurrentMaturityAssessment();
+        loadAssessment(stored);
+        const history = getMaturityHistory();
+        const sorted = [...history].sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        setHistoryData(
+          sorted.map((a) => ({
+            data: new Intl.DateTimeFormat("pt-BR", {
+              month: "short",
+              year: "numeric",
+            }).format(new Date(a.timestamp)),
+            pontuacao: Math.round(a.result.pontuacao_total * 5 * 10) / 10,
+            fullDate: new Date(a.timestamp),
+          }))
+        );
+        setHistoryAssessments(sorted);
+        return;
+      }
 
-    if (stored && firstEmpresaId) {
-      upsertDiagnosticoMaturidade(firstEmpresaId, stored).then(({ error }) => {
-        if (error) console.warn("[MaturidadeGovernanca] sync to DB:", error);
-      });
+      const [dbStored, dbHistory] = await Promise.all([
+        fetchDiagnosticoMaturidade(firstEmpresaId),
+        fetchDiagnosticosHistory(firstEmpresaId),
+      ]);
+
+      if (cancelled) return;
+
+      if (dbStored || dbHistory.length > 0) {
+        const stored = dbStored ?? dbHistory[0];
+        loadAssessment(stored);
+        const sorted = [...dbHistory].sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        setHistoryData(
+          sorted.map((a) => ({
+            data: new Intl.DateTimeFormat("pt-BR", {
+              month: "short",
+              year: "numeric",
+            }).format(new Date(a.timestamp)),
+            pontuacao: Math.round(a.result.pontuacao_total * 5 * 10) / 10,
+            fullDate: new Date(a.timestamp),
+          }))
+        );
+        setHistoryAssessments(sorted);
+      } else {
+        const stored = getCurrentMaturityAssessment();
+        loadAssessment(stored);
+        if (stored) {
+          upsertDiagnosticoMaturidade(firstEmpresaId, stored).then(({ error }) => {
+            if (error) console.warn("[MaturidadeGovernanca] sync to DB:", error);
+          });
+        }
+        const history = getMaturityHistory();
+        const sorted = [...history].sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        setHistoryData(
+          sorted.map((a) => ({
+            data: new Intl.DateTimeFormat("pt-BR", {
+              month: "short",
+              year: "numeric",
+            }).format(new Date(a.timestamp)),
+            pontuacao: Math.round(a.result.pontuacao_total * 5 * 10) / 10,
+            fullDate: new Date(a.timestamp),
+          }))
+        );
+        setHistoryAssessments(sorted);
+      }
     }
+
+    load();
+    return () => { cancelled = true; };
   }, [activeTab, firstEmpresaId]);
 
   const hasData = maturidadeData.some((d) => d.score > 0);
 
-  const handleClearData = () => {
-    if (window.confirm("Tem certeza que deseja limpar todos os dados de diagnóstico? Será necessário preencher novamente.")) {
-      clearMaturityData();
-      setMaturidadeData(convertStoredDataToRadarData(null));
-      setHistoryData([]);
-      setHistoryAssessments([]);
-      setOverallScore(null);
-      setSelectedAssessmentId(null);
+  const handleClearData = async () => {
+    if (!window.confirm("Tem certeza que deseja limpar todos os dados de diagnóstico? Será necessário preencher novamente.")) return;
+    clearMaturityData();
+    if (firstEmpresaId) {
+      const { error } = await deleteDiagnosticosMaturidade(firstEmpresaId);
+      if (error) console.warn("[MaturidadeGovernanca] delete from DB:", error);
     }
+    setMaturidadeData(convertStoredDataToRadarData(null));
+    setHistoryData([]);
+    setHistoryAssessments([]);
+    setOverallScore(null);
+    setSelectedAssessmentId(null);
   };
 
   return (

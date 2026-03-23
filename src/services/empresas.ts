@@ -232,12 +232,16 @@ export async function insertEmpresaAdm(
     perfil_id?: string;
     email?: string;
     error?: string;
-  }>("criar-empresa-adm-acesso", {
-    empresa_id: p.empresa_id,
-    email: p.email.trim().toLowerCase(),
-    senha_provisoria: p.senha_provisoria,
-    nome: (p.nome ?? "Administrador").trim(),
-  });
+  }>(
+    "criar-empresa-adm-acesso",
+    {
+      empresa_id: p.empresa_id,
+      email: p.email.trim().toLowerCase(),
+      senha_provisoria: p.senha_provisoria,
+      nome: (p.nome ?? "Administrador").trim(),
+    },
+    { useAnonKey: true }
+  );
   if (error) return { data: null, error: error.message };
   const err = data?.error;
   if (err) return { data: null, error: err };

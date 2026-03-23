@@ -167,11 +167,6 @@ const Companies = () => {
     setIsCreateLoading(false);
 
     if (errAdm) {
-      toast({
-        title: "Empresa criada, mas erro no ADM",
-        description: errAdm,
-        variant: "destructive",
-      });
       setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "", plano_id: "" });
       setNovaEmpresaSenhaVisivel(false);
       setIsNewCompanyDialogOpen(false);

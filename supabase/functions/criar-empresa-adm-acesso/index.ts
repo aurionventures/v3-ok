@@ -61,12 +61,84 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    let userId: string;
+
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password: senha_provisoria,
       email_confirm: true,
       user_metadata: { nome },
     });
+
+    const isEmailAlreadyRegistered =
+      authError?.message?.includes("already been registered") ||
+      authError?.message?.includes("already registered") ||
+      authError?.message?.toLowerCase().includes("duplicate");
+    if (isEmailAlreadyRegistered) {
+      // E-mail já existe: buscar user_id em perfis ou em auth
+      let existingUserId: string | null = null;
+      const { data: perfilByEmail } = await supabase
+        .from("perfis")
+        .select("user_id")
+        .eq("email", email)
+        .limit(1)
+        .maybeSingle();
+      existingUserId = perfilByEmail?.user_id ?? null;
+      if (!existingUserId) {
+        const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        const u = usersData?.users?.find((x) => x.email?.toLowerCase() === email);
+        existingUserId = u?.id ?? null;
+      }
+      if (!existingUserId) {
+        return new Response(
+          JSON.stringify({ error: "E-mail já cadastrado, mas não foi possível vincular à empresa." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      userId = existingUserId;
+
+      // Verificar se já existe perfil para este user+empresa
+      const { data: perfilExistente } = await supabase
+        .from("perfis")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("empresa_id", empresa_id)
+        .maybeSingle();
+
+      if (perfilExistente) {
+        return new Response(
+          JSON.stringify({ perfil_id: perfilExistente.id, email }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Criar novo perfil vinculando usuário existente à nova empresa
+      const { data: perfilData, error: perfilError } = await supabase
+        .from("perfis")
+        .insert({
+          user_id: userId,
+          empresa_id,
+          nome,
+          email,
+          role: "empresa_adm",
+          senha_alterada: true,
+        })
+        .select("id")
+        .single();
+
+      if (perfilError) {
+        console.error("[criar-empresa-adm-acesso] insert perfis (existing user):", perfilError);
+        return new Response(
+          JSON.stringify({ error: perfilError.message ?? "Erro ao vincular ADM à empresa" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ perfil_id: perfilData?.id, email }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (authError) {
       console.error("[criar-empresa-adm-acesso] auth.createUser:", authError);
@@ -79,7 +151,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const userId = authData?.user?.id;
+    userId = authData?.user?.id ?? "";
     if (!userId) {
       return new Response(
         JSON.stringify({ error: "Usuário criado mas ID não retornado" }),

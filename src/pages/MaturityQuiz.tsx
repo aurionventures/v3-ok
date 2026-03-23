@@ -13,7 +13,9 @@ import { QuestionInput } from "@/components/QuestionInput";
 import { COMPANY_DATA, QUESTIONS } from "@/data/maturityData";
 import { calcularPontuacao, convertToRadarData, detectFamilyBusiness } from "@/utils/maturityCalculator";
 import { UserAnswers } from "@/types/maturity";
-import { saveMaturityAssessment } from "@/utils/maturityStorage";
+import { saveMaturityAssessment, getCurrentMaturityAssessment } from "@/utils/maturityStorage";
+import { upsertDiagnosticoMaturidade } from "@/services/maturidade";
+import { useEmpresas } from "@/hooks/useEmpresas";
 
 const MaturityQuiz = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -27,6 +29,7 @@ const MaturityQuiz = () => {
   const [isFamilyBusiness, setIsFamilyBusiness] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { firstEmpresaId } = useEmpresas();
 
   const totalSteps = COMPANY_DATA.length + QUESTIONS.length;
   const progress = (currentStep / totalSteps) * 100;
@@ -183,9 +186,15 @@ const MaturityQuiz = () => {
   const overallScore = maturityData.reduce((sum, item) => sum + item.score, 0) / maturityData.length;
   const maturityLevel = getMaturityLevel(overallScore);
 
-  const handleSaveAndExit = () => {
+  const handleSaveAndExit = async () => {
     const result = calcularPontuacao(answers, isFamilyBusiness);
     saveMaturityAssessment(result, answers.companyData);
+    if (firstEmpresaId) {
+      const stored = getCurrentMaturityAssessment();
+      if (stored) {
+        await upsertDiagnosticoMaturidade(firstEmpresaId, stored);
+      }
+    }
     toast({
       title: "Diagnóstico salvo",
       description: "Os dados foram salvos com sucesso. Redirecionando...",
