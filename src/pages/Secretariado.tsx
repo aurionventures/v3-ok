@@ -12,6 +12,7 @@ import {
   Users,
   LayoutGrid,
   Search,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,83 +37,7 @@ import { cn } from "@/lib/utils";
 import { BuscaConversacionalAtas } from "@/components/secretariado/BuscaConversacionalAtas";
 import { AprovacaoConvidadosContent } from "@/components/secretariado/AprovacaoConvidadosContent";
 import { ListaAtasContent } from "@/components/secretariado/ListaAtasContent";
-
-const KPI_CARDS = [
-  {
-    title: "Total Criadas",
-    value: 20,
-    description: "Todas as tarefas registradas",
-    progress: 100,
-    icon: CheckCircle,
-    iconBg: "bg-blue-500",
-  },
-  {
-    title: "Resolvidas",
-    value: 8,
-    description: "40% do total",
-    progress: 40,
-    icon: CheckCircle,
-    iconBg: "bg-green-500",
-  },
-  {
-    title: "Pendentes",
-    value: 12,
-    description: "60% do total",
-    progress: 60,
-    icon: Clock,
-    iconBg: "bg-orange-500",
-  },
-  {
-    title: "Taxa de Resolução",
-    value: "40%",
-    description: "Eficiência da equipe",
-    progress: 40,
-    icon: TrendingUp,
-    iconBg: "bg-blue-500",
-  },
-];
-
-const ATAS_CARDS = [
-  {
-    title: "Aguardando Aprovação",
-    value: 1,
-    icon: FileEdit,
-    bgClass: "bg-amber-50 border-amber-200",
-    textClass: "text-amber-800",
-  },
-  {
-    title: "Aguardando Assinatura",
-    value: 1,
-    icon: PenLine,
-    bgClass: "bg-blue-50 border-blue-200",
-    textClass: "text-blue-800",
-  },
-  {
-    title: "Finalizadas",
-    value: 1,
-    icon: CheckSquare,
-    bgClass: "bg-green-50 border-green-200",
-    textClass: "text-green-800",
-  },
-];
-
-const STATUS_PIE_DATA = [
-  { name: "Resolvidas", value: 53, color: "#22c55e" },
-  { name: "Em Andamento", value: 20, color: "#f97316" },
-  { name: "Atrasadas", value: 27, color: "#ef4444" },
-];
-
-const TAREFAS_POR_ORGAO = [
-  { orgao: "Comitê de Auditoria", quantidade: 4, fill: "#22c55e" },
-  { orgao: "Ética e Compliance", quantidade: 3, fill: "#f97316" },
-  { orgao: "de Administração", quantidade: 3, fill: "#3b82f6" },
-  { orgao: "Conselho Fiscal", quantidade: 3, fill: "#3b82f6" },
-  { orgao: "Sustentabilidade", quantidade: 2, fill: "#22c55e" },
-  { orgao: "Pessoas e Sucessão", quantidade: 2, fill: "#22c55e" },
-  { orgao: "Especial de M&A", quantidade: 2, fill: "#f97316" },
-  { orgao: "Conselho Consultivo", quantidade: 1, fill: "#3b82f6" },
-];
-
+import { useSecretariadoIndicadores } from "@/hooks/useSecretariadoIndicadores";
 
 function BibliotecaContent() {
   const [subTab, setSubTab] = useState<"busca" | "atas">("busca");
@@ -148,6 +73,81 @@ function BibliotecaContent() {
 }
 
 function GestaoTarefasIndicadores() {
+  const {
+    indicadoresTarefas,
+    atasPendentes,
+    isLoading,
+  } = useSecretariadoIndicadores();
+
+  const { total, resolvidas, pendentes, taxaResolucao, statusPieData, tarefasPorOrgao } = indicadoresTarefas;
+
+  const kpiCards = [
+    {
+      title: "Total Criadas",
+      value: total,
+      description: "Todas as tarefas registradas",
+      progress: total > 0 ? 100 : 0,
+      icon: CheckCircle,
+      iconBg: "bg-blue-500",
+    },
+    {
+      title: "Resolvidas",
+      value: resolvidas,
+      description: total > 0 ? `${Math.round((resolvidas / total) * 100)}% do total` : "0% do total",
+      progress: total > 0 ? Math.round((resolvidas / total) * 100) : 0,
+      icon: CheckCircle,
+      iconBg: "bg-green-500",
+    },
+    {
+      title: "Pendentes",
+      value: pendentes,
+      description: total > 0 ? `${Math.round((pendentes / total) * 100)}% do total` : "0% do total",
+      progress: total > 0 ? Math.round((pendentes / total) * 100) : 0,
+      icon: Clock,
+      iconBg: "bg-orange-500",
+    },
+    {
+      title: "Taxa de Resolução",
+      value: `${taxaResolucao}%`,
+      description: "Eficiência da equipe",
+      progress: taxaResolucao,
+      icon: TrendingUp,
+      iconBg: "bg-blue-500",
+    },
+  ];
+
+  const atasCards = [
+    {
+      title: "Aguardando Aprovação",
+      value: atasPendentes.aguardandoAprovacao,
+      icon: FileEdit,
+      bgClass: "bg-amber-50 border-amber-200",
+      textClass: "text-amber-800",
+    },
+    {
+      title: "Aguardando Assinatura",
+      value: atasPendentes.aguardandoAssinatura,
+      icon: PenLine,
+      bgClass: "bg-blue-50 border-blue-200",
+      textClass: "text-blue-800",
+    },
+    {
+      title: "Finalizadas",
+      value: atasPendentes.finalizadas,
+      icon: CheckSquare,
+      bgClass: "bg-green-50 border-green-200",
+      textClass: "text-green-800",
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-10 w-10 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <section>
@@ -155,7 +155,7 @@ function GestaoTarefasIndicadores() {
           Visão Gerencial - Indicadores Executivos
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {KPI_CARDS.map((kpi) => (
+          {kpiCards.map((kpi) => (
             <Card key={kpi.title} className="overflow-hidden">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -186,7 +186,7 @@ function GestaoTarefasIndicadores() {
           ATAS Pendentes de Aprovação/Assinatura
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          {ATAS_CARDS.map((ata) => (
+          {atasCards.map((ata) => (
             <Card
               key={ata.title}
               className={cn("border", ata.bgClass)}
@@ -249,33 +249,39 @@ function GestaoTarefasIndicadores() {
             </CardHeader>
             <CardContent>
               <div className="h-[240px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={STATUS_PIE_DATA}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
-                    >
-                      {STATUS_PIE_DATA.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) => [`${value}%`, ""]}
-                      contentStyle={{
-                        backgroundColor: "white",
-                        border: "1px solid #e2e8f0",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                {statusPieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusPieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="value"
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {statusPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [value, ""]}
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #e2e8f0",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-gray-500">
+                    Nenhuma tarefa para exibir
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -288,42 +294,48 @@ function GestaoTarefasIndicadores() {
             </CardHeader>
             <CardContent>
               <div className="h-[240px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={TAREFAS_POR_ORGAO}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
-                  >
-                    <XAxis
-                      dataKey="orgao"
-                      tick={{ fontSize: 11 }}
-                      angle={-35}
-                      textAnchor="end"
-                      height={70}
-                    />
-                    <YAxis
-                      dataKey="quantidade"
-                      allowDecimals={false}
-                      label={{
-                        value: "Quantidade",
-                        angle: -90,
-                        position: "insideLeft",
-                        style: { fontSize: 12 },
-                      }}
-                    />
-                    <Tooltip
-                      formatter={(value) => [value, "Quantidade"]}
-                      contentStyle={{
-                        backgroundColor: "white",
-                        border: "1px solid #e2e8f0",
-                      }}
-                    />
-                    <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
-                      {TAREFAS_POR_ORGAO.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                {tarefasPorOrgao.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={tarefasPorOrgao}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                    >
+                      <XAxis
+                        dataKey="orgao"
+                        tick={{ fontSize: 11 }}
+                        angle={-35}
+                        textAnchor="end"
+                        height={70}
+                      />
+                      <YAxis
+                        dataKey="quantidade"
+                        allowDecimals={false}
+                        label={{
+                          value: "Quantidade",
+                          angle: -90,
+                          position: "insideLeft",
+                          style: { fontSize: 12 },
+                        }}
+                      />
+                      <Tooltip
+                        formatter={(value) => [value, "Quantidade"]}
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #e2e8f0",
+                        }}
+                      />
+                      <Bar dataKey="quantidade" radius={[4, 4, 0, 0]}>
+                        {tarefasPorOrgao.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-gray-500">
+                    Nenhuma tarefa para exibir
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
