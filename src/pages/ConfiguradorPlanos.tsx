@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Building2, FileText, Plus, Pencil, Trash2, Users, Infinity, Puzzle } from "lucide-react";
+import { Building2, FileText, Plus, Pencil, Trash2, Users, Infinity, DollarSign } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +49,7 @@ const ConfiguradorPlanos = () => {
   // Plano dialog
   const [planoDialogOpen, setPlanoDialogOpen] = useState(false);
   const [planoEditando, setPlanoEditando] = useState<PlanoAssinatura | null>(null);
-  const [planoForm, setPlanoForm] = useState({ name: "", description: "", empresas: "1", usuarios: "∞", addons: "0" });
+  const [planoForm, setPlanoForm] = useState({ name: "", description: "", empresas: "1", usuarios: "∞", valor: "0" });
 
   const handleNovoPorte = () => {
     setPorteEditando(null);
@@ -100,7 +100,7 @@ const ConfiguradorPlanos = () => {
 
   const handleNovoPlano = () => {
     setPlanoEditando(null);
-    setPlanoForm({ name: "", description: "", empresas: "1", usuarios: "∞", addons: "0" });
+    setPlanoForm({ name: "", description: "", empresas: "1", usuarios: "∞", valor: "0" });
     setPlanoDialogOpen(true);
   };
 
@@ -111,7 +111,7 @@ const ConfiguradorPlanos = () => {
       description: p.description,
       empresas: String(p.empresas),
       usuarios: p.usuarios,
-      addons: String(p.addons),
+      valor: String(p.valor ?? 0),
     });
     setPlanoDialogOpen(true);
   };
@@ -121,7 +121,7 @@ const ConfiguradorPlanos = () => {
     const description = planoForm.description.trim();
     const empresas = parseInt(planoForm.empresas, 10) || 1;
     const usuarios = planoForm.usuarios.trim() || "∞";
-    const addons = parseInt(planoForm.addons, 10) || 0;
+    const valor = parseInt(planoForm.valor, 10) || 0;
     if (!name) {
       toast({ title: "Nome obrigatório", variant: "destructive" });
       return;
@@ -130,7 +130,7 @@ const ConfiguradorPlanos = () => {
       setPlanos((prev) =>
         prev.map((x) =>
           x.id === planoEditando.id
-            ? { ...x, name, description, empresas, usuarios, addons }
+            ? { ...x, name, description, empresas, usuarios, valor }
             : x
         )
       );
@@ -138,11 +138,14 @@ const ConfiguradorPlanos = () => {
     } else {
       const ids = planos.map((x) => parseInt(x.id, 10)).filter((n) => !isNaN(n));
       const id = String(ids.length ? Math.max(...ids) + 1 : 1);
-      setPlanos((prev) => [...prev, { id, name, description, empresas, usuarios, addons }]);
+      setPlanos((prev) => [...prev, { id, name, description, empresas, usuarios, valor }]);
       toast({ title: "Plano criado", description: `${name} foi adicionado.` });
     }
     setPlanoDialogOpen(false);
   };
+
+  const formatValor = (v: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 }).format(v);
 
   const handleExcluirPlano = (p: PlanoAssinatura) => {
     setPlanos((prev) => prev.filter((x) => x.id !== p.id));
@@ -229,9 +232,9 @@ const ConfiguradorPlanos = () => {
                           <Infinity className="h-4 w-4" />
                           {p.usuarios} usuários
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Puzzle className="h-4 w-4" />
-                          {p.addons} add-ons
+                        <span className="flex items-center gap-1 font-semibold text-foreground">
+                          <DollarSign className="h-4 w-4" />
+                          {formatValor(p.valor ?? 0)}
                         </span>
                       </div>
                     </div>
@@ -343,13 +346,14 @@ const ConfiguradorPlanos = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="plano-addons">Add-ons</Label>
+                    <Label htmlFor="plano-valor">Valor (R$)</Label>
                     <Input
-                      id="plano-addons"
+                      id="plano-valor"
                       type="number"
                       min={0}
-                      value={planoForm.addons}
-                      onChange={(e) => setPlanoForm((p) => ({ ...p, addons: e.target.value }))}
+                      value={planoForm.valor}
+                      onChange={(e) => setPlanoForm((p) => ({ ...p, valor: e.target.value }))}
+                      placeholder="Ex: 3490"
                     />
                   </div>
                 </div>

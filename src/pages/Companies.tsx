@@ -44,7 +44,6 @@ import {
 } from "@/components/ui/select";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -97,6 +96,7 @@ const Companies = () => {
   const [empresaToDelete, setEmpresaToDelete] = useState<Empresa | null>(null);
   const [excluirConfirmacao, setExcluirConfirmacao] = useState("");
   const [isExcluirLoading, setIsExcluirLoading] = useState(false);
+  const [novaEmpresaSenhaVisivel, setNovaEmpresaSenhaVisivel] = useState(false);
 
   const filteredCompanies = empresas.filter(
     (empresa) =>
@@ -173,6 +173,7 @@ const Companies = () => {
         variant: "destructive",
       });
       setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "", plano_id: "" });
+      setNovaEmpresaSenhaVisivel(false);
       setIsNewCompanyDialogOpen(false);
       invalidateEmpresas();
       return;
@@ -184,15 +185,16 @@ const Companies = () => {
       description: `${empresaData.nome} foi adicionada. O ADM deve alterar a senha no primeiro acesso.`,
       action: (
         <ToastAction
-          altText="Copiar credenciais"
+          altText="Copiar dados de acesso"
           onClick={() => navigator.clipboard?.writeText(credenciais)}
         >
-          Copiar credenciais
+          Copiar dados de acesso
         </ToastAction>
       ),
     });
 
     setNewCompany({ nome: "", razao_social: "", cnpj: "", adm_email: "", adm_senha_provisoria: "", plano_id: "" });
+    setNovaEmpresaSenhaVisivel(false);
     setIsNewCompanyDialogOpen(false);
     invalidateEmpresas();
   };
@@ -214,8 +216,8 @@ const Companies = () => {
     if (error) {
       setEditDetalhes({ empresa, adm: null });
       toast({
-        title: "Dados do ADM indisponíveis",
-        description: "Você pode editar a empresa. Os dados do ADM não foram carregados.",
+        title: "ADM não carregado",
+        description: "Você pode editar a empresa. Faça login como admin@legacy.com para ver os dados do ADM.",
         variant: "destructive",
       });
     } else {
@@ -293,10 +295,10 @@ const Companies = () => {
 
   const handleConfirmarExcluir = async () => {
     if (!empresaToDelete) return;
-    if (excluirConfirmacao.trim() !== empresaToDelete.nome) {
+    if (excluirConfirmacao.trim().toLowerCase() !== empresaToDelete.nome.toLowerCase()) {
       toast({
         title: "Confirmação incorreta",
-        description: `Digite exatamente "${empresaToDelete.nome}" para confirmar a exclusão.`,
+        description: `Digite o nome da empresa "${empresaToDelete.nome}" para confirmar a exclusão.`,
         variant: "destructive",
       });
       return;
@@ -377,14 +379,9 @@ const Companies = () => {
                       Preencha os dados da nova empresa. O ADM da empresa poderá criar membros e configurar a governança.
                     </DialogDescription>
                   </DialogHeader>
-                  <Tabs defaultValue="empresa" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="empresa">Dados da empresa</TabsTrigger>
-                      <TabsTrigger value="plano">Plano</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="empresa" className="space-y-4 pt-4">
-                      <div className="grid gap-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="space-y-4 pt-2">
+                    <div className="grid gap-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="nome" className="text-right">
                             Nome*
                           </Label>
@@ -450,55 +447,74 @@ const Companies = () => {
                               <Label htmlFor="adm_senha" className="text-right">
                                 Senha provisória*
                               </Label>
-                              <Input
-                                id="adm_senha"
-                                type="password"
-                                value={newCompany.adm_senha_provisoria}
-                                onChange={(e) =>
-                                  setNewCompany((p) => ({ ...p, adm_senha_provisoria: e.target.value }))
-                                }
-                                className="col-span-3"
-                                placeholder="Mínimo 6 caracteres"
-                                minLength={6}
-                              />
+                              <div className="col-span-3 relative">
+                                <Input
+                                  id="adm_senha"
+                                  type={novaEmpresaSenhaVisivel ? "text" : "password"}
+                                  value={newCompany.adm_senha_provisoria}
+                                  onChange={(e) =>
+                                    setNewCompany((p) => ({ ...p, adm_senha_provisoria: e.target.value }))
+                                  }
+                                  className="pr-10"
+                                  placeholder="Mínimo 6 caracteres"
+                                  minLength={6}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setNovaEmpresaSenhaVisivel((v) => !v)}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  title={novaEmpresaSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                                >
+                                  {novaEmpresaSenhaVisivel ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </div>
                             </div>
                             <p className="text-xs text-muted-foreground col-span-4">
                               No primeiro acesso, o ADM deverá alterar a senha.
                             </p>
                           </div>
                         </div>
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="plano" className="space-y-4 pt-4">
-                      <div className="grid gap-4">
-                        <p className="text-sm text-muted-foreground">
-                          Selecione o plano de assinatura da empresa. Os planos são configurados em Configurador de Planos.
-                        </p>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="plano" className="text-right">
-                            Plano
-                          </Label>
-                          <div className="col-span-3">
-                            <Select
-                              value={newCompany.plano_id || undefined}
-                              onValueChange={(v) => setNewCompany((p) => ({ ...p, plano_id: v }))}
-                            >
-                              <SelectTrigger id="plano">
-                                <SelectValue placeholder="Selecione um plano" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {getPlanos().map((plano) => (
-                                  <SelectItem key={plano.id} value={plano.id}>
-                                    {plano.name} — {plano.description}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                        <div className="border-t pt-4 mt-2">
+                          <p className="text-sm font-medium text-muted-foreground mb-3">
+                            Plano de assinatura
+                          </p>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="plano" className="text-right">
+                              Plano
+                            </Label>
+                            <div className="col-span-3">
+                              <Select
+                                value={newCompany.plano_id || undefined}
+                                onValueChange={(v) => setNewCompany((p) => ({ ...p, plano_id: v }))}
+                              >
+                                <SelectTrigger id="plano">
+                                  <SelectValue placeholder="Selecione um plano" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {getPlanos().map((plano) => (
+                                    <SelectItem key={plano.id} value={plano.id}>
+                                      {plano.name} — {plano.description} —{" "}
+                                      {new Intl.NumberFormat("pt-BR", {
+                                        style: "currency",
+                                        currency: "BRL",
+                                        minimumFractionDigits: 0,
+                                      }).format(plano.valor ?? 0)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Os planos são configurados em Configurador de Planos.
+                          </p>
                         </div>
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                    </div>
                   <DialogFooter>
                     <Button
                       type="button"
@@ -538,6 +554,7 @@ const Companies = () => {
               </CardContent>
             </Card>
           ) : (
+            <>
             <Tabs defaultValue="active">
               <TabsList>
                 <TabsTrigger value="active">
@@ -590,6 +607,15 @@ const Companies = () => {
                                 >
                                   Desativar
                                 </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleOpenExcluir(empresa)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Excluir
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -638,6 +664,15 @@ const Companies = () => {
                                   onClick={() => handleToggleAtivo(empresa)}
                                 >
                                   Reativar
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleOpenExcluir(empresa)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Excluir
                                 </Button>
                               </div>
                             </TableCell>
@@ -698,6 +733,15 @@ const Companies = () => {
                                 >
                                   {empresa.ativo ? "Desativar" : "Reativar"}
                                 </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleOpenExcluir(empresa)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Excluir
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -708,6 +752,55 @@ const Companies = () => {
                 </Card>
               </TabsContent>
             </Tabs>
+
+            {/* AlertDialog Excluir Empresa */}
+            <AlertDialog
+              open={!!empresaToDelete}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setEmpresaToDelete(null);
+                  setExcluirConfirmacao("");
+                }
+              }}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir cliente</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. A empresa <strong>{empresaToDelete?.nome}</strong> e dados
+                    relacionados serão removidos permanentemente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                  <Label htmlFor="excluir-confirm" className="text-sm font-medium">
+                    Digite o nome da empresa para confirmar:
+                  </Label>
+                  <Input
+                    id="excluir-confirm"
+                    value={excluirConfirmacao}
+                    onChange={(e) => setExcluirConfirmacao(e.target.value)}
+                    placeholder={empresaToDelete?.nome}
+                    className="mt-2"
+                    autoComplete="off"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <Button
+                    variant="destructive"
+                    disabled={
+                      isExcluirLoading ||
+                      excluirConfirmacao.trim().toLowerCase() !== (empresaToDelete?.nome ?? "").toLowerCase()
+                    }
+                    onClick={handleConfirmarExcluir}
+                  >
+                    {isExcluirLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Excluir
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            </>
           )}
         </div>
       </div>
@@ -796,71 +889,77 @@ const Companies = () => {
                       </div>
                     </div>
                   </div>
-                  {editDetalhes?.adm && (
-                    <div className="border-t pt-4 mt-2 space-y-3">
-                      <p className="text-sm font-semibold text-muted-foreground">
-                        ADM da empresa
-                      </p>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Nome</Label>
-                        <div className="col-span-3 text-sm py-2">
-                          {editDetalhes.adm.nome ?? "—"}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">E-mail</Label>
-                        <div className="col-span-3 text-sm py-2">
-                          {editDetalhes.adm.email ?? "—"}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">Senha</Label>
-                        <div className="col-span-3 flex items-center gap-2">
-                          <div className="relative flex-1">
-                            <Input
-                              type={admSenhaVisivel ? "text" : "password"}
-                              readOnly
-                              value={admSenhaProvisoria ?? "••••••••"}
-                              className="pr-10 bg-muted font-mono"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setAdmSenhaVisivel((v) => !v)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                              title={admSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
-                            >
-                              {admSenhaVisivel ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </button>
+                  <div className="border-t pt-4 mt-2 space-y-3">
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      ADM da empresa
+                    </p>
+                    {editDetalhes?.adm ? (
+                      <>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label className="text-right">Nome</Label>
+                          <div className="col-span-3 text-sm py-2">
+                            {editDetalhes.adm.nome ?? "—"}
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleRedefinirSenhaAdm}
-                            disabled={isRedefinirSenhaLoading}
-                          >
-                            {isRedefinirSenhaLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <RefreshCw className="h-4 w-4" />
-                            )}
-                            <span className="ml-1.5 hidden sm:inline">
-                              Redefinir senha
-                            </span>
-                          </Button>
                         </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground col-span-4">
-                        {admSenhaProvisoria
-                          ? "Use o botão para copiar as credenciais e enviar ao ADM."
-                          : "A senha não é exibida por segurança. Use \"Redefinir senha\" para gerar uma nova."}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label className="text-right">E-mail</Label>
+                          <div className="col-span-3 text-sm py-2">
+                            {editDetalhes.adm.email ?? "—"}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label className="text-right">Senha</Label>
+                          <div className="col-span-3 flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <Input
+                                type={admSenhaVisivel ? "text" : "password"}
+                                readOnly
+                                value={admSenhaProvisoria ?? "••••••••"}
+                                className="pr-10 bg-muted font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setAdmSenhaVisivel((v) => !v)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                title={admSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                              >
+                                {admSenhaVisivel ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </button>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={handleRedefinirSenhaAdm}
+                              disabled={isRedefinirSenhaLoading}
+                            >
+                              {isRedefinirSenhaLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                              <span className="ml-1.5 hidden sm:inline">
+                                Redefinir senha
+                              </span>
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground col-span-4">
+                          {admSenhaProvisoria
+                            ? "Use o botão para copiar as credenciais e enviar ao ADM."
+                            : "A senha não é exibida por segurança. Use \"Redefinir senha\" para gerar uma nova."}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum ADM vinculado a esta empresa. Crie a empresa novamente com credenciais ADM ou vincule um ADM manualmente.
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </>
               )}
             </div>

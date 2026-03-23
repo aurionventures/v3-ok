@@ -3,7 +3,7 @@
  * Requer VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no .env
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, FunctionsHttpError } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -43,11 +43,11 @@ export async function invokeEdgeFunction<T = unknown>(
 
   if (error) {
     let message = error.message;
-    const err = error as { context?: { json?: () => Promise<{ error?: string }> } };
-    if (err?.context && typeof err.context.json === "function") {
+    if (error instanceof FunctionsHttpError && error.context) {
       try {
-        const parsed = await err.context.json();
+        const parsed = (await error.context.json()) as { error?: string; message?: string };
         if (parsed?.error) message = parsed.error;
+        else if (parsed?.message) message = parsed.message;
       } catch {
         /* usar message padrão */
       }

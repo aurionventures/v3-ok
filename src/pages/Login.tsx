@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff, Shield } from "lucide-react";
 import { setUserType } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { supabase, invokeEdgeFunction } from "@/lib/supabase";
 import { fetchMembroByUserId } from "@/services/governance";
 import {
   fetchEmpresaById,
@@ -138,18 +138,42 @@ const Login = () => {
     }
 
     if (userType === "admin") {
+      if (!supabase) {
+        toast({ title: "Erro", description: "Supabase não configurado.", variant: "destructive" });
+        return;
+      }
       setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        const valid = email === "admin@legacy.com" && password === "123";
-        if (!valid) {
-          toast({ title: "Erro de Login", description: "Email ou senha inválidos.", variant: "destructive" });
+      try {
+        let { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+        if (error?.message?.includes("Invalid login") && email.trim().toLowerCase() === "admin@legacy.com") {
+          const { error: seedErr } = await invokeEdgeFunction("seed-admin", {});
+          if (!seedErr) {
+            const retry = await supabase.auth.signInWithPassword({
+              email: "admin@legacy.com",
+              password,
+            });
+            data = retry.data;
+            error = retry.error;
+          }
+        }
+        if (error) {
+          toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
+          return;
+        }
+        if (data.user?.email !== "admin@legacy.com") {
+          await supabase.auth.signOut();
+          toast({ title: "Acesso negado", description: "Use admin@legacy.com para acesso administrativo.", variant: "destructive" });
           return;
         }
         setUserType("admin");
-        toast({ title: "Login bem-sucedido", description: `Bem-vindo ao Legacy OS.` });
+        toast({ title: "Login bem-sucedido", description: "Bem-vindo ao Legacy OS." });
         navigate("/admin");
-      }, 1000);
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
   };

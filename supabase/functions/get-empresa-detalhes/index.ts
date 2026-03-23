@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     const { data: admPerfil } = await supabase
       .from("perfis")
-      .select("id, user_id, nome, senha_alterada")
+      .select("id, user_id, nome, email, senha_alterada")
       .eq("empresa_id", empresa_id)
       .eq("role", "empresa_adm")
       .maybeSingle();
@@ -72,7 +72,8 @@ Deno.serve(async (req) => {
     let adm: { user_id: string; nome: string | null; email: string | null; senha_alterada: boolean } | null = null;
 
     if (admPerfil) {
-      if (admPerfil.user_id) {
+      admEmail = admPerfil.email ?? null;
+      if (!admEmail && admPerfil.user_id) {
         const { data: userData } = await supabase.auth.admin.getUserById(admPerfil.user_id);
         admEmail = userData?.user?.email ?? null;
       }
