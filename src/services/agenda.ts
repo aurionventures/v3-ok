@@ -22,6 +22,7 @@ export function gerarDatasReunioes(
     trimestral: [1, 4, 7, 10],
     semestral: [1, 7],
     anual: [1],
+    avulsa: [1], // uma única reunião no ano (primeira ocorrência conforme regra do dia)
   };
   const meses = mesesPorFrequencia[frequencia] ?? mesesPorFrequencia.mensal;
 
@@ -143,6 +144,7 @@ export async function insertReuniao(p: ReuniaoInsert): Promise<{ data: ReuniaoRo
       conselho_id: p.conselho_id ?? null,
       comite_id: p.comite_id ?? null,
       comissao_id: p.comissao_id ?? null,
+      virtual_tipo: p.virtual_tipo ?? null,
       titulo: p.titulo,
       data_reuniao: p.data_reuniao,
       horario: p.horario ?? null,
@@ -168,6 +170,7 @@ export async function insertReunioesEmLote(
     conselho_id: p.conselho_id ?? null,
     comite_id: p.comite_id ?? null,
     comissao_id: p.comissao_id ?? null,
+    virtual_tipo: p.virtual_tipo ?? null,
     titulo: p.titulo,
     data_reuniao: p.data_reuniao,
     horario: p.horario ?? null,

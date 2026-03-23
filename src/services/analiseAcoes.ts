@@ -71,10 +71,14 @@ export async function executarAnaliseAcoes(
   );
 
   if (error) {
-    return { data: null, error: "Habilite a API da Open AI" };
+    return { data: null, error: error.message ?? "Erro ao invocar a análise" };
   }
   if (data && typeof data === "object" && "error" in data && data.error) {
-    return { data: null, error: "Habilite a API da Open AI" };
+    const msg = String(data.error);
+    if (/OPENAI|API.*key|não configurada/i.test(msg)) {
+      return { data: null, error: "Habilite a API da Open AI em Supabase Secrets (Project Settings > Edge Functions)." };
+    }
+    return { data: null, error: msg };
   }
   return { data: data ?? null, error: null };
 }

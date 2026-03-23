@@ -532,13 +532,13 @@ export async function fetchMembrosPorReuniao(
   return result;
 }
 
-/** Retorna membros alocados em um órgão específico (conselho, comitê ou comissão) */
+/** Retorna membros alocados em um órgão específico (conselho, comitê, comissão ou virtual) */
 export async function fetchMembrosPorOrgao(
   empresaId: string,
-  tipo: "conselho" | "comite" | "comissao",
+  tipo: "conselho" | "comite" | "comissao" | "virtual",
   orgaoId: string
 ): Promise<{ id: string; nome: string; email: string | null; cargo: string | null }[]> {
-  if (!supabase || !orgaoId) return [];
+  if (!supabase || !orgaoId || tipo === "virtual") return [];
   const campo = tipo === "conselho" ? "conselho_id" : tipo === "comite" ? "comite_id" : "comissao_id";
   const { data: alocacoes, error: errA } = await supabase
     .from("alocacoes_membros")

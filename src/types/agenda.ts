@@ -5,6 +5,7 @@ export interface ReuniaoRow {
   conselho_id: string | null;
   comite_id: string | null;
   comissao_id: string | null;
+  virtual_tipo?: string | null; // conselho | comite | comissao quando reunião virtual
   titulo: string;
   data_reuniao: string | null;
   horario: string | null;
@@ -26,6 +27,7 @@ export interface ReuniaoInsert {
   conselho_id?: string | null;
   comite_id?: string | null;
   comissao_id?: string | null;
+  virtual_tipo?: string | null; // conselho | comite | comissao quando reunião virtual
   titulo: string;
   data_reuniao: string;
   horario?: string | null;

@@ -26,11 +26,22 @@ const MemberPautas = () => {
       const comissaoIds = new Set((alocacoes ?? []).map((a) => a.comissao_id).filter(Boolean));
 
       const { data: reunioes } = await fetchReunioes(membro.empresa_id);
-      const reunioesMembro = reunioes.filter((r) =>
-        (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
-        (r.comite_id && comiteIds.has(r.comite_id)) ||
-        (r.comissao_id && comissaoIds.has(r.comissao_id))
-      );
+      const reunioesMembro = reunioes.filter((r) => {
+        const isVirtual = !r.conselho_id && !r.comite_id && !r.comissao_id;
+        if (isVirtual) {
+          const vt = (r as { virtual_tipo?: string | null }).virtual_tipo;
+          if (!vt) return true; // Legacy: virtual sem tipo → todos os membros
+          if (vt === "conselho") return conselhoIds.size > 0;
+          if (vt === "comite") return comiteIds.size > 0;
+          if (vt === "comissao") return comissaoIds.size > 0;
+          return false;
+        }
+        return (
+          (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
+          (r.comite_id && comiteIds.has(r.comite_id)) ||
+          (r.comissao_id && comissaoIds.has(r.comissao_id))
+        );
+      });
       const reuniaoIds = reunioesMembro.map((r) => r.id);
       if (reuniaoIds.length === 0) return [];
 

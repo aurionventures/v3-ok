@@ -8,6 +8,7 @@ import {
   Building2,
   Users,
   UserCog,
+  Globe,
   Clock,
   Plus,
   Trash2,
@@ -109,7 +110,7 @@ const Agenda = () => {
 
   const [configurarOpen, setConfigurarOpen] = useState(false);
   const [formAno, setFormAno] = useState(String(anoSelecionado));
-  const [configTipoOrgao, setConfigTipoOrgao] = useState<"conselho" | "comite" | "comissao">("conselho");
+  const [configTipoOrgao, setConfigTipoOrgao] = useState<"conselho" | "comite" | "comissao" | "virtual">("conselho");
   const [configOrgaoId, setConfigOrgaoId] = useState("");
   const [configTipoReuniao, setConfigTipoReuniao] = useState("ordinaria");
   const [configFrequencia, setConfigFrequencia] = useState("");
@@ -117,7 +118,7 @@ const Agenda = () => {
   const [configHorarioPadrao, setConfigHorarioPadrao] = useState("14:00");
   const [configModalidade, setConfigModalidade] = useState("presencial");
   const [configLocal, setConfigLocal] = useState("");
-  const [formTipoOrgao, setFormTipoOrgao] = useState<"conselho" | "comite" | "comissao">("conselho");
+  const [formTipoOrgao, setFormTipoOrgao] = useState<"conselho" | "comite" | "comissao" | "virtual">("conselho");
   const [formOrgaoId, setFormOrgaoId] = useState("");
   const [formData, setFormData] = useState("");
   const [formHorario, setFormHorario] = useState("14:00");
@@ -148,16 +149,24 @@ const Agenda = () => {
     }
   }, [configurarOpen, anoSelecionado]);
 
+  const PAUTA_VIRTUAL_TIPOS = [
+    { id: "virtual_conselho", nome: "Conselho" },
+    { id: "virtual_comite", nome: "Comitê" },
+    { id: "virtual_comissao", nome: "Comissão" },
+  ] as const;
+
   const configOrgaosPorTipo = useMemo(() => {
     if (configTipoOrgao === "conselho") return conselhos;
     if (configTipoOrgao === "comite") return comites;
-    return comissoes;
+    if (configTipoOrgao === "comissao") return comissoes;
+    return PAUTA_VIRTUAL_TIPOS;
   }, [configTipoOrgao, conselhos, comites, comissoes]);
 
   const orgaosPorTipo = useMemo(() => {
     if (formTipoOrgao === "conselho") return conselhos;
     if (formTipoOrgao === "comite") return comites;
-    return comissoes;
+    if (formTipoOrgao === "comissao") return comissoes;
+    return PAUTA_VIRTUAL_TIPOS;
   }, [formTipoOrgao, conselhos, comites, comissoes]);
 
   const orgaoSelecionado = useMemo(() => {
@@ -179,11 +188,13 @@ const Agenda = () => {
         if (filterBodyType === "conselho") return !!r.conselho_id;
         if (filterBodyType === "comite") return !!r.comite_id;
         if (filterBodyType === "comissao") return !!r.comissao_id;
+        if (filterBodyType === "virtual") return !r.conselho_id && !r.comite_id && !r.comissao_id;
         return true;
       });
     }
     if (filterBody !== "all") {
       list = list.filter((r) => {
+        if (filterBody === "virtual") return !r.conselho_id && !r.comite_id && !r.comissao_id;
         const id = r.conselho_id || r.comite_id || r.comissao_id;
         return id === filterBody;
       });
@@ -266,11 +277,17 @@ const Agenda = () => {
         toast({ title: "Selecione o órgão", variant: "destructive" });
         return;
       }
-      titulo = orgaoSelecionado.nome;
+      titulo = formTipoOrgao === "virtual" ? `Pauta Virtual - ${orgaoSelecionado.nome}` : orgaoSelecionado.nome;
       conselhoId = formTipoOrgao === "conselho" ? orgaoSelecionado.id : null;
       comiteId = formTipoOrgao === "comite" ? orgaoSelecionado.id : null;
       comissaoId = formTipoOrgao === "comissao" ? orgaoSelecionado.id : null;
+      if (formTipoOrgao === "virtual") conselhoId = comiteId = comissaoId = null;
     }
+
+    const virtualTipo =
+      formTipoOrgao === "virtual"
+        ? (formOrgaoId === "virtual_conselho" ? "conselho" : formOrgaoId === "virtual_comite" ? "comite" : formOrgaoId === "virtual_comissao" ? "comissao" : null)
+        : null;
 
     const tipoLabel = formTipoReuniao === "ordinaria" ? "Ordinária" : "Extraordinária";
     const { data: reuniaoCriada, error } = await insertReuniao({
@@ -278,6 +295,7 @@ const Agenda = () => {
       conselho_id: conselhoId,
       comite_id: comiteId,
       comissao_id: comissaoId,
+      virtual_tipo: virtualTipo ?? undefined,
       titulo,
       data_reuniao: formData,
       horario: formHorario,
@@ -363,7 +381,7 @@ const Agenda = () => {
                         Configurar Calendário Anual
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Configurador de Calendário Anual</DialogTitle>
                         <DialogDescription>Crie automaticamente o calendário de reuniões para o ano todo</DialogDescription>
@@ -385,11 +403,12 @@ const Agenda = () => {
                           </div>
                           <div className="space-y-2">
                             <Label>Tipo de Órgão <span className="text-destructive">*</span></Label>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                               {[
                                 { value: "conselho" as const, label: "Conselho", icon: Building2 },
                                 { value: "comite" as const, label: "Comitê", icon: Users },
                                 { value: "comissao" as const, label: "Comissão", icon: UserCog },
+                                { value: "virtual" as const, label: "Pauta Virtual", icon: Globe },
                               ].map(({ value, label, icon: Icon }) => (
                                 <button
                                   key={value}
@@ -413,10 +432,11 @@ const Agenda = () => {
                               {configTipoOrgao === "conselho" && "Conselho"}
                               {configTipoOrgao === "comite" && "Comitê"}
                               {configTipoOrgao === "comissao" && "Comissão"}
+                              {configTipoOrgao === "virtual" && "Tipo de Órgão"}
                             </Label>
                             <Select value={configOrgaoId} onValueChange={setConfigOrgaoId}>
                               <SelectTrigger>
-                                <SelectValue placeholder={`Selecione o ${configTipoOrgao === "conselho" ? "conselho" : configTipoOrgao === "comite" ? "comitê" : "comissão"}`} />
+                                <SelectValue placeholder={`Selecione o ${configTipoOrgao === "conselho" ? "conselho" : configTipoOrgao === "comite" ? "comitê" : configTipoOrgao === "comissao" ? "comissão" : "tipo de órgão"}`} />
                               </SelectTrigger>
                               <SelectContent>
                                 {configOrgaosPorTipo.map((o) => (
@@ -450,6 +470,7 @@ const Agenda = () => {
                                 <SelectItem value="trimestral">Trimestral</SelectItem>
                                 <SelectItem value="semestral">Semestral</SelectItem>
                                 <SelectItem value="anual">Anual</SelectItem>
+                                <SelectItem value="avulsa">Avulsa</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -521,11 +542,22 @@ const Agenda = () => {
                             const conselhoId = configTipoOrgao === "conselho" ? configOrgaoId : null;
                             const comiteId = configTipoOrgao === "comite" ? configOrgaoId : null;
                             const comissaoId = configTipoOrgao === "comissao" ? configOrgaoId : null;
+                            const virtualTipo =
+                              configTipoOrgao === "virtual"
+                                ? (configOrgaoId === "virtual_conselho"
+                                  ? "conselho"
+                                  : configOrgaoId === "virtual_comite"
+                                    ? "comite"
+                                    : configOrgaoId === "virtual_comissao"
+                                      ? "comissao"
+                                      : null)
+                                : null;
                             const itens = datas.map((data_reuniao) => ({
                               conselho_id: conselhoId,
                               comite_id: comiteId,
                               comissao_id: comissaoId,
-                              titulo,
+                              virtual_tipo: virtualTipo,
+                              titulo: configTipoOrgao === "virtual" ? `Pauta Virtual - ${titulo}` : titulo,
                               data_reuniao: data_reuniao,
                               horario: configHorarioPadrao || null,
                               tipo: configTipoReuniao === "ordinaria" ? "ordinaria" : "extraordinaria",
@@ -613,19 +645,20 @@ const Agenda = () => {
                             <>
                               <div className="space-y-2">
                                 <Label>Tipo de Órgão</Label>
-                                <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
+                                <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao" | "virtual"); setFormOrgaoId(""); }}>
                                   <SelectTrigger><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="conselho">Conselho</SelectItem>
                                     <SelectItem value="comite">Comitê</SelectItem>
                                     <SelectItem value="comissao">Comissão</SelectItem>
+                                    <SelectItem value="virtual">Pauta Virtual</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                               <div className="space-y-2">
-                                <Label>Órgão</Label>
+                                <Label>{formTipoOrgao === "virtual" ? "Tipo de Órgão" : "Órgão"}</Label>
                                 <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
-                                  <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
+                                  <SelectTrigger><SelectValue placeholder={formTipoOrgao === "virtual" ? "Selecione o tipo de órgão" : "Selecione o órgão"} /></SelectTrigger>
                                   <SelectContent>
                                     {orgaosPorTipo.map((o) => (
                                       <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
@@ -744,13 +777,14 @@ const Agenda = () => {
                   <label className="text-sm font-medium flex items-center gap-1">
                     <BarChart3 className="h-4 w-4" /> Tipo de Órgão
                   </label>
-                  <Select value={filterBodyType} onValueChange={setFilterBodyType}>
+                  <Select value={filterBodyType} onValueChange={(v) => { setFilterBodyType(v); setFilterBody("all"); }}>
                     <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="conselho">Conselho</SelectItem>
                       <SelectItem value="comite">Comitê</SelectItem>
                       <SelectItem value="comissao">Comissão</SelectItem>
+                      <SelectItem value="virtual">Pauta Virtual</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -760,9 +794,18 @@ const Agenda = () => {
                     <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      {conselhos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-                      {comites.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-                      {comissoes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                      {filterBodyType === "conselho" && conselhos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                      {filterBodyType === "comite" && comites.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                      {filterBodyType === "comissao" && comissoes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                      {filterBodyType === "virtual" && <SelectItem value="virtual">Pauta Virtual</SelectItem>}
+                      {filterBodyType === "all" && (
+                        <>
+                          {conselhos.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                          {comites.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                          {comissoes.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                          <SelectItem value="virtual">Pauta Virtual</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -825,7 +868,8 @@ const Agenda = () => {
                               <p className="text-xs text-muted-foreground">Nenhuma reunião</p>
                             ) : (
                               meetings.map((r) => {
-                                const titulo = r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || "Reunião";
+                                const isVirtualR = !r.conselho_id && !r.comite_id && !r.comissao_id;
+                                const titulo = r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || (isVirtualR ? "Pauta Virtual" : "Reunião");
                                 const dataStr = r.data_reuniao ? format(new Date(r.data_reuniao), "d/M") : "";
                                 const hora = r.horario ? String(r.horario).slice(0, 5) : "";
                                 const statusLabel = STATUS_LABEL[r.status] ?? r.status;
@@ -891,7 +935,8 @@ const Agenda = () => {
                                     </div>
                                     <div className="space-y-1">
                                       {dayMeetings.map((r) => {
-                                        const titulo = r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || "Reunião";
+                                        const isVirtualR = !r.conselho_id && !r.comite_id && !r.comissao_id;
+                                        const titulo = r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || (isVirtualR ? "Pauta Virtual" : "Reunião");
                                         const hora = r.horario ? String(r.horario).slice(0, 5) : "";
                                         return (
                                           <button
