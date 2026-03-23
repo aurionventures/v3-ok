@@ -23,6 +23,7 @@ import {
   getCurrentMaturityAssessment,
   convertStoredDataToRadarData,
 } from "@/utils/maturityStorage";
+import { useEmpresas } from "@/hooks/useEmpresas";
 import { useDashboardIndicadores } from "@/hooks/useSecretariadoIndicadores";
 import { useInsightsEstrategicos } from "@/hooks/useInsightsEstrategicos";
 
@@ -37,6 +38,7 @@ const shortLabels: Record<string, string> = {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { firstEmpresaId } = useEmpresas();
   const [maturidadeData, setMaturidadeData] = useState(
     convertStoredDataToRadarData(null)
   );
@@ -50,9 +52,9 @@ const Dashboard = () => {
   } = useInsightsEstrategicos();
 
   useEffect(() => {
-    const stored = getCurrentMaturityAssessment();
+    const stored = getCurrentMaturityAssessment(firstEmpresaId);
     setMaturidadeData(convertStoredDataToRadarData(stored));
-  }, []);
+  }, [firstEmpresaId]);
 
   return (
     <div className="flex h-screen bg-gray-50">

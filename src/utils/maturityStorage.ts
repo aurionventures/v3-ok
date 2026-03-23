@@ -1,7 +1,12 @@
 import { MaturityResult, MaturityDimension } from "@/types/maturity";
 
-const MATURITY_STORAGE_KEY = 'maturity_assessment_data';
-const MATURITY_HISTORY_KEY = 'maturity_assessment_history';
+const MATURITY_STORAGE_KEY = "maturity_assessment_data";
+const MATURITY_HISTORY_KEY = "maturity_assessment_history";
+
+/** Chave scoped por empresa – cada empresa nova não herda dados de outra */
+function storageKey(base: string, empresaId: string | null | undefined): string {
+  return empresaId ? `${base}_${empresaId}` : base;
+}
 
 const ASSESSMENT_VERSION = "1.0";
 
@@ -17,7 +22,8 @@ export interface StoredMaturityAssessment {
 export const saveMaturityAssessment = (
   result: MaturityResult,
   companyData: Record<string, any>,
-  contactInfo?: Record<string, any>
+  contactInfo?: Record<string, any>,
+  empresaId?: string | null
 ): void => {
   const assessment: StoredMaturityAssessment = {
     id: Date.now().toString(),
@@ -25,20 +31,24 @@ export const saveMaturityAssessment = (
     timestamp: new Date(),
     result,
     companyData,
-    contactInfo: contactInfo ?? {}
+    contactInfo: contactInfo ?? {},
   };
 
-  // Save current assessment
-  localStorage.setItem(MATURITY_STORAGE_KEY, JSON.stringify(assessment));
+  const key = storageKey(MATURITY_STORAGE_KEY, empresaId);
+  const historyKey = storageKey(MATURITY_HISTORY_KEY, empresaId);
 
-  // Add to history
-  const history = getMaturityHistory();
-  const updatedHistory = [assessment, ...history.slice(0, 9)]; // Keep last 10
-  localStorage.setItem(MATURITY_HISTORY_KEY, JSON.stringify(updatedHistory));
+  localStorage.setItem(key, JSON.stringify(assessment));
+
+  const history = getMaturityHistory(empresaId);
+  const updatedHistory = [assessment, ...history.slice(0, 9)];
+  localStorage.setItem(historyKey, JSON.stringify(updatedHistory));
 };
 
-export const getCurrentMaturityAssessment = (): StoredMaturityAssessment | null => {
-  const stored = localStorage.getItem(MATURITY_STORAGE_KEY);
+export const getCurrentMaturityAssessment = (
+  empresaId?: string | null
+): StoredMaturityAssessment | null => {
+  const key = storageKey(MATURITY_STORAGE_KEY, empresaId);
+  const stored = typeof window !== "undefined" ? localStorage.getItem(key) : null;
   if (!stored) return null;
 
   try {
@@ -46,20 +56,26 @@ export const getCurrentMaturityAssessment = (): StoredMaturityAssessment | null 
     return {
       ...data,
       version: data.version ?? ASSESSMENT_VERSION,
-      timestamp: new Date(data.timestamp)
+      timestamp: new Date(data.timestamp),
     };
   } catch {
     return null;
   }
 };
 
-export const clearMaturityData = (): void => {
-  localStorage.removeItem(MATURITY_STORAGE_KEY);
-  localStorage.removeItem(MATURITY_HISTORY_KEY);
+export const clearMaturityData = (empresaId?: string | null): void => {
+  const key = storageKey(MATURITY_STORAGE_KEY, empresaId);
+  const historyKey = storageKey(MATURITY_HISTORY_KEY, empresaId);
+  localStorage.removeItem(key);
+  localStorage.removeItem(historyKey);
 };
 
-export const getMaturityHistory = (): StoredMaturityAssessment[] => {
-  const stored = localStorage.getItem(MATURITY_HISTORY_KEY);
+export const getMaturityHistory = (
+  empresaId?: string | null
+): StoredMaturityAssessment[] => {
+  const historyKey = storageKey(MATURITY_HISTORY_KEY, empresaId);
+  const stored =
+    typeof window !== "undefined" ? localStorage.getItem(historyKey) : null;
   if (!stored) return [];
 
   try {
@@ -67,7 +83,7 @@ export const getMaturityHistory = (): StoredMaturityAssessment[] => {
     return data.map((item: any) => ({
       ...item,
       version: item.version ?? ASSESSMENT_VERSION,
-      timestamp: new Date(item.timestamp)
+      timestamp: new Date(item.timestamp),
     }));
   } catch {
     return [];

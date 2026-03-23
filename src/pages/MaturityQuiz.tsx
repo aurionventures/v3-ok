@@ -135,7 +135,7 @@ const MaturityQuiz = () => {
 
     if (newStep >= totalSteps) {
       const result = calcularPontuacao(answers, isFamilyBusiness);
-      saveMaturityAssessment(result, answers.companyData);
+      saveMaturityAssessment(result, answers.companyData, undefined, firstEmpresaId);
       setShowResult(true);
       toast({
         title: "Diagnóstico gerado!",
@@ -188,9 +188,9 @@ const MaturityQuiz = () => {
 
   const handleSaveAndExit = async () => {
     const result = calcularPontuacao(answers, isFamilyBusiness);
-    saveMaturityAssessment(result, answers.companyData);
+    saveMaturityAssessment(result, answers.companyData, undefined, firstEmpresaId ?? undefined);
     if (firstEmpresaId) {
-      const stored = getCurrentMaturityAssessment();
+      const stored = getCurrentMaturityAssessment(firstEmpresaId);
       if (stored) {
         await upsertDiagnosticoMaturidade(firstEmpresaId, stored);
       }

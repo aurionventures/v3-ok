@@ -76,9 +76,9 @@ const MaturidadeGovernanca = () => {
 
     async function load() {
       if (!firstEmpresaId) {
-        const stored = getCurrentMaturityAssessment();
+        const stored = getCurrentMaturityAssessment(firstEmpresaId);
         loadAssessment(stored);
-        const history = getMaturityHistory();
+        const history = getMaturityHistory(firstEmpresaId);
         const sorted = [...history].sort(
           (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
@@ -121,14 +121,14 @@ const MaturidadeGovernanca = () => {
         );
         setHistoryAssessments(sorted);
       } else {
-        const stored = getCurrentMaturityAssessment();
+        const stored = getCurrentMaturityAssessment(firstEmpresaId);
         loadAssessment(stored);
         if (stored) {
           upsertDiagnosticoMaturidade(firstEmpresaId, stored).then(({ error }) => {
             if (error) console.warn("[MaturidadeGovernanca] sync to DB:", error);
           });
         }
-        const history = getMaturityHistory();
+        const history = getMaturityHistory(firstEmpresaId);
         const sorted = [...history].sort(
           (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
@@ -154,7 +154,7 @@ const MaturidadeGovernanca = () => {
 
   const handleClearData = async () => {
     if (!window.confirm("Tem certeza que deseja limpar todos os dados de diagnóstico? Será necessário preencher novamente.")) return;
-    clearMaturityData();
+    clearMaturityData(firstEmpresaId);
     if (firstEmpresaId) {
       const { error } = await deleteDiagnosticosMaturidade(firstEmpresaId);
       if (error) console.warn("[MaturidadeGovernanca] delete from DB:", error);

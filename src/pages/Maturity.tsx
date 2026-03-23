@@ -26,6 +26,7 @@ import MaturityInsights from "@/components/MaturityInsights";
 import MaturityGlobalIndicator from "@/components/MaturityGlobalIndicator";
 import SectorRanking from "@/components/SectorRanking";
 import { useNavigate } from "react-router-dom";
+import { useEmpresas } from "@/hooks/useEmpresas";
 import {
   LineChart,
   Line,
@@ -149,6 +150,7 @@ const formatDate = (date: Date) => {
 
 const Maturity = () => {
   const navigate = useNavigate();
+  const { firstEmpresaId } = useEmpresas();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const [showActivityLogs, setShowActivityLogs] = useState(false);
@@ -158,12 +160,12 @@ const Maturity = () => {
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    // Load current assessment
-    const currentAssessment = getCurrentMaturityAssessment();
+    // Load current assessment (scoped por empresa – nova empresa não herda dados)
+    const currentAssessment = getCurrentMaturityAssessment(firstEmpresaId);
     setMaturityData(convertStoredDataToRadarData(currentAssessment));
 
     // Load history
-    const history = getMaturityHistory();
+    const history = getMaturityHistory(firstEmpresaId);
     const formattedHistory = history.map((assessment, index) => ({
       id: assessment.id,
       date: new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(assessment.timestamp),
@@ -188,7 +190,7 @@ const Maturity = () => {
       details: `Pontuação geral: ${(assessment.result.pontuacao_total / 20).toFixed(1)} | Estágio: ${assessment.result.estagio}`
     }));
     setActivityLogs(logs);
-  }, []);
+  }, [firstEmpresaId]);
 
   const handleOpenDetails = (assessment: any) => {
     setSelectedAssessment(assessment);
