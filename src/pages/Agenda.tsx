@@ -9,6 +9,8 @@ import {
   Users,
   UserCog,
   Clock,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -43,7 +45,7 @@ import { cn } from "@/lib/utils";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useGovernance } from "@/hooks/useGovernance";
 import { useAgenda } from "@/hooks/useAgenda";
-import { gerarDatasReunioes } from "@/services/agenda";
+import { gerarDatasReunioes, criarConvidadoReuniao } from "@/services/agenda";
 import { fetchMembrosPorOrgao } from "@/services/governance";
 import type { ReuniaoEnriquecida } from "@/types/agenda";
 
@@ -126,6 +128,9 @@ const Agenda = () => {
   const [novaReuniaoOpen, setNovaReuniaoOpen] = useState(false);
   const [formModoReuniao, setFormModoReuniao] = useState<"orgao" | "avulsa">("avulsa");
   const [formTituloAvulsa, setFormTituloAvulsa] = useState("");
+  const [formModalidade, setFormModalidade] = useState("presencial");
+  const [formLocal, setFormLocal] = useState("");
+  const [formConvidados, setFormConvidados] = useState<{ id: string; email: string; senha_provisoria: string; senha_valida_ate: string }[]>([]);
 
   useEffect(() => {
     setCurrentMonth(new Date(anoSelecionado, 0, 1));
@@ -222,7 +227,23 @@ const Agenda = () => {
     setFormModoReuniao("avulsa");
     setFormTituloAvulsa("");
     setFormOrgaoId("");
+    setFormConvidados([]);
     setNovaReuniaoOpen(true);
+  };
+
+  const addConvidado = () => {
+    setFormConvidados((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), email: "", senha_provisoria: "", senha_valida_ate: "" },
+    ]);
+  };
+
+  const removeConvidado = (id: string) => {
+    setFormConvidados((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const updateConvidado = (id: string, field: "email" | "senha_provisoria" | "senha_valida_ate", value: string) => {
+    setFormConvidados((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
   };
 
   const handleAgendar = async () => {
@@ -254,7 +275,7 @@ const Agenda = () => {
     }
 
     const tipoLabel = formTipoReuniao === "ordinaria" ? "Ordinária" : "Extraordinária";
-    const { error } = await insertReuniao({
+    const { data: reuniaoCriada, error } = await insertReuniao({
       empresa_id: empresaId,
       conselho_id: conselhoId,
       comite_id: comiteId,
@@ -269,11 +290,30 @@ const Agenda = () => {
       toast({ title: "Erro ao agendar", description: error, variant: "destructive" });
       return;
     }
-    toast({ title: "Reunião agendada", description: `${titulo} em ${formData}` });
+    const reuniaoId = reuniaoCriada?.id;
+    const convidadosValidos = formConvidados.filter((c) => c.email.trim() && c.senha_provisoria.length >= 6 && c.senha_valida_ate);
+    for (const c of convidadosValidos) {
+      if (!reuniaoId) break;
+      const { error: errConv } = await criarConvidadoReuniao({
+        reuniao_id: reuniaoId,
+        email: c.email.trim(),
+        senha_provisoria: c.senha_provisoria,
+        senha_valida_ate: c.senha_valida_ate,
+      });
+      if (errConv) {
+        toast({ title: "Reunião criada, mas erro em convidado", description: `${c.email}: ${errConv}`, variant: "destructive" });
+      }
+    }
+    if (convidadosValidos.length > 0 && reuniaoId) {
+      toast({ title: "Reunião agendada", description: `${titulo} em ${formData}${convidadosValidos.length > 0 ? ` • ${convidadosValidos.length} convidado(s)` : ""}` });
+    } else {
+      toast({ title: "Reunião agendada", description: `${titulo} em ${formData}` });
+    }
     setNovaReuniaoOpen(false);
     setFormOrgaoId("");
     setFormData("");
     setFormTituloAvulsa("");
+    setFormConvidados([]);
     refetch();
   };
 
@@ -516,7 +556,17 @@ const Agenda = () => {
                     </DialogContent>
                   </Dialog>
 
-                  <Dialog open={novaReuniaoOpen} onOpenChange={(open) => { setNovaReuniaoOpen(open); if (!open) { setFormTituloAvulsa(""); setFormOrgaoId(""); } }}>
+                  <Dialog
+                    open={novaReuniaoOpen}
+                    onOpenChange={(open) => {
+                      setNovaReuniaoOpen(open);
+                      if (!open) {
+                        setFormTituloAvulsa("");
+                        setFormOrgaoId("");
+                        setFormConvidados([]);
+                      }
+                    }}
+                  >
                     <Button
                       size="sm"
                       onClick={() => {
@@ -524,95 +574,158 @@ const Agenda = () => {
                         setFormTituloAvulsa("");
                         setFormModoReuniao("avulsa");
                         setFormOrgaoId("");
+                        setFormConvidados([]);
                         setNovaReuniaoOpen(true);
                       }}
                     >
                       <CalendarPlus className="mr-2 h-4 w-4" />
                       Nova Reunião
                     </Button>
-                    <DialogContent className="sm:max-w-[520px]">
+                    <DialogContent className="sm:max-w-[600px]">
                       <DialogHeader>
-                        <DialogTitle>Agendar Nova Reunião</DialogTitle>
-                        <DialogDescription>Agende uma reunião avulsa ou vinculada a um órgão</DialogDescription>
+                        <DialogTitle>Nova Reunião</DialogTitle>
+                        <DialogDescription>Preencha os dados para agendar uma nova reunião</DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                          <Label>Tipo</Label>
-                          <Select value={formModoReuniao} onValueChange={(v: "orgao" | "avulsa") => { setFormModoReuniao(v); setFormOrgaoId(""); setFormTituloAvulsa(""); }}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="avulsa">Reunião avulsa</SelectItem>
-                              <SelectItem value="orgao">Órgão (conselho/comitê/comissão)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {formModoReuniao === "avulsa" ? (
+                      <Tabs defaultValue="informacoes" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="informacoes">Informações</TabsTrigger>
+                          <TabsTrigger value="participantes">Participantes</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="informacoes" className="space-y-4 pt-4">
                           <div className="space-y-2">
-                            <Label>Título da reunião</Label>
-                            <Input
-                              value={formTituloAvulsa}
-                              onChange={(e) => setFormTituloAvulsa(e.target.value)}
-                              placeholder="Ex: Reunião de alinhamento, Reunião extraordinária..."
-                            />
+                            <Label>Tipo de Órgão <span className="text-destructive">*</span></Label>
+                            <Select value={formModoReuniao} onValueChange={(v: "orgao" | "avulsa") => { setFormModoReuniao(v); setFormOrgaoId(""); setFormTituloAvulsa(""); }}>
+                              <SelectTrigger><SelectValue placeholder="Selecione o tipo de órgão" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="avulsa">Reunião avulsa</SelectItem>
+                                <SelectItem value="orgao">Conselho / Comitê / Comissão</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        ) : (
-                          <>
+                          {formModoReuniao === "avulsa" ? (
                             <div className="space-y-2">
-                              <Label>Tipo de Órgão</Label>
-                              <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
+                              <Label>Título da Reunião <span className="text-destructive">*</span></Label>
+                              <Input
+                                value={formTituloAvulsa}
+                                onChange={(e) => setFormTituloAvulsa(e.target.value)}
+                                placeholder="Ex: Reunião Ordinária de Janeiro"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="space-y-2">
+                                <Label>Tipo de Órgão</Label>
+                                <Select value={formTipoOrgao} onValueChange={(v) => { setFormTipoOrgao(v as "conselho" | "comite" | "comissao"); setFormOrgaoId(""); }}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="conselho">Conselho</SelectItem>
+                                    <SelectItem value="comite">Comitê</SelectItem>
+                                    <SelectItem value="comissao">Comissão</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Órgão</Label>
+                                <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
+                                  <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
+                                  <SelectContent>
+                                    {orgaosPorTipo.map((o) => (
+                                      <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              {membrosOrgao.length > 0 && (
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
+                                  <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
+                                    {membrosOrgao.map((m) => (
+                                      <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Data <span className="text-destructive">*</span></Label>
+                              <Input type="date" value={formData} onChange={(e) => setFormData(e.target.value)} placeholder="22/03/2026" />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Hora <span className="text-destructive">*</span></Label>
+                              <Input type="time" value={formHorario} onChange={(e) => setFormHorario(e.target.value)} placeholder="12:30" />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Tipo <span className="text-destructive">*</span></Label>
+                              <Select value={formTipoReuniao} onValueChange={setFormTipoReuniao}>
+                                <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ordinaria">Ordinária</SelectItem>
+                                  <SelectItem value="extraordinaria">Extraordinária</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Modalidade</Label>
+                              <Select value={formModalidade} onValueChange={setFormModalidade}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="conselho">Conselho</SelectItem>
-                                  <SelectItem value="comite">Comitê</SelectItem>
-                                  <SelectItem value="comissao">Comissão</SelectItem>
+                                  <SelectItem value="presencial">Presencial</SelectItem>
+                                  <SelectItem value="remoto">Remoto</SelectItem>
+                                  <SelectItem value="hibrido">Híbrido</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div className="space-y-2">
-                              <Label>Órgão</Label>
-                              <Select value={formOrgaoId} onValueChange={setFormOrgaoId}>
-                                <SelectTrigger><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
-                                <SelectContent>
-                                  {orgaosPorTipo.map((o) => (
-                                    <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {membrosOrgao.length > 0 && (
-                              <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Membros do órgão ({membrosOrgao.length})</Label>
-                                <div className="rounded border p-2 max-h-24 overflow-y-auto text-xs space-y-0.5">
-                                  {membrosOrgao.map((m) => (
-                                    <div key={m.id}>{m.nome}{m.cargo ? ` (${m.cargo})` : ""}</div>
-                                  ))}
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Local</Label>
+                            <Input value={formLocal} onChange={(e) => setFormLocal(e.target.value)} placeholder="Ex: Sala de Reuniões - 3º Andar" />
+                          </div>
+                        </TabsContent>
+                        <TabsContent value="participantes" className="space-y-4 pt-4">
+                          <p className="text-sm text-muted-foreground">Adicione convidados com acesso provisório por e-mail e senha.</p>
+                          <Button type="button" variant="outline" size="sm" onClick={addConvidado}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar convidado
+                          </Button>
+                          <div className="space-y-3 max-h-[280px] overflow-y-auto">
+                            {formConvidados.map((c) => (
+                              <div key={c.id} className="rounded-lg border p-4 space-y-3 bg-muted/30">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm font-medium">Convidado</span>
+                                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeConvidado(c.id)} aria-label="Inativar">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">E-mail</Label>
+                                    <Input type="email" value={c.email} onChange={(e) => updateConvidado(c.id, "email", e.target.value)} placeholder="convidado@email.com" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Senha provisória (visível)</Label>
+                                    <Input type="text" value={c.senha_provisoria} onChange={(e) => updateConvidado(c.id, "senha_provisoria", e.target.value)} placeholder="Mín. 6 caracteres" autoComplete="off" />
+                                  </div>
+                                  <div className="space-y-1 sm:col-span-2">
+                                    <Label className="text-xs">Senha válida até</Label>
+                                    <Input type="date" value={c.senha_valida_ate} onChange={(e) => updateConvidado(c.id, "senha_valida_ate", e.target.value)} />
+                                  </div>
                                 </div>
                               </div>
+                            ))}
+                            {formConvidados.length === 0 && (
+                              <p className="text-sm text-muted-foreground py-4 text-center">Nenhum convidado adicionado. Clique em &quot;Adicionar convidado&quot; para incluir.</p>
                             )}
-                          </>
-                        )}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Data</Label>
-                            <Input type="date" value={formData} onChange={(e) => setFormData(e.target.value)} />
                           </div>
-                          <div className="space-y-2">
-                            <Label>Horário</Label>
-                            <Input type="time" value={formHorario} onChange={(e) => setFormHorario(e.target.value)} />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Tipo de Reunião</Label>
-                          <Select value={formTipoReuniao} onValueChange={setFormTipoReuniao}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ordinaria">Ordinária</SelectItem>
-                              <SelectItem value="extraordinaria">Extraordinária</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <DialogFooter>
+                        </TabsContent>
+                      </Tabs>
+                      <DialogFooter className="mt-4 pt-4 border-t">
+                        <Button variant="outline" onClick={() => setNovaReuniaoOpen(false)}>
+                          Cancelar
+                        </Button>
                         <Button
                           onClick={handleAgendar}
                           disabled={
@@ -621,7 +734,7 @@ const Agenda = () => {
                             (formModoReuniao === "avulsa" ? !formTituloAvulsa.trim() : !formOrgaoId)
                           }
                         >
-                          Agendar
+                          Criar Reunião
                         </Button>
                       </DialogFooter>
                     </DialogContent>

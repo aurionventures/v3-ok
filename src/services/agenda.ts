@@ -1,6 +1,14 @@
 import { addDays, setDate, endOfMonth, getDay, format } from "date-fns";
 import { supabase } from "@/lib/supabase";
+import { invokeEdgeFunction } from "@/lib/supabase";
 import type { ReuniaoRow, ReuniaoEnriquecida, ReuniaoInsert } from "@/types/agenda";
+
+export interface ConvidadoInsert {
+  reuniao_id: string;
+  email: string;
+  senha_provisoria: string;
+  senha_valida_ate: string;
+}
 
 /** Gera datas de reunião para um ano com base em frequência e regra do dia */
 export function gerarDatasReunioes(
@@ -172,6 +180,42 @@ export async function insertReunioesEmLote(
     return { count: 0, error: error.message };
   }
   return { count: rows.length, error: null };
+}
+
+/** Cria convidado de reunião (auth + reuniao_convidados) via Edge Function */
+export async function criarConvidadoReuniao(
+  p: ConvidadoInsert
+): Promise<{ data: { convidado_id: string; email: string } | null; error: string | null }> {
+  const { data, error } = await invokeEdgeFunction<{ convidado_id?: string; email?: string; error?: string }>(
+    "criar-convidado-reuniao",
+    {
+      reuniao_id: p.reuniao_id,
+      email: p.email.trim().toLowerCase(),
+      senha_provisoria: p.senha_provisoria,
+      senha_valida_ate: p.senha_valida_ate,
+    }
+  );
+  if (error) return { data: null, error: error.message };
+  if (data?.error) return { data: null, error: data.error };
+  if (!data?.convidado_id || !data?.email) return { data: null, error: "Resposta inválida da Edge Function" };
+  return {
+    data: { convidado_id: data.convidado_id, email: data.email },
+    error: null,
+  };
+}
+
+/** Inativa um convidado de reunião */
+export async function inativarConvidadoReuniao(convidadoId: string): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("reuniao_convidados")
+    .update({ ativo: false, updated_at: new Date().toISOString() })
+    .eq("id", convidadoId);
+  if (error) {
+    console.error("[agenda] inativarConvidadoReuniao:", error);
+    return { error: error.message };
+  }
+  return { error: null };
 }
 
 export async function updateReuniaoStatus(
