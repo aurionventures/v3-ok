@@ -426,6 +426,8 @@ const Dashboard = () => {
               <CardContent className="pt-0">
                 <p className="text-sm text-muted-foreground py-4 text-center">
                   Sem dados de ESG cadastrados. Acesse a página de ESG para configurar os indicadores.
+                  <br />
+                  <span className="text-xs text-muted-foreground/80">Esse módulo é um Add-on.</span>
                 </p>
               </CardContent>
             </Card>

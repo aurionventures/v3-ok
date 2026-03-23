@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { fetchConvidadoByUserId } from "@/services/agenda";
@@ -7,51 +7,59 @@ import { Loader2 } from "lucide-react";
 
 /**
  * Página de callback para magic link e OAuth.
- * Recebe o redirect do Supabase Auth, processa o hash (#access_token, etc.),
- * estabelece a sessão e redireciona para a página correta.
+ * Recebe o redirect do Supabase Auth. Tokens podem vir em hash (#access_token=...) ou query (?access_token=...).
+ * Estabelece a sessão e redireciona:
  * Convidados -> /convidado | Membros -> /member/dashboard | Outros -> /login
  */
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"processing" | "redirecting" | "error">("processing");
+  const ranRef = useRef(false);
 
   useEffect(() => {
     const handleCallback = async () => {
+      if (ranRef.current) return;
+      ranRef.current = true;
+
       if (!supabase) {
         setStatus("error");
         navigate("/login", { replace: true });
         return;
       }
 
-      const hash = window.location.hash?.substring(1);
-      if (hash) {
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
-        const type = params.get("type");
+      // Tokens podem vir no hash (#...) ou na query string (?...)
+      const hashParams = window.location.hash?.substring(1) || "";
+      const queryParams = window.location.search?.substring(1) || "";
+      const params = new URLSearchParams(hashParams || queryParams);
 
-        if (type === "magiclink" && accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) {
-            console.error("[AuthCallback] setSession:", error);
-            setStatus("error");
-            navigate("/login", { replace: true, state: { memberLoginError: error.message } });
-            return;
-          }
-          window.history.replaceState(null, "", window.location.pathname);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      const type = params.get("type");
+
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (error) {
+          console.error("[AuthCallback] setSession:", error);
+          setStatus("error");
+          navigate("/login", { replace: true, state: { memberLoginError: error.message } });
+          return;
         }
+        // Limpa hash/query da URL
+        window.history.replaceState(null, "", window.location.pathname);
       }
 
       setStatus("redirecting");
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user?.id) {
         navigate("/login", { replace: true });
         return;
       }
 
+      // Convidado tem prioridade – usuário externo com acesso temporário à página de documentos
       const { data: convidado } = await fetchConvidadoByUserId(session.user.id);
       if (convidado) {
         navigate("/convidado", { replace: true });

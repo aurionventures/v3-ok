@@ -393,6 +393,121 @@ export async function confirmarParticipacaoConvidado(
   return { error: null };
 }
 
+/** Lista documentos de convidados para aprovação no secretariado (por empresa) */
+export async function fetchDocumentosConvidadosParaSecretariado(
+  empresaId: string | null
+): Promise<{
+  data: {
+    id: string;
+    nome_arquivo: string;
+    storage_path: string;
+    arquivo_url: string | null;
+    tamanho: number | null;
+    mime_type: string | null;
+    status: string;
+    created_at: string;
+    reuniao_id: string;
+    convidado_id: string;
+    reuniao_titulo: string | null;
+    reuniao_data: string | null;
+    convidado_email: string | null;
+  }[];
+  error: string | null;
+}> {
+  if (!supabase || !empresaId) return { data: [], error: null };
+  const { data: reunioes } = await supabase
+    .from("reunioes")
+    .select("id")
+    .eq("empresa_id", empresaId);
+  const reuniaoIds = (reunioes ?? []).map((r: { id: string }) => r.id);
+  if (reuniaoIds.length === 0) return { data: [], error: null };
+
+  const { data: docs, error } = await supabase
+    .from("reuniao_documentos_convidados")
+    .select(
+      `
+      id,
+      nome_arquivo,
+      storage_path,
+      arquivo_url,
+      tamanho,
+      mime_type,
+      status,
+      created_at,
+      reuniao_id,
+      convidado_id,
+      reuniao_convidados(email),
+      reunioes(titulo, data_reuniao)
+    `
+    )
+    .in("reuniao_id", reuniaoIds)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[agenda] fetchDocumentosConvidadosParaSecretariado:", error);
+    return { data: [], error: error.message };
+  }
+
+  type DocRow = {
+    id: string;
+    nome_arquivo: string;
+    storage_path: string;
+    arquivo_url: string | null;
+    tamanho: number | null;
+    mime_type: string | null;
+    status: string;
+    created_at: string;
+    reuniao_id: string;
+    convidado_id: string;
+    reuniao_convidados: { email: string } | { email: string }[] | null;
+    reunioes: { titulo: string; data_reuniao: string | null } | { titulo: string; data_reuniao: string | null }[] | null;
+  };
+
+  const rows = (docs ?? []) as DocRow[];
+
+  const result = rows.map((r) => {
+    const conv = r.reuniao_convidados;
+    const email = Array.isArray(conv) ? conv[0]?.email : conv?.email;
+    const reun = r.reunioes;
+    const titulo = Array.isArray(reun) ? reun[0]?.titulo : reun?.titulo;
+    const dataReuniao = Array.isArray(reun) ? reun[0]?.data_reuniao : reun?.data_reuniao;
+    return {
+      id: r.id,
+      nome_arquivo: r.nome_arquivo,
+      storage_path: r.storage_path,
+      arquivo_url: r.arquivo_url,
+      tamanho: r.tamanho,
+      mime_type: r.mime_type,
+      status: r.status,
+      created_at: r.created_at,
+      reuniao_id: r.reuniao_id,
+      convidado_id: r.convidado_id,
+      reuniao_titulo: titulo ?? null,
+      reuniao_data: dataReuniao ?? null,
+      convidado_email: email ?? null,
+    };
+  });
+
+  return { data: result, error: null };
+}
+
+/** Atualiza status de documento de convidado (aprovado/rejeitado) */
+export async function atualizarStatusDocumentoConvidado(
+  docId: string,
+  status: "aprovado" | "rejeitado"
+): Promise<{ error: string | null }> {
+  if (!supabase) return { error: "Supabase não configurado" };
+  const { error } = await supabase
+    .from("reuniao_documentos_convidados")
+    .update({ status })
+    .eq("id", docId);
+  if (error) {
+    console.error("[agenda] atualizarStatusDocumentoConvidado:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
 /** Inativa um convidado de reunião */
 export async function inativarConvidadoReuniao(convidadoId: string): Promise<{ error: string | null }> {
   if (!supabase) return { error: "Supabase não configurado" };

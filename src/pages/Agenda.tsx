@@ -52,7 +52,7 @@ import { cn } from "@/lib/utils";
 import { useEmpresas } from "@/hooks/useEmpresas";
 import { useGovernance } from "@/hooks/useGovernance";
 import { useAgenda } from "@/hooks/useAgenda";
-import { gerarDatasReunioes, criarConvidadoReuniao, gerarMagicLinkTeste } from "@/services/agenda";
+import { gerarDatasReunioes, criarConvidadoReuniao } from "@/services/agenda";
 import { fetchMembrosPorOrgao } from "@/services/governance";
 import type { ReuniaoEnriquecida } from "@/types/agenda";
 
@@ -139,6 +139,7 @@ const Agenda = () => {
   const [magicLinksDialog, setMagicLinksDialog] = useState<{ email: string; link: string }[]>([]);
   const [convidadoLinks, setConvidadoLinks] = useState<Record<string, string>>({});
   const [convidadoLinksLoading, setConvidadoLinksLoading] = useState<Record<string, boolean>>({});
+  const [reuniaoRascunhoId, setReuniaoRascunhoId] = useState<string | null>(null);
   const [formConvidados, setFormConvidados] = useState<{
     id: string;
     nome: string;
@@ -259,6 +260,7 @@ const Agenda = () => {
     setFormTituloAvulsa("");
     setFormOrgaoId("");
     setFormConvidados([]);
+    setReuniaoRascunhoId(null);
     setFormConvidadoNome("");
     setFormConvidadoEmail("");
     setFormConvidadoCargo("");
@@ -314,11 +316,72 @@ const Agenda = () => {
     });
   };
 
-  const gerarLinkConvidado = async (c: { id: string; email: string }): Promise<string | null> => {
+  const obterOuCriarReuniaoParaLink = async (): Promise<string | null> => {
+    if (reuniaoRascunhoId) return reuniaoRascunhoId;
+    if (!empresaId || !formData.trim()) {
+      toast({ title: "Preencha a data da reunião", variant: "destructive" });
+      return null;
+    }
+    const isAvulsa = formModoReuniao === "avulsa";
+    let titulo: string;
+    let conselhoId: string | null = null;
+    let comiteId: string | null = null;
+    let comissaoId: string | null = null;
+    if (isAvulsa) {
+      if (!formTituloAvulsa.trim()) {
+        toast({ title: "Preencha o título da reunião", variant: "destructive" });
+        return null;
+      }
+      titulo = formTituloAvulsa.trim();
+    } else {
+      if (!orgaoSelecionado) {
+        toast({ title: "Selecione o órgão", variant: "destructive" });
+        return null;
+      }
+      titulo = formTipoOrgao === "virtual" ? `Pauta Virtual - ${orgaoSelecionado.nome}` : orgaoSelecionado.nome;
+      conselhoId = formTipoOrgao === "conselho" ? orgaoSelecionado.id : null;
+      comiteId = formTipoOrgao === "comite" ? orgaoSelecionado.id : null;
+      comissaoId = formTipoOrgao === "comissao" ? orgaoSelecionado.id : null;
+      if (formTipoOrgao === "virtual") conselhoId = comiteId = comissaoId = null;
+    }
+    const virtualTipo = formTipoOrgao === "virtual"
+      ? (formOrgaoId === "virtual_conselho" ? "conselho" : formOrgaoId === "virtual_comite" ? "comite" : formOrgaoId === "virtual_comissao" ? "comissao" : null)
+      : null;
+    const tipoLabel = formTipoReuniao === "ordinaria" ? "Ordinária" : "Extraordinária";
+    const { data: reuniaoCriada, error } = await insertReuniao({
+      empresa_id: empresaId,
+      conselho_id: conselhoId ?? undefined,
+      comite_id: comiteId ?? undefined,
+      comissao_id: comissaoId ?? undefined,
+      virtual_tipo: virtualTipo ?? undefined,
+      titulo,
+      data_reuniao: formData,
+      horario: formHorario,
+      tipo: tipoLabel,
+      status: "agendada",
+    });
+    if (error || !reuniaoCriada?.id) {
+      toast({ title: "Erro ao criar reunião", description: error ?? "Tente novamente.", variant: "destructive" });
+      return null;
+    }
+    setReuniaoRascunhoId(reuniaoCriada.id);
+    refetch();
+    return reuniaoCriada.id;
+  };
+
+  const gerarLinkConvidado = async (c: (typeof formConvidados)[0]): Promise<string | null> => {
     if (!c.email.trim()) return null;
+    const reuniaoId = await obterOuCriarReuniaoParaLink();
+    if (!reuniaoId) return null;
     setConvidadoLinksLoading((prev) => ({ ...prev, [c.id]: true }));
     setConvidadoLinks((prev) => ({ ...prev, [c.id]: "" }));
-    const { data, error } = await gerarMagicLinkTeste(c.email.trim(), window.location.origin);
+    const { data, error } = await criarConvidadoReuniao({
+      reuniao_id: reuniaoId,
+      email: c.email.trim(),
+      senha_valida_ate: c.senha_valida_ate,
+      use_magic_link: true,
+      redirect_to: window.location.origin,
+    });
     setConvidadoLinksLoading((prev) => ({ ...prev, [c.id]: false }));
     if (error) {
       toast({ title: "Erro ao gerar link", description: error, variant: "destructive" });
@@ -326,7 +389,7 @@ const Agenda = () => {
     }
     if (data?.magic_link) {
       setConvidadoLinks((prev) => ({ ...prev, [c.id]: data.magic_link }));
-      toast({ title: "Link gerado", description: "Copie e envie ao convidado." });
+      toast({ title: "Link gerado", description: "Convidado cadastrado. Copie e envie o link." });
       return data.magic_link;
     }
     return null;
@@ -349,56 +412,66 @@ const Agenda = () => {
       return;
     }
     const isAvulsa = formModoReuniao === "avulsa";
-    let titulo: string;
-    let conselhoId: string | null = null;
-    let comiteId: string | null = null;
-    let comissaoId: string | null = null;
+    const titulo = isAvulsa
+      ? formTituloAvulsa.trim()
+      : orgaoSelecionado
+        ? (formTipoOrgao === "virtual" ? `Pauta Virtual - ${orgaoSelecionado.nome}` : orgaoSelecionado.nome)
+        : "";
 
-    if (isAvulsa) {
-      if (!formTituloAvulsa.trim()) {
+    let reuniaoId: string | undefined;
+    if (reuniaoRascunhoId) {
+      reuniaoId = reuniaoRascunhoId;
+    } else {
+      let conselhoId: string | null = null;
+      let comiteId: string | null = null;
+      let comissaoId: string | null = null;
+
+      if (isAvulsa && !formTituloAvulsa.trim()) {
         toast({ title: "Preencha o título da reunião avulsa", variant: "destructive" });
         return;
       }
-      titulo = formTituloAvulsa.trim();
-    } else {
-      if (!orgaoSelecionado) {
+      if (!isAvulsa && !orgaoSelecionado) {
         toast({ title: "Selecione o órgão", variant: "destructive" });
         return;
       }
-      titulo = formTipoOrgao === "virtual" ? `Pauta Virtual - ${orgaoSelecionado.nome}` : orgaoSelecionado.nome;
-      conselhoId = formTipoOrgao === "conselho" ? orgaoSelecionado.id : null;
-      comiteId = formTipoOrgao === "comite" ? orgaoSelecionado.id : null;
-      comissaoId = formTipoOrgao === "comissao" ? orgaoSelecionado.id : null;
+      conselhoId = formTipoOrgao === "conselho" && orgaoSelecionado ? orgaoSelecionado.id : null;
+      comiteId = formTipoOrgao === "comite" && orgaoSelecionado ? orgaoSelecionado.id : null;
+      comissaoId = formTipoOrgao === "comissao" && orgaoSelecionado ? orgaoSelecionado.id : null;
       if (formTipoOrgao === "virtual") conselhoId = comiteId = comissaoId = null;
+
+      const virtualTipo =
+        formTipoOrgao === "virtual"
+          ? (formOrgaoId === "virtual_conselho" ? "conselho" : formOrgaoId === "virtual_comite" ? "comite" : formOrgaoId === "virtual_comissao" ? "comissao" : null)
+          : null;
+
+      const tipoLabel = formTipoReuniao === "ordinaria" ? "Ordinária" : "Extraordinária";
+      const { data: reuniaoCriada, error } = await insertReuniao({
+        empresa_id: empresaId,
+        conselho_id: conselhoId,
+        comite_id: comiteId,
+        comissao_id: comissaoId,
+        virtual_tipo: virtualTipo ?? undefined,
+        titulo,
+        data_reuniao: formData,
+        horario: formHorario,
+        tipo: tipoLabel,
+        status: "agendada",
+      });
+      if (error) {
+        toast({ title: "Erro ao agendar", description: error, variant: "destructive" });
+        return;
+      }
+      reuniaoId = reuniaoCriada?.id;
     }
 
-    const virtualTipo =
-      formTipoOrgao === "virtual"
-        ? (formOrgaoId === "virtual_conselho" ? "conselho" : formOrgaoId === "virtual_comite" ? "comite" : formOrgaoId === "virtual_comissao" ? "comissao" : null)
-        : null;
-
-    const tipoLabel = formTipoReuniao === "ordinaria" ? "Ordinária" : "Extraordinária";
-    const { data: reuniaoCriada, error } = await insertReuniao({
-      empresa_id: empresaId,
-      conselho_id: conselhoId,
-      comite_id: comiteId,
-      comissao_id: comissaoId,
-      virtual_tipo: virtualTipo ?? undefined,
-      titulo,
-      data_reuniao: formData,
-      horario: formHorario,
-      tipo: tipoLabel,
-      status: "agendada",
-    });
-    if (error) {
-      toast({ title: "Erro ao agendar", description: error, variant: "destructive" });
-      return;
-    }
-    const reuniaoId = reuniaoCriada?.id;
     const convidadosValidos = formConvidados.filter((c) => c.email.trim() && c.senha_valida_ate);
     const magicLinks: { email: string; link: string }[] = [];
     for (const c of convidadosValidos) {
       if (!reuniaoId) break;
+      if (convidadoLinks[c.id]) {
+        magicLinks.push({ email: c.email, link: convidadoLinks[c.id] });
+        continue;
+      }
       const { data: convData, error: errConv } = await criarConvidadoReuniao({
         reuniao_id: reuniaoId,
         email: c.email.trim(),
@@ -425,6 +498,8 @@ const Agenda = () => {
     setFormData("");
     setFormTituloAvulsa("");
     setFormConvidados([]);
+    setReuniaoRascunhoId(null);
+    setConvidadoLinks({});
     refetch();
   };
 
@@ -709,16 +784,17 @@ const Agenda = () => {
 
                   <Dialog
                     open={novaReuniaoOpen}
-                    onOpenChange={(open) => {
-                      setNovaReuniaoOpen(open);
-                      if (!open) {
-                        setFormTituloAvulsa("");
-                        setFormOrgaoId("");
-                        setFormConvidados([]);
-                        setConvidadoLinks({});
-                        setConvidadoLinksLoading({});
-                      }
-                    }}
+onOpenChange={(open) => {
+                        setNovaReuniaoOpen(open);
+                        if (!open) {
+                          setFormTituloAvulsa("");
+                          setFormOrgaoId("");
+                          setFormConvidados([]);
+                          setConvidadoLinks({});
+                          setConvidadoLinksLoading({});
+                          setReuniaoRascunhoId(null);
+                        }
+                      }}
                   >
                     <Button
                       size="sm"

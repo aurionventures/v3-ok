@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       }
       console.error("[criar-convidado-reuniao] auth.createUser:", authError);
       const msg = isAlreadyRegistered
-        ? (generateLinkError?.message ?? "Não foi possível gerar link para e-mail já cadastrado. Adicione a URL em Auth → Redirect URLs no Supabase.")
+        ? (generateLinkErrMsg ?? "Não foi possível gerar link para e-mail já cadastrado. Adicione a URL em Auth → Redirect URLs no Supabase.")
         : (authError.message ?? "Erro ao criar usuário de acesso.");
       return new Response(
         JSON.stringify({ error: msg }),

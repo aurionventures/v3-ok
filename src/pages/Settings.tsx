@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Bell, ActivitySquare, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, ActivitySquare, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -27,7 +26,6 @@ function gerarSenhaAleatoria(len = 10): string {
 
 const Settings = () => {
   const { firstEmpresaId } = useEmpresas();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [promptPautaAta, setPromptPautaAta] = useState(PROMPT_PADRAO);
   const [promptPautaAtaLoading, setPromptPautaAtaLoading] = useState(false);
   const [promptPautaAtaSaving, setPromptPautaAtaSaving] = useState(false);
@@ -191,10 +189,6 @@ const Settings = () => {
                   <TabsTrigger value="profile">
                     <UserCog className="h-4 w-4 mr-2" />
                     Perfil
-                  </TabsTrigger>
-                  <TabsTrigger value="notifications">
-                    <Bell className="h-4 w-4 mr-2" />
-                    Notificações
                   </TabsTrigger>
                   <TabsTrigger value="activities">
                     <ActivitySquare className="h-4 w-4 mr-2" />
@@ -416,63 +410,6 @@ const Settings = () => {
                         </Button>
                       </div>
                     )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="notifications">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-medium mb-4">Preferências de Notificações</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label>Notificações por Email</Label>
-                            <p className="text-sm text-gray-500">Receber notificações por email</p>
-                          </div>
-                          <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
-                        </div>
-                        
-                        {notificationsEnabled && (
-                          <div className="ml-6 space-y-4 border-l-2 pl-4 border-gray-200">
-                            <div className="flex items-center justify-between">
-                              <Label>Atualizações de Documentos</Label>
-                              <Switch defaultChecked />
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <Label>Reuniões de Conselho</Label>
-                              <Switch defaultChecked />
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <Label>Alterações de Estrutura Societária</Label>
-                              <Switch defaultChecked />
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <Label>Relatórios de Maturidade</Label>
-                              <Switch defaultChecked />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-medium mb-4">Notificações no Sistema</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label>Notificações no Navegador</Label>
-                          <Switch defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label>Sons de Notificação</Label>
-                          <Switch />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Button onClick={handleSaveSettings}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Salvar Preferências de Notificações
-                    </Button>
                   </div>
                 </TabsContent>
 
