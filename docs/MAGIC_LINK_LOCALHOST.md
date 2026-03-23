@@ -10,4 +10,4 @@ Para o magic link de convidados funcionar em `http://localhost:8080` (ou outra p
    - (opcional) `http://localhost:5173/**` se usar Vite na porta padrão
 3. Clique em **Save**
 
-Depois disso, os magic links gerados com `redirect_to=http://localhost:8080/member/dashboard` funcionarão corretamente.
+Depois disso, os magic links gerados funcionarão corretamente. O fluxo redireciona para `/auth/callback`, que processa a sessão e encaminha convidados para `/convidado` e membros para `/member/dashboard`.

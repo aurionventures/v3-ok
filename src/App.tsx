@@ -18,6 +18,7 @@ import MemberDesempenho from "./pages/member/MemberDesempenho";
 import MemberSettings from "./pages/member/MemberSettings";
 import MemberAlterarSenha from "./pages/member/MemberAlterarSenha";
 import ConvidadoLanding from "./pages/ConvidadoLanding";
+import AuthCallback from "./pages/AuthCallback";
 import Index from "./pages/Index";
 import Login from "./pages/Login"; 
 import Start from "./pages/Start";
@@ -88,6 +89,7 @@ const App = () => (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/convidado" element={<ConvidadoLayout />}>
           <Route index element={<ConvidadoLanding />} />
         </Route>

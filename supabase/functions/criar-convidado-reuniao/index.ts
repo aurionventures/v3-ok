@@ -99,14 +99,17 @@ Deno.serve(async (req) => {
 
     let userId: string | null = authData?.user?.id ?? null;
 
+    const isAlreadyRegistered = authError?.message && /already.*registered|already been registered/i.test(authError.message);
+    let generateLinkErrMsg: string | null = null;
     if (authError) {
-      if (gerar_link_teste && authError.message?.includes("already registered")) {
-        const redirectTo = redirect_to ? `${redirect_to.replace(/\/$/, "")}/convidado` : undefined;
+      if (gerar_link_teste && isAlreadyRegistered) {
+        const redirectTo = redirect_to ? `${redirect_to.endsWith("/") ? redirect_to.slice(0, -1) : redirect_to}/auth/callback` : undefined;
         const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
           type: "magiclink",
           email,
           options: redirectTo ? { redirectTo } : undefined,
         });
+        generateLinkErrMsg = linkErr?.message ?? null;
         const actionLink = linkData?.properties?.action_link ?? linkData?.action_link;
         if (!linkErr && actionLink) {
           return new Response(
@@ -116,9 +119,9 @@ Deno.serve(async (req) => {
         }
       }
       console.error("[criar-convidado-reuniao] auth.createUser:", authError);
-      const msg = authError.message?.includes("already registered")
-        ? "Este e-mail já está cadastrado. Use senha provisória ou outro e-mail para magic link."
-        : authError.message ?? "Erro ao criar usuário de acesso.";
+      const msg = isAlreadyRegistered
+        ? (generateLinkError?.message ?? "Não foi possível gerar link para e-mail já cadastrado. Adicione a URL em Auth → Redirect URLs no Supabase.")
+        : (authError.message ?? "Erro ao criar usuário de acesso.");
       return new Response(
         JSON.stringify({ error: msg }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -134,7 +137,7 @@ Deno.serve(async (req) => {
     const userIdStr = userId;
 
     if (gerar_link_teste) {
-      const redirectTo = redirect_to ? `${redirect_to.replace(/\/$/, "")}/convidado` : undefined;
+      const redirectTo = redirect_to ? `${redirect_to.endsWith("/") ? redirect_to.slice(0, -1) : redirect_to}/auth/callback` : undefined;
       const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
         type: "magiclink",
         email,
@@ -180,7 +183,7 @@ Deno.serve(async (req) => {
 
     if (use_magic_link) {
       const redirectTo = redirect_to
-        ? `${redirect_to.replace(/\/$/, "")}/convidado`
+        ? `${redirect_to.endsWith("/") ? redirect_to.slice(0, -1) : redirect_to}/auth/callback`
         : undefined;
       const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
         type: "magiclink",
