@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, UserCog, Shield, Bell, ActivitySquare, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, Save, UserCog, Bell, ActivitySquare, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,8 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useEmpresas } from "@/hooks/useEmpresas";
-import { isAdmin } from "@/lib/auth";
-import { insertSuperAdmin } from "@/services/empresas";
+import { isAdmin, isCompanyAdm } from "@/lib/auth";
+import { insertSuperAdmin, insertEmpresaAdm } from "@/services/empresas";
 import { fetchPromptPautaAta, upsertPromptPautaAta, PROMPT_PADRAO } from "@/services/promptsConfig";
 
 function gerarSenhaAleatoria(len = 10): string {
@@ -37,6 +37,12 @@ const Settings = () => {
   const [superAdminSenha, setSuperAdminSenha] = useState("");
   const [superAdminSenhaVisivel, setSuperAdminSenhaVisivel] = useState(false);
   const [superAdminLoading, setSuperAdminLoading] = useState(false);
+
+  const [empresaAdmNome, setEmpresaAdmNome] = useState("");
+  const [empresaAdmEmail, setEmpresaAdmEmail] = useState("");
+  const [empresaAdmSenha, setEmpresaAdmSenha] = useState("");
+  const [empresaAdmSenhaVisivel, setEmpresaAdmSenhaVisivel] = useState(false);
+  const [empresaAdmLoading, setEmpresaAdmLoading] = useState(false);
 
   useEffect(() => {
     if (!firstEmpresaId) return;
@@ -110,6 +116,57 @@ const Settings = () => {
     setSuperAdminSenha("");
     setSuperAdminSenhaVisivel(false);
   };
+
+  const handleCriarEmpresaAdm = async () => {
+    const nome = empresaAdmNome.trim();
+    const email = empresaAdmEmail.trim().toLowerCase();
+    const senha = empresaAdmSenha;
+    if (!firstEmpresaId) {
+      toast({ title: "Empresa não disponível", variant: "destructive" });
+      return;
+    }
+    if (!nome) {
+      toast({ title: "Preencha o nome", variant: "destructive" });
+      return;
+    }
+    if (!email) {
+      toast({ title: "E-mail é obrigatório", variant: "destructive" });
+      return;
+    }
+    if (!senha || senha.length < 6) {
+      toast({ title: "A senha provisória deve ter pelo menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setEmpresaAdmLoading(true);
+    const { data, error } = await insertEmpresaAdm({
+      empresa_id: firstEmpresaId,
+      nome,
+      email,
+      senha_provisoria: senha,
+    });
+    setEmpresaAdmLoading(false);
+    if (error) {
+      toast({ title: "Erro ao criar ADM", description: error, variant: "destructive" });
+      return;
+    }
+    const credenciais = `E-mail: ${data?.email ?? email}\nSenha provisória: ${senha}`;
+    toast({
+      title: "ADM criado",
+      description: "Envie as credenciais ao novo administrador. Ele deve alterar a senha no primeiro acesso.",
+      action: (
+        <ToastAction
+          altText="Copiar credenciais"
+          onClick={() => navigator.clipboard?.writeText(credenciais)}
+        >
+          Copiar credenciais
+        </ToastAction>
+      ),
+    });
+    setEmpresaAdmNome("");
+    setEmpresaAdmEmail("");
+    setEmpresaAdmSenha("");
+    setEmpresaAdmSenhaVisivel(false);
+  };
   
   return (
     <div className="flex h-screen bg-gray-50">
@@ -134,10 +191,6 @@ const Settings = () => {
                   <TabsTrigger value="profile">
                     <UserCog className="h-4 w-4 mr-2" />
                     Perfil
-                  </TabsTrigger>
-                  <TabsTrigger value="security">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Segurança
                   </TabsTrigger>
                   <TabsTrigger value="notifications">
                     <Bell className="h-4 w-4 mr-2" />
@@ -290,43 +343,79 @@ const Settings = () => {
                         </Button>
                       </div>
                     )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="security">
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium mb-4">Segurança da Conta</h3>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="current-password">Senha Atual</Label>
-                        <Input id="current-password" type="password" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-password">Nova Senha</Label>
-                        <Input id="new-password" type="password" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                        <Input id="confirm-password" type="password" />
-                      </div>
-                      
-                      <Button className="mt-2">Alterar Senha</Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium mb-4">Autenticação de Dois Fatores</h3>
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label>Ativar 2FA</Label>
-                          <p className="text-sm text-gray-500">
-                            Proteja sua conta com autenticação de dois fatores
-                          </p>
+
+                    {isCompanyAdm() && firstEmpresaId && (
+                      <div className="mt-8 pt-8 border-t">
+                        <h3 className="text-lg font-medium mb-4">Cadastrar novo ADM do cliente</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Cadastre um novo administrador para a mesma empresa com nome, e-mail e senha provisória. Envie as credenciais ao novo ADM. No primeiro acesso, ele deverá alterar a senha.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="empresa-adm-nome">Nome</Label>
+                            <Input
+                              id="empresa-adm-nome"
+                              placeholder="Nome completo"
+                              value={empresaAdmNome}
+                              onChange={(e) => setEmpresaAdmNome(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="empresa-adm-email">E-mail</Label>
+                            <Input
+                              id="empresa-adm-email"
+                              type="email"
+                              placeholder="adm@empresa.com"
+                              value={empresaAdmEmail}
+                              onChange={(e) => setEmpresaAdmEmail(e.target.value)}
+                            />
+                          </div>
+                          <div className="md:col-span-2 space-y-2">
+                            <Label htmlFor="empresa-adm-senha">Senha provisória (mín. 6 caracteres)</Label>
+                            <div className="relative">
+                              <Input
+                                id="empresa-adm-senha"
+                                type={empresaAdmSenhaVisivel ? "text" : "password"}
+                                placeholder="••••••••"
+                                value={empresaAdmSenha}
+                                onChange={(e) => setEmpresaAdmSenha(e.target.value)}
+                                className="pr-20"
+                              />
+                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setEmpresaAdmSenha(gerarSenhaAleatoria())}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground rounded"
+                                  title="Gerar senha"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEmpresaAdmSenhaVisivel((v) => !v)}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground rounded"
+                                  title={empresaAdmSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                                >
+                                  {empresaAdmSenhaVisivel ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <Switch />
+                        <Button
+                          className="mt-4"
+                          onClick={handleCriarEmpresaAdm}
+                          disabled={empresaAdmLoading}
+                        >
+                          {empresaAdmLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Cadastrar ADM
+                        </Button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </TabsContent>
                 
