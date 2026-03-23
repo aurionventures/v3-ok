@@ -61,6 +61,8 @@ import { updateReuniaoStatus } from "@/services/agenda";
 import { fetchPromptPautaAta } from "@/services/promptsConfig";
 import { invokeEdgeFunction } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+import AtaPrintDialog from "@/components/AtaPrintDialog";
+import { fetchAtas, upsertAta } from "@/services/atas";
 
 const CHECK_ITEMS: { key: keyof ReturnType<typeof deriveChecklist>; label: string }[] = [
   { key: "statusConcluido", label: "Status da reunião deve ser 'Realizada'" },
@@ -150,6 +152,9 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   const [statusOverride, setStatusOverride] = useState<string | null>(null);
   const [ataGerando, setAtaGerando] = useState(false);
   const [ataGeradaTexto, setAtaGeradaTexto] = useState<string | null>(null);
+  const [ataPrintOpen, setAtaPrintOpen] = useState(false);
+  const [ataSalvando, setAtaSalvando] = useState(false);
+  const [ataSalva, setAtaSalva] = useState(false);
 
   const inputDocumentosRef = useRef<HTMLInputElement>(null);
   const inputGravacaoRef = useRef<HTMLInputElement>(null);
@@ -184,9 +189,18 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
   useEffect(() => {
     if (!open) {
       setAtaGeradaTexto(null);
+      setAtaSalva(false);
       return;
     }
     if (!r?.id) return;
+    fetchAtas(r.id).then(({ data: atasData }) => {
+      if (atasData.length > 0) {
+        setAtaSalva(true);
+        setAtaGeradaTexto(atasData[0].conteudo ?? null);
+      } else {
+        setAtaSalva(false);
+      }
+    });
     fetchPautas(r.id).then(({ data }) => {
       setAgendaItems(
         data.map((p) => ({
@@ -404,6 +418,19 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
     e.target.value = "";
   };
 
+  const handleSalvarAta = async () => {
+    if (!r?.id || !ataGeradaTexto) return;
+    setAtaSalvando(true);
+    const { error } = await upsertAta(r.id, ataGeradaTexto);
+    setAtaSalvando(false);
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error, variant: "destructive" });
+      return;
+    }
+    setAtaSalva(true);
+    toast({ title: "ATA salva", description: "Disponível em Secretariado > ATAs." });
+  };
+
   const handleMarcarRealizada = async () => {
     if (!r?.id) return;
     const { error } = await updateReuniaoStatus(r.id, "realizada");
@@ -465,13 +492,21 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
         { input, systemPrompt: prompt }
       );
       if (error) {
-        toast({ title: "Erro ao gerar", description: error.message, variant: "destructive" });
+        const msg = error.message || "Habilite a API da Open AI";
+        console.error("[GestaoReuniao] agente-atas-reunioes:", error);
+        toast({ title: "Erro ao gerar", description: msg, variant: "destructive" });
         return;
       }
-      const texto = (data as { textoCompleto?: string })?.textoCompleto;
+      const payload = data as { textoCompleto?: string; error?: string };
+      if (payload?.error) {
+        toast({ title: "Erro ao gerar", description: payload.error || "Habilite a API da Open AI", variant: "destructive" });
+        return;
+      }
+      const texto = payload?.textoCompleto;
       if (texto) {
         setAtaGeradaTexto(texto);
-        toast({ title: "Pauta/ATA gerada", description: "O texto foi gerado com sucesso. Role até o final para visualizar." });
+        setAtaPrintOpen(true);
+        toast({ title: "Pauta/ATA gerada", description: "Visualize, imprima ou salve na biblioteca de ATAs." });
       } else {
         toast({ title: "Erro", description: "Resposta inesperada do servidor", variant: "destructive" });
       }
@@ -922,7 +957,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   <Button
                     className="flex-1"
                     size="lg"
-                    disabled={!canGerar || ataGerando}
+                    disabled={!canGerar || ataGerando || ataSalva}
                     onClick={() => canGerar && handleGerarPautaAtaIA()}
                   >
                     <Sparkles className="h-5 w-5 mr-2" />
@@ -931,16 +966,28 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
                   {pendentes > 0 && <span className="text-sm text-muted-foreground">{pendentes} pendências</span>}
                 </div>
                 {ataGeradaTexto && (
-                  <div className="rounded-lg border bg-muted/30 p-4 max-h-80 overflow-y-auto">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Pauta/ATA gerada:</p>
-                    <p className="text-sm whitespace-pre-wrap">{ataGeradaTexto}</p>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAtaPrintOpen(true)}
+                  >
+                    Ver ATA gerada
+                  </Button>
                 )}
               </div>
             </>
           )}
         </div>
       </DialogContent>
+      <AtaPrintDialog
+        open={ataPrintOpen}
+        onOpenChange={setAtaPrintOpen}
+        titulo={titulo}
+        dataReuniao={dataReuniao}
+        conteudo={ataGeradaTexto ?? ""}
+        onSave={handleSalvarAta}
+        saving={ataSalvando}
+      />
     </Dialog>
   );
 };

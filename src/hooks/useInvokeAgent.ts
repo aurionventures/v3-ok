@@ -25,7 +25,7 @@ export function useInvokeAgent<T = unknown>(functionName: string) {
       const { data, error } = await invokeEdgeFunction<T>(functionName, body);
       setState({
         data: data ?? null,
-        error: error?.message ?? null,
+        error: error ? "Habilite a API da Open AI" : null,
         isLoading: false,
       });
       return { data, error };

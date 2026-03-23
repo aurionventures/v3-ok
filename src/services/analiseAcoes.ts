@@ -70,11 +70,10 @@ export async function executarAnaliseAcoes(
   );
 
   if (error) {
-    return { data: null, error: error.message };
+    return { data: null, error: "Habilite a API da Open AI" };
   }
   if (data && typeof data === "object" && "error" in data && data.error) {
-    const msg = data.message || data.error;
-    return { data: null, error: msg };
+    return { data: null, error: "Habilite a API da Open AI" };
   }
   return { data: data ?? null, error: null };
 }

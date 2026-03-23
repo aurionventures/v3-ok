@@ -123,7 +123,7 @@ const GovernanceAssistant = () => {
             input: `Contexto: Assistente ${currentAssistant.name}. Pergunta do usuário: ${userMessage}. Responda de forma concisa e útil sobre governança corporativa.`,
           }
         );
-        const text = data?.resultado ?? data?.raw ?? (error ? `Erro: ${error.message}` : "Sem resposta.");
+        const text = data?.resultado ?? data?.raw ?? (error ? "Habilite a API da Open AI" : "Sem resposta.");
         setConversation([
           ...updatedConversation,
           { type: "assistant" as MessageType, text },

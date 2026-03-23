@@ -3,6 +3,7 @@ import {
   ClipboardList,
   CheckCircle,
   Clock,
+  FileText,
   TrendingUp,
   FileEdit,
   PenLine,
@@ -33,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import { BuscaConversacionalAtas } from "@/components/secretariado/BuscaConversacionalAtas";
 import { AprovacaoConvidadosContent } from "@/components/secretariado/AprovacaoConvidadosContent";
+import { ListaAtasContent } from "@/components/secretariado/ListaAtasContent";
 
 const KPI_CARDS = [
   {
@@ -346,6 +348,13 @@ const Secretariado = () => {
                     <Users className="h-4 w-4 mr-2" />
                     Aprovação de Convidados
                   </TabsTrigger>
+                  <TabsTrigger
+                    value="atas"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent px-0 pb-1 mr-6 text-gray-600 data-[state=active]:text-gray-900"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    ATAs
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -364,6 +373,11 @@ const Secretariado = () => {
           )}
           {activeTab === "tarefas" && <GestaoTarefasContent />}
           {activeTab === "convidados" && <AprovacaoConvidadosContent />}
+          {activeTab === "atas" && (
+            <div className="mt-6">
+              <ListaAtasContent />
+            </div>
+          )}
         </main>
       </div>
 
