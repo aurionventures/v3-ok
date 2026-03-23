@@ -105,8 +105,19 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
         />
       );
 
-    case "numerico_multiplo":
-      // Para questões como a 7 que pede múltiplos números
+    case "numerico_multiplo": {
+      const parseValue = (): { totalMembros: number; totalMulheres: number } => {
+        if (typeof value === "string") {
+          try {
+            const parsed = JSON.parse(value);
+            return { totalMembros: Number(parsed.totalMembros) || 0, totalMulheres: Number(parsed.totalMulheres) || 0 };
+          } catch {
+            return { totalMembros: 0, totalMulheres: 0 };
+          }
+        }
+        return { totalMembros: 0, totalMulheres: 0 };
+      };
+      const current = parseValue();
       return (
         <div className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -115,6 +126,11 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
               <Input
                 type="number"
                 placeholder="0"
+                value={current.totalMembros || ""}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10) || 0;
+                  onChange(JSON.stringify({ ...current, totalMembros: v }));
+                }}
                 disabled={disabled}
                 className="mt-1"
               />
@@ -124,6 +140,11 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
               <Input
                 type="number"
                 placeholder="0"
+                value={current.totalMulheres || ""}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10) || 0;
+                  onChange(JSON.stringify({ ...current, totalMulheres: v }));
+                }}
                 disabled={disabled}
                 className="mt-1"
               />
@@ -131,6 +152,7 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
           </div>
         </div>
       );
+    }
 
     case "texto":
       return (

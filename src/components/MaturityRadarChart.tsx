@@ -77,6 +77,9 @@ const MaturityRadarChart = ({ data, variant = "default" }: MaturityRadarChartPro
               formatter={(value, name, props) => {
                 const { payload } = props;
                 if (name === 'score') {
+                  if (isGovernanca) {
+                    return [`${value}`, 'Sua Empresa'];
+                  }
                   const diff = (payload.score - payload.sectorAverage).toFixed(1);
                   const diffNum = parseFloat(diff);
                   return [
@@ -103,15 +106,15 @@ const MaturityRadarChart = ({ data, variant = "default" }: MaturityRadarChartPro
                 strokeWidth={2}
               />
             )}
-            {showSector && (
+            {showSector && !isGovernanca && (
               <Radar
                 name="sectorAverage"
                 dataKey="sectorAverage"
                 stroke="#2dd4bf"
-                fill={isGovernanca ? "#2dd4bf" : "transparent"}
-                fillOpacity={isGovernanca ? 0.35 : 1}
+                fill="transparent"
+                fillOpacity={1}
                 strokeWidth={2}
-                strokeDasharray={isGovernanca ? undefined : "5 5"}
+                strokeDasharray="5 5"
               />
             )}
           </RadarChart>

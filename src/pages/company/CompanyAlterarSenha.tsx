@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, Eye, EyeOff, RefreshCw } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 
@@ -17,6 +17,19 @@ const CompanyAlterarSenha = () => {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [novaSenhaVisivel, setNovaSenhaVisivel] = useState(false);
+  const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
+
+  const gerarSenha = () => {
+    const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    let s = "";
+    for (let i = 0; i < 12; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    setNovaSenha(s);
+    setConfirmarSenha(s);
+    setNovaSenhaVisivel(true);
+    setConfirmarSenhaVisivel(true);
+    toast({ title: "Senha gerada", description: "Copie e guarde em local seguro." });
+  };
 
   useEffect(() => {
     const check = async () => {
@@ -129,26 +142,68 @@ const CompanyAlterarSenha = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nova-senha">Nova senha</Label>
-              <Input
-                id="nova-senha"
-                type="password"
-                placeholder="Mínimo 6 caracteres"
-                value={novaSenha}
-                onChange={(e) => setNovaSenha(e.target.value)}
-                minLength={6}
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="nova-senha">Nova senha</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs text-muted-foreground"
+                  onClick={gerarSenha}
+                >
+                  <RefreshCw className="h-4 w-4 mr-1.5" />
+                  Gerar senha
+                </Button>
+              </div>
+              <div className="relative">
+                <Input
+                  id="nova-senha"
+                  type={novaSenhaVisivel ? "text" : "password"}
+                  placeholder="Mínimo 6 caracteres"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  minLength={6}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setNovaSenhaVisivel((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  title={novaSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                >
+                  {novaSenhaVisivel ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmar-senha">Confirmar nova senha</Label>
-              <Input
-                id="confirmar-senha"
-                type="password"
-                placeholder="Repita a senha"
-                value={confirmarSenha}
-                onChange={(e) => setConfirmarSenha(e.target.value)}
-                minLength={6}
-              />
+              <div className="relative">
+                <Input
+                  id="confirmar-senha"
+                  type={confirmarSenhaVisivel ? "text" : "password"}
+                  placeholder="Repita a senha"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  minLength={6}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setConfirmarSenhaVisivel((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  title={confirmarSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
+                >
+                  {confirmarSenhaVisivel ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
