@@ -111,6 +111,48 @@ function GestaoTarefasIndicadores() {
     setAtaDetalheLoading(false);
   };
 
+  const handleAdminAceitar = async (ataId: string, membroId: string) => {
+    if (!supabase) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      toast({ title: "Erro", description: "Sessão não encontrada.", variant: "destructive" });
+      return;
+    }
+    setAdminRevisando(`${ataId}-${membroId}`);
+    const { error } = await adminAceitarReprovacao(ataId, membroId, session.user.id);
+    setAdminRevisando(null);
+    if (error) {
+      toast({ title: "Erro ao aceitar", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Objeção aceita", description: "A objeção do membro foi aceita." });
+    if (ataDetalhe?.ata_id === ataId) {
+      const { data } = await fetchAtaFluxoDetalhe(ataId);
+      setAtaDetalhe(data);
+    }
+  };
+
+  const handleAdminReprovar = async (ataId: string, membroId: string) => {
+    if (!supabase) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      toast({ title: "Erro", description: "Sessão não encontrada.", variant: "destructive" });
+      return;
+    }
+    setAdminRevisando(`${ataId}-${membroId}`);
+    const { error } = await adminReprovarReprovacao(ataId, membroId, session.user.id);
+    setAdminRevisando(null);
+    if (error) {
+      toast({ title: "Erro ao reprovar", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Objeção reprovada", description: "A objeção do membro foi reprovada." });
+    if (ataDetalhe?.ata_id === ataId) {
+      const { data } = await fetchAtaFluxoDetalhe(ataId);
+      setAtaDetalhe(data);
+    }
+  };
+
   const tarefaSelecionada = tarefasPendentesHistorico.find((t) => t.id === tarefaSelecionadaId) ?? null;
 
   const kpiCards = [
@@ -522,23 +564,58 @@ function GestaoTarefasIndicadores() {
               <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
                 {ataDetalhe.participantes.map((p) => {
                   const aprovou = !!p.aprovado_em;
+                  const reprovou = !!p.reprovado_em;
                   const assinou = !!p.assinado_em;
+                  const adminPendente = reprovou && p.admin_revisao === "pendente";
+                  const adminAceito = reprovou && p.admin_revisao === "aceito";
+                  const adminReprovado = reprovou && p.admin_revisao === "reprovado";
+                  const revisando = adminRevisando === `${ataDetalhe.ata_id}-${p.membro_id}`;
                   return (
-                    <Card key={p.membro_id} className={cn("border", aprovou ? "border-emerald-200" : "border-amber-200")}>
-                      <CardContent className="py-3 px-4 flex items-center justify-between gap-4">
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">{p.nome}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {[p.email, p.cargo].filter(Boolean).join(" • ") || "Membro"}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={aprovou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"} variant="outline">
-                            {aprovou ? "Aprovado" : "Aprovação pendente"}
-                          </Badge>
-                          <Badge className={assinou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"} variant="outline">
-                            {assinou ? "Assinado" : "Assinatura pendente"}
-                          </Badge>
+                    <Card key={p.membro_id} className={cn(
+                      "border",
+                      aprovou ? "border-emerald-200" : reprovou ? "border-red-200" : "border-amber-200"
+                    )}>
+                      <CardContent className="py-3 px-4">
+                        <div className="flex items-center justify-between gap-4 flex-wrap">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{p.nome}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {[p.email, p.cargo].filter(Boolean).join(" • ") || "Membro"}
+                            </p>
+                            {reprovou && p.reprovacao_comentario && (
+                              <div className="mt-2 p-2 rounded bg-red-50 border border-red-100 text-sm text-red-800">
+                                <span className="font-medium">Objeção: </span>
+                                {p.reprovacao_comentario}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Badge className={aprovou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : reprovou ? "bg-red-100 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200"} variant="outline">
+                              {aprovou ? "Aprovado" : reprovou ? "Reprovado" : "Aprovação pendente"}
+                            </Badge>
+                            {reprovou && adminPendente && (
+                              <>
+                                <Badge variant="secondary">Aguardando sua revisão</Badge>
+                                <Button size="sm" variant="outline" disabled={!!revisando} onClick={() => handleAdminAceitar(ataDetalhe.ata_id, p.membro_id)}>
+                                  {revisando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 mr-1" />}
+                                  Aceitar análise
+                                </Button>
+                                <Button size="sm" variant="destructive" disabled={!!revisando} onClick={() => handleAdminReprovar(ataDetalhe.ata_id, p.membro_id)}>
+                                  {revisando ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-1" />}
+                                  Reprovar análise
+                                </Button>
+                              </>
+                            )}
+                            {reprovou && adminAceito && (
+                              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Objeção aceita</Badge>
+                            )}
+                            {reprovou && adminReprovado && (
+                              <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-200">Objeção reprovada</Badge>
+                            )}
+                            <Badge className={assinou ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"} variant="outline">
+                              {assinou ? "Assinado" : "Assinatura pendente"}
+                            </Badge>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

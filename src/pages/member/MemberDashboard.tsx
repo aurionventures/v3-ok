@@ -76,8 +76,7 @@ const MemberDashboard = () => {
         const { data: tarefas } = await supabase
           .from("reuniao_tarefas")
           .select("id, responsavel")
-          .in("reuniao_id", reuniaoIds)
-          .is("data_conclusao", null);
+          .in("reuniao_id", reuniaoIds);
         tarefasPendentes = (tarefas ?? []).filter((t) =>
           responsavelCoincideComMembro(t.responsavel ?? "", membro.nome ?? "")
         ).length;

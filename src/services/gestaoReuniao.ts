@@ -248,3 +248,26 @@ export async function deleteTarefa(
   }
   return { error: null };
 }
+
+/**
+ * Marca uma tarefa como concluída (resolvida) definindo data_conclusao.
+ */
+export async function concluirTarefa(
+  tarefaId: string
+): Promise<{ error: string | null }> {
+  if (!supabase)
+    return { error: "Supabase não configurado" };
+
+  const dataConclusao = new Date().toISOString().slice(0, 10);
+
+  const { error } = await supabase
+    .from("reuniao_tarefas")
+    .update({ data_conclusao: dataConclusao })
+    .eq("id", tarefaId);
+
+  if (error) {
+    console.error("[gestaoReuniao] concluirTarefa:", error);
+    return { error: error.message };
+  }
+  return { error: null };
+}

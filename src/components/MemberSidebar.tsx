@@ -7,7 +7,6 @@ import {
   Calendar,
   FileText,
   ClipboardList,
-  Award,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -16,14 +15,13 @@ import { clearUserType } from "@/lib/auth";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 
 const MEMBER_MENU = [
-  { href: "/member/dashboard", name: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-  { href: "/member/maturidade", name: "Maturidade", icon: <BarChart3 className="h-5 w-5" /> },
-  { href: "/member/riscos", name: "Riscos", icon: <AlertTriangle className="h-5 w-5" /> },
-  { href: "/member/reunioes", name: "Próximas Reuniões", icon: <Calendar className="h-5 w-5" /> },
-  { href: "/member/pautas", name: "Pautas Virtuais", icon: <FileText className="h-5 w-5" /> },
-  { href: "/member/atas-pendentes", name: "ATAs Pendentes", icon: <FileText className="h-5 w-5" /> },
-  { href: "/member/pendencias", name: "Tarefas Pendentes", icon: <ClipboardList className="h-5 w-5" /> },
-  { href: "/member/desempenho", name: "Meu Desempenho", icon: <Award className="h-5 w-5" /> },
+  { href: "/member/dashboard", name: "Dashboard", icon: <LayoutDashboard className="h-6 w-6" /> },
+  { href: "/member/maturidade", name: "Maturidade", icon: <BarChart3 className="h-6 w-6" /> },
+  { href: "/member/riscos", name: "Riscos", icon: <AlertTriangle className="h-6 w-6" /> },
+  { href: "/member/reunioes", name: "Próximas Reuniões", icon: <Calendar className="h-6 w-6" /> },
+  { href: "/member/pautas", name: "Pautas Virtuais", icon: <FileText className="h-6 w-6" /> },
+  { href: "/member/atas-pendentes", name: "ATAs Pendentes", icon: <FileText className="h-6 w-6" /> },
+  { href: "/member/pendencias", name: "Tarefas Pendentes", icon: <ClipboardList className="h-6 w-6" /> },
 ];
 
 const MemberSidebar = () => {
@@ -55,12 +53,12 @@ const MemberSidebar = () => {
             alt="Legacy OS"
             className="h-8 w-auto max-w-[160px] object-contain"
           />
-          <span className="text-xs font-medium text-white/90">Portal do Membro</span>
+          <span className="text-sm font-medium text-white/90">Portal do Membro</span>
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 px-3">
-        <div className="space-y-1">
+      <nav className="flex-1 overflow-y-auto py-3 px-3">
+        <div className="space-y-0.5">
           {MEMBER_MENU.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -68,43 +66,43 @@ const MemberSidebar = () => {
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center py-3 px-3 rounded-md text-base font-medium transition-colors",
                   isActive ? "bg-legacy-gold text-legacy-500" : "text-white hover:bg-legacy-600"
                 )}
               >
                 {item.icon}
-                <span className="ml-2">{item.name}</span>
+                <span className="ml-3 flex-1">{item.name}</span>
               </Link>
             );
           })}
         </div>
       </nav>
 
-      <div className="border-t border-legacy-600 px-3 py-3 shrink-0">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="h-9 w-9 rounded-full bg-legacy-600 flex items-center justify-center text-white text-sm font-medium">
+      <div className="border-t border-legacy-600 px-3 py-4 shrink-0">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="h-11 w-11 rounded-full bg-legacy-600 flex items-center justify-center text-white text-base font-medium shrink-0">
             {iniciaisMembro}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{nomeMembro}</p>
-            <p className="text-xs text-white/80">Membro</p>
+            <p className="text-base font-medium text-white truncate">{nomeMembro}</p>
+            <p className="text-sm text-white/80">Membro</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
           <Link
             to="/member/settings"
-            className="rounded-md p-2 text-white hover:bg-legacy-600 transition-colors"
+            className="rounded-md p-2.5 text-white hover:bg-legacy-600 transition-colors"
             title="Configurações"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-6 w-6" />
           </Link>
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-md p-2 text-white hover:bg-legacy-600 transition-colors"
+            className="rounded-md p-2.5 text-white hover:bg-legacy-600 transition-colors"
             title="Sair"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-6 w-6" />
           </button>
         </div>
       </div>

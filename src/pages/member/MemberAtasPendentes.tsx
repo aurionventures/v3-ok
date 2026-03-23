@@ -142,7 +142,11 @@ const MemberAtasPendentes = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-semibold text-lg">ATAs Pendentes de Ação</h2>
               {atas.length > 0 && (
-                <Badge variant="destructive">{atas.length}</Badge>
+                <span
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white"
+              >
+                {atas.length}
+              </span>
               )}
             </div>
             {loading ? (
