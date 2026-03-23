@@ -141,22 +141,35 @@ const AdminAgentConfig = () => {
     const { data, error } = await invokeEdgeFunction<{
       daily: { data: string; total_tokens: number }[];
       total: number;
-    }>("usage-openai", {
-      periodo: usagePeriodo,
-      ...(usagePeriodo === "mes" && { mes: usageMes }),
-    });
+    }>(
+      "usage-openai",
+      {
+        periodo: usagePeriodo,
+        ...(usagePeriodo === "mes" && { mes: usageMes }),
+      },
+      { useAnonKey: true }
+    );
     setUsageLoading(false);
     if (error) {
-      toast({ title: "Erro ao carregar consumo", description: error.message, variant: "destructive" });
+      const hint = error.message?.includes("Failed to send") || error.message?.includes("Edge Function")
+        ? " Verifique se a Edge Function 'usage-openai' está deployada e se a tabela token_usage existe (migração 20260302310000)."
+        : "";
+      toast({
+        title: "Erro ao carregar consumo",
+        description: `${error.message}${hint}`,
+        variant: "destructive",
+      });
       setUsageData(null);
       return;
     }
     setUsageData(data ?? null);
   }, [usagePeriodo, usageMes]);
 
+  // Carrega consumo apenas ao abrir a aba "Consumo de tokens" (evita erro na carga inicial)
+  const [activeTab, setActiveTab] = useState("agentes");
   useEffect(() => {
-    fetchUsage();
-  }, [fetchUsage]);
+    if (activeTab === "consumo-tokens") fetchUsage();
+  }, [activeTab, fetchUsage]);
 
   // Get available icon components
   const getIconComponent = (iconName: string) => {
@@ -363,7 +376,7 @@ const AdminAgentConfig = () => {
             <p className="text-gray-600 mt-1">{pageDescription}</p>
           </div>
 
-          <Tabs defaultValue="agentes" className="space-y-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="grid w-full max-w-2xl grid-cols-3">
               <TabsTrigger value="agentes">Agentes</TabsTrigger>
               <TabsTrigger value="biblioteca">Biblioteca de prompts</TabsTrigger>

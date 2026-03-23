@@ -1,16 +1,13 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { DollarSign, FileText, Download, CreditCard, Users, BarChart3, Building2, Loader2 } from "lucide-react";
+import { FileText, Download, CreditCard, Users, BarChart3, Building2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/hooks/use-toast";
 import { useEmpresasAll } from "@/hooks/useEmpresas";
 
 const AdminFinances = () => {
-  const [activeTab, setActiveTab] = useState("overview");
   const { empresas, isLoading } = useEmpresasAll();
 
   const empresasAtivas = empresas.filter((e) => e.ativo);
@@ -35,15 +32,7 @@ const AdminFinances = () => {
             <p className="text-gray-500">Gerencie assinaturas, faturas e relatórios financeiros</p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="plans">Planos</TabsTrigger>
-              <TabsTrigger value="invoices">Faturas</TabsTrigger>
-            </TabsList>
-
-            {/* Visão Geral */}
-            <TabsContent value="overview" className="space-y-6">
+          <div className="space-y-6">
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -178,69 +167,7 @@ const AdminFinances = () => {
                   </Card>
                 </>
               )}
-            </TabsContent>
-
-            {/* Planos */}
-            <TabsContent value="plans" className="space-y-6">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Planos de Assinatura</CardTitle>
-                    <CardDescription>
-                      Configure os planos no Configurador de Planos. As empresas cadastradas serão associadas aos planos quando a integração estiver ativa.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <DollarSign className="h-12 w-12 text-muted-foreground mb-3" />
-                      <p className="text-gray-500">
-                        {empresasAtivas.length} empresa(s) ativa(s) na plataforma
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        O mapeamento de empresas por plano será exibido quando o módulo de assinaturas estiver configurado.
-                      </p>
-                      <Button asChild variant="outline" className="mt-4">
-                        <Link to="/admin/configurador-planos">Configurador de Planos</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            {/* Faturas */}
-            <TabsContent value="invoices">
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Faturas</CardTitle>
-                      <CardDescription>Gerencie as faturas dos clientes</CardDescription>
-                    </div>
-                    <Button onClick={handleCreateInvoice}>
-                      <FileText className="h-4 w-4 mr-2" /> Nova Fatura
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md bg-gray-50/50">
-                    <FileText className="h-12 w-12 text-muted-foreground mb-3" />
-                    <p className="font-medium text-gray-700">Nenhuma fatura cadastrada</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      As faturas serão exibidas quando o módulo de faturamento estiver integrado.
-                    </p>
-                    <Button variant="outline" className="mt-4" onClick={handleCreateInvoice}>
-                      <FileText className="h-4 w-4 mr-2" /> Nova Fatura
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          </div>
         </div>
       </div>
     </div>

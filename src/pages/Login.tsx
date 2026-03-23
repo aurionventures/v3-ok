@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye,
 import { setUserType } from "@/lib/auth";
 import { supabase, invokeEdgeFunction } from "@/lib/supabase";
 import { fetchMembroByUserId } from "@/services/governance";
+import { logAccess } from "@/services/accessLogs";
 import {
   fetchEmpresaById,
   fetchPerfilEmpresaAdmByUserId,
@@ -55,6 +56,7 @@ const Login = () => {
           password,
         });
         if (error) {
+          logAccess({ email: email.trim().toLowerCase(), tipo: "membro", acao: "falha_login" });
           toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
           return;
         }
@@ -81,6 +83,13 @@ const Login = () => {
           return;
         }
         setUserType("member");
+        logAccess({
+          user_id: userId,
+          email: data?.user?.email ?? email.trim().toLowerCase(),
+          tipo: "membro",
+          empresa_id: membro.empresa_id ?? undefined,
+          empresa_nome: empresa?.nome,
+        });
         toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${membro.nome}.` });
         if (membro.senha_alterada) {
           navigate("/member/dashboard");
@@ -105,6 +114,7 @@ const Login = () => {
           password,
         });
         if (error) {
+          logAccess({ email: email.trim().toLowerCase(), tipo: "empresa_adm", acao: "falha_login" });
           toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
           return;
         }
@@ -126,6 +136,13 @@ const Login = () => {
           return;
         }
         setUserType("company");
+        logAccess({
+          user_id: userId,
+          email: data?.user?.email ?? email.trim().toLowerCase(),
+          tipo: "empresa_adm",
+          empresa_id: perfil.empresa_id ?? undefined,
+          empresa_nome: empresa?.nome,
+        });
         toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${perfil.nome ?? empresa.nome}.` });
         if (perfil.senha_alterada) {
           navigate("/dashboard");
@@ -161,6 +178,7 @@ const Login = () => {
           }
         }
         if (error) {
+          logAccess({ email: email.trim().toLowerCase(), tipo: "super_admin", acao: "falha_login" });
           toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
           return;
         }
@@ -175,6 +193,11 @@ const Login = () => {
           return;
         }
         setUserType("admin");
+        logAccess({
+          user_id: userId ?? undefined,
+          email: userEmail,
+          tipo: "super_admin",
+        });
         toast({ title: "Login bem-sucedido", description: "Bem-vindo ao Legacy OS." });
         if (perfilSuperAdmin && !perfilSuperAdmin.senha_alterada) {
           navigate("/admin/alterar-senha");

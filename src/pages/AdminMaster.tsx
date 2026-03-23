@@ -75,13 +75,6 @@ const AdminMaster = () => {
                 <p className="text-xs text-gray-500">Integração em configuração</p>
               </CardHeader>
             </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Ativações no período</CardDescription>
-                <CardTitle className="text-2xl">—</CardTitle>
-                <p className="text-xs text-gray-500">Integração em configuração</p>
-              </CardHeader>
-            </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

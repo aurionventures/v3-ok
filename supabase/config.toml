@@ -51,5 +51,17 @@ verify_jwt = false
 [functions.criar-convidado-reuniao]
 verify_jwt = false
 
+# usage-openai: consumo de tokens para Gestão de IA (Admin)
+[functions.usage-openai]
+verify_jwt = false
+
+# get-access-logs: logs de acesso (requer JWT admin)
+[functions.get-access-logs]
+verify_jwt = true
+
+# log-access: registra login/logout (sem JWT para chamar após login)
+[functions.log-access]
+verify_jwt = false
+
 [analytics]
 enabled = false

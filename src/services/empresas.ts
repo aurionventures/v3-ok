@@ -57,6 +57,7 @@ export interface PerfilEmpresaAdm {
   user_id: string;
   empresa_id: string;
   nome: string | null;
+  email: string | null;
   role: string | null;
   senha_alterada: boolean;
 }
@@ -66,6 +67,7 @@ export interface PerfilSuperAdmin {
   user_id: string;
   empresa_id: string | null;
   nome: string | null;
+  email: string | null;
   role: string | null;
   senha_alterada: boolean;
 }
@@ -78,7 +80,7 @@ export async function fetchPerfilSuperAdminByUserId(
 
   const { data, error } = await supabase
     .from("perfis")
-    .select("id, user_id, empresa_id, nome, role, senha_alterada")
+    .select("id, user_id, empresa_id, nome, email, role, senha_alterada")
     .eq("user_id", userId)
     .eq("role", "super_admin")
     .maybeSingle();
@@ -94,6 +96,7 @@ export async function fetchPerfilSuperAdminByUserId(
     user_id: data.user_id,
     empresa_id: data.empresa_id,
     nome: data.nome,
+    email: data.email ?? null,
     role: data.role,
     senha_alterada: data.senha_alterada ?? true,
   } as PerfilSuperAdmin;
@@ -107,7 +110,7 @@ export async function fetchPerfilEmpresaAdmByUserId(
 
   const { data, error } = await supabase
     .from("perfis")
-    .select("id, user_id, empresa_id, nome, role, senha_alterada")
+    .select("id, user_id, empresa_id, nome, email, role, senha_alterada")
     .eq("user_id", userId)
     .eq("role", "empresa_adm")
     .maybeSingle();
@@ -123,6 +126,7 @@ export async function fetchPerfilEmpresaAdmByUserId(
     user_id: data.user_id,
     empresa_id: data.empresa_id,
     nome: data.nome,
+    email: data.email ?? null,
     role: data.role,
     senha_alterada: data.senha_alterada ?? true,
   } as PerfilEmpresaAdm;

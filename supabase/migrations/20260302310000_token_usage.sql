@@ -25,7 +25,7 @@ create policy "Leitura para admins autenticados"
     exists (
       select 1 from public.perfis p
       where p.user_id = auth.uid()
-      and (p.tipo = 'super_admin' or p.tipo = 'empresa_adm')
+      and (p.role = 'super_admin' or p.role = 'empresa_adm')
     )
   );
 

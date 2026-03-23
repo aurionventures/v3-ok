@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { fetchConvidadoByUserId } from "@/services/agenda";
 import { fetchMembroByUserId } from "@/services/governance";
+import { logAccess } from "@/services/accessLogs";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -62,12 +63,23 @@ const AuthCallback = () => {
       // Convidado tem prioridade – usuário externo com acesso temporário à página de documentos
       const { data: convidado } = await fetchConvidadoByUserId(session.user.id);
       if (convidado) {
+        logAccess({
+          user_id: session.user.id,
+          email: session.user.email ?? convidado.email ?? undefined,
+          tipo: "convidado",
+        });
         navigate("/convidado", { replace: true });
         return;
       }
 
       const membro = await fetchMembroByUserId(session.user.id);
       if (membro) {
+        logAccess({
+          user_id: session.user.id,
+          email: session.user.email ?? membro.email ?? undefined,
+          tipo: "membro",
+          empresa_id: membro.empresa_id ?? undefined,
+        });
         navigate("/member/dashboard", { replace: true });
         return;
       }

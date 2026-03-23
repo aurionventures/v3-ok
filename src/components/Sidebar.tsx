@@ -10,6 +10,7 @@ BarChart3, Calendar, ClipboardList, FileText, ChevronRight,
   Layers
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCurrentAdminProfile } from "@/hooks/useCurrentAdminProfile";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { nome, email } = useCurrentAdminProfile();
   const [open, setOpen] = useState(!isMobile);
   const [addonModalOpen, setAddonModalOpen] = useState(false);
   const [addonModuleName, setAddonModuleName] = useState<string | null>(null);
@@ -421,8 +423,8 @@ const Sidebar = () => {
             <DropdownMenuContent align={open ? "start" : "center"} side="right" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span className="font-medium">Usuário Admin</span>
-                  <span className="text-xs text-muted-foreground">admin@legacygov.com</span>
+                  <span className="font-medium">{nome || "Usuário Admin"}</span>
+                  <span className="text-xs text-muted-foreground">{email || "—"}</span>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -438,7 +440,7 @@ const Sidebar = () => {
           </DropdownMenu>
           {open && (
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-medium text-white truncate">Usuário Admin</span>
+              <span className="text-sm font-medium text-white truncate">{nome || "Usuário Admin"}</span>
             </div>
           )}
           <Link

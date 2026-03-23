@@ -77,40 +77,6 @@ const Admin = () => {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Consumo de Tokens por Agente</CardTitle>
-                <CardDescription>Uso de tokens por tipo de agente</CardDescription>
-              </CardHeader>
-              <CardContent className="h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-gray-500">Integração em configuração</p>
-                  <p className="text-sm text-gray-400 mt-1">Os dados serão exibidos quando o módulo estiver ativo.</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Empresas</CardTitle>
-                <CardDescription>Distribuição na plataforma</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center justify-center py-6">
-                  <div className="text-3xl font-bold text-legacy-500">{empresas.length}</div>
-                  <p className="text-sm text-gray-500 mt-1">empresas cadastradas</p>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Button className="w-full" onClick={() => navigate("/admin/companies")}>
-                  Ver Empresas
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle>Campanhas de Marketing</CardTitle>

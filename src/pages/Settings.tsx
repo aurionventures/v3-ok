@@ -1,17 +1,19 @@
-import React, { useState } from "react";
-import { Settings as SettingsIcon, Save, UserCog, ActivitySquare, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Settings as SettingsIcon, Save, UserCog, FileText, Eye, EyeOff, RefreshCw, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
-import ActivityList from "@/components/ActivityList";
-import { allActivities } from "@/data/activitiesData";
+import PlatformLogsViewer from "@/components/PlatformLogsViewer";
 import { Button } from "@/components/ui/button";
+import { fetchAccessLogs } from "@/services/accessLogs";
+import type { AccessLogEntry } from "@/services/accessLogs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useEmpresas } from "@/hooks/useEmpresas";
+import { useCurrentAdminProfile } from "@/hooks/useCurrentAdminProfile";
 import { isAdmin, isCompanyAdm } from "@/lib/auth";
 import { insertSuperAdmin, insertEmpresaAdm } from "@/services/empresas";
 
@@ -24,6 +26,36 @@ function gerarSenhaAleatoria(len = 10): string {
 
 const Settings = () => {
   const { firstEmpresaId } = useEmpresas();
+  const { nome: profileNome, email: profileEmail, role: profileRole } = useCurrentAdminProfile();
+
+  const [activeTab, setActiveTab] = useState("general");
+  const [accessLogs, setAccessLogs] = useState<AccessLogEntry[]>([]);
+  const [accessLogsLoading, setAccessLogsLoading] = useState(false);
+  const [profileForm, setProfileForm] = useState({ nome: "", email: "", role: "", department: "" });
+
+  const loadAccessLogs = useCallback(async () => {
+    setAccessLogsLoading(true);
+    const { logs, error } = await fetchAccessLogs({ limite: 200 });
+    setAccessLogsLoading(false);
+    if (error) {
+      setAccessLogs([]);
+      return;
+    }
+    setAccessLogs(logs);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "logs") loadAccessLogs();
+  }, [activeTab, loadAccessLogs]);
+
+  useEffect(() => {
+    setProfileForm((p) => ({
+      ...p,
+      nome: profileNome,
+      email: profileEmail,
+      role: profileRole,
+    }));
+  }, [profileNome, profileEmail, profileRole]);
 
   const [superAdminNome, setSuperAdminNome] = useState("");
   const [superAdminEmail, setSuperAdminEmail] = useState("");
@@ -151,7 +183,7 @@ const Settings = () => {
                 </h2>
               </div>
               
-              <Tabs defaultValue="general">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-6">
                   <TabsTrigger value="general">
                     <SettingsIcon className="h-4 w-4 mr-2" />
@@ -161,9 +193,9 @@ const Settings = () => {
                     <UserCog className="h-4 w-4 mr-2" />
                     Perfil
                   </TabsTrigger>
-                  <TabsTrigger value="activities">
-                    <ActivitySquare className="h-4 w-4 mr-2" />
-                    Atividades
+                  <TabsTrigger value="logs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Logs da Plataforma
                   </TabsTrigger>
                 </TabsList>
                 
@@ -212,19 +244,40 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="full-name">Nome Completo</Label>
-                        <Input id="full-name" defaultValue="Usuário Demonstração" />
+                        <Input
+                          id="full-name"
+                          placeholder="Seu nome completo"
+                          value={profileForm.nome}
+                          onChange={(e) => setProfileForm((p) => ({ ...p, nome: e.target.value }))}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="demo@legacy.com" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={profileForm.email}
+                          onChange={(e) => setProfileForm((p) => ({ ...p, email: e.target.value }))}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="role">Função</Label>
-                        <Input id="role" defaultValue="Administrador" />
+                        <Input
+                          id="role"
+                          placeholder="Ex: Administrador"
+                          value={profileForm.role}
+                          onChange={(e) => setProfileForm((p) => ({ ...p, role: e.target.value }))}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="department">Departamento</Label>
-                        <Input id="department" defaultValue="Diretoria" />
+                        <Input
+                          id="department"
+                          placeholder="Ex: Diretoria"
+                          value={profileForm.department}
+                          onChange={(e) => setProfileForm((p) => ({ ...p, department: e.target.value }))}
+                        />
                       </div>
                     </div>
                     <Button onClick={handleSaveSettings}>
@@ -380,10 +433,18 @@ const Settings = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="activities">
+                <TabsContent value="logs">
                   <div className="space-y-6">
-                    <h3 className="text-lg font-medium mb-4">Histórico de Atividades</h3>
-                    <ActivityList activities={allActivities} showViewAll={false} />
+                    <h3 className="text-lg font-medium mb-4">Logs da Plataforma</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Repositório geral de logs de acesso: login, logout e falhas de autenticação de clientes, usuários e membros.
+                    </p>
+                    <PlatformLogsViewer
+                      logs={accessLogs}
+                      loading={accessLogsLoading}
+                      onRefresh={loadAccessLogs}
+                      emptyMessage="Nenhum log de acesso encontrado. Os registros aparecem após logins na plataforma."
+                    />
                   </div>
                 </TabsContent>
               </Tabs>
