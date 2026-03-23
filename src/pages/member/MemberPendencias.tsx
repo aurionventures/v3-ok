@@ -10,86 +10,67 @@ import {
 import GuiaLegacyButton from "@/components/GuiaLegacyButton";
 import NotificationBell from "@/components/NotificationBell";
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, AlertTriangle, Eye, CheckCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useCurrentMembro } from "@/hooks/useCurrentMembro";
+import { useQueryClient } from "@tanstack/react-query";
+import { ClipboardList, CheckCircle, Loader2, ChevronRight } from "lucide-react";
+import { useMemberPendencias, type Pendencia } from "@/hooks/useMemberPendencias";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import { fetchReunioes } from "@/services/agenda";
 import { concluirTarefa } from "@/services/gestaoReuniao";
 
-function responsavelCoincideComMembro(
-  responsavel: string,
-  nomeMembro: string,
-  emailMembro?: string | null
-): boolean {
-  const r = (responsavel ?? "").trim().toLowerCase();
-  const n = (nomeMembro ?? "").trim().toLowerCase();
-  if (!r) return false;
-  if (n && (r.includes(n) || n.includes(r) || n.split(/\s+/)[0] === r || r.split(/\s+/)[0] === n)) return true;
-  const emailLocal = (emailMembro ?? "").split("@")[0].toLowerCase().replace(/[._-]/g, "");
-  if (emailLocal && (r.includes(emailLocal) || emailLocal.includes(r))) return true;
-  return false;
-}
-
 const MemberPendencias = () => {
-  const { data: membro } = useCurrentMembro();
-  const { data: pendencias = [] } = useQuery({
-    queryKey: ["member", "pendencias", membro?.id, membro?.empresa_id, membro?.nome, membro?.email],
-    enabled: !!membro?.id && !!membro?.empresa_id,
-    queryFn: async (): Promise<Array<{ id: string; tarefaId: string; title: string; prazo: string | null; origem: string; tipo: "tarefa" }>> => {
-      if (!membro?.id || !membro.empresa_id || !supabase) return [];
-      const todasReunioes = await fetchReunioes(membro.empresa_id);
-      const { data: alocacoes } = await supabase
-        .from("alocacoes_membros")
-        .select("conselho_id, comite_id, comissao_id")
-        .eq("membro_id", membro.id)
-        .eq("ativo", true);
-      const conselhoIds = new Set((alocacoes ?? []).map((a) => a.conselho_id).filter(Boolean));
-      const comiteIds = new Set((alocacoes ?? []).map((a) => a.comite_id).filter(Boolean));
-      const comissaoIds = new Set((alocacoes ?? []).map((a) => a.comissao_id).filter(Boolean));
-      const temAlocacao = conselhoIds.size > 0 || comiteIds.size > 0 || comissaoIds.size > 0;
-      const reunioesDoMembro =
-        temAlocacao
-          ? todasReunioes.filter(
-              (r) =>
-                (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
-                (r.comite_id && comiteIds.has(r.comite_id)) ||
-                (r.comissao_id && comissaoIds.has(r.comissao_id)) ||
-                (!r.conselho_id && !r.comite_id && !r.comissao_id)
-            )
-          : todasReunioes;
-      const reuniaoIds = reunioesDoMembro.map((r) => r.id);
-      const reuniaoMap = new Map(todasReunioes.map((r) => [r.id, r]));
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [detalheAberto, setDetalheAberto] = useState<Pendencia | null>(null);
+  const [resolvendoId, setResolvendoId] = useState<string | null>(null);
 
-      let pendTarefas: Array<{ id: string; tarefaId: string; title: string; prazo: string | null; origem: string; tipo: "tarefa" }> = [];
-      if (reuniaoIds.length > 0) {
-        const { data: tarefas } = await supabase
-          .from("reuniao_tarefas")
-          .select("id, nome, responsavel, reuniao_id, data_conclusao")
-          .in("reuniao_id", reuniaoIds);
-        const tarefasDoMembro = (tarefas ?? []).filter(
-          (t) =>
-            !t.data_conclusao &&
-            responsavelCoincideComMembro(t.responsavel, membro.nome ?? "", membro.email)
-        );
-        pendTarefas = tarefasDoMembro.map((t) => ({
-          id: `tarefa-${t.id}`,
-          tarefaId: t.id,
-          title: t.nome,
-          prazo: t.data_conclusao,
-          origem: reuniaoMap.get(t.reuniao_id)?.titulo ?? reuniaoMap.get(t.reuniao_id)?.comite_nome ?? reuniaoMap.get(t.reuniao_id)?.comissao_nome ?? reuniaoMap.get(t.reuniao_id)?.conselho_nome ?? "Tarefa e Combinado",
-          tipo: "tarefa" as const,
-        }));
-      }
-
-      return pendTarefas;
-    },
-  });
+  const { data: pendencias = [], isLoading: carregando } = useMemberPendencias();
 
   const total = pendencias.length;
   const urgentes = useMemo(() => pendencias.filter((p) => p.prazo && new Date(p.prazo) <= new Date()).length, [pendencias]);
+
+  const handleResolver = async (p: Pendencia) => {
+    setResolvendoId(p.tarefaId);
+    const { error } = await concluirTarefa(p.tarefaId);
+    setResolvendoId(null);
+    if (error) {
+      toast({ title: "Erro ao resolver", description: error, variant: "destructive" });
+      return;
+    }
+    setDetalheAberto(null);
+    toast({ title: "Tarefa resolvida", description: "A tarefa foi marcada como concluída." });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["member", "pendencias"] }),
+      queryClient.invalidateQueries({ queryKey: ["member", "dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["secretariado", "indicadores"] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "indicadores"] }),
+      queryClient.invalidateQueries({ queryKey: ["secretariado", "tarefas", "pendentes"] }),
+    ]);
+  };
+
+  const [resolvendoTodas, setResolvendoTodas] = useState(false);
+  const handleResolverTodas = async () => {
+    if (pendencias.length === 0) return;
+    setResolvendoTodas(true);
+    let ok = 0;
+    let erros = 0;
+    for (const p of pendencias) {
+      const { error } = await concluirTarefa(p.tarefaId);
+      if (error) erros++; else ok++;
+    }
+    setResolvendoTodas(false);
+    setDetalheAberto(null);
+    if (erros > 0) {
+      toast({ title: "Parcialmente concluído", description: `${ok} resolvida(s), ${erros} erro(s).`, variant: "destructive" });
+    } else {
+      toast({ title: "Todas resolvidas", description: `${ok} tarefa(s) marcada(s) como concluída(s).` });
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["member", "pendencias"] }),
+      queryClient.invalidateQueries({ queryKey: ["member", "dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["secretariado", "indicadores"] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "indicadores"] }),
+      queryClient.invalidateQueries({ queryKey: ["secretariado", "tarefas", "pendentes"] }),
+    ]);
+  };
 
   return (
     <>
@@ -109,21 +90,60 @@ const MemberPendencias = () => {
       </header>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-500" /> Tarefas Pendentes
-          </h2>
-          <span
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white"
-            title={`${total} pendentes`}
-          >
-            {total}
-          </span>
+        <div className="mb-4">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-lg bg-amber-100 flex items-center justify-center relative">
+                  <ClipboardList className="h-6 w-6 text-amber-600" />
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">
+                    {total}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Tarefas Pendentes</h3>
+                  <p className="text-sm text-gray-600">{total} tarefas pendentes</p>
+                  <p className="text-sm text-red-600 font-medium">Acompanhe prazos e status</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  disabled={total === 0 || resolvendoTodas}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleResolverTodas();
+                  }}
+                >
+                  {resolvendoTodas ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  {resolvendoTodas
+                    ? "Resolvendo..."
+                    : total === 1
+                      ? "Resolver pendência"
+                      : "Resolver pendências"}
+                </Button>
+                <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="space-y-4">
-          {pendencias.length > 0 ? (
-            pendencias.map((t) => (
-              <Card key={t.id}>
+        {carregando ? (
+          <div className="py-12 flex items-center justify-center gap-2 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Carregando...
+          </div>
+        ) : pendencias.length === 0 ? null : (
+          <div className="space-y-4">
+            {pendencias.map((t) => (
+              <Card
+                key={t.id}
+                className="border bg-card cursor-pointer transition-colors hover:bg-muted/30"
+                onClick={() => setDetalheAberto(t)}
+              >
                 <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                     <ClipboardList className="h-6 w-6" />
@@ -131,41 +151,79 @@ const MemberPendencias = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold">{t.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Prazo: {t.prazo ? new Date(t.prazo).toLocaleDateString("pt-BR") : "Não definido"}
+                      {t.origem} • Prazo: {t.prazo ? new Date(t.prazo).toLocaleDateString("pt-BR") : "Não definido"}
                     </p>
-                    <p className="text-sm text-muted-foreground">Origem: {t.origem}</p>
+                    <Badge variant="secondary" className="mt-2">
+                      Tarefa e Combinado
+                    </Badge>
                   </div>
-                  <Badge className="bg-gray-200 text-gray-800 w-fit shrink-0">
-                    Tarefa e Combinado
-                  </Badge>
-                  <div className="flex gap-2 shrink-0">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" /> Ver Detalhes
-                    </Button>
-                    <Button size="sm">
-                      <CheckCircle className="h-4 w-4 mr-2" /> Resolver
+                  <div className="flex gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleResolver(t);
+                      }}
+                      disabled={resolvendoId === t.tarefaId}
+                    >
+                      {resolvendoId === t.tarefaId ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      {resolvendoId === t.tarefaId ? "Concluindo..." : "Concluir"}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-sm text-muted-foreground space-y-2">
-                <p>Você não possui tarefas pendentes no momento.</p>
-                <p>
-                  ATAs aguardando aprovação ou assinatura estão em{" "}
-                  <Link to="/member/atas-pendentes" className="text-primary underline underline-offset-2">
-                    ATAs Pendentes
-                  </Link>
-                  .
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-        {urgentes > 0 && <p className="text-sm text-red-600 mt-3">{urgentes} pendência(s) urgente(s).</p>}
+            ))}
+          </div>
+        )}
+        {urgentes > 0 && pendencias.length > 0 && (
+          <p className="text-sm text-red-600 mt-4">{urgentes} pendência(s) urgente(s).</p>
+        )}
       </div>
+
+      <Dialog open={!!detalheAberto} onOpenChange={(open) => !open && setDetalheAberto(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Descrição da atividade</DialogTitle>
+          </DialogHeader>
+          {detalheAberto && (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-muted/50 p-4 text-sm">
+                <p className="font-medium text-foreground">{detalheAberto.title}</p>
+                <p className="mt-2 text-muted-foreground">
+                  <span className="font-medium">Prazo:</span>{" "}
+                  {detalheAberto.prazo
+                    ? new Date(detalheAberto.prazo).toLocaleDateString("pt-BR")
+                    : "Não definido"}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Origem:</span> {detalheAberto.origem}
+                </p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={() => handleResolver(detalheAberto)}
+                  disabled={resolvendoId === detalheAberto.tarefaId}
+                >
+                  {resolvendoId === detalheAberto.tarefaId ? (
+                    "Concluindo..."
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" /> Concluir
+                    </>
+                  )}
+                </Button>
+                <Button variant="outline" onClick={() => setDetalheAberto(null)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

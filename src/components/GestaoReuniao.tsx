@@ -99,6 +99,7 @@ interface Tarefa {
   id: string;
   nome: string;
   responsavel: string;
+  dataPrazo: string;
   dataConclusao: string;
 }
 
@@ -226,6 +227,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
           id: t.id,
           nome: t.nome,
           responsavel: t.responsavel,
+          dataPrazo: t.data_prazo ?? t.data_conclusao ?? "",
           dataConclusao: t.data_conclusao ?? "",
         }))
       );
@@ -313,7 +315,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
       reuniao_id: r.id,
       nome: tarefaNome,
       responsavel: tarefaResponsavel,
-      data_conclusao: tarefaData || format(new Date(), "yyyy-MM-dd"),
+      data_prazo: tarefaData || null,
     });
     if (error) {
       toast({ title: "Erro ao salvar tarefa", description: error, variant: "destructive" });
@@ -326,6 +328,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
           id: data.id,
           nome: data.nome,
           responsavel: data.responsavel,
+          dataPrazo: data.data_prazo ?? "",
           dataConclusao: data.data_conclusao ?? "",
         },
       ]);
@@ -484,7 +487,7 @@ const GestaoReuniao: React.FC<GestaoReuniaoProps> = ({
       if (tarefas.length > 0) {
         partes.push("TAREFAS E COMBINADOS:");
         tarefas.forEach((t) => {
-          partes.push(`- ${t.nome} | Responsável: ${t.responsavel}${t.dataConclusao ? ` | Prazo: ${t.dataConclusao}` : ""}`);
+          partes.push(`- ${t.nome} | Responsável: ${t.responsavel}${t.dataPrazo ? ` | Prazo: ${t.dataPrazo}` : ""}`);
         });
         partes.push("");
       }

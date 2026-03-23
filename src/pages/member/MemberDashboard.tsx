@@ -20,20 +20,15 @@ import MemberBriefing from "./MemberBriefing";
 import MemberCopiloto from "./MemberCopiloto";
 import { useCurrentMembro } from "@/hooks/useCurrentMembro";
 import { useMaturidadeScore } from "@/hooks/useMaturidadeScore";
+import { useMemberPendencias } from "@/hooks/useMemberPendencias";
 import { fetchReunioes } from "@/services/agenda";
 import { fetchAtasPendentesMembro } from "@/services/ataAprovacoes";
 import { supabase } from "@/lib/supabase";
 
-function responsavelCoincideComMembro(responsavel: string, nomeMembro: string): boolean {
-  const r = (responsavel ?? "").trim().toLowerCase();
-  const n = (nomeMembro ?? "").trim().toLowerCase();
-  if (!r || !n) return false;
-  return r.includes(n) || n.includes(r) || n.split(/\s+/)[0] === r || r.split(/\s+/)[0] === n;
-}
-
 const MemberDashboard = () => {
   const { data: membro } = useCurrentMembro();
   const { score: maturidadeScore, fullMark: maturidadeFullMark, isLoading: maturidadeLoading } = useMaturidadeScore();
+  const { data: pendencias = [] } = useMemberPendencias();
 
   const { data: dashboard } = useQuery({
     queryKey: ["member", "dashboard", membro?.id, membro?.empresa_id, membro?.nome],
@@ -67,26 +62,12 @@ const MemberDashboard = () => {
         .filter((r) => r.data_reuniao && new Date(r.data_reuniao) >= new Date())
         .sort((a, b) => (a.data_reuniao ?? "").localeCompare(b.data_reuniao ?? ""));
       const proxima = proximas[0] ?? null;
-      const reuniaoIds = reunioes.map((r) => r.id);
-
       const { data: atasPendentes } = await fetchAtasPendentesMembro(membro.id);
-
-      let tarefasPendentes = 0;
-      if (reuniaoIds.length > 0) {
-        const { data: tarefas } = await supabase
-          .from("reuniao_tarefas")
-          .select("id, responsavel")
-          .in("reuniao_id", reuniaoIds);
-        tarefasPendentes = (tarefas ?? []).filter((t) =>
-          responsavelCoincideComMembro(t.responsavel ?? "", membro.nome ?? "")
-        ).length;
-      }
 
       return {
         proxima,
         reunioesCount: proximas.length,
         atasPendentes: atasPendentes.length,
-        tarefasPendentes,
       };
     },
   });
@@ -226,11 +207,11 @@ const MemberDashboard = () => {
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-lg bg-amber-100 flex items-center justify-center relative">
                         <ClipboardList className="h-6 w-6 text-amber-600" />
-                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">{dashboard?.tarefasPendentes ?? 0}</span>
+                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">{pendencias.length}</span>
                       </div>
                       <div>
                         <h3 className="font-semibold">Tarefas Pendentes</h3>
-                        <p className="text-sm text-gray-600">{dashboard?.tarefasPendentes ?? 0} tarefas pendentes</p>
+                        <p className="text-sm text-gray-600">{pendencias.length} tarefas pendentes</p>
                         <p className="text-sm text-red-600 font-medium">Acompanhe prazos e status</p>
                       </div>
                     </div>

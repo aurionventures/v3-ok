@@ -182,6 +182,7 @@ export interface TarefaRow {
   nome: string;
   responsavel: string;
   data_conclusao: string | null;
+  data_prazo?: string | null;
   created_at?: string;
 }
 
@@ -208,7 +209,7 @@ export async function insertTarefa(p: {
   reuniao_id: string;
   nome: string;
   responsavel: string;
-  data_conclusao?: string | null;
+  data_prazo?: string | null;
 }): Promise<{ data: TarefaRow | null; error: string | null }> {
   if (!supabase)
     return { data: null, error: "Supabase não configurado" };
@@ -219,7 +220,8 @@ export async function insertTarefa(p: {
       reuniao_id: p.reuniao_id,
       nome: p.nome,
       responsavel: p.responsavel,
-      data_conclusao: p.data_conclusao || null,
+      data_conclusao: null,
+      data_prazo: p.data_prazo || null,
     })
     .select()
     .single();

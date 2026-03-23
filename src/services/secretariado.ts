@@ -475,7 +475,7 @@ export async function fetchHistoricoTarefasPendentes(
 
   const { data: tarefasPendentes } = await supabase
     .from("reuniao_tarefas")
-    .select("id, reuniao_id, nome, responsavel, data_conclusao")
+    .select("id, reuniao_id, nome, responsavel, data_conclusao, data_prazo")
     .in("reuniao_id", reuniaoIds)
     .is("data_conclusao", null)
     .order("created_at", { ascending: false });
@@ -487,6 +487,7 @@ export async function fetchHistoricoTarefasPendentes(
       nome: string;
       responsavel: string;
       data_conclusao: string | null;
+      data_prazo?: string | null;
     }) => {
       const reuniao = reuniaoMap.get(t.reuniao_id);
       const orgao =
@@ -502,7 +503,7 @@ export async function fetchHistoricoTarefasPendentes(
         reuniao_titulo: reuniao?.titulo ?? orgao,
         orgao,
         responsavel: t.responsavel || "Não definido",
-        prazo: t.data_conclusao,
+        prazo: t.data_prazo ?? t.data_conclusao,
         etapa: "tarefa" as const,
       };
     })
