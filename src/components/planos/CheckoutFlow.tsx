@@ -17,7 +17,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, CreditCard, ShoppingCart, ArrowLeft, MessageCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Calendar, ShoppingCart, MessageCircle, CreditCard, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { whatsappUrl } from "@/config/contato";
 import type { CalculatedPlan } from "./PlanDiscoveryFlow";
@@ -78,33 +85,11 @@ export const CheckoutFlow = ({ plan, onClose }: CheckoutFlowProps) => {
         </div>
       </header>
 
-      <div className="flex justify-center gap-2 px-6 py-3 border-b bg-gray-50/50">
-        <span
-          className={cn(
-            "flex items-center gap-2 font-lato text-sm font-medium",
-            step === 1 ? "text-[#0A1628]" : "text-muted-foreground"
-          )}
-        >
-          <Calendar className="h-4 w-4" />
-          Prazo do Contrato
-        </span>
-        <span className="text-muted-foreground">/</span>
-        <span
-          className={cn(
-            "flex items-center gap-2 font-lato text-sm font-medium",
-            step === 2 ? "text-[#0A1628]" : "text-muted-foreground"
-          )}
-        >
-          <CreditCard className="h-4 w-4" />
-          Forma de Pagamento
-        </span>
-      </div>
-
       <div className="container mx-auto px-6 py-8 max-w-5xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {step === 1 ? (
-              <div>
+            <div>
                 <h2 className="font-montserrat text-xl font-bold text-gray-900 flex items-center gap-2 mb-2">
                   <Calendar className="h-5 w-5" />
                   Prazo do Contrato
@@ -138,27 +123,60 @@ export const CheckoutFlow = ({ plan, onClose }: CheckoutFlowProps) => {
                 <p className="font-lato text-xs text-muted-foreground mt-4">
                   Contratos de 24 e 36 meses oferecem descontos progressivos sobre o valor mensal.
                 </p>
-              </div>
-            ) : (
-              <div>
-                <h2 className="font-montserrat text-xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-                  <CreditCard className="h-5 w-5" />
-                  Forma de Pagamento
-                </h2>
-                {/* TODO: Integrar API de pagamento - ver JSDoc no início do arquivo */}
-                <p className="font-lato text-muted-foreground mb-6">
-                  Em breve: integração com gateway de pagamento. Entre em contato com nosso especialista para concluir a contratação.
-                </p>
-                <p className="font-lato text-sm text-muted-foreground italic mb-6">
-                  [Área reservada para conectar API de pagamento – cartão, PIX ou boleto]
-                </p>
                 <Button
-                  className="bg-green-600 hover:bg-green-700"
+                  className="mt-6 bg-green-600 hover:bg-green-700 font-montserrat font-semibold"
                   onClick={handleFalarEspecialista}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Falar com Especialista para concluir
                 </Button>
+              </div>
+            ) : (
+              <div className="rounded-lg border-2 border-amber-200 bg-amber-50/50 p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <CreditCard className="h-8 w-8 text-amber-600" />
+                  <h2 className="font-montserrat text-xl font-bold text-gray-900">
+                    Conectar API de pagamentos
+                  </h2>
+                </div>
+                <p className="font-lato text-gray-700 mb-4">
+                  Esta etapa exigirá integração com gateway de pagamento (Stripe, PagSeguro, Asaas ou similar) para processar cartão, PIX ou boleto de forma automática.
+                </p>
+                <p className="font-lato text-sm text-muted-foreground mb-6">
+                  Dados disponíveis para envio: plano, valor mensal, taxa de setup, prazo do contrato. Ver documentação completa no início do arquivo <code className="bg-gray-200 px-1 rounded text-xs">CheckoutFlow.tsx</code> (JSDoc) e em <code className="bg-gray-200 px-1 rounded text-xs">PlatformDocumentation</code>.
+                </p>
+                <div className="flex gap-3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="font-lato">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Ver documentação
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-montserrat">API de Pagamentos - Documentação</DialogTitle>
+                      </DialogHeader>
+                      <div className="font-lato text-sm space-y-4 text-left">
+                        <p><strong>1. Gateway:</strong> Integre Stripe, PagSeguro, Asaas ou similar.</p>
+                        <p><strong>2. Forma de Pagamento:</strong> Formulário de cartão (ou PIX/boleto) e chamada à API com: plan.planName, valorMensal, plan.setupFee, prazoMeses.</p>
+                        <p><strong>3. 1ª Cobrança:</strong> cobrar primeiraCobranca (Setup + 1ª mensalidade) na aprovação.</p>
+                        <p><strong>4. Recorrência:</strong> cobrança mensal de valorMensal pelo prazoMeses.</p>
+                        <p><strong>5. Sucesso:</strong> redirecionar para confirmação e ativar assinatura.</p>
+                        <p className="text-muted-foreground pt-2 border-t">
+                          Dados disponíveis: plan, valorMensal, valorTotalContrato, primeiraCobranca, prazoMeses. Ver JSDoc em CheckoutFlow.tsx e docs/PAGAMENTOS_API.md.
+                        </p>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    className="bg-green-600 hover:bg-green-700 font-montserrat font-semibold"
+                    onClick={handleFalarEspecialista}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Falar com Especialista
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -203,17 +221,20 @@ export const CheckoutFlow = ({ plan, onClose }: CheckoutFlowProps) => {
         </div>
 
         <div className="flex justify-between mt-8 pt-6 border-t">
-          <Button variant="ghost" onClick={step === 1 ? onClose : () => setStep(1)}>
+          <Button
+            variant="ghost"
+            onClick={step === 1 ? onClose : () => setStep(1)}
+          >
             ← Voltar
           </Button>
-          {step === 1 ? (
+          {step === 1 && (
             <Button
               className="bg-[#0A1628] hover:bg-[#0E254E]"
               onClick={() => setStep(2)}
             >
-              Continuar →
+              Avançar
             </Button>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
