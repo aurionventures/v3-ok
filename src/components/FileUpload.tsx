@@ -1,18 +1,14 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Upload } from "lucide-react";
+import { toast } from "sonner";
 
 interface FileUploadProps {
   label?: string;
   multiple?: boolean;
   accept?: string;
   maxSize?: number; // in MB
-  /** Ao preencher, exibe botão "Salvar no histórico" e chama ao clicar (após sucesso, limpa a lista). Opção silent evita toast (usado internamente em upload em lotes). */
-  onUpload?: (files: File[], options?: { silent?: boolean }) => Promise<void>;
-  saveButtonLabel?: string;
-  /** Envia os arquivos em lotes (ex: 5 ou 10 por vez). Útil para muitas ATAs antigas. */
-  batchSize?: number;
+  onFileUpload?: (files: File[]) => void;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -20,53 +16,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
   multiple = false,
   accept = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png",
   maxSize = 10,
-  onUpload,
-  saveButtonLabel = "Salvar no histórico",
-  batchSize,
+  onFileUpload,
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
-
-  const handleSave = async () => {
-    if (!onUpload || files.length === 0) return;
-    setIsUploading(true);
-    setBatchProgress(null);
-
-    try {
-      const useBatches = batchSize != null && batchSize > 0 && files.length > batchSize;
-
-      if (useBatches) {
-        const batches: File[][] = [];
-        for (let i = 0; i < files.length; i += batchSize) {
-          batches.push(files.slice(i, i + batchSize));
-        }
-
-        for (let i = 0; i < batches.length; i++) {
-          setBatchProgress({ current: i + 1, total: batches.length });
-          await onUpload(batches[i], { silent: true });
-        }
-        setFiles([]);
-        toast({
-          title: "Documentos salvos",
-          description: `${files.length} arquivo(s) enviado(s) em ${batches.length} lote(s).`,
-        });
-      } else {
-        await onUpload(files);
-        setFiles([]);
-      }
-    } catch (err) {
-      toast({
-        title: "Erro ao salvar",
-        description: err instanceof Error ? err.message : "Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-      setBatchProgress(null);
-    }
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -74,154 +27,114 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const selectedFiles = Array.from(e.target.files);
     const validFiles = selectedFiles.filter(file => file.size <= maxSize * 1024 * 1024);
     
-    if (validFiles.length !== selectedFiles.length) {
-      toast({
-        title: "Arquivo muito grande",
-        description: `Alguns arquivos excedem o tamanho máximo de ${maxSize}MB`,
-        variant: "destructive",
-      });
+    if (validFiles.length < selectedFiles.length) {
+      toast.error(`Alguns arquivos excedem o tamanho máximo de ${maxSize}MB`);
     }
 
-    setFiles(prevFiles => {
-      if (multiple) {
-        return [...prevFiles, ...validFiles];
-      }
-      return validFiles;
-    });
+    if (validFiles.length > 0) {
+      setFiles(multiple ? [...files, ...validFiles] : [validFiles[0]]);
+      onFileUpload?.(validFiles);
+      toast.success(`${validFiles.length} arquivo(s) carregado(s) com sucesso`);
+    }
 
-    toast({
-      title: "Arquivo carregado",
-      description: `${validFiles.length} arquivo(s) carregado(s) com sucesso`,
-    });
-
-    // Reset the input
+    // Reset input value
     e.target.value = '';
   };
 
-  const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const validFiles = droppedFiles.filter(file => file.size <= maxSize * 1024 * 1024);
+    
+    if (validFiles.length < droppedFiles.length) {
+      toast.error(`Alguns arquivos excedem o tamanho máximo de ${maxSize}MB`);
+    }
+
+    if (validFiles.length > 0) {
+      setFiles(multiple ? [...files, ...validFiles] : [validFiles[0]]);
+      onFileUpload?.(validFiles);
+      toast.success(`${validFiles.length} arquivo(s) carregado(s) com sucesso`);
+    }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    const validFiles = droppedFiles.filter(file => file.size <= maxSize * 1024 * 1024);
-    
-    if (validFiles.length !== droppedFiles.length) {
-      toast({
-        title: "Arquivo muito grande",
-        description: `Alguns arquivos excedem o tamanho máximo de ${maxSize}MB`,
-        variant: "destructive",
-      });
-    }
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
 
-    setFiles(prevFiles => {
-      if (multiple) {
-        return [...prevFiles, ...validFiles];
-      }
-      return validFiles;
-    });
-
-    toast({
-      title: "Arquivo carregado",
-      description: `${validFiles.length} arquivo(s) carregado(s) com sucesso`,
-    });
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-tour="checklist-upload">
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-          isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+          isDragging 
+            ? 'border-primary bg-primary/5' 
+            : 'border-border hover:border-primary/50'
         }`}
+        onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
-        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-        <p className="mb-2 text-sm text-gray-500">
-          <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
-        </p>
-        <p className="text-xs text-gray-500">
-          {accept.split(",").join(", ")} (Máx. {maxSize}MB)
-        </p>
-        <input
-          type="file"
-          className="hidden"
-          onChange={handleFileChange}
-          accept={accept}
-          multiple={multiple}
-          id="fileUpload"
-        />
-        <Button
-          className="mt-4"
-          variant="outline"
-          size="sm"
-          onClick={() => document.getElementById("fileUpload")?.click()}
-        >
-          {label}
-        </Button>
+        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Arraste e solte seus arquivos aqui ou
+          </p>
+          <Button variant="outline" asChild>
+            <label className="cursor-pointer">
+              {label}
+              <input
+                type="file"
+                className="hidden"
+                multiple={multiple}
+                accept={accept}
+                onChange={handleFileChange}
+              />
+            </label>
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Tamanho máximo: {maxSize}MB
+          </p>
+        </div>
       </div>
 
       {files.length > 0 && (
-        <div className="mt-4 space-y-2">
-          <ul className="space-y-2">
-            {files.map((file, index) => (
-              <li key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center mr-2">
-                    <span className="text-xs uppercase">{file.name.split(".").pop()}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-500 hover:text-red-500"
-                  onClick={() => removeFile(index)}
-                  disabled={isUploading}
-                >
-                  Remover
-                </Button>
-              </li>
-            ))}
-          </ul>
-          {onUpload && (
-            <div className="space-y-2">
-              {batchProgress && (
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Enviando lote {batchProgress.current} de {batchProgress.total}…
-                </p>
-              )}
+        <ul className="mt-4 space-y-2">
+          {files.map((file, index) => (
+            <li key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{file.name}</p>
+                <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+              </div>
               <Button
-                className="w-full"
-                onClick={handleSave}
-                disabled={isUploading}
+                size="sm"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => removeFile(index)}
               >
-                {isUploading ? "Salvando..." : saveButtonLabel}
+                Remover
               </Button>
-            </div>
-          )}
-        </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

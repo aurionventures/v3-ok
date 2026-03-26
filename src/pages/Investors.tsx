@@ -17,7 +17,7 @@ const Investors = () => {
             />
             <p className="ml-3 text-sm text-gray-600">Family Office Governance Tech</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div>
             <Button 
               className="bg-legacy-purple-500 text-white hover:bg-opacity-90"
               onClick={() => window.location.href = "mailto:contato@legacy.com.br"}

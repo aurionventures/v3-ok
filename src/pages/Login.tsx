@@ -1,426 +1,548 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Building2, Users2, FileText, Calendar, BarChart3, Leaf, Eye, EyeOff, Shield } from "lucide-react";
-import { setUserType } from "@/lib/auth";
-import { supabase, invokeEdgeFunction } from "@/lib/supabase";
-import { fetchMembroByUserId } from "@/services/governance";
-import { logAccess } from "@/services/accessLogs";
-import {
-  fetchEmpresaById,
-  fetchPerfilEmpresaAdmByUserId,
-  fetchPerfilSuperAdminByUserId,
-} from "@/services/empresas";
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Building2, Shield, Briefcase, Home, Link as LinkIcon } from 'lucide-react';
+import { UserRole } from '@/types/auth';
+import { useToast } from '@/hooks/use-toast';
+import { invitationService } from '@/utils/invitationService';
+import { useAuth } from '@/contexts/AuthContext';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import legacyLogoFull from "@/assets/legacy-logo-full.png";
+import LoginCliente from '@/components/auth/LoginCliente';
+import LoginParceiro from '@/components/auth/LoginParceiro';
+import LoginAdmin from '@/components/auth/LoginAdmin';
 
-type LoginView = "select" | "company" | "member" | "admin";
-
-const Login = () => {
-  const navigate = useNavigate();
+export default function Login() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const [userType, setUserType] = useState<UserRole | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isSignup, setIsSignup] = useState(false);
+  const [invitedCompany, setInvitedCompany] = useState('');
+  const [partnerLoginModalOpen, setPartnerLoginModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const isAdminLogin = searchParams.get("type") === "admin" || location.state?.userType === "admin";
-  const [loginView, setLoginView] = useState<LoginView>(isAdminLogin ? "admin" : "select");
 
   useEffect(() => {
-    const error = (location.state as { memberLoginError?: string })?.memberLoginError;
-    if (error) {
-      toast({ title: "Acesso negado", description: error, variant: "destructive" });
-      navigate(location.pathname, { replace: true, state: {} });
+    // Verifica se veio do GenerateCompanyToken com userType e email
+    if (location.state?.userType && location.state?.email) {
+      setUserType(location.state.userType);
     }
-  }, [location.pathname, location.state, navigate, toast]);
+    
+    // Verifica se veio do /admin
+    if (location.state?.admin) {
+      const credentials = getDefaultCredentials('admin');
+      setUserType('admin');
+      setEmail(credentials.email);
+      setPassword(credentials.password);
+      
+      toast({
+        title: "Acesso Administrativo",
+        description: "Entre com suas credenciais de administrador",
+      });
+    }
+  }, [location.state, toast]);
 
-  const handleLogin = async (userType: string) => {
-    if (!email || !password) {
-      toast({ title: "Erro de Login", description: "Preencha todos os campos.", variant: "destructive" });
+  // Check for invitation token
+  useEffect(() => {
+    const invitationToken = searchParams.get('invitation');
+    console.log('🔍 Token encontrado:', invitationToken);
+    
+    if (invitationToken) {
+      const invitation = invitationService.decodeToken(invitationToken);
+      console.log('📋 Convite decodificado:', invitation);
+      
+      if (invitation) {
+        const role = invitation.type === 'cliente' ? 'cliente' : 'parceiro';
+        console.log('👤 Definindo tipo:', role, 'Email:', invitation.email);
+        
+        setUserType(role);
+        setEmail(invitation.email);
+        setInvitedCompany(invitation.companyName);
+        setIsSignup(true);
+        
+        toast({
+          title: "Convite detectado!",
+          description: `Complete seu cadastro como ${invitation.type}`,
+        });
+      } else {
+        console.error('❌ Convite inválido ou expirado');
+        toast({
+          title: "Convite inválido",
+          description: "O link de convite expirou ou é inválido",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [searchParams, toast]);
+
+  const handleLoginSuccess = async () => {
+    if (!userType || !email) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos",
+        variant: "destructive",
+      });
       return;
     }
 
-    if (userType === "member") {
-      if (!supabase) {
-        toast({ title: "Erro", description: "Supabase não configurado.", variant: "destructive" });
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password,
-        });
-        if (error) {
-          logAccess({ email: email.trim().toLowerCase(), tipo: "membro", acao: "falha_login" });
-          toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
-          return;
-        }
-        const userId = data?.user?.id;
-        if (!userId) {
-          toast({ title: "Erro de Login", description: "Credenciais inválidas.", variant: "destructive" });
-          return;
-        }
-        const membro = await fetchMembroByUserId(userId);
-        if (!membro) {
-          await supabase.auth.signOut();
-          toast({ title: "Erro de Login", description: "Nenhum membro vinculado a esta conta.", variant: "destructive" });
-          return;
-        }
-        if (!membro.empresa_id) {
-          await supabase.auth.signOut();
-          toast({ title: "Erro de Login", description: "Membro sem empresa vinculada. Contacte o administrador.", variant: "destructive" });
-          return;
-        }
-        const empresa = await fetchEmpresaById(membro.empresa_id);
-        if (!empresa || !empresa.ativo) {
-          await supabase.auth.signOut();
-          toast({ title: "Erro de Login", description: "Empresa inativa ou inexistente. Contacte o administrador.", variant: "destructive" });
-          return;
-        }
-        setUserType("member");
-        logAccess({
-          user_id: userId,
-          email: data?.user?.email ?? email.trim().toLowerCase(),
-          tipo: "membro",
-          empresa_id: membro.empresa_id ?? undefined,
-          empresa_nome: empresa?.nome,
-        });
-        toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${membro.nome}.` });
-        if (membro.senha_alterada) {
-          navigate("/member/dashboard");
-        } else {
-          navigate("/member/alterar-senha");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
+    setLoading(true);
 
-    if (userType === "company") {
-      if (!supabase) {
-        toast({ title: "Erro", description: "Supabase não configurado.", variant: "destructive" });
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password,
-        });
-        if (error) {
-          logAccess({ email: email.trim().toLowerCase(), tipo: "empresa_adm", acao: "falha_login" });
-          toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
-          return;
-        }
-        const userId = data?.user?.id;
-        if (!userId) {
-          toast({ title: "Erro de Login", description: "Credenciais inválidas.", variant: "destructive" });
-          return;
-        }
-        const perfil = await fetchPerfilEmpresaAdmByUserId(userId);
-        if (!perfil) {
-          await supabase.auth.signOut();
-          toast({ title: "Erro de Login", description: "Nenhum perfil ADM de empresa vinculado a esta conta.", variant: "destructive" });
-          return;
-        }
-        const empresa = await fetchEmpresaById(perfil.empresa_id);
-        if (!empresa || !empresa.ativo) {
-          await supabase.auth.signOut();
-          toast({ title: "Erro de Login", description: "Empresa inativa ou inexistente. Contacte o administrador.", variant: "destructive" });
-          return;
-        }
-        setUserType("company");
-        logAccess({
-          user_id: userId,
-          email: data?.user?.email ?? email.trim().toLowerCase(),
-          tipo: "empresa_adm",
-          empresa_id: perfil.empresa_id ?? undefined,
-          empresa_nome: empresa?.nome,
-        });
-        toast({ title: "Login bem-sucedido", description: `Bem-vindo, ${perfil.nome ?? empresa.nome}.` });
-        if (perfil.senha_alterada) {
-          navigate("/dashboard");
-        } else {
-          navigate("/company/alterar-senha");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
+    try {
+      const success = await login({ email, password, role: userType });
 
-    if (userType === "admin") {
-      if (!supabase) {
-        toast({ title: "Erro", description: "Supabase não configurado.", variant: "destructive" });
-        return;
-      }
-      setIsLoading(true);
-      try {
-        let { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password,
+      if (success) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: `Bem-vindo ao painel ${getRoleLabel(userType)}`,
         });
-        if (error?.message?.includes("Invalid login") && email.trim().toLowerCase() === "admin@legacy.com") {
-          const { error: seedErr } = await invokeEdgeFunction("seed-admin", {}, { useAnonKey: true });
-          if (!seedErr) {
-            const retry = await supabase.auth.signInWithPassword({
-              email: "admin@legacy.com",
-              password: "123",
-            });
-            data = retry.data;
-            error = retry.error;
-          }
-        }
-        if (error) {
-          logAccess({ email: email.trim().toLowerCase(), tipo: "super_admin", acao: "falha_login" });
-          toast({ title: "Erro de Login", description: error.message ?? "E-mail ou senha inválidos.", variant: "destructive" });
-          return;
-        }
-        const userId = data?.user?.id;
-        const userEmail = (data?.user?.email ?? "").toLowerCase();
-        const isLegacyAdmin = userEmail === "admin@legacy.com";
-        const perfilSuperAdmin = userId ? await fetchPerfilSuperAdminByUserId(userId) : null;
 
-        if (!isLegacyAdmin && !perfilSuperAdmin) {
-          await supabase.auth.signOut();
-          toast({ title: "Acesso negado", description: "Credenciais inválidas para acesso administrativo.", variant: "destructive" });
-          return;
+        // Redirect based on user role
+        switch (userType) {
+          case 'admin':
+            navigate('/admin');
+            break;
+          case 'parceiro':
+            navigate('/afiliado');
+            break;
+          case 'cliente':
+            navigate('/dashboard');
+            break;
+          default:
+            navigate('/dashboard');
         }
-        setUserType("admin");
-        logAccess({
-          user_id: userId ?? undefined,
-          email: userEmail,
-          tipo: "super_admin",
+      } else {
+        toast({
+          title: "Erro no login",
+          description: "Email, senha ou tipo de usuário incorretos",
+          variant: "destructive",
         });
-        toast({ title: "Login bem-sucedido", description: "Bem-vindo ao Legacy OS." });
-        if (perfilSuperAdmin && !perfilSuperAdmin.senha_alterada) {
-          navigate("/admin/alterar-senha");
-        } else {
-          navigate("/admin");
-        }
-      } finally {
-        setIsLoading(false);
       }
-      return;
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro durante o login",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Right panel content based on view
-  const rightPanelContent: Record<LoginView, { title: string; subtitle: string; cards: { icon: React.ReactNode; title: string; desc: string }[] }> = {
-    select: {
-      title: "Evolua a governança da sua empresa",
-      subtitle: "Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.",
-      cards: [
-        { icon: <Building2 className="h-5 w-5" />, title: "Estrutura Organizada", desc: "Conselhos, rituais e documentos em um só lugar" },
-        { icon: <BarChart3 className="h-5 w-5" />, title: "Sucessão Planejada", desc: "Prepare sua empresa para as próximas gerações" },
-        { icon: <Leaf className="h-5 w-5" />, title: "Diagnóstico Contínuo", desc: "Visualize a maturidade da sua governança" },
-        { icon: <Calendar className="h-5 w-5" />, title: "ESG Integrado", desc: "Sustentabilidade na agenda da governança" },
-      ],
-    },
-    company: {
-      title: "Acesso Empresa",
-      subtitle: "Gerencie a governança corporativa da sua organização com ferramentas inteligentes.",
-      cards: [
-        { icon: <Building2 className="h-5 w-5" />, title: "Dashboard Executivo", desc: "Métricas e indicadores de governança" },
-        { icon: <FileText className="h-5 w-5" />, title: "Documentação Completa", desc: "Todos os documentos organizados" },
-        { icon: <BarChart3 className="h-5 w-5" />, title: "Avaliação de Maturidade", desc: "Monitore a evolução da governança" },
-        { icon: <Users2 className="h-5 w-5" />, title: "Gestão de Conselhos", desc: "Organize conselhos e comitês" },
-      ],
-    },
-    member: {
-      title: "Acesso Membro",
-      subtitle: "Acesse o Portal de Membros e participe dos conselhos e órgãos de governança.",
-      cards: [
-        { icon: <Users2 className="h-5 w-5" />, title: "Portal de Membros", desc: "Acesse informações dos conselhos e órgãos" },
-        { icon: <FileText className="h-5 w-5" />, title: "Documentos e Atas", desc: "Visualize documentos e atas das reuniões" },
-        { icon: <Calendar className="h-5 w-5" />, title: "Agenda de Reuniões", desc: "Acompanhe a agenda e participe das reuniões" },
-      ],
-    },
-    admin: {
-      title: "Administrador Master",
-      subtitle: "Acesso exclusivo para administradores da plataforma Legacy OS.",
-      cards: [
-        { icon: <Building2 className="h-5 w-5" />, title: "Gestão de Clientes", desc: "Gerencie todas as organizações" },
-        { icon: <BarChart3 className="h-5 w-5" />, title: "Relatórios Globais", desc: "Visão geral da plataforma" },
-      ],
-    },
+  const getDefaultCredentials = (role: UserRole): { email: string; password: string } => {
+    switch (role) {
+      case 'admin':
+        return { email: 'admin@gov.com', password: 'admin123' };
+      case 'parceiro':
+        return { email: 'parceiro@legacy.com', password: '123456' };
+      case 'cliente':
+        return { email: 'cliente@empresa.com', password: '123456' };
+      default:
+        return { email: '', password: '' };
+    }
   };
 
-  const panel = rightPanelContent[loginView];
+  const getRoleLabel = (role: UserRole): string => {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'parceiro':
+        return 'Parceiro';
+      case 'cliente':
+        return 'Cliente';
+      default:
+        return '';
+    }
+  };
 
-  return (
-    <div className="min-h-screen flex">
-      {/* Left side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[hsl(210,33%,98%)]">
-        <div className="w-full max-w-md">
-          {/* Back link */}
-          <button
-            onClick={() => (loginView === "select" ? navigate("/") : setLoginView("select"))}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 font-lato"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {loginView === "select" ? "Voltar à Home" : "Voltar"}
-          </button>
+  // Renderizar componente específico baseado no tipo de usuário
+  if (userType === 'cliente') {
+    return <LoginCliente onBack={() => setUserType(null)} />;
+  }
+  
+  if (userType === 'parceiro') {
+    return <LoginParceiro onBack={() => setUserType(null)} initialEmail={email} />;
+  }
+  
+  if (userType === 'admin') {
+    return <LoginAdmin onBack={() => setUserType(null)} />;
+  }
 
-          {loginView === "select" ? (
-            /* Role Selection */
-            <div>
-              <p className="font-lato text-center text-muted-foreground mb-8">
-                Escolha como deseja acessar
-              </p>
-              <div className="space-y-4">
-                <button
-                  onClick={() => setLoginView("company")}
-                  className="w-full bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-secondary/30 transition-all text-center group"
-                >
-                  <Building2 className="h-10 w-10 mx-auto mb-3 text-primary group-hover:text-secondary transition-colors" />
-                  <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Cliente</h3>
-                  <p className="font-lato text-sm text-muted-foreground">Acesso para empresas e organizações</p>
-                </button>
-
-                <button
-                  onClick={() => setLoginView("member")}
-                  className="w-full bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-secondary/30 transition-all text-center group"
-                >
-                  <Users2 className="h-10 w-10 mx-auto mb-3 text-green-600 group-hover:text-secondary transition-colors" />
-                  <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Membro</h3>
-                  <p className="font-lato text-sm text-muted-foreground">Acesso para membros de conselhos e órgãos</p>
-                </button>
-
-                <button
-                  onClick={() => setLoginView("admin")}
-                  className="w-full bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-secondary/30 transition-all text-center group"
-                >
-                  <Shield className="h-10 w-10 mx-auto mb-3 text-green-600 group-hover:text-secondary transition-colors" />
-                  <h3 className="font-montserrat text-lg font-bold text-foreground mb-1">Admin Master</h3>
-                  <p className="font-lato text-sm text-muted-foreground">Acesso para administradores da plataforma</p>
-                </button>
-              </div>
+  if (!userType) {
+    return (
+      <div className="min-h-screen flex bg-white">
+        {/* Left side - Selection */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+          <div className="w-full max-w-md space-y-6">
+            <div className="text-center mb-8">
+              <img 
+                src={legacyLogoFull} 
+                alt="Legacy OS - Governança Corporativa" 
+                className="h-20 w-auto mx-auto mb-4"
+              />
+              <Link 
+                to="/" 
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+              >
+                <Home className="h-4 w-4" />
+                Voltar para Home
+              </Link>
+              <p className="text-muted-foreground">Escolha como deseja acessar</p>
             </div>
-          ) : (
-            /* Login Form */
-            <div className="bg-card border border-border rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-2">
-                {loginView === "company" && <Building2 className="h-6 w-6 text-primary" />}
-                {loginView === "member" && <Users2 className="h-6 w-6 text-green-600" />}
-                {loginView === "admin" && <Shield className="h-6 w-6 text-green-600" />}
-                <h2 className="font-montserrat text-xl font-bold text-foreground">
-                  {loginView === "company" ? "Cliente" : loginView === "member" ? "Membro" : "Admin Master"}
-                </h2>
-              </div>
-              <p className="font-lato text-sm text-muted-foreground mb-6">
-                {loginView === "company"
-                  ? "Entre com suas credenciais de empresa"
-                  : loginView === "member"
-                  ? "Entre com suas credenciais de membro"
-                  : "Entre com suas credenciais de administrador"}
-              </p>
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleLogin(loginView);
+            
+            <div className="grid gap-4">
+              <Card 
+                className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+                onClick={() => {
+                  const credentials = getDefaultCredentials('cliente');
+                  setUserType('cliente');
+                  setEmail(credentials.email);
+                  setPassword(credentials.password);
                 }}
               >
-                <div>
-                  <Label className="font-lato text-sm font-medium text-foreground">Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1"
-                    autoComplete="email"
-                  />
-                </div>
-                <div>
-                  <Label className="font-lato text-sm font-medium text-foreground">Senha</Label>
-                  <div className="relative mt-1">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Digite sua senha"
+                <CardHeader className="text-center">
+                  <Building2 className="h-8 w-8 mx-auto text-primary" />
+                  <CardTitle>Cliente</CardTitle>
+                  <CardDescription>
+                    Acesso para empresas e organizações
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card 
+                className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+                onClick={() => {
+                  const credentials = getDefaultCredentials('parceiro');
+                  setUserType('parceiro');
+                  setEmail(credentials.email);
+                  setPassword(credentials.password);
+                }}
+              >
+                <CardHeader className="text-center">
+                  <Briefcase className="h-8 w-8 mx-auto text-blue-600" />
+                  <CardTitle>Parceiro</CardTitle>
+                  <CardDescription>
+                    Acesso para parceiros e consultores
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card 
+                className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+                onClick={() => {
+                  const credentials = getDefaultCredentials('admin');
+                  setUserType('admin');
+                  setEmail(credentials.email);
+                  setPassword(credentials.password);
+                }}
+              >
+                <CardHeader className="text-center">
+                  <Shield className="h-8 w-8 mx-auto text-green-600" />
+                  <CardTitle>Admin Master</CardTitle>
+                  <CardDescription>
+                    Acesso para administradores da plataforma
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          </div>
+        </div>
+        
+        <div className="hidden lg:block lg:w-1/2 relative legacy-gradient">
+          <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-white">
+            <h2 className="text-3xl font-bold mb-6">Evolua a governança da sua empresa</h2>
+            <p className="text-lg max-w-md text-center mb-8">
+              Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.
+            </p>
+            <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+              <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-1">Estrutura Organizada</h3>
+                <p className="text-sm">Conselhos, rituais e documentos em um só lugar</p>
+              </div>
+              <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-1">Sucessão Planejada</h3>
+                <p className="text-sm">Prepare sua empresa para as próximas gerações</p>
+              </div>
+              <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-1">Diagnóstico Contínuo</h3>
+                <p className="text-sm">Visualize a maturidade da sua governança</p>
+              </div>
+              <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-1">ESG Integrado</h3>
+                <p className="text-sm">Sustentabilidade na agenda da governança</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Tela de seleção de tipo de usuário
+  return (
+    <div className="min-h-screen flex bg-white">
+      {/* Left side - Selection */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <img 
+              src={legacyLogoFull} 
+              alt="Legacy OS - Governança Corporativa" 
+              className="h-20 w-auto mx-auto mb-4"
+            />
+            <Link 
+              to="/" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-4"
+            >
+              <Home className="h-4 w-4" />
+              Voltar para Home
+            </Link>
+            <p className="text-muted-foreground">Escolha como deseja acessar</p>
+          </div>
+          <div className="grid gap-4">
+            <Card 
+              className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+              onClick={() => setUserType('cliente')}
+            >
+              <CardHeader className="text-center">
+                <Building2 className="h-8 w-8 mx-auto text-primary" />
+                <CardTitle>Cliente</CardTitle>
+                <CardDescription>
+                  Acesso para empresas e organizações
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card 
+              className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+              onClick={() => {
+                setPartnerLoginModalOpen(true);
+                setEmail('parceiro@legacy.com');
+                setPassword('123456');
+              }}
+            >
+              <CardHeader className="text-center">
+                <Briefcase className="h-8 w-8 mx-auto text-blue-600" />
+                <CardTitle>Parceiro</CardTitle>
+                <CardDescription>
+                  Acesso para parceiros e consultores
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            
+            {/* Modal de Login do Parceiro */}
+            <Dialog open={partnerLoginModalOpen} onOpenChange={setPartnerLoginModalOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <div className="flex items-center gap-2 justify-center mb-2">
+                    <Briefcase className="h-6 w-6 text-blue-600" />
+                    <DialogTitle className="text-2xl">Parceiro</DialogTitle>
+                  </div>
+                  <DialogDescription className="text-center">
+                    Entre com suas credenciais de parceiro
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="partner-email">Email</Label>
+                    <Input 
+                      id="partner-email" 
+                      type="email" 
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-yellow-50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="partner-password">Senha</Label>
+                    <Input 
+                      id="partner-password" 
+                      type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
-                      autoComplete="current-password"
+                      placeholder="Digite sua senha"
+                      className="bg-yellow-50"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setPartnerLoginModalOpen(false);
+                        setEmail('');
+                        setPassword('');
+                      }}
+                      className="flex-1"
+                      disabled={loading}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        if (!email || !password) {
+                          toast({
+                            title: "Erro",
+                            description: "Por favor, preencha todos os campos",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        setLoading(true);
+                        try {
+                          const success = await login({ email, password, role: 'parceiro' });
+
+                          if (success) {
+                            toast({
+                              title: "Login realizado com sucesso!",
+                              description: "Bem-vindo ao painel do Parceiro",
+                            });
+                            setPartnerLoginModalOpen(false);
+                            navigate('/afiliado');
+                          } else {
+                            toast({
+                              title: "Erro no login",
+                              description: "Email ou senha incorretos",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Erro",
+                            description: "Ocorreu um erro durante o login",
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="flex-1"
+                      disabled={loading}
+                    >
+                      {loading ? 'Entrando...' : 'Entrar'}
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 font-montserrat cursor-pointer"
-                    onClick={() => setLoginView("select")}
+              </DialogContent>
+            </Dialog>
+            
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side - Image */}
+      <div className="hidden lg:block lg:w-1/2 relative legacy-gradient">
+        <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-white">
+          <h2 className="text-3xl font-bold mb-6">Evolua a governança da sua empresa</h2>
+          <Card>
+            <CardHeader className="space-y-1">
+              {isSignup && invitedCompany && (
+                <div className="mb-4 p-3 bg-primary/10 rounded-md text-center">
+                  <p className="text-sm font-medium">Convite para: {invitedCompany}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Complete seu cadastro abaixo</p>
+                </div>
+              )}
+              <div className="flex items-center gap-2 justify-center mb-4">
+                {(userType as string) === 'admin' && <Shield className="h-6 w-6 text-green-600" />}
+                {(userType as string) === 'parceiro' && <Briefcase className="h-6 w-6 text-blue-600" />}
+                {(userType as string) === 'cliente' && <Building2 className="h-6 w-6 text-primary" />}
+                <CardTitle className="text-2xl">
+                  {isSignup ? 'Cadastro' : 'Login'} - {getRoleLabel(userType || 'cliente')}
+                </CardTitle>
+              </div>
+              <CardDescription className="text-center">
+                {isSignup 
+                  ? `Complete seu cadastro como ${getRoleLabel(userType).toLowerCase()}`
+                  : `Entre com suas credenciais de ${getRoleLabel(userType).toLowerCase()}`
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSignup}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Digite sua senha"
+                />
+              </div>
+              <div className="flex gap-2">
+                {!isSignup && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setUserType(null);
+                      setEmail('');
+                      setPassword('');
+                    }}
+                    className="flex-1"
+                    disabled={loading}
                   >
                     Voltar
                   </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-montserrat cursor-pointer"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
-                </div>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={(e) => e.preventDefault()}
-                    className="font-lato text-sm text-muted-foreground hover:text-secondary transition-colors cursor-pointer"
-                  >
-                    Esqueceu sua senha?
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+                )}
+                <Button 
+                  onClick={handleLoginSuccess}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  {loading 
+                    ? (isSignup ? 'Cadastrando...' : 'Entrando...') 
+                    : (isSignup ? 'Cadastrar' : 'Entrar')
+                  }
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Right side */}
-      <div className="hidden lg:flex lg:w-1/2 relative legacy-gradient items-center justify-center p-12">
-        {/* Purple gradient overlay for member view */}
-        {loginView === "member" && (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1B263B] to-[#553C9A]/60" />
-        )}
-        <div className="relative z-10 max-w-lg w-full text-white">
-          <h2 className="font-montserrat text-3xl font-bold mb-4">{panel.title}</h2>
-          <p className="font-lato text-lg text-white/80 mb-10">{panel.subtitle}</p>
-
-          <div className={`grid gap-4 ${panel.cards.length === 4 ? "grid-cols-2" : "grid-cols-1"}`}>
-            {panel.cards.map((card, i) => (
-              <div
-                key={i}
-                className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg p-5 hover:bg-white/15 transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-white/80">{card.icon}</span>
-                  <h3 className="font-montserrat font-semibold text-sm">{card.title}</h3>
-                </div>
-                <p className="font-lato text-sm text-white/60">{card.desc}</p>
-              </div>
-            ))}
+      
+      <div className="hidden lg:block lg:w-1/2 relative legacy-gradient">
+        <div className="absolute inset-0 flex flex-col justify-center items-center p-12 text-white">
+          <h2 className="text-3xl font-bold mb-6">Sistema de Acesso por Roles</h2>
+          <p className="text-lg max-w-md text-center mb-8">
+            Plataforma completa para organizar, documentar, operacionalizar e evoluir sua governança corporativa.
+          </p>
+          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+              <h3 className="font-semibold mb-1">Estrutura Organizada</h3>
+              <p className="text-sm">Conselhos, rituais e documentos em um só lugar</p>
+            </div>
+            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+              <h3 className="font-semibold mb-1">Sucessão Planejada</h3>
+              <p className="text-sm">Prepare sua empresa para as próximas gerações</p>
+            </div>
+            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+              <h3 className="font-semibold mb-1">Diagnóstico Contínuo</h3>
+              <p className="text-sm">Visualize a maturidade da sua governança</p>
+            </div>
+            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+              <h3 className="font-semibold mb-1">ESG Integrado</h3>
+              <p className="text-sm">Sustentabilidade na agenda da governança</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

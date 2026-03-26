@@ -1,71 +1,22 @@
-# Configuração do projeto Supabase – Legacy OS
-# Use: supabase start | supabase functions serve | supabase db push
-# Omita project_id e chaves sensíveis ao compartilhar – preencha localmente.
+project_id = "snmxvhngmeehplapdwko"
 
-[api]
-enabled = true
-port = 54321
-schemas = ["public"]
-extra_search_path = ["public", "extensions"]
-max_rows = 1000
-
-[db]
-port = 54322
-shadow_port = 54320
-major_version = 15
-
-[studio]
-enabled = true
-port = 54323
-
-[inbucket]
-enabled = true
-port = 54324
-
-[storage]
-enabled = true
-file_size_limit = "50MiB"
-
-[auth]
-enabled = true
-site_url = "http://localhost:5173"
-# Inclui localhost:8080 para magic links e testes locais
-additional_redirect_urls = ["https://localhost:5173", "http://localhost:8080", "http://localhost:8080/**", "http://localhost:5173/**"]
-jwt_expiry = 3600
-enable_refresh_token_rotation = true
-refresh_token_reuse_interval = 10
-enable_signup = true
-
-[auth.email]
-enable_signup = true
-double_confirm_changes = true
-enable_confirmations = false
-
-[functions]
-# Edge Functions – cada pasta em supabase/functions/ é exposta em:
-# https://<project-ref>.supabase.co/functions/v1/<nome-da-pasta>
-# Ex.: agente-ata -> /functions/v1/agente-ata
+[functions.setup-demo-users]
 verify_jwt = false
 
-# criar-convidado-reuniao: sem verificação JWT para gerar magic links (incl. modo teste)
-[functions.criar-convidado-reuniao]
+[functions.populate-demo-data]
 verify_jwt = false
 
-# usage-openai: consumo de tokens para Gestão de IA (Admin)
-[functions.usage-openai]
+[functions.predictive-insights]
 verify_jwt = false
 
-# openai-proxy: proxy LLM para Copiloto IA (membros)
-[functions.openai-proxy]
+[functions.calculate-member-metrics]
 verify_jwt = false
 
-# get-access-logs: logs de acesso (requer JWT admin)
-[functions.get-access-logs]
-verify_jwt = true
-
-# log-access: registra login/logout (sem JWT para chamar após login)
-[functions.log-access]
+[functions.generate-member-pdi]
 verify_jwt = false
 
-[analytics]
-enabled = false
+[functions.test-prompt]
+verify_jwt = false
+
+[functions.analyze-governance]
+verify_jwt = false

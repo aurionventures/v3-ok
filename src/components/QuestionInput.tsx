@@ -4,20 +4,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import { Question, CompanyData } from "@/types/maturity";
 
 interface QuestionInputProps {
   question: Question | CompanyData;
-  value: string | string[] | number | undefined;
-  onChange: (value: string | string[] | number) => void;
+  value: string | string[] | number | object | undefined;
+  onChange: (value: string | string[] | number | object) => void;
   disabled?: boolean;
+  onNext?: () => void;
 }
 
 export const QuestionInput: React.FC<QuestionInputProps> = ({ 
   question, 
   value, 
   onChange, 
-  disabled = false 
+  disabled = false,
+  onNext
 }) => {
   const handleMultipleChoiceChange = (option: string, checked: boolean) => {
     const currentValue = Array.isArray(value) ? value : [];
@@ -71,66 +75,82 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
     case "multipla_escolha_multipla":
       const currentMultipleValue = Array.isArray(value) ? value : [];
       return (
-        <div className="space-y-3">
-          {question.opcoes.map((option) => (
-            <div key={option} className="flex items-center space-x-2">
-              <Checkbox
-                id={option}
-                checked={currentMultipleValue.includes(option)}
-                onCheckedChange={(checked) => 
-                  handleMultipleChoiceChange(option, checked as boolean)
-                }
-                disabled={disabled}
-              />
-              <Label 
-                htmlFor={option} 
-                className="text-sm leading-relaxed cursor-pointer flex-1"
-              >
-                {option}
-              </Label>
+        <div className="space-y-4">
+          <div className="space-y-3">
+            {question.opcoes.map((option) => (
+              <div key={option} className="flex items-center space-x-2">
+                <Checkbox
+                  id={option}
+                  checked={currentMultipleValue.includes(option)}
+                  onCheckedChange={(checked) => 
+                    handleMultipleChoiceChange(option, checked as boolean)
+                  }
+                  disabled={disabled}
+                />
+                <Label 
+                  htmlFor={option} 
+                  className="text-sm leading-relaxed cursor-pointer flex-1"
+                >
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </div>
+          {onNext && (
+            <div className="flex justify-end">
+              <Button onClick={onNext} className="flex items-center gap-2">
+                Avançar
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </div>
-          ))}
+          )}
         </div>
       );
 
     case "numerico":
       return (
-        <Input
-          type="number"
-          value={typeof value === 'number' ? value : ''}
-          onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-          disabled={disabled}
-          placeholder="Digite um número"
-          className="max-w-xs"
-        />
+        <div className="space-y-4">
+          <Input
+            type="number"
+            value={typeof value === 'number' ? value : ''}
+            onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+            disabled={disabled}
+            placeholder="Digite um número"
+            className="max-w-xs"
+          />
+          {onNext && (
+            <div className="flex justify-end">
+              <Button onClick={onNext} className="flex items-center gap-2">
+                Avançar
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       );
 
-    case "numerico_multiplo": {
-      const parseValue = (): { totalMembros: number; totalMulheres: number } => {
-        if (typeof value === "string") {
-          try {
-            const parsed = JSON.parse(value);
-            return { totalMembros: Number(parsed.totalMembros) || 0, totalMulheres: Number(parsed.totalMulheres) || 0 };
-          } catch {
-            return { totalMembros: 0, totalMulheres: 0 };
-          }
-        }
-        return { totalMembros: 0, totalMulheres: 0 };
+    case "numerico_multiplo":
+      // Para questões como a 7 que pede múltiplos números
+      const currentNumericMultiple = typeof value === 'object' && !Array.isArray(value) ? value as { total: number, women: number } : { total: 0, women: 0 };
+      
+      const handleNumericMultipleChange = (field: 'total' | 'women', newValue: number) => {
+        const updatedValue = {
+          ...currentNumericMultiple,
+          [field]: newValue
+        };
+        onChange(updatedValue);
       };
-      const current = parseValue();
+
       return (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Total de membros efetivos:</Label>
               <Input
                 type="number"
+                value={currentNumericMultiple.total || ''}
+                onChange={(e) => handleNumericMultipleChange('total', parseInt(e.target.value) || 0)}
                 placeholder="0"
-                value={current.totalMembros || ""}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10) || 0;
-                  onChange(JSON.stringify({ ...current, totalMembros: v }));
-                }}
                 disabled={disabled}
                 className="mt-1"
               />
@@ -139,30 +159,44 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
               <Label>Total de mulheres:</Label>
               <Input
                 type="number"
+                value={currentNumericMultiple.women || ''}
+                onChange={(e) => handleNumericMultipleChange('women', parseInt(e.target.value) || 0)}
                 placeholder="0"
-                value={current.totalMulheres || ""}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10) || 0;
-                  onChange(JSON.stringify({ ...current, totalMulheres: v }));
-                }}
                 disabled={disabled}
                 className="mt-1"
               />
             </div>
           </div>
+          {onNext && (
+            <div className="flex justify-end pt-2">
+              <Button onClick={onNext} className="flex items-center gap-2">
+                Avançar
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       );
-    }
 
     case "texto":
       return (
-        <Textarea
-          value={typeof value === 'string' ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          placeholder="Digite sua resposta..."
-          className="min-h-20"
-        />
+        <div className="space-y-4">
+          <Textarea
+            value={typeof value === 'string' ? value : ''}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            placeholder="Digite sua resposta..."
+            className="min-h-20"
+          />
+          {onNext && (
+            <div className="flex justify-end">
+              <Button onClick={onNext} className="flex items-center gap-2">
+                Avançar
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       );
 
     case "matriz":
@@ -177,26 +211,36 @@ export const QuestionInput: React.FC<QuestionInputProps> = ({
       
       return (
         <div className="space-y-4">
-          {question.opcoes.map((item) => (
-            <div key={item} className="border rounded-lg p-4">
-              <Label className="text-sm font-medium mb-3 block">{item}</Label>
-              <RadioGroup
-                value={currentMatrixValue[item] || ""}
-                onValueChange={(val) => handleMatrixChange(item, val)}
-                disabled={disabled}
-                className="flex flex-wrap gap-4"
-              >
-                {matrixOptions.map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`${item}-${option}`} />
-                    <Label htmlFor={`${item}-${option}`} className="text-xs">
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+          <div className="space-y-4">
+            {question.opcoes.map((item) => (
+              <div key={item} className="border rounded-lg p-4">
+                <Label className="text-sm font-medium mb-3 block">{item}</Label>
+                <RadioGroup
+                  value={currentMatrixValue[item] || ""}
+                  onValueChange={(val) => handleMatrixChange(item, val)}
+                  disabled={disabled}
+                  className="flex flex-wrap gap-4"
+                >
+                  {matrixOptions.map((option) => (
+                    <div key={option} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`${item}-${option}`} />
+                      <Label htmlFor={`${item}-${option}`} className="text-xs">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            ))}
+          </div>
+          {onNext && (
+            <div className="flex justify-end pt-2">
+              <Button onClick={onNext} className="flex items-center gap-2">
+                Avançar
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </div>
-          ))}
+          )}
         </div>
       );
 

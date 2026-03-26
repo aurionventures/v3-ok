@@ -1,93 +1,117 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import { X, Minimize2, Maximize2, Bot, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
+import React, { useState, useRef, useEffect } from 'react';
+import { BookOpen, Send, X, Minus, Maximize2, HelpCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { searchGuides, quickActions, GuideEntry } from '@/data/legacyGuideData';
+import { GuideSearchResult } from '@/components/GuideSearchResult';
 
-// Define the message type
-type MessageType = "assistant" | "user";
-
-// Define the conversation message interface
-interface ConversationMessage {
-  type: MessageType;
-  text: string;
+interface Message {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  guides?: GuideEntry[];
+  suggestions?: string[];
 }
 
-// List of available AI assistants
-const availableAssistants = [
-  {
-    id: "governance",
-    name: "Assistente Legacy",
-    initials: "AL",
-    bgColor: "bg-legacy-500",
-    textColor: "text-legacy-500",
-  },
-  {
-    id: "succession",
-    name: "Especialista em Sucessão",
-    initials: "ES",
-    bgColor: "bg-blue-600",
-    textColor: "text-blue-600",
-  },
-  {
-    id: "esg",
-    name: "Consultor de ESG",
-    initials: "ESG",
-    bgColor: "bg-green-600",
-    textColor: "text-green-600",
-  },
-];
+interface GovernanceAssistantProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
-const responses = {
-  governance: [
-    "Posso ajudar com questões sobre estruturação do conselho de administração.",
-    "Para melhorar a governança familiar, considere implementar um protocolo familiar.",
-    "A sucessão deve ser planejada com antecedência. Posso ajudar a definir critérios.",
-    "É importante separar as questões familiares das empresariais nas reuniões.",
-    "A diversidade no conselho traz perspectivas valiosas para a tomada de decisão."
-  ],
-  succession: [
-    "O processo de sucessão deve começar com o mapeamento de competências necessárias.",
-    "Recomendo criar um comitê de sucessão independente para conduzir o processo.",
-    "É importante diferenciar a sucessão na gestão da sucessão na propriedade.",
-    "Desenvolva um cronograma detalhado para a transição de liderança.",
-    "O sucessor deve ser preparado nos aspectos técnicos, comportamentais e contextuais."
-  ],
-  esg: [
-    "Recomendo começar por uma avaliação de materialidade dos temas ESG para sua empresa.",
-    "Implemente métricas claras de desempenho ambiental e social.",
-    "É fundamental alinhar as práticas ESG à estratégia central do negócio.",
-    "Considere obter certificações reconhecidas como B Corp ou ISO 14001.",
-    "Transparência na comunicação dos resultados ESG é essencial para credibilidade."
-  ]
-};
-
-const GovernanceAssistant = () => {
-  const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [message, setMessage] = useState("");
-  const [currentAssistant, setCurrentAssistant] = useState(availableAssistants[0]);
-  const [isThinking, setIsThinking] = useState(false);
-  const [conversation, setConversation] = useState<ConversationMessage[]>([
-    { 
-      type: "assistant", 
-      text: `Olá! Sou o ${availableAssistants[0].name}. Como posso ajudá-lo hoje?` 
+export const GovernanceAssistant: React.FC<GovernanceAssistantProps> = ({ 
+  isOpen: externalOpen, 
+  onOpenChange 
+}) => {
+  const isControlled = externalOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const isOpen = isControlled ? externalOpen : internalOpen;
+  
+  const setIsOpen = (value: boolean) => {
+    if (isControlled && onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalOpen(value);
     }
-  ]);
+  };
+  
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  if (location.pathname.startsWith("/member")) return null;
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (isOpen && !isMinimized && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen, isMinimized]);
+
+  const handleSearch = (query: string) => {
+    if (!query.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: query
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsTyping(true);
+
+    setTimeout(() => {
+      const results = searchGuides(query);
+      
+      let assistantMessage: Message;
+      
+      if (results.length > 0) {
+        const suggestions = results[0].relatedModules.slice(0, 2).map(mod => 
+          `Como usar ${mod}?`
+        );
+        
+        assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: results.length === 1 
+            ? 'Encontrei este guia que pode ajudar:'
+            : `Encontrei ${results.length} guias relacionados:`,
+          guides: results,
+          suggestions
+        };
+      } else {
+        assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: 'Não encontrei um guia específico para essa busca. Tente palavras-chave como "reunião", "ATA", "dashboard", "maturidade", "ESG" ou "riscos". Ou use as sugestões abaixo:',
+          suggestions: ['Como criar uma reunião?', 'Como usar o Dashboard?', 'O que é maturidade de governança?']
+        };
+      }
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
+    }, 600);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(inputValue);
+  };
+
+  const handleQuickAction = (query: string) => {
+    handleSearch(query);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSearch(suggestion);
+  };
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -98,175 +122,186 @@ const GovernanceAssistant = () => {
     setIsMinimized(!isMinimized);
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-
-    const userMessage = message;
-    const updatedConversation = [
-      ...conversation,
-      { type: "user" as MessageType, text: userMessage },
-    ];
-    setConversation(updatedConversation);
-    setIsThinking(true);
-    setMessage("");
-
-    try {
-      const { invokeEdgeFunction } = await import("@/lib/supabase");
-      const supabase = (await import("@/lib/supabase")).supabase;
-
-      if (supabase) {
-        const { data, error } = await invokeEdgeFunction<{ resultado?: string; raw?: string }>(
-          "pipeline-agentes",
-          {
-            agenteId: "agente",
-            input: `Contexto: Assistente ${currentAssistant.name}. Pergunta do usuário: ${userMessage}. Responda de forma concisa e útil sobre governança corporativa.`,
-          }
-        );
-        const text = data?.resultado ?? data?.raw ?? (error ? "Habilite a API da Open AI" : "Sem resposta.");
-        setConversation([
-          ...updatedConversation,
-          { type: "assistant" as MessageType, text },
-        ]);
-      } else {
-        const responseArray = responses[currentAssistant.id as keyof typeof responses];
-        const randomResponse = responseArray[Math.floor(Math.random() * responseArray.length)];
-        setConversation([
-          ...updatedConversation,
-          { type: "assistant" as MessageType, text: randomResponse },
-        ]);
-      }
-    } catch {
-      const responseArray = responses[currentAssistant.id as keyof typeof responses];
-      const randomResponse = responseArray[Math.floor(Math.random() * responseArray.length)];
-      setConversation([
-        ...updatedConversation,
-        { type: "assistant" as MessageType, text: randomResponse },
-      ]);
-    } finally {
-      setIsThinking(false);
-    }
+  const handleCloseChat = () => {
+    setIsOpen(false);
+    setIsMinimized(false);
   };
-
-  const changeAssistant = (assistant: typeof availableAssistants[0]) => {
-    setCurrentAssistant(assistant);
-    setConversation([
-      { type: "assistant", text: `Olá! Agora você está conversando com o ${assistant.name}. Como posso ajudá-lo?` }
-    ]);
-    
-    toast({
-      title: "Assistente alterado",
-      description: `Agora você está conversando com o ${assistant.name}`,
-    });
-  };
-
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {!isMinimized && (
-        <Card className="w-80 shadow-lg mb-2 border-legacy-500 animate-fade-in">
-          <CardHeader className={`px-4 py-2 border-b ${currentAssistant.bgColor} text-white flex justify-between items-center`}>
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className={`bg-white ${currentAssistant.textColor} font-bold flex items-center justify-center h-full rounded-full`}>
-                  {currentAssistant.initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="font-medium">{currentAssistant.name}</span>
-            </div>
-            <div className="flex space-x-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-white hover:bg-opacity-20 hover:bg-white">
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Escolha um assistente</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {availableAssistants.map((assistant) => (
-                    <DropdownMenuItem 
-                      key={assistant.id}
-                      onClick={() => changeAssistant(assistant)}
-                      className="flex items-center"
-                    >
-                      <Avatar className="h-6 w-6 mr-2">
-                        <AvatarFallback className={`${assistant.bgColor} text-white font-bold flex items-center justify-center h-full rounded-full text-xs`}>
-                          {assistant.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{assistant.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button variant="ghost" size="icon" onClick={toggleMinimize} className="h-6 w-6 text-white hover:bg-opacity-20 hover:bg-white">
-                <Minimize2 className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={toggleChat} className="h-6 w-6 text-white hover:bg-opacity-20 hover:bg-white">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 h-80 overflow-y-auto bg-gray-50">
-            {conversation.map((msg, index) => (
-              <div 
-                key={index} 
-                className={`mb-3 ${msg.type === "assistant" ? "flex" : "flex justify-end"}`}
-              >
-                <div 
-                  className={`px-3 py-2 rounded-lg max-w-[80%] ${
-                    msg.type === "assistant" 
-                      ? "bg-white border border-gray-200" 
-                      : `${currentAssistant.bgColor} text-white`
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {isThinking && (
-              <div className="flex mb-3">
-                <div className="px-4 py-2 rounded-lg bg-white border border-gray-200 flex items-center">
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  <span>Pensando...</span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="p-2 border-t">
-            <form onSubmit={handleSendMessage} className="flex w-full space-x-2">
-              <Input
-                placeholder="Digite sua pergunta..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="flex-1"
-                disabled={isThinking}
-              />
-              <Button 
-                type="submit" 
-                size="sm" 
-                className={`${currentAssistant.bgColor} hover:opacity-90`}
-                disabled={isThinking}
-              >
-                Enviar
-              </Button>
-            </form>
-          </CardFooter>
-        </Card>
+    <>
+      {/* Floating Button - só mostra se não for controlado externamente */}
+      {!isControlled && !isOpen && (
+        <button
+          onClick={toggleChat}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-legacy-500 hover:bg-legacy-600 text-white rounded-full shadow-lg transition-all duration-300 hover:scale-105"
+          aria-label="Abrir Guia Legacy"
+        >
+          <BookOpen className="h-5 w-5" />
+          <span className="font-medium">Guia Legacy</span>
+        </button>
       )}
 
-      {isMinimized && (
-        <Button 
-          onClick={toggleMinimize}
-          className={`mb-2 ${currentAssistant.bgColor} hover:opacity-90 text-white flex items-center gap-2 shadow-lg`}
+      {/* Chat Window */}
+      {isOpen && (
+        <div 
+          className={`fixed bottom-6 right-6 z-50 bg-background border border-border rounded-xl shadow-2xl transition-all duration-300 ${
+            isMinimized ? 'w-72 h-14' : 'w-96 h-[32rem]'
+          }`}
         >
-          <Maximize2 className="h-4 w-4" />
-          <span>{currentAssistant.name}</span>
-        </Button>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-legacy-500 text-white rounded-t-xl">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              <span className="font-semibold">Guia Legacy</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={toggleMinimize}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                aria-label={isMinimized ? 'Maximizar' : 'Minimizar'}
+              >
+                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={handleCloseChat}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          {!isMinimized && (
+            <div className="flex flex-col h-[calc(100%-3.5rem)]">
+              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                {/* Welcome message */}
+                {messages.length === 0 && (
+                  <div className="space-y-4">
+                    <div className="bg-legacy-500/10 rounded-lg p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-legacy-600 font-medium">
+                        <HelpCircle className="h-4 w-4" />
+                        <span>Olá! Sou o Guia Legacy.</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Posso ajudar você a navegar pela plataforma e aprender a usar cada funcionalidade. Faça uma pergunta ou escolha uma das opções abaixo:
+                      </p>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Perguntas frequentes
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {quickActions.map((action, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleQuickAction(action.query)}
+                            className="px-3 py-1.5 text-xs bg-muted hover:bg-legacy-500/10 hover:text-legacy-600 rounded-full transition-colors border border-transparent hover:border-legacy-500/20"
+                          >
+                            {action.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Messages */}
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div key={message.id} className="space-y-2">
+                      {message.type === 'user' ? (
+                        <div className="flex justify-end">
+                          <div className="bg-legacy-500 text-white px-4 py-2 rounded-2xl rounded-br-md max-w-[85%]">
+                            <p className="text-sm">{message.content}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-2">
+                            <div className="p-1.5 rounded-full bg-legacy-500/10">
+                              <BookOpen className="h-4 w-4 text-legacy-500" />
+                            </div>
+                            <div className="bg-muted px-4 py-2 rounded-2xl rounded-bl-md max-w-[85%]">
+                              <p className="text-sm text-foreground">{message.content}</p>
+                            </div>
+                          </div>
+
+                          {/* Guide Results */}
+                          {message.guides?.map((guide) => (
+                            <GuideSearchResult 
+                              key={guide.id} 
+                              guide={guide} 
+                              onNavigate={handleCloseChat}
+                            />
+                          ))}
+
+                          {/* Suggestions */}
+                          {message.suggestions && message.suggestions.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pl-8">
+                              {message.suggestions.map((suggestion, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleSuggestionClick(suggestion)}
+                                  className="px-3 py-1.5 text-xs bg-muted hover:bg-legacy-500/10 hover:text-legacy-600 rounded-full transition-colors"
+                                >
+                                  {suggestion}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Typing indicator */}
+                  {isTyping && (
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-full bg-legacy-500/10">
+                        <BookOpen className="h-4 w-4 text-legacy-500" />
+                      </div>
+                      <div className="bg-muted px-4 py-2 rounded-2xl rounded-bl-md">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-legacy-500/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-legacy-500/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-legacy-500/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+
+              {/* Input */}
+              <div className="p-3 border-t border-border">
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                  <Input
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Digite sua pergunta..."
+                    className="flex-1 text-sm"
+                    disabled={isTyping}
+                  />
+                  <Button 
+                    type="submit" 
+                    size="icon"
+                    className="bg-legacy-500 hover:bg-legacy-600"
+                    disabled={!inputValue.trim() || isTyping}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

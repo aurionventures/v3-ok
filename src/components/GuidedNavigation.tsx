@@ -1,197 +1,185 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import {
-  X,
-  CheckCircle,
-  Users,
-  Shield,
-  Activity,
-  ChevronRight,
-  Map,
-  FileText,
-  Calendar,
-  PieChart,
-  Bot,
-  ClipboardList,
-  Mic,
-  Gift,
-  Target,
-  Lock,
+import { 
+  X, ArrowRight, Target, Users, Shield, Activity, 
+  AlertCircle, ChevronDown, ChevronUp, Map
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useGovernanceProgress } from "@/hooks/useGovernanceProgress";
-import { companyMenuPhases } from "@/config/companyMenu";
-import { AddonModuleModal } from "@/components/AddonModuleModal";
-import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface GuidedNavigationProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ITEM_ICON_MAP: Record<string, React.ReactNode> = {
-  dashboard: <Activity className="h-4 w-4" />,
-  copiloto: <Bot className="h-4 w-4" />,
-  "family-structure": <Users className="h-4 w-4" />,
-  documents: <FileText className="h-4 w-4" />,
-  "cap-table": <PieChart className="h-4 w-4" />,
-  maturity: <Activity className="h-4 w-4" />,
-  entrevistas: <Mic className="h-4 w-4" />,
-  councils: <Shield className="h-4 w-4" />,
-  "analise-acoes": <Activity className="h-4 w-4" />,
-  agenda: <Calendar className="h-4 w-4" />,
-  secretariado: <ClipboardList className="h-4 w-4" />,
-  planos: <Gift className="h-4 w-4" />,
-};
-
-const PHASE_ICON_MAP: Record<string, React.ReactNode> = {
-  "Início": <Target className="h-4 w-4" />,
-  "Parametrização": <Users className="h-4 w-4" />,
-  "Estruturação": <Shield className="h-4 w-4" />,
-  "Add-ons": <Gift className="h-4 w-4" />,
-};
-
 const GuidedNavigation = ({ isOpen, onClose }: GuidedNavigationProps) => {
-  const { modules, overallPercentage } = useGovernanceProgress();
-  const location = useLocation();
-  const [addonModalOpen, setAddonModalOpen] = useState(false);
-  const [addonModuleName, setAddonModuleName] = useState<string | null>(null);
+  const [expandedPhase, setExpandedPhase] = useState<string | null>("foundation");
 
-  const getItemIcon = (item: { href: string; moduleId: string | null }) => {
-    if (item.href === "/dashboard") return ITEM_ICON_MAP.dashboard;
-    if (item.href === "/copiloto-governanca") return ITEM_ICON_MAP.copiloto;
-    if (item.moduleId) return ITEM_ICON_MAP[item.moduleId] ?? <Activity className="h-4 w-4" />;
-    if (item.href === "/analise-acoes") return ITEM_ICON_MAP["analise-acoes"];
-    if (item.href === "/agenda") return ITEM_ICON_MAP.agenda;
-    if (item.href === "/secretariado") return ITEM_ICON_MAP.secretariado;
-    return ITEM_ICON_MAP.planos;
-  };
-
-  const isModuleCompleted = (moduleId: string | null) =>
-    moduleId ? modules.some((m) => m.id === moduleId && m.isCompleted) : false;
-
-  const handleNavClick = () => {
-    onClose();
-  };
-
-  const handleLockedClick = (name: string) => {
-    setAddonModuleName(name);
-    setAddonModalOpen(true);
-  };
+  const phases = [
+    {
+      id: "preparation",
+      name: "Preparação",
+      description: "Configure a base para sua jornada de governança",
+      icon: <Target className="h-5 w-5" />,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+      modules: [
+        { id: "onboarding", name: "Onboarding", href: "/onboarding" },
+        { id: "document-checklist", name: "Checklist de Documentos", href: "/document-checklist" },
+        { id: "interviews", name: "Entrevistas", href: "/interviews" },
+        { id: "initial-report", name: "Relatório Inicial", href: "/initial-report" },
+      ],
+      aiAgent: "Onboarding Guide"
+    },
+    {
+      id: "foundation",
+      name: "Fundação",
+      description: "Configure os elementos básicos da sua governança",
+      icon: <Users className="h-5 w-5" />,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+      modules: [
+        { id: "shareholder-structure", name: "Estrutura Acionária", href: "/shareholder-structure" },
+        { id: "documents", name: "Documentos", href: "/documents" },
+        { id: "cap-table", name: "Cap Table", href: "/cap-table" },
+        { id: "maturity", name: "Maturidade", href: "/maturity" },
+      ],
+      aiAgent: "Document Analyst"
+    },
+    {
+      id: "structure",
+      name: "Estruturação",
+      description: "Estabeleça conselhos e processos sucessórios",
+      icon: <Shield className="h-5 w-5" />,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+      modules: [
+        { id: "councils", name: "Conselhos", href: "/councils" },
+        { id: "rituals", name: "Rituais", href: "/rituals" },
+        { id: "succession", name: "Sucessão", href: "/succession" },
+        { id: "submit-projects", name: "Submeter Projetos", href: "/submit-projects" },
+      ],
+      aiAgent: "Governance Architect"
+    },
+    {
+      id: "development",
+      name: "Desenvolvimento",
+      description: "Desenvolva pessoas e preserve o legado",
+      icon: <Activity className="h-5 w-5" />,
+      color: "text-orange-500",
+      bgColor: "bg-orange-500/10",
+      modules: [
+        { id: "people-development", name: "Desenvolvimento de Pessoas", href: "/people-development" },
+        { id: "subsystems", name: "Subsistemas", href: "/subsystems" },
+        { id: "legacy", name: "Legado", href: "/legacy" },
+      ],
+      aiAgent: "People & Legacy Mentor"
+    },
+    {
+      id: "monitoring",
+      name: "Monitoramento",
+      description: "Gerencie riscos, sustentabilidade e atividades",
+      icon: <AlertCircle className="h-5 w-5" />,
+      color: "text-red-500",
+      bgColor: "bg-red-500/10",
+      modules: [
+        { id: "governance-risks", name: "Gestão de Riscos", href: "/governance-risk-management" },
+        { id: "esg", name: "ESG", href: "/esg" },
+        { id: "activities", name: "Atividades", href: "/monitoring" },
+      ],
+      aiAgent: "Strategic Intelligence"
+    }
+  ];
 
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop - click to close */}
-      <div
-        className="fixed inset-0 bg-black/25 z-40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Side panel */}
-      <aside
-        className={cn(
-          "fixed top-0 right-0 h-full w-[320px] sm:w-[360px] bg-card border-l shadow-xl z-50",
-          "flex flex-col animate-in slide-in-from-right duration-300"
-        )}
-      >
-        <div className="flex items-center justify-between p-4 border-b shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-primary/10 rounded-lg">
-              <Map className="h-5 w-5 text-primary" />
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Map className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Navegação Guiada</CardTitle>
+                <CardDescription>
+                  Explore os módulos organizados por fase
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <h2 className="font-semibold text-base">Guia da Plataforma</h2>
-            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        </CardHeader>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-5">
-          {/* Progress bar */}
-          <div className="space-y-2">
-            <Progress value={overallPercentage} className="h-2" />
-          </div>
-
-          {/* Navigation menu - mesma estrutura do Sidebar */}
-          <nav className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Jornada por módulos
-            </h3>
-            <ul className="space-y-3">
-              {companyMenuPhases.map((menuPhase) => (
-                <li key={menuPhase.phase}>
-                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground px-2 py-1.5">
-                    {PHASE_ICON_MAP[menuPhase.phase]}
-                    {menuPhase.phase}
-                  </div>
-                  <ul className="space-y-0.5">
-                    {menuPhase.items.map((item) => {
-                      const isActive = location.pathname === item.href && !item.locked;
-                      const Icon = getItemIcon(item);
-                      const completed = isModuleCompleted(item.moduleId);
-
-                      if (item.locked) {
-                        return (
-                          <li key={`${item.href}-${item.name}`}>
-                            <button
-                              type="button"
-                              onClick={() => handleLockedClick(item.name)}
-                              className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left transition-colors",
-                                "hover:bg-muted/70 text-muted-foreground"
-                              )}
-                            >
-                              <span className="shrink-0">{Icon}</span>
-                              <span className="text-sm flex-1 truncate">{item.name}</span>
-                              <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                            </button>
-                          </li>
-                        );
-                      }
-
-                      return (
-                        <li key={`${item.href}-${item.name}`}>
+        <CardContent className="space-y-6">
+          {/* Phases */}
+          <div className="space-y-3">            
+            {phases.map((phase) => {
+              const isExpanded = expandedPhase === phase.id;
+              
+              return (
+                <Card key={phase.id} className="transition-all duration-200">
+                  <CardHeader 
+                    className="pb-3 cursor-pointer"
+                    onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("p-2 rounded-lg", phase.bgColor)}>
+                          <span className={phase.color}>{phase.icon}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{phase.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {phase.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground/80 mt-1">
+                            Agente recomendado: {phase.aiAgent}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  {isExpanded && (
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {phase.modules.map((module) => (
                           <Link
-                            to={item.href}
-                            onClick={handleNavClick}
-                            className={cn(
-                              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                              "hover:bg-muted/70",
-                              isActive && "bg-primary/10 text-primary font-medium"
-                            )}
+                            key={module.id}
+                            to={module.href}
+                            onClick={onClose}
+                            className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                           >
-                            {completed ? (
-                              <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                            ) : (
-                              <span className="text-muted-foreground shrink-0">{Icon}</span>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm block truncate">{item.name}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium text-sm">{module.name}</span>
                             </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <ArrowRight className="h-4 w-4" />
                           </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </aside>
-      <AddonModuleModal
-        open={addonModalOpen}
-        onOpenChange={setAddonModalOpen}
-        moduleName={addonModuleName}
-      />
-    </>
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

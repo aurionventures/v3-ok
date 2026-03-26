@@ -44,9 +44,9 @@ const InsightCard = ({ dimension }: InsightCardProps) => {
       action: isBelow ? "Desenvolver relatórios regulares e canais de comunicação claros." : "Digitalizar processos de transparência e reporting.",
       impact: isBelow ? "+R$ 7M" : "+R$ 3.5M"
     },
-    "Empresas Familiares": {
-      insight: isBelow ? "Governança familiar deficiente pode gerar conflitos e comprometer continuidade." : "Governança familiar estruturada fortalece legado e sucessão.",
-      action: isBelow ? "Criar conselho de família e protocolos de governança familiar." : "Aprimorar processos familiares e desenvolvimento de próxima geração.",
+    "Empresas de Controle Concentrado": {
+      insight: isBelow ? "Governança de proprietários deficiente pode gerar conflitos e comprometer continuidade." : "Governança patrimonial estruturada fortalece legado e sucessão.",
+      action: isBelow ? "Criar conselho de proprietários e protocolos de governança." : "Aprimorar processos de governança e desenvolvimento de próxima geração.",
       impact: isBelow ? "+R$ 10M" : "+R$ 5M"
     }
   };

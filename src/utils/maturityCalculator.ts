@@ -1,46 +1,19 @@
 import { MATURITY_STRUCTURE, QUESTIONS } from '@/data/maturityData';
 import { Question, MaturityResult, UserAnswers, MaturityDimension } from '@/types/maturity';
 
-function _pontuar_questao(questao: Question, resposta: string | string[] | number | undefined): [number, number] {
+function _pontuar_questao(questao: Question, resposta: string | string[] | number | object | undefined): [number, number] {
   let pontuacao = 0;
   let pontuacao_maxima = 1;
 
   if (!resposta) return [0, pontuacao_maxima];
 
   if (questao.tipo === "multipla_escolha_unica") {
-    if (typeof resposta !== "string") return [0, pontuacao_maxima];
-    const r = resposta.toLowerCase();
-    // Não aplicável / não há: não conta (0 pontos, 0 no máximo)
-    if (r.includes("não aplicável") || r.includes("não há comitê") || r.includes("não há conselho") || r.includes("não há auditoria") || r.includes("não há plano") || r.includes("não há política")) {
-      return [0, 0];
+    // Assume que a primeira opção é geralmente negativa ("não", "nenhuma")
+    if (typeof resposta === 'string' && 
+        resposta.toLowerCase() !== questao.opcoes[0]?.toLowerCase() && 
+        resposta.toLowerCase() !== "nenhuma das anteriores") {
+      pontuacao = 1;
     }
-    if (r.includes("nenhuma das anteriores")) return [0, pontuacao_maxima];
-    // Parcialmente: meio termo (0.5)
-    if (r === "parcialmente") return [0.5, pontuacao_maxima];
-    // Q6: estatutário (1ª) = melhor, consultivo (2ª) = médio, nenhuma (3ª) = 0
-    if (questao.numero === "6") {
-      const o0 = questao.opcoes[0]?.toLowerCase() ?? "";
-      const o1 = questao.opcoes[1]?.toLowerCase() ?? "";
-      if (r === o0) return [1, pontuacao_maxima];
-      if (r === o1) return [0.5, pontuacao_maxima];
-      return [0, pontuacao_maxima];
-    }
-    // Primeira opção geralmente negativa
-    if (r !== (questao.opcoes[0] ?? "").toLowerCase()) pontuacao = 1;
-  } else if (questao.tipo === "numerico_multiplo") {
-    // Q7: total de membros e mulheres no conselho
-    if (typeof resposta === "string") {
-      try {
-        const parsed = JSON.parse(resposta) as { totalMembros?: number; totalMulheres?: number };
-        const total = Number(parsed?.totalMembros) || 0;
-        const mulheres = Number(parsed?.totalMulheres) || 0;
-        if (total >= 1) {
-          pontuacao = 0.5;
-          if (total >= 3 && mulheres >= 1) pontuacao = 1;
-        }
-      } catch { /* ignore */ }
-    }
-    pontuacao_maxima = 1;
   } else if (questao.tipo === "multipla_escolha_multipla") {
     const opcoes_positivas = questao.opcoes.filter(opt => 
       !opt.toLowerCase().includes("nenhuma")
@@ -75,16 +48,11 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
     pontuacao_indicadores[id] = { pontos: 0, max_pontos: 0, percentual: 0 };
   });
 
-  const shouldSkipQuestionInScore = (num_questao: string): boolean => {
-    if (num_questao === "4.1") return respostas_usuario.questions["4"] !== "sim";
-    if (num_questao === "10.1") return respostas_usuario.questions["10"] !== "sim";
-    return false;
-  };
-
   // Calcular pontuação de cada indicador
+  // Fórmula IBGC: Indicador = (Σ pontos alternativas assinaladas / pontuação máxima do indicador)
   Object.entries(MATURITY_STRUCTURE.indicadores).forEach(([id_indicador, info_indicador]) => {
     info_indicador.questoes.forEach(num_questao => {
-      if (questoes_map[num_questao] && !shouldSkipQuestionInScore(num_questao)) {
+      if (questoes_map[num_questao]) {
         const questao = questoes_map[num_questao];
         const resposta = respostas_usuario.questions[num_questao];
         const [pontos, max_pontos] = _pontuar_questao(questao, resposta);
@@ -94,6 +62,7 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
       }
     });
     
+    // Calcular percentual do indicador (0-1)
     if (pontuacao_indicadores[id_indicador].max_pontos > 0) {
       pontuacao_indicadores[id_indicador].percentual = 
         pontuacao_indicadores[id_indicador].pontos / pontuacao_indicadores[id_indicador].max_pontos;
@@ -101,6 +70,8 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
   });
 
   // Calcular pontuação de cada dimensão
+  // Fórmula IBGC: Dimensão = Σ (peso_indicador * percentual_indicador)
+  // Exemplo: Dimensão 1 = (0.4 * Indicador 1 + 0.6 * Indicador 2)
   const pontuacao_dimensoes: Record<string, { percentual: number }> = {};
   Object.keys(MATURITY_STRUCTURE.dimensoes).forEach(id_dim => {
     pontuacao_dimensoes[id_dim] = { percentual: 0 };
@@ -115,17 +86,21 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
   });
 
   // Calcular pontuação total
+  // Fórmula IBGC: TOTAL = (0.25 * Dimensão 1 + 0.3 * Dimensão 2 + 0.25 * Dimensão 3 + 0.1 * Dimensão 4 + 0.1 * Dimensão 5)
+  // Resultado: valor entre 0 e 1 (percentual)
   let pontuacao_total = 0;
   Object.entries(MATURITY_STRUCTURE.dimensoes).forEach(([id_dim, info_dim]) => {
     pontuacao_total += info_dim.peso * pontuacao_dimensoes[id_dim].percentual;
   });
 
-  // Calcular estágio de evolução
+  // Calcular estágio de evolução baseado em PERCENTUAL (0-100%) conforme Manual IBGC - Tabela 2
+  // O cálculo interno é em percentual (0-1), mas os estágios são definidos por faixas percentuais
+  const pontuacao_percentual = pontuacao_total * 100; // Converter para 0-100%
   let estagio = "Embrionário";
-  if (pontuacao_total <= 0.20) estagio = "Embrionário";
-  else if (pontuacao_total <= 0.40) estagio = "Inicial";
-  else if (pontuacao_total <= 0.60) estagio = "Básico";
-  else if (pontuacao_total <= 0.80) estagio = "Sólido";
+  if (pontuacao_percentual <= 20) estagio = "Embrionário";
+  else if (pontuacao_percentual <= 40) estagio = "Inicial";
+  else if (pontuacao_percentual <= 60) estagio = "Básico";
+  else if (pontuacao_percentual <= 80) estagio = "Sólido";
   else estagio = "Avançado";
 
   // Calcular dimensão de Empresas Familiares
@@ -134,7 +109,7 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
     pontuacao_familiar = { percentual: 0 };
     let soma_ponderada_familiar = 0;
     
-    Object.entries(MATURITY_STRUCTURE.empresas_familiares).forEach(([num_questao, info_questao]) => {
+    Object.entries(MATURITY_STRUCTURE.empresas_controle_concentrado).forEach(([num_questao, info_questao]) => {
       if (questoes_map[num_questao]) {
         const questao = questoes_map[num_questao];
         const resposta = respostas_usuario.questions[num_questao];
@@ -148,29 +123,61 @@ export function calcularPontuacao(respostas_usuario: UserAnswers, eh_empresa_fam
     pontuacao_familiar.percentual = soma_ponderada_familiar;
   }
 
+  // Converter para pontos (escala 0-5) apenas para exibição na interface
+  // O cálculo interno permanece em percentual (0-1) conforme manual IBGC
+  // Conversão: pontos = percentual * 5 (exemplo: 0.73 * 5 = 3.65 pontos)
+  const pontuacao_total_pontos = pontuacao_total * 5;
+  
   return {
-    pontuacao_total,
-    estagio,
+    pontuacao_total: pontuacao_total_pontos, // Retornar em pontos (0-5) para exibição
+    pontuacao_total_percentual: pontuacao_total * 100, // Percentual (0-100%) para referência
+    estagio, // Calculado baseado em percentual conforme Tabela 2 do manual IBGC
     pontuacao_dimensoes: Object.fromEntries(
       Object.entries(MATURITY_STRUCTURE.dimensoes).map(([id, info]) => [
         info.nome, 
-        pontuacao_dimensoes[id].percentual
+        pontuacao_dimensoes[id].percentual * 5 // Converter para pontos (0-5) para exibição
+      ])
+    ),
+    pontuacao_dimensoes_percentual: Object.fromEntries(
+      Object.entries(MATURITY_STRUCTURE.dimensoes).map(([id, info]) => [
+        info.nome, 
+        pontuacao_dimensoes[id].percentual * 100 // Percentual (0-100%) para referência
       ])
     ),
     pontuacao_indicadores: Object.fromEntries(
       Object.entries(MATURITY_STRUCTURE.indicadores).map(([id, info]) => [
         info.nome,
-        pontuacao_indicadores[id].percentual
+        pontuacao_indicadores[id].percentual * 5 // Converter para pontos (0-5) para exibição
       ])
     ),
-    pontuacao_empresas_familiares: pontuacao_familiar
+    pontuacao_indicadores_percentual: Object.fromEntries(
+      Object.entries(MATURITY_STRUCTURE.indicadores).map(([id, info]) => [
+        info.nome,
+        pontuacao_indicadores[id].percentual * 100 // Percentual (0-100%) para referência
+      ])
+    ),
+    pontuacao_indicadores_detalhada: Object.fromEntries(
+      Object.entries(MATURITY_STRUCTURE.indicadores).map(([id, info]) => [
+        info.nome,
+        {
+          pontos: pontuacao_indicadores[id].pontos,
+          max_pontos: pontuacao_indicadores[id].max_pontos,
+          pontuacao: pontuacao_indicadores[id].percentual * 5, // Pontos (0-5) para exibição
+          percentual: pontuacao_indicadores[id].percentual * 100 // Percentual (0-100%) para referência
+        }
+      ])
+    ),
+    pontuacao_empresas_controle_concentrado: pontuacao_familiar ? {
+      percentual: pontuacao_familiar.percentual * 100, // Percentual (0-100%)
+      pontos: pontuacao_familiar.percentual * 5 // Pontos (0-5) para exibição
+    } : undefined
   };
 }
 
 export function convertToRadarData(result: MaturityResult): MaturityDimension[] {
   return Object.entries(result.pontuacao_dimensoes).map(([name, score]) => ({
     name,
-    score: score * 5, // Converter para escala 0-5
+    score: score, // Já está em pontos (0-5)
     sectorAverage: getSectorBenchmark(name),
     fullMark: 5
   }));

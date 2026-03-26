@@ -16,7 +16,8 @@ import {
   FileText,
   Lightbulb,
   PieChart,
-  Activity
+  Activity,
+  Trophy
 } from 'lucide-react';
 
 const OnboardingPage = () => {
@@ -106,7 +107,7 @@ const OnboardingPage = () => {
       value: "Prevenção proativa de conflitos e crises"
     },
     {
-      module: "Estrutura Societária",
+      module: "Estrutura Familiar",
       problem: "Complexidade das relações familiares dificulta decisões",
       solution: "Mapeamento visual das relações e influências familiares",
       value: "Decisões mais assertivas e transparentes"
@@ -176,8 +177,9 @@ const OnboardingPage = () => {
                     </div>
 
                     <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-                      <h3 className="font-semibold text-lg mb-3 text-primary">
-                        🏆 Resultado Comprovado
+                      <h3 className="font-semibold text-lg mb-3 text-primary flex items-center gap-2">
+                        <Trophy className="h-5 w-5" />
+                        Resultado Comprovado
                       </h3>
                       <p className="text-muted-foreground text-lg">
                         "Empresas com governança estruturada têm valor de mercado 47% maior que seus competidores 
@@ -301,7 +303,10 @@ const OnboardingPage = () => {
                     </div>
 
                     <div className="mt-8 bg-muted/50 rounded-lg p-6">
-                      <h3 className="font-semibold text-lg mb-4">🎯 Garantias de Valor e Conformidade</h3>
+                      <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                        <Target className="h-5 w-5" />
+                        Garantias de Valor e Conformidade
+                      </h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <h4 className="font-medium mb-2 text-primary">Garantias de Valor:</h4>
@@ -360,8 +365,11 @@ const OnboardingPage = () => {
                       ))}
                     </div>
 
-                    <div className="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6">
-                      <h3 className="font-semibold text-lg mb-4">📊 Como o Módulo de ROI Funciona:</h3>
+                     <div className="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6">
+                       <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                         <BarChart3 className="h-5 w-5" />
+                         Como o Módulo de ROI Funciona:
+                       </h3>
                       <div className="space-y-3">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">1</div>

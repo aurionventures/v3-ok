@@ -1,228 +1,189 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { MemberLayout } from "@/components/member/MemberLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import NotificationBell from "@/components/NotificationBell";
-import { useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, CheckCircle, Loader2, ChevronRight } from "lucide-react";
-import { useMemberPendencias, type Pendencia } from "@/hooks/useMemberPendencias";
-import { useToast } from "@/hooks/use-toast";
-import { concluirTarefa } from "@/services/gestaoReuniao";
+import { AlertTriangle, Clock, Eye, CheckCircle } from "lucide-react";
+import { format, addDays } from "date-fns";
+import { MemberTaskDetailModal } from "@/components/member/MemberTaskDetailModal";
+
+const initialMemberTasks = [
+  {
+    id: 'task-1',
+    title: 'Elaborar parecer sobre proposta de M&A',
+    description: 'Analisar a proposta de aquisição da Empresa XYZ e elaborar parecer técnico com recomendações para o Conselho.',
+    dueDate: addDays(new Date(), 2),
+    deadline: format(addDays(new Date(), 2), "dd/MM/yyyy"),
+    origin: 'Conselho Admin 25/11',
+    council: 'Conselho de Administração',
+    createdAt: format(addDays(new Date(), -5), "dd/MM/yyyy"),
+    priority: 'Alta' as const,
+    status: 'PENDENTE'
+  },
+  {
+    id: 'task-2',
+    title: 'Revisar código de ética atualizado',
+    description: 'Realizar revisão completa do novo código de ética da empresa, verificando conformidade com melhores práticas de mercado.',
+    dueDate: addDays(new Date(), 9),
+    deadline: format(addDays(new Date(), 9), "dd/MM/yyyy"),
+    origin: 'Comissão de Ética 20/11',
+    council: 'Comissão de Ética',
+    createdAt: format(addDays(new Date(), -10), "dd/MM/yyyy"),
+    priority: 'Média' as const,
+    status: 'PENDENTE'
+  },
+  {
+    id: 'task-3',
+    title: 'Avaliar relatório de riscos Q3',
+    description: 'Avaliar o relatório trimestral de riscos e preparar comentários para discussão na próxima reunião do comitê.',
+    dueDate: addDays(new Date(), 15),
+    deadline: format(addDays(new Date(), 15), "dd/MM/yyyy"),
+    origin: 'Comitê de Auditoria 18/11',
+    council: 'Comitê de Auditoria',
+    createdAt: format(addDays(new Date(), -12), "dd/MM/yyyy"),
+    priority: 'Média' as const,
+    status: 'PENDENTE'
+  }
+];
 
 const MemberPendencias = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [detalheAberto, setDetalheAberto] = useState<Pendencia | null>(null);
-  const [resolvendoId, setResolvendoId] = useState<string | null>(null);
+  const [tasks, setTasks] = useState(initialMemberTasks);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<typeof initialMemberTasks[0] | null>(null);
 
-  const { data: pendencias = [], isLoading: carregando } = useMemberPendencias();
-
-  const total = pendencias.length;
-  const urgentes = useMemo(() => pendencias.filter((p) => p.prazo && new Date(p.prazo) <= new Date()).length, [pendencias]);
-
-  const handleResolver = async (p: Pendencia) => {
-    setResolvendoId(p.tarefaId);
-    const { error } = await concluirTarefa(p.tarefaId);
-    setResolvendoId(null);
-    if (error) {
-      toast({ title: "Erro ao resolver", description: error, variant: "destructive" });
-      return;
-    }
-    setDetalheAberto(null);
-    toast({ title: "Tarefa resolvida", description: "A tarefa foi marcada como concluída." });
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["member", "pendencias"] }),
-      queryClient.invalidateQueries({ queryKey: ["member", "dashboard"] }),
-      queryClient.invalidateQueries({ queryKey: ["secretariado", "indicadores"] }),
-      queryClient.invalidateQueries({ queryKey: ["dashboard", "indicadores"] }),
-      queryClient.invalidateQueries({ queryKey: ["secretariado", "tarefas", "pendentes"] }),
-    ]);
+  const getDaysRemaining = (date: Date) => {
+    const today = new Date();
+    const diff = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diff;
   };
 
-  const [resolvendoTodas, setResolvendoTodas] = useState(false);
-  const handleResolverTodas = async () => {
-    if (pendencias.length === 0) return;
-    setResolvendoTodas(true);
-    let ok = 0;
-    let erros = 0;
-    for (const p of pendencias) {
-      const { error } = await concluirTarefa(p.tarefaId);
-      if (error) erros++; else ok++;
-    }
-    setResolvendoTodas(false);
-    setDetalheAberto(null);
-    if (erros > 0) {
-      toast({ title: "Parcialmente concluído", description: `${ok} resolvida(s), ${erros} erro(s).`, variant: "destructive" });
-    } else {
-      toast({ title: "Todas resolvidas", description: `${ok} tarefa(s) marcada(s) como concluída(s).` });
-    }
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["member", "pendencias"] }),
-      queryClient.invalidateQueries({ queryKey: ["member", "dashboard"] }),
-      queryClient.invalidateQueries({ queryKey: ["secretariado", "indicadores"] }),
-      queryClient.invalidateQueries({ queryKey: ["dashboard", "indicadores"] }),
-      queryClient.invalidateQueries({ queryKey: ["secretariado", "tarefas", "pendentes"] }),
-    ]);
+  const getUrgencyColor = (daysRemaining: number) => {
+    if (daysRemaining < 0) return 'text-red-500';
+    if (daysRemaining <= 3) return 'text-red-500';
+    if (daysRemaining <= 7) return 'text-yellow-500';
+    return 'text-green-500';
   };
+
+  const getUrgencyBg = (daysRemaining: number) => {
+    if (daysRemaining <= 3) return 'bg-red-500/10';
+    if (daysRemaining <= 7) return 'bg-yellow-500/10';
+    return 'bg-green-500/10';
+  };
+
+  const handleOpenTaskDetail = (task: typeof initialMemberTasks[0]) => {
+    setSelectedTask(task);
+    setTaskDetailOpen(true);
+  };
+
+  const handleMarkTaskResolved = (taskId: string, comment: string) => {
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, status: 'RESOLVIDA' } : t));
+    setTaskDetailOpen(false);
+  };
+
+  const pendingTasks = tasks.filter(t => t.status === 'PENDENTE');
 
   return (
-    <>
-      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" /> Minhas Pendências
-            </h1>
-            <p className="text-sm text-muted-foreground">Tarefas atribuídas a você</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="mb-4">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-lg bg-amber-100 flex items-center justify-center relative">
-                  <ClipboardList className="h-6 w-6 text-amber-600" />
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium">
-                    {total}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Tarefas Pendentes</h3>
-                  <p className="text-sm text-gray-600">{total} tarefas pendentes</p>
-                  <p className="text-sm text-red-600 font-medium">Acompanhe prazos e status</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  disabled={total === 0 || resolvendoTodas}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleResolverTodas();
-                  }}
-                >
-                  {resolvendoTodas ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                  )}
-                  {resolvendoTodas
-                    ? "Resolvendo..."
-                    : total === 1
-                      ? "Resolver pendência"
-                      : "Resolver pendências"}
-                </Button>
-                <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        {carregando ? (
-          <div className="py-12 flex items-center justify-center gap-2 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Carregando...
-          </div>
-        ) : pendencias.length === 0 ? null : (
-          <div className="space-y-4">
-            {pendencias.map((t) => (
-              <Card
-                key={t.id}
-                className="border bg-card cursor-pointer transition-colors hover:bg-muted/30"
-                onClick={() => setDetalheAberto(t)}
+    <MemberLayout 
+      title="Minhas Pendências"
+      subtitle="Tarefas atribuídas a você"
+    >
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <AlertTriangle className="h-7 w-7 text-yellow-500" />
+            Tarefas Pendentes
+            <Badge variant="secondary" className="ml-2 text-base px-3 py-1">
+              {pendingTasks.length} pendentes
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {pendingTasks.map((task) => {
+            const daysRemaining = getDaysRemaining(task.dueDate);
+            const urgencyColor = getUrgencyColor(daysRemaining);
+            const urgencyBg = getUrgencyBg(daysRemaining);
+            
+            return (
+              <div 
+                key={task.id} 
+                className="flex flex-col lg:flex-row lg:items-center justify-between p-6 rounded-xl border-2 bg-card gap-5"
               >
-                <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                    <ClipboardList className="h-6 w-6" />
+                <div className="flex items-center gap-5">
+                  <div className={`h-14 w-14 rounded-full flex items-center justify-center ${urgencyBg}`}>
+                    <Clock className={`h-7 w-7 ${urgencyColor}`} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold">{t.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t.origem} • Prazo: {t.prazo ? new Date(t.prazo).toLocaleDateString("pt-BR") : "Não definido"}
+                  <div>
+                    <p className="text-xl font-bold">{task.title}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-base text-muted-foreground mt-1">
+                      <span>Prazo: {format(task.dueDate, "dd/MM/yyyy")}</span>
+                      <span className={`font-medium ${urgencyColor}`}>
+                        ({daysRemaining < 0 
+                          ? `${Math.abs(daysRemaining)} dias atrasado` 
+                          : `${daysRemaining} dias restantes`})
+                      </span>
+                    </div>
+                    <p className="text-base text-muted-foreground mt-2">
+                      Origem: {task.origin}
                     </p>
-                    <Badge variant="secondary" className="mt-2">
-                      Tarefa e Combinado
+                    <Badge 
+                      variant={task.priority === 'Alta' ? 'destructive' : 'secondary'}
+                      className="mt-3 text-sm px-4 py-1.5"
+                    >
+                      Prioridade {task.priority}
                     </Badge>
                   </div>
-                  <div className="flex gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleResolver(t);
-                      }}
-                      disabled={resolvendoId === t.tarefaId}
-                    >
-                      {resolvendoId === t.tarefaId ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                      )}
-                      {resolvendoId === t.tarefaId ? "Concluindo..." : "Concluir"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-        {urgentes > 0 && pendencias.length > 0 && (
-          <p className="text-sm text-red-600 mt-4">{urgentes} pendência(s) urgente(s).</p>
-        )}
-      </div>
+                </div>
+                <div className="flex items-center gap-4 ml-auto lg:ml-0">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    onClick={() => handleOpenTaskDetail(task)}
+                    className="text-base h-12 px-6"
+                  >
+                    <Eye className="h-5 w-5 mr-2" />
+                    Ver Detalhes
+                  </Button>
+                  <Button 
+                    size="lg"
+                    onClick={() => handleOpenTaskDetail(task)}
+                    className="text-base h-12 px-6"
+                  >
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Resolver
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
 
-      <Dialog open={!!detalheAberto} onOpenChange={(open) => !open && setDetalheAberto(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Descrição da atividade</DialogTitle>
-          </DialogHeader>
-          {detalheAberto && (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-muted/50 p-4 text-sm">
-                <p className="font-medium text-foreground">{detalheAberto.title}</p>
-                <p className="mt-2 text-muted-foreground">
-                  <span className="font-medium">Prazo:</span>{" "}
-                  {detalheAberto.prazo
-                    ? new Date(detalheAberto.prazo).toLocaleDateString("pt-BR")
-                    : "Não definido"}
-                </p>
-                <p className="text-muted-foreground">
-                  <span className="font-medium">Origem:</span> {detalheAberto.origem}
-                </p>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button
-                  onClick={() => handleResolver(detalheAberto)}
-                  disabled={resolvendoId === detalheAberto.tarefaId}
-                >
-                  {resolvendoId === detalheAberto.tarefaId ? (
-                    "Concluindo..."
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" /> Concluir
-                    </>
-                  )}
-                </Button>
-                <Button variant="outline" onClick={() => setDetalheAberto(null)}>
-                  Fechar
-                </Button>
-              </div>
+          {pendingTasks.length === 0 && (
+            <div className="text-center py-12">
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <p className="text-xl font-medium">Todas as pendências resolvidas</p>
+              <p className="text-base text-muted-foreground">Você não tem tarefas pendentes no momento.</p>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-    </>
+        </CardContent>
+      </Card>
+
+      {/* Task Detail Modal */}
+      <MemberTaskDetailModal
+        open={taskDetailOpen}
+        onClose={() => setTaskDetailOpen(false)}
+        task={selectedTask ? {
+          id: selectedTask.id,
+          title: selectedTask.title,
+          description: selectedTask.description,
+          deadline: selectedTask.deadline,
+          priority: selectedTask.priority,
+          origin: selectedTask.origin,
+          council: selectedTask.council,
+          createdAt: selectedTask.createdAt,
+          status: selectedTask.status
+        } : null}
+        onMarkResolved={handleMarkTaskResolved}
+      />
+    </MemberLayout>
   );
 };
 

@@ -6,26 +6,26 @@ import { toast } from "@/hooks/use-toast";
 const PlatformDocumentation = () => {
   const generateDocumentation = () => {
     const documentation = `
-# PLATAFORMA LEGACY - DOCUMENTAÇÃO COMPLETA
+# LEGACY OS - DOCUMENTAÇÃO COMPLETA
 # Versão: 2.0 | Data: ${new Date().toLocaleDateString('pt-BR')}
-# Governança Corporativa e Sucessão para Empresas Familiares
+# Governança Corporativa e Gestão Sucessória Empresarial
 
 ================================================================================
-VISÃO GERAL DA PLATAFORMA
+VISÃO GERAL DA LEGACY OS
 ================================================================================
 
-A Legacy é uma plataforma digital completa para governança corporativa e gestão 
-de sucessão em empresas familiares. Desenvolvida especificamente para atender 
-as complexidades únicas das empresas de controle familiar, oferece ferramentas 
+A Legacy OS é um sistema operacional completo para governança corporativa e gestão 
+sucessória empresarial. Desenvolvida especificamente para atender 
+as complexidades únicas das empresas de controle concentrado, oferece ferramentas 
 integradas para avaliação de maturidade, gestão de riscos, ESG, estruturação 
-familiar e muito mais.
+societária e muito mais.
 
-MISSÃO: Transformar a governança de empresas familiares através de tecnologia 
+MISSÃO: Transformar a governança empresarial através de tecnologia 
 inovadora, promovendo a continuidade, profissionalização e sustentabilidade 
-do legado empresarial.
+do legado organizacional.
 
 ================================================================================
-MÓDULOS PRINCIPAIS DA PLATAFORMA
+MÓDULOS PRINCIPAIS DA LEGACY OS
 ================================================================================
 
 1. DASHBOARD EXECUTIVO
@@ -50,10 +50,10 @@ MÓDULOS PRINCIPAIS DA PLATAFORMA
 - Calculadora de impacto financeiro
 - Ranking setorial com empresas similares
 
-3. ESTRUTURA FAMILIAR
-- Mapeamento completo da família empresária
-- Genograma interativo (até 4 gerações)
-- Perfis detalhados de cada membro
+3. ESTRUTURA SOCIETÁRIA
+- Mapeamento completo dos acionistas e stakeholders
+- Organograma societário interativo
+- Perfis detalhados de cada participante
 - Participação societária
 - Envolvimento nos negócios
 - Competências e experiências
@@ -77,16 +77,16 @@ MÓDULOS PRINCIPAIS DA PLATAFORMA
 - Votações e deliberações
 - Indicadores de performance dos conselhos
 
-6. RITUAIS E ENCONTROS FAMILIARES
-- Agenda de eventos familiares
-- Encontros de família
-- Assembleias familiares
-- Rituais de passagem
+6. RITUAIS E ENCONTROS SOCIETÁRIOS
+- Agenda de eventos corporativos
+- Encontros de acionistas
+- Assembleias societárias
+- Rituais corporativos
 - Cerimônias e comemorações
-- Histórico e tradições
+- Histórico e tradições organizacionais
 
-7. PROTOCOLO FAMILIAR
-- Construção colaborativa do protocolo
+7. CÓDIGO DE GOVERNANÇA
+- Construção colaborativa do código
 - Versionamento e controle de mudanças
 - Aprovações e consensos
 - Distribuição e comunicação
@@ -259,7 +259,7 @@ FAMILY OFFICES
 DIFERENCIAÇÃO COMPETITIVA
 ================================================================================
 
-FOCO EXCLUSIVO EM EMPRESAS FAMILIARES
+FOCO EM CONTROLE CONCENTRADO
 - Entendimento das especificidades
 - Soluções sob medida
 - Metodologia especializada
@@ -348,11 +348,11 @@ INOVAÇÕES EM DESENVOLVIMENTO
 CONTATO E INFORMAÇÕES
 ================================================================================
 
-Para mais informações sobre a Plataforma Legacy:
+Para mais informações sobre a Legacy OS:
 
 Website: www.legacygovernance.com.br
 Email: contato@legacygovernance.com.br
-Telefone: (11) 9999-9999
+Telefone: +55 11 3000-0000
 Endereço: São Paulo, SP - Brasil
 
 Equipe Comercial: vendas@legacygovernance.com.br
@@ -373,7 +373,7 @@ ANEXOS E RECURSOS ADICIONAIS
 - Termos de uso
 
 ================================================================================
-© 2025 Legacy Governance Platform - Todos os direitos reservados
+© 2025 Legacy OS - Todos os direitos reservados
 Documento confidencial destinado exclusivamente para prospects e clientes
 ================================================================================
     `.trim();
@@ -393,14 +393,14 @@ Documento confidencial destinado exclusivamente para prospects e clientes
 
     toast({
       title: "Documentação baixada com sucesso",
-      description: "A documentação completa da plataforma foi baixada em formato TXT",
+      description: "A documentação completa da Legacy OS foi baixada em formato TXT",
     });
   };
 
   return (
     <Button onClick={handleDownload} className="w-full">
       <Download className="h-4 w-4 mr-2" />
-      Baixar Documentação da Plataforma (TXT)
+      Baixar Documentação da Legacy OS (TXT)
     </Button>
   );
 };

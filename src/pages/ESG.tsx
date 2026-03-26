@@ -1,9 +1,9 @@
 
-import React, { useState } from "react";
-import { Leaf, BarChart3, Users, Search, Eye, ChevronRight, Download, FileText, Edit } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Leaf, BarChart3, Users, Search, Eye, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Download, FileText, Edit, Target, TrendingUp, Calendar, Activity, Shield, Scale, AlertTriangle, MinusCircle, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   BarChart,
   Bar,
@@ -30,6 +32,11 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   Dialog,
@@ -39,9 +46,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import FileUpload from "@/components/FileUpload";
 import { Badge } from "@/components/ui/badge";
+import { loadLatestESGAssessment, loadESGAssessmentHistory, generateESGRecommendations, calculateESGMaturity, saveESGAssessment } from "@/utils/esgMaturityCalculator";
+import { ESGMaturityResult, ESGAssessmentHistory, ESGUserAnswers } from "@/types/esgMaturity";
+import { esgQuestions, maturityLevels, pillarInfo } from "@/data/esgMaturityData";
+import ESGResultsDashboard from "@/components/ESGResultsDashboard";
+import ESGHistoryModal from "@/components/ESGHistoryModal";
 
 // Sample ESG policies
 const esgPolicies = [
@@ -102,87 +114,103 @@ const esgPolicies = [
   },
 ];
 
-// Sample ESG indicators
+// Sample ESG indicators based on new ESG maturity framework
 const esgIndicators = [
   {
     id: 1,
-    name: "Emissões de CO₂",
+    name: "Gestão de Mudanças Climáticas",
     category: "Ambiental",
-    value: "35 ton",
-    target: "30 ton",
-    progress: 85,
-    description: "Total de emissões de CO₂ da empresa, incluindo todas as operações diretas e indiretas. Meta de redução de 15% ao ano.",
+    value: "4.2",
+    target: "5.0",
+    progress: 84,
+    description: "Avaliação da maturidade em gestão de mudanças climáticas, incluindo metas de redução de emissões e estratégias de adaptação.",
     historicalData: [
-      { period: "Q1 2024", value: "38 ton" },
-      { period: "Q2 2024", value: "37 ton" },
-      { period: "Q3 2024", value: "36 ton" },
-      { period: "Q4 2024", value: "35 ton" }
+      { period: "Q1 2024", value: "3.8" },
+      { period: "Q2 2024", value: "4.0" },
+      { period: "Q3 2024", value: "4.1" },
+      { period: "Q4 2024", value: "4.2" }
     ],
-    actionPlan: "Implementar painéis solares em duas unidades até Q2 2025; Substituir frota por veículos elétricos até 2027."
+    actionPlan: "Implementar sistema de monitoramento de emissões em tempo real; Desenvolver plano de neutralidade carbônica até 2030."
   },
   {
     id: 2,
-    name: "Consumo de Água",
+    name: "Gestão de Recursos Naturais",
     category: "Ambiental",
-    value: "12000 m³",
-    target: "10000 m³",
-    progress: 83,
-    description: "Volume total de água consumida nas operações da empresa. Meta de redução de 20% em dois anos.",
+    value: "3.8",
+    target: "4.5",
+    progress: 76,
+    description: "Avaliação da eficiência na gestão de recursos naturais como água, energia e materiais.",
     historicalData: [
-      { period: "Q1 2024", value: "13500 m³" },
-      { period: "Q2 2024", value: "13000 m³" },
-      { period: "Q3 2024", value: "12500 m³" },
-      { period: "Q4 2024", value: "12000 m³" }
+      { period: "Q1 2024", value: "3.5" },
+      { period: "Q2 2024", value: "3.6" },
+      { period: "Q3 2024", value: "3.7" },
+      { period: "Q4 2024", value: "3.8" }
     ],
-    actionPlan: "Instalar sistemas de reuso de água em todas as unidades até Q3 2025; Implementar programas de conscientização entre colaboradores."
+    actionPlan: "Instalar sistemas de reuso de água; Implementar programa de eficiência energética."
   },
   {
     id: 3,
-    name: "Diversidade de Gênero",
+    name: "Capital Humano",
     category: "Social",
-    value: "43%",
-    target: "50%",
-    progress: 86,
-    description: "Percentual de mulheres em posições de liderança na empresa. Meta de equilíbrio de gênero (50%) até 2026.",
+    value: "4.5",
+    target: "5.0",
+    progress: 90,
+    description: "Avaliação da gestão de pessoas, incluindo desenvolvimento, diversidade, saúde e segurança.",
     historicalData: [
-      { period: "Q1 2024", value: "40%" },
-      { period: "Q2 2024", value: "41%" },
-      { period: "Q3 2024", value: "42%" },
-      { period: "Q4 2024", value: "43%" }
+      { period: "Q1 2024", value: "4.2" },
+      { period: "Q2 2024", value: "4.3" },
+      { period: "Q3 2024", value: "4.4" },
+      { period: "Q4 2024", value: "4.5" }
     ],
-    actionPlan: "Programa de mentoria para mulheres em cargos de média gerência; Revisão de processos seletivos para eliminar vieses."
+    actionPlan: "Expandir programa de diversidade e inclusão; Implementar sistema de feedback 360°."
   },
   {
     id: 4,
-    name: "Projetos Sociais",
-    category: "Social",
-    value: "5",
-    target: "8",
-    progress: 63,
-    description: "Número de projetos sociais ativos patrocinados pela empresa em comunidades do entorno. Meta de 8 projetos até final de 2025.",
+    name: "Relações com Comunidade",
+    category: "Social", 
+    value: "4.1",
+    target: "4.8",
+    progress: 85,
+    description: "Avaliação do engajamento e impacto nas comunidades locais através de projetos sociais e parcerias.",
     historicalData: [
-      { period: "Q1 2024", value: "3" },
-      { period: "Q2 2024", value: "4" },
-      { period: "Q3 2024", value: "4" },
-      { period: "Q4 2024", value: "5" }
+      { period: "Q1 2024", value: "3.8" },
+      { period: "Q2 2024", value: "3.9" },
+      { period: "Q3 2024", value: "4.0" },
+      { period: "Q4 2024", value: "4.1" }
     ],
-    actionPlan: "Lançar edital para seleção de novos projetos em Q1 2025; Aumentar orçamento de responsabilidade social em 20%."
+    actionPlan: "Ampliar parcerias com organizações locais; Criar comitê de engajamento comunitário."
   },
   {
     id: 5,
-    name: "Transparência",
+    name: "Estrutura de Governança ESG",
     category: "Governança",
-    value: "90%",
-    target: "100%",
-    progress: 90,
-    description: "Índice de transparência baseado em divulgações voluntárias, relatórios ESG e disponibilidade de informações. Meta de 100% até 2025.",
+    value: "4.8",
+    target: "5.0",
+    progress: 96,
+    description: "Avaliação da estrutura de governança para supervisão e gestão de questões ESG.",
     historicalData: [
-      { period: "Q1 2024", value: "85%" },
-      { period: "Q2 2024", value: "87%" },
-      { period: "Q3 2024", value: "88%" },
-      { period: "Q4 2024", value: "90%" }
+      { period: "Q1 2024", value: "4.5" },
+      { period: "Q2 2024", value: "4.6" },
+      { period: "Q3 2024", value: "4.7" },
+      { period: "Q4 2024", value: "4.8" }
     ],
-    actionPlan: "Publicar relatório integrado no padrão GRI até Q2 2025; Implementar portal de transparência até Q3 2025."
+    actionPlan: "Criar comitê ESG no conselho; Implementar sistema de remuneração variável baseado em metas ESG."
+  },
+  {
+    id: 6,
+    name: "Integração ESG na Estratégia",
+    category: "Estratégia",
+    value: "4.0",
+    target: "4.7",
+    progress: 80,
+    description: "Avaliação da integração de critérios ESG na estratégia de negócios e tomada de decisões.",
+    historicalData: [
+      { period: "Q1 2024", value: "3.7" },
+      { period: "Q2 2024", value: "3.8" },
+      { period: "Q3 2024", value: "3.9" },
+      { period: "Q4 2024", value: "4.0" }
+    ],
+    actionPlan: "Incorporar métricas ESG no planejamento estratégico; Treinar liderança em tomada de decisão sustentável."
   },
 ];
 
@@ -264,16 +292,136 @@ const esgReportMockData = {
   responsavel: {
     nome: "Maria Souza",
     email: "maria.souza@exemplo.com",
-    telefone: "(11) 9999-9999"
+    telefone: "+55 11 98765-4321"
   }
 };
 
 const ESG = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   const [selectedIndicator, setSelectedIndicator] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
+  const [esgMaturityData, setESGMaturityData] = useState<ESGMaturityResult | null>(null);
+  const [assessmentHistory, setAssessmentHistory] = useState<ESGAssessmentHistory[]>([]);
+  
+  // Quiz state
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<ESGUserAnswers>({});
+  const [showResults, setShowResults] = useState(false);
+  const [quizResults, setQuizResults] = useState<any>(null);
+  const [currentPillar, setCurrentPillar] = useState<string>('environmental');
+  const [showNavigator, setShowNavigator] = useState(false);
+  
+  // Get active tab from URL params
+  const activeTab = searchParams.get('tab') || 'maturity';
+
+  const totalQuestions = esgQuestions.length;
+  const progress = (Object.keys(answers).length / totalQuestions) * 100;
+
+  useEffect(() => {
+    // Load latest ESG maturity assessment
+    const latestAssessment = loadLatestESGAssessment();
+    if (latestAssessment && latestAssessment.result) {
+      setESGMaturityData(latestAssessment.result);
+    }
+
+    // Load assessment history
+    const history = loadESGAssessmentHistory();
+    setAssessmentHistory(history);
+    
+    // Load saved quiz answers
+    const savedAnswers = localStorage.getItem('esg_temp_answers');
+    if (savedAnswers) {
+      try {
+        setAnswers(JSON.parse(savedAnswers));
+      } catch (error) {
+        console.error('Error loading saved answers:', error);
+      }
+    }
+  }, []);
+  
+  // Auto-save quiz answers
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      localStorage.setItem('esg_temp_answers', JSON.stringify(answers));
+    }
+  }, [answers]);
+
+  const currentQuestionData = esgQuestions[currentQuestion];
+  const isAnswered = currentQuestionData ? answers[currentQuestionData.id] !== undefined : false;
+
+  const getPillarIcon = (pillar: string) => {
+    const iconMap: { [key: string]: React.ElementType } = {
+      environmental: Leaf,
+      social: Users,
+      governance: Scale,
+      strategy: Target
+    };
+    return iconMap[pillar] || Leaf;
+  };
+
+  const handleAnswer = (questionId: string, answer: number) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    setTimeout(() => {
+      if (currentQuestion < totalQuestions - 1) {
+        handleNext();
+      }
+    }, 400);
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < totalQuestions - 1) {
+      setCurrentQuestion(prev => prev + 1);
+      updateCurrentPillar(currentQuestion + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
+      updateCurrentPillar(currentQuestion - 1);
+    }
+  };
+
+  const updateCurrentPillar = (questionIndex: number) => {
+    const question = esgQuestions[questionIndex];
+    if (question && question.pillar !== currentPillar) {
+      setCurrentPillar(question.pillar);
+    }
+  };
+
+  const handleFinishAssessment = () => {
+    const result = calculateESGMaturity(answers);
+    setQuizResults(result);
+    saveESGAssessment(answers, result);
+    setShowResults(true);
+    setESGMaturityData(result);
+    localStorage.removeItem('esg_temp_answers');
+    
+    toast({
+      title: "Avaliação ESG Concluída!",
+      description: `Sua maturidade ESG é: ${result.maturityLevel.name} (${result.overallScore.toFixed(1)}/6.0)`,
+    });
+    
+    // Switch to maturity tab after completing
+    setSearchParams({ tab: 'maturity' });
+  };
+
+  const handleRestartQuiz = () => {
+    setCurrentQuestion(0);
+    setAnswers({});
+    setShowResults(false);
+    setQuizResults(null);
+    setCurrentPillar('environmental');
+    localStorage.removeItem('esg_temp_answers');
+  };
+
+  const jumpToQuestion = (index: number) => {
+    setCurrentQuestion(index);
+    updateCurrentPillar(index);
+  };
 
   const filteredPolicies = esgPolicies.filter(
     (policy) =>
@@ -354,47 +502,69 @@ const ESG = () => {
     });
   };
 
-  const goToDataInput = () => {
-    navigate("/data-input");
+  const goToNewAssessment = () => {
+    setSearchParams({ tab: 'new-assessment' });
   };
+
+  // If quiz completed and showing results within assessment tab
+  if (showResults && quizResults && activeTab === 'new-assessment') {
+    return <ESGResultsDashboard results={quizResults} onRestart={handleRestartQuiz} />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="ESG" />
+        <Header title="Maturidade ESG" />
         <div className="flex-1 overflow-y-auto p-6">
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
-                  Governança Regenerativa & ESG
-                </h2>
-                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="search"
-                      placeholder="Buscar..."
-                      className="pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <Button onClick={goToDataInput}>
-                    Atualizar Dados
-                  </Button>
-                </div>
-              </div>
+          {/* High-level tabs */}
+          <Tabs value={activeTab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="maturity">Maturidade em ESG</TabsTrigger>
+              <TabsTrigger value="new-assessment">Nova Avaliação</TabsTrigger>
+            </TabsList>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center">
-                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                    <Leaf className="h-6 w-6 text-green-600" />
+            {/* Tab 1: Maturidade em ESG */}
+            <TabsContent value="maturity">
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
+                      Dashboard ESG
+                    </h2>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                        <Input
+                          type="search"
+                          placeholder="Buscar..."
+                          className="pl-8"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <Button onClick={goToNewAssessment}>
+                        Nova Avaliação
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium">Ambiental</h3>
-                    <p className="text-sm text-gray-600">Score: 75/100</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex items-center">
+                      <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                        <Leaf className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium flex items-center gap-2">
+                          <Leaf className="h-4 w-4" />
+                          Ambiental
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Score: {esgMaturityData ? esgMaturityData.pillarScores.environmental.percentage.toFixed(0) : '75'}%
+                        </p>
+                    <p className="text-xs text-gray-500">
+                      Nível: {esgMaturityData ? esgMaturityData.pillarScores.environmental.maturityLevel : '4'}
+                    </p>
                   </div>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 flex items-center">
@@ -402,17 +572,50 @@ const ESG = () => {
                     <Users className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium">Social</h3>
-                    <p className="text-sm text-gray-600">Score: 82/100</p>
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Social
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Score: {esgMaturityData ? esgMaturityData.pillarScores.social.percentage.toFixed(0) : '82'}%
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Nível: {esgMaturityData ? esgMaturityData.pillarScores.social.maturityLevel : '4'}
+                    </p>
                   </div>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 flex items-center">
                   <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mr-4">
-                    <BarChart3 className="h-6 w-6 text-purple-600" />
+                    <Shield className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium">Governança</h3>
-                    <p className="text-sm text-gray-600">Score: 88/100</p>
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Governança
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Score: {esgMaturityData ? esgMaturityData.pillarScores.governance.percentage.toFixed(0) : '88'}%
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Nível: {esgMaturityData ? esgMaturityData.pillarScores.governance.maturityLevel : '5'}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 flex items-center">
+                  <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                    <Target className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Estratégia
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Score: {esgMaturityData ? esgMaturityData.pillarScores.strategy.percentage.toFixed(0) : '78'}%
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Nível: {esgMaturityData ? esgMaturityData.pillarScores.strategy.maturityLevel : '4'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -428,116 +631,230 @@ const ESG = () => {
 
                 <TabsContent value="dashboard">
                   <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg border">
-                      <div className="flex justify-between mb-4">
-                        <h3 className="text-lg font-medium">Comparativo de Performance ESG</h3>
-                        <Button variant="outline" size="sm" onClick={goToDataInput}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </Button>
-                      </div>
-                      <div className="h-80">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            width={500}
-                            height={300}
-                            data={benchmarkData}
-                            margin={{
-                              top: 5,
-                              right: 30,
-                              left: 20,
-                              bottom: 5,
-                            }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis domain={[0, 100]} />
-                            <Tooltip formatter={(value) => [`${value}/100`, 'Score']} />
-                            <Legend />
-                            <Bar dataKey="empresa" name="Sua Empresa" fill="#8884d8" />
-                            <Bar dataKey="setor" name="Média do Setor" fill="#82ca9d" />
-                            <Bar dataKey="benchmark" name="Benchmark" fill="#ffc658" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                    {/* Primeira Seção Horizontal: Score Geral ESG + Evolução Histórica */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Activity className="h-5 w-5" />
+                            Score Geral ESG
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-center">
+                            <div className="text-4xl font-bold text-primary mb-2">
+                              {esgMaturityData ? (esgMaturityData.overallScore * 16.67).toFixed(0) : '82'}
+                            </div>
+                            <div className="text-sm text-muted-foreground mb-4">
+                              Pontuação de 0 a 100
+                            </div>
+                            <div className="flex items-center justify-center gap-2">
+                              <Badge 
+                                variant="secondary" 
+                                className={esgMaturityData?.maturityLevel.color || "bg-blue-500"}
+                              >
+                                {esgMaturityData ? esgMaturityData.maturityLevel.name : 'Estratégico'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {esgMaturityData ? esgMaturityData.maturityLevel.description : 'ESG como oportunidade de negócio'}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5" />
+                            Evolução Histórica
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={assessmentHistory.slice(-6).map((assessment, index) => ({
+                                periodo: `Avaliação ${index + 1}`,
+                                score: (assessment.result.overallScore * 16.67).toFixed(0)
+                              }))}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="periodo" />
+                                <YAxis domain={[0, 100]} />
+                                <Tooltip formatter={(value) => [`${value}`, 'Score ESG']} />
+                                <Line 
+                                  type="monotone" 
+                                  dataKey="score" 
+                                  stroke="hsl(var(--primary))" 
+                                  strokeWidth={3}
+                                  dot={{ fill: "hsl(var(--primary))" }}
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
 
+                    {/* Segunda Seção: Performance por Pilar ESG (largura total) */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <BarChart3 className="h-5 w-5" />
+                          Performance por Pilar ESG
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-80">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={esgMaturityData ? [
+                                {
+                                  name: "Ambiental",
+                                  atual: esgMaturityData.pillarScores.environmental.percentage,
+                                  meta: 85,
+                                  setor: 70
+                                },
+                                {
+                                  name: "Social", 
+                                  atual: esgMaturityData.pillarScores.social.percentage,
+                                  meta: 85,
+                                  setor: 75
+                                },
+                                {
+                                  name: "Governança",
+                                  atual: esgMaturityData.pillarScores.governance.percentage,
+                                  meta: 90,
+                                  setor: 80
+                                },
+                                {
+                                  name: "Estratégia",
+                                  atual: esgMaturityData.pillarScores.strategy.percentage,
+                                  meta: 85,
+                                  setor: 72
+                                }
+                              ] : benchmarkData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="name" />
+                              <YAxis domain={[0, 100]} />
+                              <Tooltip formatter={(value) => [`${value}%`, 'Score']} />
+                              <Legend />
+                              <Bar dataKey="atual" name="Score Atual" fill="hsl(var(--primary))" />
+                              <Bar dataKey="meta" name="Meta" fill="hsl(var(--chart-2))" />
+                              <Bar dataKey="setor" name="Média do Setor" fill="hsl(var(--chart-3))" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Recomendações e Progresso Detalhado */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-white p-6 rounded-lg border">
-                        <div className="flex justify-between mb-4">
-                          <h3 className="text-lg font-medium">Métricas de Diversidade</h3>
-                          <Button variant="outline" size="sm" onClick={goToDataInput}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Detalhes
-                          </Button>
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm font-medium">Diversidade de Gênero</span>
-                              <span className="text-sm font-medium">43%</span>
-                            </div>
-                            <Progress value={43} className="h-2 bg-green-500" />
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Target className="h-5 w-5" />
+                            Recomendações Prioritárias
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {esgMaturityData && generateESGRecommendations(esgMaturityData).slice(0, 4).map((rec, index) => {
+                              const getPriorityIcon = () => {
+                                if (rec.priority === 'Alta') return <AlertTriangle className="h-4 w-4 text-red-500" />;
+                                if (rec.priority === 'Média') return <MinusCircle className="h-4 w-4 text-yellow-500" />;
+                                return <CheckCircle className="h-4 w-4 text-green-500" />;
+                              };
+                              
+                              return (
+                                <div key={index} className="border-l-4 border-primary pl-4">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    {getPriorityIcon()}
+                                    <Badge variant={rec.priority === 'Alta' ? 'destructive' : rec.priority === 'Média' ? 'default' : 'secondary'}>
+                                      {rec.priority}
+                                    </Badge>
+                                    <span className="text-sm font-medium">{rec.pillar}</span>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{rec.action}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-xs">Atual: {rec.currentScore.toFixed(1)}</span>
+                                    <Progress value={(rec.currentScore / 6) * 100} className="h-1 flex-1" />
+                                    <span className="text-xs">Meta: {rec.targetScore}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                              {!esgMaturityData && (
+                              <div className="text-center py-8">
+                                <p className="text-muted-foreground mb-4">
+                                  Nenhuma avaliação ESG encontrada.
+                                </p>
+                                <Button 
+                                  onClick={goToNewAssessment}
+                                >
+                                  Realizar Primeira Avaliação
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm font-medium">Diversidade Étnica</span>
-                              <span className="text-sm font-medium">35%</span>
-                            </div>
-                            <Progress value={35} className="h-2 bg-yellow-500" />
+                          {esgMaturityData && (
+                            <Button 
+                              variant="outline" 
+                              className="w-full mt-4"
+                              onClick={goToNewAssessment}
+                            >
+                              Fazer Nova Avaliação
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Activity className="h-5 w-5" />
+                            Progresso por Sub-dimensão
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {esgMaturityData && Object.entries(esgMaturityData.pillarScores).map(([pillar, data]) => (
+                              <div key={pillar}>
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="text-sm font-medium">{data.title}</span>
+                                  <span className="text-sm text-muted-foreground">{data.percentage.toFixed(0)}%</span>
+                                </div>
+                                <Progress value={data.percentage} className="h-2" />
+                                <div className="flex items-center justify-between mt-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {Object.keys(data.subDimensions).length} sub-dimensões
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Nível {data.maturityLevel}/6
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                            {!esgMaturityData && (
+                              <div className="text-center py-8">
+                                <p className="text-muted-foreground">
+                                  Dados não disponíveis. Realize uma avaliação para ver o progresso detalhado.
+                                </p>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm font-medium">Inclusão de PCDs</span>
-                              <span className="text-sm font-medium">12%</span>
-                            </div>
-                            <Progress value={12} className="h-2 bg-red-500" />
-                          </div>
-                          <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm font-medium">Diversidade Geracional</span>
-                              <span className="text-sm font-medium">65%</span>
-                            </div>
-                            <Progress value={65} className="h-2 bg-green-500" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-white p-6 rounded-lg border">
-                        <div className="flex justify-between mb-4">
-                          <h3 className="text-lg font-medium">Próximos Passos</h3>
-                          <Button variant="outline" size="sm" onClick={() => {
-                            toast({
-                              title: "Plano de Ação",
-                              description: "Visualizando detalhes do plano de ação ESG",
-                            });
-                          }}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Detalhes
-                          </Button>
-                        </div>
-                        <ul className="space-y-3">
-                          <li className="flex items-center text-sm">
-                            <span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
-                            <span>Finalizar relatório de sustentabilidade até 30/05</span>
-                          </li>
-                          <li className="flex items-center text-sm">
-                            <span className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
-                            <span>Implementar programa de redução de emissões</span>
-                          </li>
-                          <li className="flex items-center text-sm">
-                            <span className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
-                            <span>Expandir programa de diversidade e inclusão</span>
-                          </li>
-                          <li className="flex items-center text-sm">
-                            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                            <span>Revisar política de compras sustentáveis</span>
-                          </li>
-                          <li className="flex items-center text-sm">
-                            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                            <span>Preparar workshops ESG para liderança</span>
-                          </li>
-                        </ul>
-                      </div>
+                          {esgMaturityData && (
+                            <Button 
+                              variant="outline" 
+                              className="w-full mt-4"
+                              onClick={() => navigate('/esg-history')}
+                            >
+                              Ver Histórico Completo
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 </TabsContent>
@@ -996,8 +1313,179 @@ const ESG = () => {
               </Tabs>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+
+        {/* Tab 2: Nova Avaliação */}
+        <TabsContent value="new-assessment">
+          {/* Progress Header */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {currentQuestionData && React.createElement(getPillarIcon(currentPillar), { 
+                    className: "h-8 w-8 text-green-500" 
+                  })}
+                  <div>
+                    <CardTitle className="text-xl">Avaliação de Maturidade ESG</CardTitle>
+                    <p className="text-sm text-gray-600">
+                      Responda 90 perguntas para descobrir o nível de maturidade ESG da sua empresa
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-lg px-3 py-1">
+                  {Object.keys(answers).length}/{totalQuestions}
+                </Badge>
+              </div>
+              <div className="mt-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Progresso da Avaliação</span>
+                  <span>{progress.toFixed(0)}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Current Pillar Badge */}
+          {currentQuestionData && (
+            <div className="mb-4">
+              <Badge className={`${pillarInfo[currentPillar as keyof typeof pillarInfo]?.color || 'bg-green-500'} text-white px-4 py-2`}>
+                {pillarInfo[currentPillar as keyof typeof pillarInfo]?.title || 'Ambiental'}
+              </Badge>
+              <p className="text-sm text-gray-600 mt-2">
+                {pillarInfo[currentPillar as keyof typeof pillarInfo]?.description || ''}
+              </p>
+            </div>
+          )}
+
+          {/* Question Card */}
+          {currentQuestionData && (
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline">
+                        Pergunta {currentQuestion + 1}
+                      </Badge>
+                      <Badge variant="secondary">
+                        {currentQuestionData.subDimension}
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg leading-relaxed">
+                      {currentQuestionData.text}
+                    </CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={answers[currentQuestionData.id]?.toString() || ""}
+                  onValueChange={(value) => handleAnswer(currentQuestionData.id, parseInt(value))}
+                  className="space-y-4"
+                >
+                  {maturityLevels.map((level) => (
+                    <div key={level.level} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                      <RadioGroupItem value={level.level.toString()} id={`level-${level.level}`} className="mt-1" />
+                      <Label htmlFor={`level-${level.level}`} className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className={`${level.color} text-white text-xs`}>
+                            {level.level}
+                          </Badge>
+                          <span className="font-medium">{level.name}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{level.description}</p>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestion === 0}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Anterior
+              </Button>
+              <ESGHistoryModal />
+            </div>
+
+            <div className="flex gap-2">
+              {currentQuestion === totalQuestions - 1 ? (
+                <Button
+                  onClick={handleFinishAssessment}
+                  disabled={!isAnswered}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Finalizar Avaliação
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  disabled={!isAnswered}
+                >
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Question Navigator Toggle */}
+          <div className="mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowNavigator(!showNavigator)}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              {showNavigator ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Ocultar Navegação Rápida
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Mostrar Navegação Rápida ({Object.keys(answers).length}/{totalQuestions} respondidas)
+                </>
+              )}
+            </Button>
+
+            {showNavigator && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="text-lg">Navegação Rápida</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-10 gap-2">
+                    {esgQuestions.map((question, index) => (
+                      <Button
+                        key={question.id}
+                        variant={answers[question.id] ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => jumpToQuestion(index)}
+                        className={`w-10 h-10 p-0 ${currentQuestion === index ? 'ring-2 ring-primary' : ''}`}
+                      >
+                        {index + 1}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  </div>
 
       {/* Dialog for policy details */}
       <Dialog open={!!selectedPolicy} onOpenChange={() => setSelectedPolicy(null)}>

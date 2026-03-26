@@ -1,586 +1,777 @@
-import React, { useState, useMemo } from "react";
-import { FileText, Search, FolderOpen, Download, Link, Eye, Building2, Loader2 } from "lucide-react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
-import FileUpload from "@/components/FileUpload";
-import { useEmpresas } from "@/hooks/useEmpresas";
-import { useDocumentos } from "@/hooks/useDocumentos";
-import { useEmpresaDados } from "@/hooks/useEmpresaDados";
-import type { Documento } from "@/types/documentos";
+import React, { useState, useEffect } from 'react';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  FileText, 
+  Download, 
+  Eye, 
+  Share2, 
+  Search, 
+  Filter, 
+  FolderOpen,
+  Upload,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Loader2,
+  BarChart3,
+  FileEdit
+} from 'lucide-react';
+import FileUpload from '@/components/FileUpload';
+import { useToast } from "@/components/ui/use-toast";
 
-const SETORES = [
-  "Indústria",
-  "Tecnologia",
-  "Serviços",
-  "Saúde",
-  "Financeiro",
-  "Agronegócio",
-  "Comércio",
-  "Construção",
-  "Energia",
-  "Educação",
-  "Outros",
+// Document categories for upload
+const documentCategories = [
+  'Estatuto Social',
+  'Atas de Assembleia',
+  'Políticas Corporativas',
+  'Contratos Sociais',
+  'Acordo de Acionistas',
+  'Código de Conduta',
+  'Política de Compliance',
+  'Política de Riscos',
+  'Regimento Interno',
+  'Outros Documentos'
 ];
 
-const PORTES = [
-  { value: "micro", label: "Microempresa" },
-  { value: "pequena", label: "Pequena" },
-  { value: "media", label: "Média" },
-  { value: "grande", label: "Grande" },
-];
+// Document status
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'compliant': return <CheckCircle className="h-4 w-4 text-green-500" />;
+    case 'pending': return <Clock className="h-4 w-4 text-yellow-500" />;
+    case 'divergent': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    case 'analyzing': return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+    default: return <Clock className="h-4 w-4 text-gray-500" />;
+  }
+};
 
-const CATEGORIAS = [
-  "Estatutos e Contratos",
-  "Atas e Registros",
-  "Relatórios Financeiros",
-  "Planejamento Estratégico",
-  "Políticas e Normas",
-  "Outros",
-];
-
-const Documents = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [viewDocument, setViewDocument] = useState<Documento | null>(null);
-  const [uploadCategory, setUploadCategory] = useState<string>(CATEGORIAS[0]);
-  const [mainTab, setMainTab] = useState("documentos");
-
-  const { empresas, isLoading: loadingEmpresas, firstEmpresaId } = useEmpresas();
-  const { dados, isLoading: loadingDados, hasEmpresa, saveDados, isSaving } = useEmpresaDados();
-  const empresaId = firstEmpresaId;
-
-  const [formSetor, setFormSetor] = useState("");
-  const [formSegmento, setFormSegmento] = useState("");
-  const [formPorte, setFormPorte] = useState("");
-  const [formAreasAtuacao, setFormAreasAtuacao] = useState("");
-  const [formDescricao, setFormDescricao] = useState("");
-  const [formMissao, setFormMissao] = useState("");
-
-  React.useEffect(() => {
-    if (dados) {
-      setFormSetor(dados.setor ?? "");
-      setFormSegmento(dados.segmento ?? "");
-      setFormPorte(dados.porte ?? "");
-      setFormAreasAtuacao(dados.areas_atuacao ?? "");
-      setFormDescricao(dados.descricao ?? "");
-      setFormMissao(dados.missao ?? "");
-    }
-  }, [dados]);
-  const { documentos, isLoading, uploadFiles } = useDocumentos(empresaId);
-
-  const filteredDocuments = useMemo(() => {
-    const term = searchTerm.toLowerCase();
-    return documentos.filter(
-      (doc) =>
-        (selectedCategory ? doc.category === selectedCategory : true) &&
-        (term
-          ? doc.name.toLowerCase().includes(term) ||
-            (doc.category ?? "").toLowerCase().includes(term)
-          : true)
-    );
-  }, [documentos, searchTerm, selectedCategory]);
-
-  const categoriasUnicas = useMemo(
-    () => [...new Set(documentos.map((d) => d.category).filter(Boolean))] as string[],
-    [documentos]
-  );
-
-  const handleViewDocument = (doc: Documento) => {
-    setViewDocument(doc);
+const getStatusBadge = (status: string) => {
+  const variants = {
+    compliant: "bg-green-100 text-green-800",
+    pending: "bg-yellow-100 text-yellow-800", 
+    divergent: "bg-red-100 text-red-800",
+    analyzing: "bg-blue-100 text-blue-800"
   };
-
-  const handleDownloadDocument = (doc: Documento) => {
-    if (doc.arquivoUrl) {
-      window.open(doc.arquivoUrl, "_blank");
-    } else {
-      toast({
-        title: "Link indisponível",
-        description: "O arquivo não possui URL de download.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleShareDocument = (doc: Documento) => {
-    if (doc.arquivoUrl) {
-      navigator.clipboard.writeText(doc.arquivoUrl);
-      toast({
-        title: "Link copiado",
-        description: "Link do documento copiado para a área de transferência.",
-      });
-    } else {
-      toast({
-        title: "Link indisponível",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleUpload = async (files: File[], options?: { silent?: boolean }) => {
-    if (!empresaId) {
-      throw new Error("Selecione uma empresa primeiro.");
-    }
-    await uploadFiles(files, uploadCategory);
-    if (!options?.silent) {
-      toast({
-        title: "Documentos salvos",
-        description: `${files.length} documento(s) adicionado(s) ao histórico.`,
-      });
-    }
-  };
-
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case "PDF":
-        return <FileText className="h-5 w-5 text-red-500" />;
-      case "DOCX":
-      case "DOC":
-        return <FileText className="h-5 w-5 text-blue-500" />;
-      case "XLSX":
-      case "XLS":
-        return <FileText className="h-5 w-5 text-green-500" />;
-      case "PPTX":
-      case "PPT":
-        return <FileText className="h-5 w-5 text-orange-500" />;
-      default:
-        return <FileText className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const hasEmpresas = empresas.length > 0;
-
-  const handleSaveDados = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!empresaId) return;
-    const payload = {
-      setor: formSetor.trim() || null,
-      segmento: formSegmento.trim() || null,
-      porte: formPorte.trim() || null,
-      areas_atuacao: formAreasAtuacao.trim() || null,
-      descricao: formDescricao.trim() || null,
-      missao: formMissao.trim() || null,
-    };
-    try {
-      const { error } = await saveDados(payload);
-      if (error) {
-        toast({ title: "Erro ao salvar", description: String(error), variant: "destructive" });
-      } else {
-        toast({ title: "Dados salvos", description: "O contexto da empresa foi atualizado e será usado pela IA." });
-      }
-    } catch (err) {
-      toast({ title: "Erro ao salvar", description: String(err), variant: "destructive" });
-    }
+  
+  const labels = {
+    compliant: "Conforme",
+    pending: "Pendente",
+    divergent: "Divergente", 
+    analyzing: "Analisando"
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <Badge className={variants[status as keyof typeof variants] || "bg-gray-100 text-gray-800"}>
+      {labels[status as keyof typeof labels] || "Desconhecido"}
+    </Badge>
+  );
+};
+
+// Interface para documentos
+interface UploadedDocument {
+  id: string;
+  name: string;
+  category: string;
+  uploadDate: string;
+  status: 'analyzing' | 'compliant' | 'pending' | 'divergent';
+  aiAnalysis?: {
+    summary: string;
+    issues: string[];
+    recommendations: string[];
+  };
+}
+
+// Mock documents data
+const initialDocuments: UploadedDocument[] = [
+  {
+    id: '1',
+    name: 'Estatuto Social v2024.pdf',
+    category: 'Estatuto Social',
+    uploadDate: '2024-01-15',
+    status: 'compliant',
+    aiAnalysis: {
+      summary: 'Documento conforme com as melhores práticas de governança corporativa.',
+      issues: [],
+      recommendations: ['Considerar adicionar cláusula sobre sustentabilidade.']
+    }
+  },
+  {
+    id: '2', 
+    name: 'Política de Compliance.pdf',
+    category: 'Políticas Corporativas',
+    uploadDate: '2024-01-10',
+    status: 'divergent',
+    aiAnalysis: {
+      summary: 'Política necessita de atualizações para conformidade com LGPD.',
+      issues: ['Ausência de procedimentos LGPD', 'Falta definição de responsabilidades'],
+      recommendations: ['Incluir seção específica sobre proteção de dados', 'Definir papel do encarregado de dados']
+    }
+  },
+  {
+    id: '3',
+    name: 'Ata AGO 2023.pdf', 
+    category: 'Atas de Assembleia',
+    uploadDate: '2024-01-08',
+    status: 'pending',
+    aiAnalysis: {
+      summary: 'Ata bem estruturada, mas faltam algumas informações obrigatórias.',
+      issues: ['Ausência de quórum detalhado'],
+      recommendations: ['Incluir detalhamento do quórum presente', 'Adicionar lista de presença completa']
+    }
+  }
+];
+
+const Documents = () => {
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewDocument, setViewDocument] = useState<UploadedDocument | null>(null);
+  const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const [divergencesModalOpen, setDivergencesModalOpen] = useState(false);
+  const [correctionsModalOpen, setCorrectionsModalOpen] = useState(false);
+  const [selectedIssueDoc, setSelectedIssueDoc] = useState<UploadedDocument | null>(null);
+
+  // Load documents from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('uploaded-documents');
+    if (saved) {
+      setDocuments(JSON.parse(saved));
+    } else {
+      setDocuments(initialDocuments);
+    }
+  }, []);
+
+  // Save documents to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('uploaded-documents', JSON.stringify(documents));
+  }, [documents]);
+
+  // Filter documents based on search term and category
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.category.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || selectedCategory === 'all' || doc.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  // Calculate statistics
+  const totalDocuments = documents.length;
+  const compliantDocs = documents.filter(d => d.status === 'compliant').length;
+  const pendingDocs = documents.filter(d => d.status === 'pending').length;
+  const divergentDocs = documents.filter(d => d.status === 'divergent').length;
+  const overallProgress = totalDocuments > 0 ? (compliantDocs / totalDocuments) * 100 : 0;
+
+  // Simulate AI analysis
+  const simulateAIAnalysis = async (): Promise<{summary: string, issues: string[], recommendations: string[]}> => {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    return {
+      summary: "Documento analisado com base nas melhores práticas de governança corporativa.",
+      issues: [
+        "Ausência de algumas cláusulas recomendadas",
+        "Necessita atualização de acordo com nova legislação"
+      ],
+      recommendations: [
+        "Incluir cláusula de sustentabilidade",
+        "Atualizar referências legais",
+        "Revisar política de conflito de interesses"
+      ]
+    };
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (uploadedFiles: File[], category: string) => {
+    for (const file of uploadedFiles) {
+      const newDoc: UploadedDocument = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        category: category,
+        uploadDate: new Date().toISOString().split('T')[0],
+        status: 'analyzing'
+      };
+
+      setDocuments(prev => [...prev, newDoc]);
+
+      try {
+        const analysis = await simulateAIAnalysis();
+        setDocuments(prev => prev.map(doc => 
+          doc.id === newDoc.id 
+            ? { 
+                ...doc, 
+                status: analysis.issues.length > 0 ? 'divergent' : 'compliant' as const,
+                aiAnalysis: analysis 
+              }
+            : doc
+        ));
+
+        toast({
+          title: "Análise concluída",
+          description: `${file.name} foi analisado com sucesso.`,
+        });
+      } catch (error) {
+        setDocuments(prev => prev.map(doc => 
+          doc.id === newDoc.id ? { ...doc, status: 'pending' as const } : doc
+        ));
+        
+        toast({
+          title: "Erro na análise",
+          description: `Falha ao analisar ${file.name}.`,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDownloadDocument = (document: UploadedDocument) => {
+    toast({
+      title: "Download iniciado",
+      description: `Baixando ${document.name}...`,
+    });
+  };
+
+  const handleShareDocument = (document: UploadedDocument) => {
+    toast({
+      title: "Link copiado",
+      description: `Link de compartilhamento de ${document.name} copiado para a área de transferência.`,
+    });
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Checklist" />
-        <div className="flex-1 overflow-y-auto p-6">
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
-                  Documentação Oficial
-                </h2>
+      <div className="flex-1">
+        <Header />
+        <main className="p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Repositório de Documentos</h1>
+                <p className="text-gray-600 mt-1">Upload, análise e gestão inteligente de documentos de governança</p>
               </div>
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="h-5 w-5 text-blue-600" />
+                <span className="text-sm text-gray-600">
+                  {Math.round(overallProgress)}% Analisados
+                </span>
+              </div>
+            </div>
 
-              <Tabs value={mainTab} onValueChange={setMainTab}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="documentos" className="gap-2">
-                    <FileText className="h-4 w-4" />
-                    Documentos
-                  </TabsTrigger>
-                  <TabsTrigger value="dados" className="gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Dados da empresa
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="documentos">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                    <div className="relative w-full sm:w-[280px]">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                      <Input
-                        type="search"
-                        placeholder="Buscar documentos..."
-                        className="pl-8"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+            {/* Progress Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Status da Análise de Documentos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Progress value={overallProgress} className="w-full" />
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900">{totalDocuments}</div>
+                      <div className="text-sm text-gray-600">Total</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">{compliantDocs}</div>
+                      <div className="text-sm text-gray-600">Conformes</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-600">{pendingDocs}</div>
+                      <div className="text-sm text-gray-600">Pendentes</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-red-600">{divergentDocs}</div>
+                      <div className="text-sm text-gray-600">Divergentes</div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <Tabs defaultValue="all">
-                    <TabsList className="mb-4">
-                      <TabsTrigger value="all">Histórico de Documentos</TabsTrigger>
-                      <TabsTrigger value="upload">Upload de Documentos</TabsTrigger>
-                    </TabsList>
+            {/* Main Tabs */}
+            <Tabs defaultValue="upload" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="upload">Upload & Análise</TabsTrigger>
+                <TabsTrigger value="library">Biblioteca</TabsTrigger>
+                <TabsTrigger value="analysis">Análises</TabsTrigger>
+              </TabsList>
 
-                    <TabsContent value="all">
-                  {hasEmpresas && !isLoading && documentos.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-3 mb-4">
-                      <Label className="text-sm font-medium text-muted-foreground">
-                        Filtrar por tipo:
-                      </Label>
-                      <Select
-                        value={selectedCategory ?? "all"}
-                        onValueChange={(v) => setSelectedCategory(v === "all" ? null : v)}
-                      >
-                        <SelectTrigger className="w-[220px]">
-                          <SelectValue placeholder="Todos os tipos" />
+              {/* Upload Tab */}
+              <TabsContent value="upload">
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Upload por Categoria</CardTitle>
+                      <p className="text-gray-600">Selecione a categoria e faça upload dos documentos para análise automática</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Todos os tipos</SelectItem>
-                          {categoriasUnicas.map((cat) => (
-                            <SelectItem key={cat} value={cat}>
-                              {cat}
+                          {documentCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      
                       {selectedCategory && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedCategory(null)}
-                          className="text-muted-foreground"
-                        >
-                          Limpar filtro
-                        </Button>
+                        <FileUpload 
+                          onFileUpload={(files) => handleFileUpload(files, selectedCategory)}
+                        />
                       )}
-                    </div>
-                  )}
+                    </CardContent>
+                  </Card>
 
-                  {!hasEmpresas ? (
-                    <div className="py-12 text-center text-muted-foreground">
-                      <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p className="font-medium">Nenhuma empresa cadastrada</p>
-                      <p className="text-sm mt-1">
-                        Cadastre uma empresa para visualizar o histórico de documentos.
-                      </p>
-                    </div>
-                  ) : isLoading ? (
-                    <div className="py-12 text-center text-muted-foreground">
-                      Carregando documentos...
-                    </div>
-                  ) : filteredDocuments.length === 0 ? (
-                    <div className="py-12 text-center text-muted-foreground">
-                      <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p className="font-medium">
-                        {searchTerm || selectedCategory
-                          ? "Nenhum documento encontrado"
-                          : "Nenhum documento no histórico"}
-                      </p>
-                      <p className="text-sm mt-1">
-                        Use a aba Upload de Documentos para enviar PDFs e salvar no histórico.
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Nome</TableHead>
-                            <TableHead>Categoria</TableHead>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Tamanho</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredDocuments.map((doc) => (
-                            <TableRow key={doc.id}>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  {getDocumentIcon(doc.type)}
-                                  <span className="ml-2">{doc.name}</span>
+                  {/* Recent Uploads */}
+                  {documents.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Documentos Analisados</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {documents.slice(0, 5).map((doc) => (
+                            <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <FileText className="h-8 w-8 text-blue-600" />
+                                <div>
+                                  <div className="font-medium">{doc.name}</div>
+                                  <div className="text-sm text-gray-500">{doc.category}</div>
                                 </div>
-                              </TableCell>
-                              <TableCell>{doc.category ?? "—"}</TableCell>
-                              <TableCell>{doc.uploadDate}</TableCell>
-                              <TableCell>{doc.size}</TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleViewDocument(doc)}
-                                    title="Visualizar"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDownloadDocument(doc)}
-                                    title="Download"
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleShareDocument(doc)}
-                                    title="Compartilhar"
-                                  >
-                                    <Link className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
-                </TabsContent>
-
-                    <TabsContent value="upload">
-                      <div className="space-y-6">
-                        <div className="bg-white p-6 rounded-lg border">
-                          <h3 className="text-lg font-medium mb-4">Upload de Documentos (PDF)</h3>
-                          {!empresaId ? (
-                            <p className="text-muted-foreground text-sm">
-                              Cadastre uma empresa para fazer upload.
-                            </p>
-                          ) : (
-                            <>
-                              <div className="mb-4">
-                                <Label className="text-sm font-medium">Categoria</Label>
-                                <Select
-                                  value={uploadCategory}
-                                  onValueChange={setUploadCategory}
-                                  className="mt-1"
-                                >
-                                  <SelectTrigger className="w-[240px]">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {CATEGORIAS.map((c) => (
-                                      <SelectItem key={c} value={c}>
-                                        {c}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
                               </div>
-                              <FileUpload
-                                label="Selecionar arquivos"
-                                multiple={true}
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-                                onUpload={handleUpload}
-                                saveButtonLabel="Salvar no histórico"
-                                batchSize={5}
-                              />
-                              {uploadCategory === "Atas e Registros" && (
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  Para muitas ATAs antigas, os arquivos são enviados em lotes de 5 automaticamente.
-                                </p>
-                              )}
-                            </>
-                          )}
+                              <div className="flex items-center space-x-2">
+                                {getStatusIcon(doc.status)}
+                                {getStatusBadge(doc.status)}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => setViewDocument(doc)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </TabsContent>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
 
-                <TabsContent value="dados">
-                  <div className="max-w-2xl">
-                    {!hasEmpresa ? (
-                      <div className="py-12 text-center text-muted-foreground">
-                        <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p className="font-medium">Nenhuma empresa selecionada</p>
-                        <p className="text-sm mt-1">Selecione uma empresa para cadastrar os dados de contexto.</p>
-                      </div>
-                    ) : loadingDados ? (
-                      <div className="py-12 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-legacy-500" />
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSaveDados} className="space-y-6">
-                        <p className="text-sm text-muted-foreground">
-                          Esses dados servem de contexto para a IA entender o que a empresa faz e sugerir pautas de
-                          reuniões mais relevantes.
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="setor">Setor</Label>
-                            <Select value={formSetor || "none"} onValueChange={(v) => setFormSetor(v === "none" ? "" : v)}>
-                              <SelectTrigger id="setor" className="mt-1">
-                                <SelectValue placeholder="Selecione o setor" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">—</SelectItem>
-                                {SETORES.map((s) => (
-                                  <SelectItem key={s} value={s}>
-                                    {s}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="porte">Porte</Label>
-                            <Select value={formPorte || "none"} onValueChange={(v) => setFormPorte(v === "none" ? "" : v)}>
-                              <SelectTrigger id="porte" className="mt-1">
-                                <SelectValue placeholder="Selecione o porte" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">—</SelectItem>
-                                {PORTES.map((p) => (
-                                  <SelectItem key={p.value} value={p.value}>
-                                    {p.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="segmento">Segmento / Nicho</Label>
+              {/* Library Tab */}
+              <TabsContent value="library">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                      <CardTitle>Biblioteca de Documentos ({filteredDocuments.length})</CardTitle>
+                      <div className="flex space-x-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                           <Input
-                            id="segmento"
-                            placeholder="Ex: Software B2B, E-commerce de moda, Consultoria jurídica"
-                            value={formSegmento}
-                            onChange={(e) => setFormSegmento(e.target.value)}
-                            className="mt-1"
+                            placeholder="Pesquisar documentos..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 w-64"
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="areas_atuacao">Áreas de atuação</Label>
-                          <Textarea
-                            id="areas_atuacao"
-                            placeholder="Descreva as principais áreas em que a empresa atua (ex: desenvolvimento de software, assessoria fiscal, logística)"
-                            value={formAreasAtuacao}
-                            onChange={(e) => setFormAreasAtuacao(e.target.value)}
-                            className="mt-1 min-h-[80px]"
-                            rows={3}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="descricao">Descrição da empresa</Label>
-                          <Textarea
-                            id="descricao"
-                            placeholder="Breve descrição do negócio para contexto da IA"
-                            value={formDescricao}
-                            onChange={(e) => setFormDescricao(e.target.value)}
-                            className="mt-1 min-h-[100px]"
-                            rows={4}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="missao">Missão / Visão</Label>
-                          <Textarea
-                            id="missao"
-                            placeholder="Missão ou visão da empresa (opcional)"
-                            value={formMissao}
-                            onChange={(e) => setFormMissao(e.target.value)}
-                            className="mt-1 min-h-[80px]"
-                            rows={3}
-                          />
-                        </div>
-                        <Button type="submit" disabled={isSaving}>
-                          {isSaving ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Salvando...
-                            </>
-                          ) : (
-                            "Salvar dados"
-                          )}
-                        </Button>
-                      </form>
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Filtrar por categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas as categorias</SelectItem>
+                            {documentCategories.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Documento</TableHead>
+                          <TableHead>Categoria</TableHead>
+                          <TableHead>Data Upload</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredDocuments.map((document) => (
+                          <TableRow key={document.id}>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                                <div>
+                                  <div className="font-medium">{document.name}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{document.category}</Badge>
+                            </TableCell>
+                            <TableCell>{document.uploadDate}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                {getStatusIcon(document.status)}
+                                {getStatusBadge(document.status)}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewDocument(document)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadDocument(document)}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleShareDocument(document)}
+                                >
+                                  <Share2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Analysis Tab */}
+              <TabsContent value="analysis">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Conformidade por Categoria</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {documentCategories.map((category) => {
+                          const categoryDocs = documents.filter(d => d.category === category);
+                          const categoryCompliant = categoryDocs.filter(d => d.status === 'compliant').length;
+                          const categoryProgress = categoryDocs.length > 0 ? (categoryCompliant / categoryDocs.length) * 100 : 0;
+                          
+                          return (
+                            <div key={category} className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span>{category}</span>
+                                <span>{categoryDocs.length} docs</span>
+                              </div>
+                              <Progress value={categoryProgress} className="h-2" />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Principais Issues Identificadas</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {documents
+                          .filter(d => d.aiAnalysis?.issues.length)
+                          .slice(0, 5)
+                          .map((doc) => (
+                            <div key={doc.id} className="p-3 border-l-4 border-red-400 bg-red-50">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">{doc.name}</div>
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {doc.aiAnalysis?.issues[0]}
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 ml-4">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedIssueDoc(doc);
+                                      setDivergencesModalOpen(true);
+                                    }}
+                                  >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Ver Divergências
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedIssueDoc(doc);
+                                      setCorrectionsModalOpen(true);
+                                    }}
+                                  >
+                                    <FileEdit className="h-3 w-3 mr-1" />
+                                    Sugerir Correções
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+
+        {/* Document Analysis Dialog */}
+        {viewDocument && (
+          <Dialog open={!!viewDocument} onOpenChange={() => setViewDocument(null)}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>{viewDocument.name}</span>
+                  {getStatusBadge(viewDocument.status)}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Informações do Documento</h3>
+                    <div className="space-y-2 text-sm">
+                      <div><strong>Categoria:</strong> {viewDocument.category}</div>
+                      <div><strong>Data de Upload:</strong> {viewDocument.uploadDate}</div>
+                      <div><strong>Status:</strong> {getStatusBadge(viewDocument.status)}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {viewDocument.aiAnalysis && (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">Resumo da Análise</h3>
+                      <p className="text-gray-600">{viewDocument.aiAnalysis.summary}</p>
+                    </div>
+
+                    {viewDocument.aiAnalysis.issues.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold mb-2 text-red-600">Issues Identificadas</h3>
+                        <ul className="space-y-1">
+                          {viewDocument.aiAnalysis.issues.map((issue, index) => (
+                            <li key={index} className="text-sm text-red-600 flex items-start space-x-2">
+                              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <span>{issue}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {viewDocument.aiAnalysis.recommendations.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold mb-2 text-blue-600">Recomendações</h3>
+                        <ul className="space-y-1">
+                          {viewDocument.aiAnalysis.recommendations.map((rec, index) => (
+                            <li key={index} className="text-sm text-blue-600 flex items-start space-x-2">
+                              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                )}
 
-      {/* Dialog for document preview */}
-      <Dialog open={!!viewDocument} onOpenChange={() => setViewDocument(null)}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {viewDocument && getDocumentIcon(viewDocument.type)}
-              {viewDocument?.name}
-            </DialogTitle>
-            <DialogDescription>
-              {viewDocument?.category ?? "—"} • {viewDocument?.uploadDate}
-            </DialogDescription>
-          </DialogHeader>
-
-          {viewDocument && (
-            <div className="py-4">
-              <div className="bg-gray-50 border rounded-md p-8 mb-6 flex flex-col items-center justify-center min-h-[300px]">
-                <div className="text-center">
-                  {getDocumentIcon(viewDocument.type)}
-                  <div className="mt-4 font-medium">{viewDocument.name}</div>
-                  <div className="text-sm text-gray-500 mt-2">{viewDocument.size}</div>
+                <div className="flex space-x-2">
+                  <Button onClick={() => handleDownloadDocument(viewDocument)}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                  <Button variant="outline" onClick={() => handleShareDocument(viewDocument)}>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Compartilhar
+                  </Button>
                 </div>
               </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
-              {viewDocument.description && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Descrição</h3>
-                  <p>{viewDocument.description}</p>
-                </div>
-              )}
-
-              <DialogFooter className="mt-6 gap-2">
-                <Button variant="outline" onClick={() => handleShareDocument(viewDocument)}>
-                  <Link className="h-4 w-4 mr-2" />
-                  Compartilhar
+        {/* Divergences Modal */}
+        <Dialog open={divergencesModalOpen} onOpenChange={setDivergencesModalOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+                Divergências Encontradas - {selectedIssueDoc?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Análise comparativa entre documentos oficiais e informações das entrevistas
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Divergências Identificadas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 border-l-4 border-red-500 bg-red-50">
+                      <div className="font-medium text-sm mb-2">Estrutura Societária</div>
+                      <div className="text-xs space-y-1">
+                        <p><strong>Documento:</strong> Capital social de R$ 10.000.000</p>
+                        <p><strong>Entrevista:</strong> Mencionado R$ 8.500.000 pelo CFO</p>
+                        <p className="text-red-700 mt-2"><strong>Impacto:</strong> Possível desatualização documental</p>
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-yellow-500 bg-yellow-50">
+                      <div className="font-medium text-sm mb-2">Composição Acionária</div>
+                      <div className="text-xs space-y-1">
+                        <p><strong>Documento:</strong> 3 sócios principais</p>
+                        <p><strong>Entrevista:</strong> Mencionado 4 sócios ativos</p>
+                        <p className="text-yellow-700 mt-2"><strong>Impacto:</strong> Verificar entrada de novo sócio</p>
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-orange-500 bg-orange-50">
+                      <div className="font-medium text-sm mb-2">Conselho de Administração</div>
+                      <div className="text-xs space-y-1">
+                        <p><strong>Documento:</strong> 5 membros definidos</p>
+                        <p><strong>Entrevista:</strong> Mencionado plano de ampliar para 7</p>
+                        <p className="text-orange-700 mt-2"><strong>Impacto:</strong> Atualização futura necessária</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setDivergencesModalOpen(false)}>
+                  Fechar
                 </Button>
-                <Button onClick={() => handleDownloadDocument(viewDocument)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
+                <Button onClick={() => {
+                  setDivergencesModalOpen(false);
+                  setCorrectionsModalOpen(true);
+                }}>
+                  <FileEdit className="h-4 w-4 mr-2" />
+                  Ver Correções Sugeridas
                 </Button>
-              </DialogFooter>
+              </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+
+        {/* Corrections Modal */}
+        <Dialog open={correctionsModalOpen} onOpenChange={setCorrectionsModalOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileEdit className="h-5 w-5 text-blue-600" />
+                Correções Sugeridas - {selectedIssueDoc?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Recomendações de correções baseadas na análise de IA
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Ações Recomendadas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm mb-1">1. Atualizar Capital Social</div>
+                          <p className="text-xs text-gray-700">
+                            Revisar e atualizar o valor do capital social no estatuto social para R$ 10.000.000 conforme documentação mais recente
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant="outline" className="text-xs">Prioridade: Alta</Badge>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-blue-600 ml-2 flex-shrink-0" />
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm mb-1">2. Verificar Novo Sócio</div>
+                          <p className="text-xs text-gray-700">
+                            Solicitar documentação comprobatória da entrada do quarto sócio e atualizar acordo de acionistas
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant="outline" className="text-xs">Prioridade: Alta</Badge>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-blue-600 ml-2 flex-shrink-0" />
+                      </div>
+                    </div>
+                    <div className="p-3 border-l-4 border-green-500 bg-green-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-sm mb-1">3. Planejar Expansão do Conselho</div>
+                          <p className="text-xs text-gray-700">
+                            Preparar minuta de alteração do estatuto para acomodar expansão do conselho para 7 membros
+                          </p>
+                          <div className="mt-2">
+                            <Badge variant="outline" className="text-xs">Prioridade: Média</Badge>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-5 w-5 text-green-600 ml-2 flex-shrink-0" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setCorrectionsModalOpen(false)}>
+                  Fechar
+                </Button>
+                <Button onClick={() => {
+                  toast({
+                    title: "Ações exportadas",
+                    description: "As correções sugeridas foram exportadas para sua lista de tarefas",
+                  });
+                  setCorrectionsModalOpen(false);
+                }}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Ações
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

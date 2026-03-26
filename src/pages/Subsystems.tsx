@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Layers, BarChart4, ArrowRight, Info, Save } from "lucide-react";
+import { Layers, BarChart4, ArrowRight, Info, Save, AlertTriangle, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -241,16 +241,16 @@ const SubsystemsPage = () => {
                           selectedAssessment
                             .filter(item => item.score < 3.5)
                             .map(item => (
-                              <li key={item.name} className="flex items-start">
-                                <span className="bg-yellow-100 text-yellow-800 p-1 rounded mr-2">⚠️</span>
-                                <span><strong>{item.name}:</strong> Necessita atenção para equilibrar o sistema.</span>
-                              </li>
+                               <li key={item.name} className="flex items-start">
+                                 <AlertTriangle className="h-4 w-4 text-yellow-500 mr-2 mt-0.5" />
+                                 <span><strong>{item.name}:</strong> Necessita atenção para equilibrar o sistema.</span>
+                               </li>
                             ))
                         ) : (
-                          <li className="flex items-start">
-                            <span className="bg-green-100 text-green-800 p-1 rounded mr-2">✓</span>
-                            <span>Todos os subsistemas estão em equilíbrio adequado.</span>
-                          </li>
+                           <li className="flex items-start">
+                             <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
+                             <span>Todos os subsistemas estão em equilíbrio adequado.</span>
+                           </li>
                         )}
                       </ul>
                     </div>

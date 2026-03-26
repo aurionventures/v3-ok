@@ -1,11 +1,16 @@
-import React, { useState } from "react";
-import { Users, Plus, Building2, Trash2, Loader2, Pencil, Eye, EyeOff, RefreshCw } from "lucide-react";
+
+import React, { useState, useEffect } from "react";
+import { Users, Plus, Search, Calendar, FileText, Bot, TrendingUp, AlertTriangle, CheckCircle2, Send, Sparkles, Vote, ChevronDown, Settings, Clock, MapPin, List, Copy } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useCouncils } from "@/hooks/useCouncils";
+import {useCouncilMembers } from "@/hooks/useCouncilMembers";
+import { useMeetings } from "@/hooks/useMeetings";
+import { useDocuments } from "@/hooks/useDocuments";
+import CouncilReminderConfig from "@/components/councils/CouncilReminderConfig";
 import {
   Tabs,
   TabsContent,
@@ -29,379 +34,596 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { ToastAction } from "@/components/ui/toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FileUpload from "@/components/FileUpload";
+import CouncilDocumentUpload from "@/components/ui/CouncilDocumentUpload";
+import { DocumentType } from "@/types/document";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { useEmpresas } from "@/hooks/useEmpresas";
-import { useFamilyMembers } from "@/hooks/useFamilyMembers";
-import { useGovernance } from "@/hooks/useGovernance";
-import type { OrgaoGovernanca } from "@/types/governance";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const TIPOS_CONSELHO = ["administrativo", "fiscal", "consultivo", "outros"];
-const TIPOS_COMITE = ["auditoria", "estrategia", "riscos", "outros"];
-const TIPOS_COMISSAO = ["etica", "inovacao", "sustentabilidade", "outros"];
-const NIVEIS = ["Estratégico", "Tático", "Operacional"];
 
-function gerarSenhaAleatoria(len = 10): string {
-  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  let s = "";
-  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
-}
+// Sample projects data
+const projects = [
+  {
+    id: 1,
+    title: "Expansão para Mercado Internacional",
+    description: "Proposta de abertura de filial na Europa com investimento de R$ 50 milhões",
+    submittedBy: "Carlos Silva",
+    submissionDate: "15/05/2025",
+    council: "Conselho de Administração",
+    status: "Aguardando Análise",
+    aiAnalysis: null,
+    priority: "Alta",
+    category: "Estratégia",
+  },
+  {
+    id: 2,
+    title: "Aquisição da TechStart Ltd",
+    description: "Proposta de aquisição de startup de tecnologia por R$ 25 milhões",
+    submittedBy: "Ana Silva",
+    submissionDate: "10/05/2025",
+    council: "Conselho de Administração",
+    status: "Analisado por IA",
+    aiAnalysis: {
+      approvalProbability: 75,
+      riskLevel: "Médio",
+      recommendations: [
+        "Incluir análise detalhada de due diligence",
+        "Apresentar plano de integração das equipes",
+        "Definir métricas de ROI para 24 meses"
+      ],
+      historicalComparison: "Projetos similares tiveram 80% de aprovação nos últimos 2 anos"
+    },
+    priority: "Alta",
+    category: "Investimento",
+  },
+  {
+    id: 3,
+    title: "Programa de Sustentabilidade ESG",
+    description: "Implementação de programa ESG com metas para 2030",
+    submittedBy: "Maria Silva",
+    submissionDate: "08/05/2025",
+    council: "Conselho Consultivo",
+    status: "Aprovado",
+    aiAnalysis: {
+      approvalProbability: 95,
+      riskLevel: "Baixo",
+      recommendations: [
+        "Excelente alinhamento com tendências do mercado",
+        "Proposta bem estruturada e fundamentada"
+      ],
+      historicalComparison: "Projetos ESG têm 90% de aprovação histórica"
+    },
+    priority: "Média",
+    category: "ESG",
+  },
+];
+
+// Sample voted projects history
+const votedProjects = [
+  {
+    id: 101,
+    title: "Modernização do Sistema ERP",
+    description: "Atualização completa do sistema de gestão empresarial",
+    submittedBy: "Roberto Silva",
+    submissionDate: "10/02/2025",
+    votingDate: "25/02/2025",
+    council: "Conselho de Administração",
+    status: "Aprovado",
+    votes: { favor: 4, contra: 1, abstencoes: 0 },
+    priority: "Alta",
+    category: "Tecnologia",
+    result: "Aprovado por maioria",
+  },
+  {
+    id: 102,
+    title: "Expansão para Mercado Sul-Americano",
+    description: "Abertura de escritório no Chile e Colômbia",
+    submittedBy: "Laura Santos",
+    submissionDate: "15/01/2025",
+    votingDate: "30/01/2025",
+    council: "Conselho de Administração",
+    status: "Rejeitado",
+    votes: { favor: 2, contra: 3, abstencoes: 0 },
+    priority: "Média",
+    category: "Estratégia",
+    result: "Rejeitado por maioria",
+  },
+  {
+    id: 103,
+    title: "Política de Home Office",
+    description: "Implementação de política de trabalho remoto híbrido",
+    submittedBy: "Carlos Silva",
+    submissionDate: "20/01/2025",
+    votingDate: "05/02/2025",
+    council: "Conselho Consultivo",
+    status: "Aprovado",
+    votes: { favor: 3, contra: 0, abstencoes: 0 },
+    priority: "Baixa",
+    category: "RH",
+    result: "Aprovado por unanimidade",
+  },
+];
 
 const Councils = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [projectList, setProjectList] = useState(projects);
+  const [votedProjectsList, setVotedProjectsList] = useState(votedProjects);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+  const [newCouncil, setNewCouncil] = useState({
+    name: "",
+    type: "",
+    description: ""
+  });
+  const [newMember, setNewMember] = useState({
+    council_id: "",
+    name: "",
+    role: "",
+    start_date: "",
+    end_date: ""
+  });
+  const [membersCount, setMembersCount] = useState<Record<string, number>>({});
+  const [nextMeetings, setNextMeetings] = useState<Record<string, any>>({});
+  const [meetingsCount, setMeetingsCount] = useState<Record<string, number>>({});
+  const [selectedCouncilId, setSelectedCouncilId] = useState<string>("");
+  
+  // Estados para o formulário de reunião
+  const [meetingForm, setMeetingForm] = useState({
+    council_id: "",
+    title: "",
+    date: "",
+    time: "",
+    type: "",
+    location: "",
+    agenda: ""
+  });
 
-  const [councilOpen, setCouncilOpen] = useState(false);
-  const [councilNome, setCouncilNome] = useState("");
-  const [councilTipo, setCouncilTipo] = useState("");
-  const [councilDesc, setCouncilDesc] = useState("");
-  const [councilQuorum, setCouncilQuorum] = useState(3);
-  const [councilNivel, setCouncilNivel] = useState("");
+  // Usar o hook de conselhos
+  const { councils, loading, createCouncil } = useCouncils();
+  
+  // Usar o hook de conselheiros
+  const { 
+    members: councilMembers, 
+    loading: membersLoading, 
+    addCouncilMember,
+    fetchCompanyCouncils,
+    getMembersCountByCouncil,
+    fetchAllCompanyMembers
+  } = useCouncilMembers();
 
-  const [comiteOpen, setComiteOpen] = useState(false);
-  const [comiteNome, setComiteNome] = useState("");
-  const [comiteTipo, setComiteTipo] = useState("");
-  const [comiteDesc, setComiteDesc] = useState("");
-  const [comiteQuorum, setComiteQuorum] = useState(3);
-  const [comiteNivel, setComiteNivel] = useState("");
+  // Usar o hook de reuniões
+  const { 
+    meetings: realMeetings, 
+    loading: meetingsLoading, 
+    createMeeting, 
+    loading: creatingMeeting,
+    fetchMeetings,
+    getNextMeetingByCouncil,
+    getMeetingsCountByCouncil,
+    updateMeeting
+  } = useMeetings();
 
-  const [comissaoOpen, setComissaoOpen] = useState(false);
-  const [comissaoNome, setComissaoNome] = useState("");
-  const [comissaoTipo, setComissaoTipo] = useState("");
-  const [comissaoDesc, setComissaoDesc] = useState("");
-  const [comissaoQuorum, setComissaoQuorum] = useState(3);
-  const [comissaoNivel, setComissaoNivel] = useState("");
+  // Usar o hook de documentos
+  const { 
+    documents, 
+    loading: documentsLoading, 
+    fetchDocuments,
+    deleteDocument,
+    getDownloadUrl
+  } = useDocuments();
 
-  const [membroOpen, setMembroOpen] = useState(false);
-  const [membroNomeComboboxOpen, setMembroNomeComboboxOpen] = useState(false);
-  const [membroNome, setMembroNome] = useState("");
-  const [membroCargo, setMembroCargo] = useState("");
-  const [membroEmail, setMembroEmail] = useState("");
-  const [membroSenhaProvisoria, setMembroSenhaProvisoria] = useState("");
-  const [membroSenhaVisivel, setMembroSenhaVisivel] = useState(false);
-
-  const [editarMembroOpen, setEditarMembroOpen] = useState(false);
-  const [editarMembroId, setEditarMembroId] = useState<string | null>(null);
-  const [editarMembroNome, setEditarMembroNome] = useState("");
-  const [editarMembroCargo, setEditarMembroCargo] = useState("");
-
-  const [alocarOpen, setAlocarOpen] = useState(false);
-  const [alocarMembro, setAlocarMembro] = useState<string | null>(null);
-  const [alocarTipo, setAlocarTipo] = useState<"conselho" | "comite" | "comissao">("conselho");
-  const [alocarOrgaoId, setAlocarOrgaoId] = useState("");
-  const [alocarCargo, setAlocarCargo] = useState("");
-
-  const [verMembroOpen, setVerMembroOpen] = useState(false);
-  const [verMembro, setVerMembro] = useState<{ id: string; nome: string; email: string | null; user_id: string | null } | null>(null);
-  const [verSenhaGerada, setVerSenhaGerada] = useState<string | null>(null);
-
-  const [membroToExcluir, setMembroToExcluir] = useState<{ id: string; nome: string } | null>(null);
-
-  const { empresas, firstEmpresaId } = useEmpresas();
-  const empresaId = firstEmpresaId;
-  const { members: familyMembers } = useFamilyMembers(empresaId);
-  const filteredFamilyMembersForMembro = React.useMemo(() => {
-    const term = membroNome.toLowerCase().trim();
-    if (!term) return familyMembers;
-    return familyMembers.filter((m) => m.name.toLowerCase().includes(term));
-  }, [familyMembers, membroNome]);
-  const {
-    conselhos,
-    comites,
-    comissoes,
-    membros,
-    isLoading,
-    totalMembrosAlocados,
-    insertConselho,
-    insertComite,
-    insertComissao,
-    insertMembro,
-    insertMembroComAcesso,
-    insertAlocacao,
-    updateMembro,
-    deleteConselho,
-    deleteComite,
-    deleteComissao,
-    insertConselhoLoading,
-    insertComiteLoading,
-    insertComissaoLoading,
-    insertMembroLoading,
-    insertMembroComAcessoLoading,
-    insertAlocacaoLoading,
-    redefinirSenhaMembro,
-    redefinirSenhaMembroLoading,
-    excluirMembroDefinitivo,
-    excluirMembroDefinitivoLoading,
-    updateMembroLoading,
-  } = useGovernance(empresaId);
-
-  const handleCriarConselho = async () => {
-    if (!councilNome.trim() || !empresaId) {
-      toast({ title: "Preencha o nome", variant: "destructive" });
-      return;
+  // Função para carregar contagem de membros quando necessário
+  const loadMembersCount = async () => {
+    if (councils.length > 0) {
+      const counts: Record<string, number> = {};
+      for (const council of councils) {
+        const count = await getMembersCountByCouncil(council.id);
+        counts[council.id] = count;
+      }
+      setMembersCount(counts);
     }
-    const { error } = await insertConselho({
-      empresa_id: empresaId,
-      nome: councilNome.trim(),
-      tipo: councilTipo || null,
-      descricao: councilDesc || null,
-      quorum: councilQuorum,
-      nivel: councilNivel || null,
-    });
-    if (error) {
-      toast({ title: "Erro ao criar conselho", description: error, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Conselho criado" });
-    setCouncilOpen(false);
-    setCouncilNome("");
-    setCouncilTipo("");
-    setCouncilDesc("");
-    setCouncilQuorum(3);
-    setCouncilNivel("");
   };
 
-  const handleCriarComite = async () => {
-    if (!comiteNome.trim() || !empresaId) {
-      toast({ title: "Preencha o nome", variant: "destructive" });
-      return;
+  // Função para carregar próximas reuniões de todos os conselhos
+  const loadNextMeetings = async () => {
+    if (councils.length > 0) {
+      const meetings: Record<string, any> = {};
+      for (const council of councils) {
+        const nextMeeting = await getNextMeetingByCouncil(council.id);
+        meetings[council.id] = nextMeeting;
+      }
+      setNextMeetings(meetings);
     }
-    const { error } = await insertComite({
-      empresa_id: empresaId,
-      nome: comiteNome.trim(),
-      tipo: comiteTipo || null,
-      descricao: comiteDesc || null,
-      quorum: comiteQuorum,
-      nivel: comiteNivel || null,
-    });
-    if (error) {
-      toast({ title: "Erro ao criar comitê", description: error, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Comitê criado" });
-    setComiteOpen(false);
-    setComiteNome("");
-    setComiteTipo("");
-    setComiteDesc("");
-    setComiteQuorum(3);
-    setComiteNivel("");
   };
 
-  const handleCriarComissao = async () => {
-    if (!comissaoNome.trim() || !empresaId) {
-      toast({ title: "Preencha o nome", variant: "destructive" });
-      return;
+  // Função para carregar contagem de reuniões de todos os conselhos
+  const loadMeetingsCount = async () => {
+    if (councils.length > 0) {
+      const counts: Record<string, number> = {};
+      for (const council of councils) {
+        const count = await getMeetingsCountByCouncil(council.id);
+        counts[council.id] = count;
+      }
+      setMeetingsCount(counts);
     }
-    const { error } = await insertComissao({
-      empresa_id: empresaId,
-      nome: comissaoNome.trim(),
-      tipo: comissaoTipo || null,
-      descricao: comissaoDesc || null,
-      quorum: comissaoQuorum,
-      nivel: comissaoNivel || null,
-    });
-    if (error) {
-      toast({ title: "Erro ao criar comissão", description: error, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Comissão criada" });
-    setComissaoOpen(false);
-    setComissaoNome("");
-    setComissaoTipo("");
-    setComissaoDesc("");
-    setComissaoQuorum(3);
-    setComissaoNivel("");
   };
 
-  const handleCriarMembro = async () => {
-    if (!empresaId) {
-      toast({
-        title: "Nenhuma empresa cadastrada",
-        description: "Cadastre uma empresa em Admin > Empresas antes de criar membros.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!membroNome.trim()) {
-      toast({ title: "Preencha o nome", variant: "destructive" });
-      return;
-    }
-    const email = membroEmail.trim().toLowerCase();
-    const senha = membroSenhaProvisoria;
-    if (!email) {
-      toast({ title: "E-mail é obrigatório para acesso ao portal", variant: "destructive" });
-      return;
-    }
-    if (!senha || senha.length < 6) {
-      toast({ title: "A senha provisória deve ter pelo menos 6 caracteres", variant: "destructive" });
-      return;
-    }
-    const { error } = await insertMembroComAcesso({
-      empresa_id: empresaId,
-      nome: membroNome.trim(),
-      cargo_principal: membroCargo.trim() || null,
-      email,
-      senha_provisoria: senha,
-    });
-    if (error) {
-      toast({ title: "Erro ao criar membro", description: error, variant: "destructive" });
-      return;
-    }
-    const credenciais = `E-mail: ${email}\nSenha provisória: ${senha}`;
-    toast({
-      title: "Membro criado com acesso",
-      description: `Envie as credenciais ao membro. Ele deve alterar a senha no primeiro acesso.`,
-      action: (
-        <ToastAction
-          altText="Copiar credenciais"
-          onClick={() => navigator.clipboard?.writeText(credenciais)}
-        >
-          Copiar credenciais
-        </ToastAction>
-      ),
-    });
-    setMembroOpen(false);
-    setMembroNome("");
-    setMembroCargo("");
-    setMembroEmail("");
-    setMembroSenhaProvisoria("");
-    setMembroSenhaVisivel(false);
-  };
+  const filteredCouncils = councils.filter(
+    (council) =>
+      council.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (council.type?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (council.description?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+  );
 
-  const handleAlocar = async () => {
-    if (!alocarMembro || !alocarOrgaoId) {
-      toast({ title: "Selecione o membro e o órgão", variant: "destructive" });
-      return;
-    }
-    const payload =
-      alocarTipo === "conselho"
-        ? { membro_id: alocarMembro, conselho_id: alocarOrgaoId }
-        : alocarTipo === "comite"
-          ? { membro_id: alocarMembro, comite_id: alocarOrgaoId }
-          : { membro_id: alocarMembro, comissao_id: alocarOrgaoId };
-    const { error } = await insertAlocacao({ ...payload, cargo: alocarCargo.trim() || null });
-    if (error) {
-      toast({ title: "Erro ao alocar", description: error, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Membro alocado" });
-    setAlocarOpen(false);
-    setAlocarMembro(null);
-    setAlocarOrgaoId("");
-    setAlocarCargo("");
-  };
+  console.log('🔍 Conselhos filtrados:', filteredCouncils)
 
-  const openAlocar = (membroId: string) => {
-    setAlocarMembro(membroId);
-    setAlocarOrgaoId("");
-    setAlocarOpen(true);
-  };
+  // Converter dados reais para formato de exibição
+  const allMembers = councilMembers.map(member => ({
+    id: member.id,
+    name: member.name,
+    council: councils.find(c => c.id === member.council_id)?.name || 'Conselho não encontrado',
+    role: member.role,
+    startDate: member.start_date,
+    endDate: member.end_date
+  }));
 
-  const openEditarMembro = (m: { id: string; nome: string; cargoPrincipal: string | null }) => {
-    setEditarMembroId(m.id);
-    setEditarMembroNome(m.nome);
-    setEditarMembroCargo(m.cargoPrincipal ?? "");
-    setEditarMembroOpen(true);
-  };
-
-  const handleEditarMembro = async () => {
-    if (!editarMembroId || !editarMembroNome.trim()) {
-      toast({ title: "Preencha o nome", variant: "destructive" });
-      return;
-    }
-    const { error } = await updateMembro(editarMembroId, {
-      nome: editarMembroNome.trim(),
-      cargo_principal: editarMembroCargo.trim() || null,
-    });
-    if (error) {
-      toast({ title: "Erro ao atualizar", description: error, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Membro atualizado" });
-    setEditarMembroOpen(false);
-    setEditarMembroId(null);
-  };
-
-  const orgaosParaAlocacao =
-    alocarTipo === "conselho"
-      ? conselhos
-      : alocarTipo === "comite"
-        ? comites
-        : comissoes;
-
-  const hasEmpresas = empresas.length > 0;
-
-  function GovernanceCard({
-    item,
-    icon,
-    onDelete,
-    tipoLabel,
-  }: {
-    item: OrgaoGovernanca;
-    icon: React.ReactNode;
-    onDelete: () => void;
-    tipoLabel: string;
-  }) {
+  const filteredMembers = allMembers.filter((member) => {
     return (
-      <Card className="rounded-lg border bg-card">
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                {icon}
-                <h3 className="font-semibold text-base">{item.nome}</h3>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">{item.descricao || "—"}</p>
-              <div className="flex flex-wrap gap-2 mb-3">
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">
-                  Tipo: {item.tipo || "—"}
-                </span>
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">
-                  Quórum: {item.quorum}
-                </span>
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs">
-                  Nível: {item.nivel || "—"}
-                </span>
-                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  Membros: {item.membros}
-                </span>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="shrink-0 text-muted-foreground hover:text-destructive"
-              onClick={onDelete}
-              aria-label="Excluir"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.council.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.role.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }
+  });
+
+  const filteredMeetings = realMeetings.filter((meeting) => {
+    // Buscar o nome do conselho
+    const council = councils.find(c => c.id === meeting.council_id);
+    const councilName = council?.name || '';
+    
+    return (
+      councilName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      meeting.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      meeting.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const filteredProjects = projectList.filter(
+    (project) =>
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.submittedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredVotedProjects = votedProjectsList.filter(
+    (project) =>
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.submittedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Carregar dados quando os conselhos forem carregados
+  useEffect(() => {
+    if (councils.length > 0) {
+      // Carregar dados em paralelo para melhor performance
+      Promise.all([
+        loadMembersCount(),
+        loadNextMeetings(),
+        loadMeetingsCount()
+      ]);
+    }
+  }, [councils]);
+
+  // Carregar documentos quando um conselho for selecionado
+  useEffect(() => {
+    if (selectedCouncilId) {
+      fetchDocuments({ council_id: selectedCouncilId });
+    }
+  }, [selectedCouncilId, fetchDocuments]);
+  const handleAddCouncil = async () => {
+    try {
+      if (!newCouncil.name.trim()) {
+        toast({
+          title: "Erro",
+          description: "Nome do conselho é obrigatório",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await createCouncil({
+        name: newCouncil.name,
+        type: newCouncil.type || null,
+        description: newCouncil.description || null
+        // company_id removido - não é mais obrigatório
+      });
+
+      // Limpar formulário
+      setNewCouncil({
+        name: "",
+        type: "",
+        description: ""
+      });
+
+      // Fechar modal
+      setIsCreateModalOpen(false);
+
+      toast({
+        title: "Sucesso",
+        description: "Conselho criado com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao criar conselho:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar conselho. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddMember = async () => {
+    try {
+      if (!newMember.council_id || !newMember.name || !newMember.role || !newMember.start_date) {
+        toast({
+          title: "Erro",
+          description: "Por favor, preencha todos os campos obrigatórios",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await addCouncilMember({
+        council_id: newMember.council_id,
+        name: newMember.name,
+        role: newMember.role,
+        start_date: newMember.start_date,
+        end_date: newMember.end_date || undefined
+      });
+
+      // Limpar formulário
+      setNewMember({
+        council_id: "",
+        name: "",
+        role: "",
+        start_date: "",
+        end_date: ""
+      });
+
+      // Fechar modal
+      setIsAddMemberModalOpen(false);
+
+      // Recarregar todos os conselheiros e contagem de membros
+      await fetchAllCompanyMembers();
+      const newCount = await getMembersCountByCouncil(newMember.council_id);
+      setMembersCount(prev => ({
+        ...prev,
+        [newMember.council_id]: newCount
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: "Conselheiro adicionado com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar conselheiro:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar conselheiro. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddMeeting = async () => {
+    try {
+      // Validar se todos os campos obrigatórios estão preenchidos
+      if (!meetingForm.council_id || !meetingForm.title || !meetingForm.date || !meetingForm.time || !meetingForm.type) {
+        toast({
+          title: "Erro",
+          description: "Preencha todos os campos obrigatórios.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await createMeeting({
+        council_id: meetingForm.council_id,
+        title: meetingForm.title,
+        date: meetingForm.date,
+        time: meetingForm.time,
+        type: meetingForm.type as 'Ordinária' | 'Extraordinária',
+        location: meetingForm.location || undefined,
+        agenda: meetingForm.agenda || undefined
+      });
+
+      toast({
+        title: "Reunião agendada",
+        description: "A nova reunião foi agendada com sucesso.",
+      });
+
+      // Recarregar a lista de reuniões e próximas reuniões
+      await fetchMeetings();
+      await loadNextMeetings();
+      await loadMeetingsCount();
+
+      // Limpar o formulário
+      setMeetingForm({
+        council_id: "",
+        title: "",
+        date: "",
+        time: "",
+        type: "",
+        location: "",
+        agenda: ""
+      });
+    } catch (error) {
+      console.error('Erro ao criar reunião:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao agendar reunião. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateMeetingStatus = async (meetingId: string, newStatus: 'Agendada' | 'Realizada' | 'Cancelada') => {
+    try {
+      const statusMap = { 'Agendada': 'AGENDADA', 'Realizada': 'CONCLUIDA', 'Cancelada': 'CANCELADA' } as const;
+      await updateMeeting(meetingId, { status: statusMap[newStatus] });
+      
+      toast({
+        title: "Status atualizado",
+        description: `Reunião marcada como ${newStatus.toLowerCase()}.`,
+      });
+
+      // Recarregar a lista de reuniões
+      await fetchMeetings();
+      await loadNextMeetings();
+      await loadMeetingsCount();
+    } catch (error) {
+      console.error('Erro ao atualizar status da reunião:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar status da reunião. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewDetails = (item: any, type: string) => {
+    if (type === "projeto") {
+      setSelectedProject(item);
+      setIsProjectModalOpen(true);
+    } else if (type === "reunião") {
+      setSelectedMeeting(item);
+      setIsMeetingModalOpen(true);
+    } else {
+      toast({
+        title: `Detalhes de ${type}`,
+        description: `Visualizando informações de ${
+          type === "conselho" ? item.name : item.council || item.name || item.title
+        }`,
+      });
+    }
+  };
+
+  const handleSubmitProject = () => {
+    toast({
+      title: "Projeto submetido",
+      description: "O projeto foi submetido para análise do conselho.",
+    });
+  };
+
+  const handleAnalyzeWithAI = async (projectId: number) => {
+    setIsAnalyzing(true);
+    
+    // Simulate AI analysis
+    setTimeout(() => {
+      const updatedProjects = projectList.map(project => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            status: "Analisado por IA",
+            aiAnalysis: {
+              approvalProbability: Math.floor(Math.random() * 40) + 60, // 60-100%
+              riskLevel: ["Baixo", "Médio", "Alto"][Math.floor(Math.random() * 3)],
+              recommendations: [
+                "Incluir mais detalhes técnicos na proposta",
+                "Adicionar análise de impacto financeiro detalhada",
+                "Considerar cenários alternativos de implementação"
+              ],
+              historicalComparison: "Projetos similares tiveram 78% de aprovação nos últimos anos"
+            }
+          };
+        }
+        return project;
+      });
+      
+      setProjectList(updatedProjects);
+      setIsAnalyzing(false);
+      
+      toast({
+        title: "Análise concluída",
+        description: "A IA concluiu a análise do projeto.",
+      });
+    }, 3000);
+  };
+
+  const handleEnrichProject = async (projectId: number) => {
+    setIsEnriching(true);
+    
+    // Simulate AI enrichment
+    setTimeout(() => {
+      const updatedProjects = projectList.map(project => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            status: "Enriquecido pela IA",
+            description: project.description + " - Projeto enriquecido com dados de mercado, análise de viabilidade técnica e projeções financeiras detalhadas.",
+            aiAnalysis: {
+              ...project.aiAnalysis,
+              approvalProbability: Math.min(project.aiAnalysis.approvalProbability + 10, 95),
+              recommendations: [
+                "Projeto foi aprimorado com informações adicionais",
+                "Dados de mercado atualizados incluídos",
+                "Análise de riscos mais detalhada incorporada"
+              ]
+            }
+          };
+        }
+        return project;
+      });
+      
+      setProjectList(updatedProjects);
+      setIsEnriching(false);
+      
+      toast({
+        title: "Projeto enriquecido",
+        description: "A IA enriqueceu o projeto com informações adicionais.",
+      });
+    }, 2500);
+  };
+
+  const handleSubmitForVoting = (projectId: number) => {
+    const updatedProjects = projectList.map(project => {
+      if (project.id === projectId) {
+        return {
+          ...project,
+          status: "Submetido para Votação"
+        };
+      }
+      return project;
+    });
+    
+    setProjectList(updatedProjects);
+    
+    toast({
+      title: "Projeto submetido",
+      description: "O projeto foi submetido para votação do conselho.",
+    });
+  };
+
+  const handleSendToDocuments = (projectId: number) => {
+    const project = votedProjectsList.find(p => p.id === projectId);
+    if (project) {
+      toast({
+        title: "Projeto enviado",
+        description: `O projeto "${project.title}" foi enviado para a aba de documentação.`,
+      });
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -411,701 +633,847 @@ const Councils = () => {
         <div className="flex-1 overflow-y-auto p-6">
           <Card className="mb-6">
             <CardContent className="pt-6 px-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-legacy-500">
-                  Configuração de Governança
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                <h2 className="text-xl font-semibold text-legacy-500 mb-4 sm:mb-0">
+                  Conselhos e Comitês
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Gerencie conselhos, comitês e comissões da sua empresa
-                </p>
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="search"
+                      placeholder="Buscar..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {!hasEmpresas ? (
-                <div className="py-12 text-center text-muted-foreground">
-                  <p className="font-medium">Nenhuma empresa cadastrada</p>
-                  <p className="text-sm mt-1">Cadastre uma empresa para configurar a governança.</p>
-                </div>
-              ) : isLoading ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Loader2 className="h-8 w-8 animate-spin mb-3" />
-                  <p>Carregando...</p>
-                </div>
-              ) : (
-                <Tabs defaultValue="councils">
-                  <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                    <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-                      <TabsTrigger value="councils" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
-                        <Building2 className="mr-2 h-4 w-4" /> Conselhos
-                      </TabsTrigger>
-                      <TabsTrigger value="comites" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
-                        <Users className="mr-2 h-4 w-4" /> Comitês
-                      </TabsTrigger>
-                      <TabsTrigger value="comissoes" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
-                        <Users className="mr-2 h-4 w-4" /> Comissões
-                      </TabsTrigger>
-                      <TabsTrigger value="members" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
-                        <Users className="mr-2 h-4 w-4" /> Membros
-                      </TabsTrigger>
-                    </TabsList>
-                    <div className="text-sm text-muted-foreground">
-                      <strong className="text-foreground">{totalMembrosAlocados}</strong> membros alocados
-                    </div>
+              <Tabs defaultValue="councils">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="councils">Conselhos</TabsTrigger>
+                  <TabsTrigger value="members">Conselheiros</TabsTrigger>
+                  <TabsTrigger value="documents">Documentos</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="councils">
+                  <div className="flex justify-end mb-4">
+                    <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button>
+                          <Plus className="mr-2 h-4 w-4" /> Novo Conselho
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                          <DialogTitle>Criar Novo Conselho</DialogTitle>
+                          <DialogDescription>
+                            Preencha as informações do novo conselho ou comitê
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="councilName" className="text-right">
+                              Nome
+                            </label>
+                            <Input 
+                              id="councilName" 
+                              className="col-span-3"
+                              value={newCouncil.name}
+                              onChange={(e) => setNewCouncil({...newCouncil, name: e.target.value})}
+                              placeholder="Nome do conselho"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="councilType" className="text-right">
+                              Tipo
+                            </label>
+                            <Input 
+                              id="councilType" 
+                              className="col-span-3"
+                              value={newCouncil.type}
+                              onChange={(e) => setNewCouncil({...newCouncil, type: e.target.value})}
+                              placeholder="Tipo do conselho"
+                            />
+                          </div>
+                                                     <div className="grid grid-cols-4 items-start gap-4">
+                             <label htmlFor="description" className="text-right pt-2">
+                               Descrição
+                             </label>
+                             <Textarea 
+                               id="description" 
+                               className="col-span-3 h-24"
+                               value={newCouncil.description}
+                               onChange={(e) => setNewCouncil({...newCouncil, description: e.target.value})}
+                               placeholder="Descrição do conselho"
+                             />
+                           </div>
+                        </div>
+                        <DialogFooter>
+                          <Button onClick={handleAddCouncil} disabled={loading}>
+                            {loading ? "Criando..." : "Criar Conselho"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-
-                  <TabsContent value="councils">
-                    <div className="flex justify-end mb-4">
-                      <Dialog open={councilOpen} onOpenChange={setCouncilOpen}>
-                        <DialogTrigger asChild>
-                          <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Criar Conselho
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                          <DialogHeader>
-                            <DialogTitle>Criar Novo Conselho</DialogTitle>
-                            <DialogDescription>Preencha as informações do novo conselho</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="councilName">Nome</Label>
-                              <Input id="councilName" value={councilNome} onChange={(e) => setCouncilNome(e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Tipo</Label>
-                              <Select value={councilTipo} onValueChange={setCouncilTipo}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TIPOS_CONSELHO.map((t) => (
-                                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="councilDesc">Descrição</Label>
-                              <Input id="councilDesc" value={councilDesc} onChange={(e) => setCouncilDesc(e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>Quórum</Label>
-                                <Input type="number" min={1} value={councilQuorum} onChange={(e) => setCouncilQuorum(parseInt(e.target.value) || 3)} />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Nível</Label>
-                                <Select value={councilNivel} onValueChange={setCouncilNivel}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {NIVEIS.map((n) => (
-                                      <SelectItem key={n} value={n}>{n}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button onClick={handleCriarConselho} disabled={insertConselhoLoading}>
-                              {insertConselhoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                              Criar Conselho
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                  {loading ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-legacy-500 mx-auto"></div>
+                      <p className="mt-2 text-gray-600">Carregando conselhos...</p>
                     </div>
-                    <div className="space-y-4">
-                      {conselhos.map((item) => (
-                        <GovernanceCard
-                          key={item.id}
-                          item={item}
-                          icon={<Building2 className="h-5 w-5" />}
-                          tipoLabel="conselho"
-                          onDelete={async () => {
-                            const { error } = await deleteConselho(item.id);
-                            if (error) toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
-                            else toast({ title: "Conselho removido" });
-                          }}
-                        />
-                      ))}
-                      {conselhos.length === 0 && (
-                        <div className="py-12 text-center text-muted-foreground">
-                          <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                          <p>Nenhum conselho cadastrado. Clique em Criar Conselho para adicionar.</p>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="comites">
-                    <div className="flex justify-end mb-4">
-                      <Dialog open={comiteOpen} onOpenChange={setComiteOpen}>
-                        <DialogTrigger asChild>
-                          <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Criar Comitê
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                          <DialogHeader>
-                            <DialogTitle>Criar Novo Comitê</DialogTitle>
-                            <DialogDescription>Preencha as informações do novo comitê</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                              <Label>Nome</Label>
-                              <Input value={comiteNome} onChange={(e) => setComiteNome(e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Tipo</Label>
-                              <Select value={comiteTipo} onValueChange={setComiteTipo}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TIPOS_COMITE.map((t) => (
-                                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Descrição</Label>
-                              <Input value={comiteDesc} onChange={(e) => setComiteDesc(e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>Quórum</Label>
-                                <Input type="number" min={1} value={comiteQuorum} onChange={(e) => setComiteQuorum(parseInt(e.target.value) || 3)} />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Nível</Label>
-                                <Select value={comiteNivel} onValueChange={setComiteNivel}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {NIVEIS.map((n) => (
-                                      <SelectItem key={n} value={n}>{n}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button onClick={handleCriarComite} disabled={insertComiteLoading}>
-                              {insertComiteLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                              Criar Comitê
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                    <div className="space-y-4">
-                      {comites.map((item) => (
-                        <GovernanceCard
-                          key={item.id}
-                          item={item}
-                          icon={<Users className="h-5 w-5" />}
-                          tipoLabel="comitê"
-                          onDelete={async () => {
-                            const { error } = await deleteComite(item.id);
-                            if (error) toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
-                            else toast({ title: "Comitê removido" });
-                          }}
-                        />
-                      ))}
-                      {comites.length === 0 && (
-                        <div className="py-12 text-center text-muted-foreground">
-                          <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                          <p>Nenhum comitê cadastrado. Clique em Criar Comitê para adicionar.</p>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="comissoes">
-                    <div className="flex justify-end mb-4">
-                      <Dialog open={comissaoOpen} onOpenChange={setComissaoOpen}>
-                        <DialogTrigger asChild>
-                          <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Criar Comissão
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                          <DialogHeader>
-                            <DialogTitle>Criar Nova Comissão</DialogTitle>
-                            <DialogDescription>Preencha as informações da nova comissão</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                              <Label>Nome</Label>
-                              <Input value={comissaoNome} onChange={(e) => setComissaoNome(e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Tipo</Label>
-                              <Select value={comissaoTipo} onValueChange={setComissaoTipo}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TIPOS_COMISSAO.map((t) => (
-                                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Descrição</Label>
-                              <Input value={comissaoDesc} onChange={(e) => setComissaoDesc(e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>Quórum</Label>
-                                <Input type="number" min={1} value={comissaoQuorum} onChange={(e) => setComissaoQuorum(parseInt(e.target.value) || 3)} />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Nível</Label>
-                                <Select value={comissaoNivel} onValueChange={setComissaoNivel}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {NIVEIS.map((n) => (
-                                      <SelectItem key={n} value={n}>{n}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button onClick={handleCriarComissao} disabled={insertComissaoLoading}>
-                              {insertComissaoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                              Criar Comissão
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                    <div className="space-y-4">
-                      {comissoes.map((item) => (
-                        <GovernanceCard
-                          key={item.id}
-                          item={item}
-                          icon={<Users className="h-5 w-5" />}
-                          tipoLabel="comissão"
-                          onDelete={async () => {
-                            const { error } = await deleteComissao(item.id);
-                            if (error) toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
-                            else toast({ title: "Comissão removida" });
-                          }}
-                        />
-                      ))}
-                      {comissoes.length === 0 && (
-                        <div className="py-12 text-center text-muted-foreground">
-                          <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                          <p>Nenhuma comissão cadastrada. Clique em Criar Comissão para adicionar.</p>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="members">
-                    <div className="flex justify-end mb-4">
-                      <Dialog
-                        open={membroOpen}
-                        onOpenChange={(open) => {
-                          setMembroOpen(open);
-                          if (!open) setMembroNomeComboboxOpen(false);
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button className="shrink-0">
-                            <Plus className="mr-2 h-4 w-4" /> Criar Membro
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px]">
-                          <DialogHeader>
-                            <DialogTitle>Adicionar Membro</DialogTitle>
-                            <DialogDescription>
-                              Preencha as informações e credenciais de acesso. O membro usará o e-mail e a senha provisória para entrar no Portal de Membros.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                              <Label>Nome</Label>
-                              <Popover
-                                open={membroNomeComboboxOpen}
-                                onOpenChange={setMembroNomeComboboxOpen}
-                              >
-                                <PopoverTrigger asChild>
-                                  <div
-                                    role="combobox"
-                                    aria-expanded={membroNomeComboboxOpen}
-                                    className="flex"
-                                  >
-                                    <Input
-                                      placeholder="Selecione da estrutura societária ou digite para cadastrar novo"
-                                      value={membroNome}
-                                      onChange={(e) => setMembroNome(e.target.value)}
-                                      onFocus={() => setMembroNomeComboboxOpen(true)}
-                                    />
-                                  </div>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-[var(--radix-popover-trigger-width)] p-0"
-                                  align="start"
-                                  onOpenAutoFocus={(e) => e.preventDefault()}
-                                >
-                                  <Command shouldFilter={false}>
-                                    <CommandList>
-                                      {filteredFamilyMembersForMembro.length > 0 && (
-                                        <CommandGroup heading="Estrutura Societária">
-                                          {filteredFamilyMembersForMembro.map((member) => (
-                                            <CommandItem
-                                              key={member.id}
-                                              value={member.name}
-                                              onSelect={() => {
-                                                setMembroNome(member.name);
-                                                if (member.role) setMembroCargo(member.role);
-                                                setMembroNomeComboboxOpen(false);
-                                              }}
-                                            >
-                                              {member.name}
-                                              {member.role && (
-                                                <span className="ml-2 text-muted-foreground text-xs">
-                                                  ({member.role})
-                                                </span>
-                                              )}
-                                            </CommandItem>
-                                          ))}
-                                        </CommandGroup>
-                                      )}
-                                      {membroNome.trim() && (
-                                        <CommandGroup>
-                                          <CommandItem
-                                            value={`__new__${membroNome}`}
-                                            onSelect={() => setMembroNomeComboboxOpen(false)}
-                                            className={
-                                              filteredFamilyMembersForMembro.length > 0
-                                                ? "border-t"
-                                                : ""
-                                            }
-                                          >
-                                            Usar &quot;{membroNome}&quot; como novo membro
-                                          </CommandItem>
-                                        </CommandGroup>
-                                      )}
-                                      {filteredFamilyMembersForMembro.length === 0 &&
-                                        !membroNome.trim() && (
-                                          <div className="py-6 px-2 text-center text-sm text-muted-foreground">
-                                            Digite para buscar na estrutura societária ou cadastrar
-                                            novo membro
-                                          </div>
-                                        )}
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Cargo Principal</Label>
-                              <Input value={membroCargo} onChange={(e) => setMembroCargo(e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>E-mail de acesso</Label>
-                              <Input
-                                type="email"
-                                placeholder="membro@empresa.com"
-                                value={membroEmail}
-                                onChange={(e) => setMembroEmail(e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Senha provisória (mín. 6 caracteres)</Label>
-                              <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                  <Input
-                                    type={membroSenhaVisivel ? "text" : "password"}
-                                    placeholder="••••••••"
-                                    value={membroSenhaProvisoria}
-                                    onChange={(e) => setMembroSenhaProvisoria(e.target.value)}
-                                    className="pr-20"
-                                  />
-                                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => setMembroSenhaProvisoria(gerarSenhaAleatoria())}
-                                      className="p-1.5 text-muted-foreground hover:text-foreground rounded"
-                                      title="Gerar senha"
-                                    >
-                                      <RefreshCw className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setMembroSenhaVisivel((v) => !v)}
-                                      className="p-1.5 text-muted-foreground hover:text-foreground rounded"
-                                      title={membroSenhaVisivel ? "Ocultar senha" : "Exibir senha"}
-                                    >
-                                      {membroSenhaVisivel ? (
-                                        <EyeOff className="h-4 w-4" />
-                                      ) : (
-                                        <Eye className="h-4 w-4" />
-                                      )}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                O membro deve alterar a senha no primeiro acesso.
-                              </p>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button onClick={handleCriarMembro} disabled={insertMembroComAcessoLoading}>
-                              {insertMembroComAcessoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                              Adicionar
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                    <p className="text-lg font-semibold mb-4">{membros.length} Membros • {totalMembrosAlocados} alocados em órgãos</p>
+                  ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>Nome</TableHead>
-                          <TableHead>Cargo Principal</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Membros</TableHead>
+                          <TableHead>Reuniões</TableHead>
+                          <TableHead>Próxima Reunião</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {membros.map((m) => (
-                          <TableRow key={m.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span>{m.nome}</span>
-                                {m.conselhos.length > 0 && (
-                                  <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-800 border-0 hover:bg-blue-100">Conselho</Badge>
+                        {filteredCouncils.length > 0 ? (
+                          filteredCouncils.map((council) => (
+                            <TableRow
+                              key={council.id}
+                              className="cursor-pointer"
+                              onClick={() => handleViewDetails(council, "conselho")}
+                            >
+                              <TableCell className="font-medium">{council.name}</TableCell>
+                              <TableCell>{council.type || "-"}</TableCell>
+                              <TableCell>{membersCount[council.id] || 0}</TableCell>
+                              <TableCell>{meetingsCount[council.id] || 0}</TableCell>
+                              <TableCell>
+                                {nextMeetings[council.id] ? (
+                                  <div className="text-sm">
+                                    <div className="font-medium">
+                                      {new Date(nextMeetings[council.id].date).toLocaleDateString('pt-BR')}
+                                    </div>
+                                    <div className="text-gray-500">
+                                      {nextMeetings[council.id].time || '--:--'}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
                                 )}
-                                {m.comites.length > 0 && (
-                                  <Badge variant="secondary" className="text-xs font-normal bg-violet-100 text-violet-800 border-0 hover:bg-violet-100">Comitê</Badge>
-                                )}
-                                {m.comissoes.length > 0 && (
-                                  <Badge variant="secondary" className="text-xs font-normal bg-emerald-100 text-emerald-800 border-0 hover:bg-emerald-100">Comissão</Badge>
-                                )}
-                                {m.conselhos.length === 0 && m.comites.length === 0 && m.comissoes.length === 0 && (
-                                  <Badge variant="outline" className="text-xs font-normal text-muted-foreground border-gray-200">Não alocado</Badge>
-                                )}
-                              </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewDetails(council, "conselho");
+                                  }}
+                                >
+                                  Ver Detalhes
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                              Nenhum conselho encontrado
                             </TableCell>
-                            <TableCell>{m.cargoPrincipal ?? "—"}</TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="members">
+                  <div className="flex justify-end mb-4">
+                    <Dialog open={isAddMemberModalOpen} onOpenChange={setIsAddMemberModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button>
+                          <Plus className="mr-2 h-4 w-4" /> Novo Conselheiro
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                          <DialogTitle>Adicionar Conselheiro</DialogTitle>
+                          <DialogDescription>
+                            Preencha as informações do novo conselheiro
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="memberCouncil" className="text-right">
+                              Conselho *
+                            </label>
+                            <Select
+                              value={newMember.council_id}
+                              onValueChange={(value) => setNewMember({...newMember, council_id: value})}
+                            >
+                              <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Selecione o conselho" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {councils.map((council) => (
+                                  <SelectItem key={council.id} value={council.id}>
+                                    {council.name} {council.type && `(${council.type})`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="memberName" className="text-right">
+                              Nome *
+                            </label>
+                            <Input 
+                              id="memberName" 
+                              className="col-span-3"
+                              value={newMember.name}
+                              onChange={(e) => setNewMember({...newMember, name: e.target.value})}
+                              placeholder="Nome completo do conselheiro"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="memberRole" className="text-right">
+                              Cargo *
+                            </label>
+                            <Input 
+                              id="memberRole" 
+                              className="col-span-3"
+                              value={newMember.role}
+                              onChange={(e) => setNewMember({...newMember, role: e.target.value})}
+                              placeholder="Ex: Presidente, Conselheiro, Conselheiro Externo"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="startDate" className="text-right">
+                              Data Início *
+                            </label>
+                            <Input 
+                              id="startDate" 
+                              type="date"
+                              className="col-span-3"
+                              value={newMember.start_date}
+                              onChange={(e) => setNewMember({...newMember, start_date: e.target.value})}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="endDate" className="text-right">
+                              Data Fim
+                            </label>
+                            <Input 
+                              id="endDate" 
+                              type="date"
+                              className="col-span-3"
+                              value={newMember.end_date}
+                              onChange={(e) => setNewMember({...newMember, end_date: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsAddMemberModalOpen(false)}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button onClick={handleAddMember} disabled={membersLoading}>
+                            {membersLoading ? "Adicionando..." : "Adicionar"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Conselho</TableHead>
+                        <TableHead>Cargo</TableHead>
+                        <TableHead>Início</TableHead>
+                        <TableHead>Fim</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {membersLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8">
+                            Carregando conselheiros...
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredMembers.length > 0 ? (
+                        filteredMembers.map((member) => (
+                          <TableRow
+                            key={member.id}
+                            className="cursor-pointer"
+                            onClick={() => handleViewDetails(member, "conselheiro")}
+                          >
+                            <TableCell className="font-medium">{member.name}</TableCell>
+                            <TableCell>{member.council}</TableCell>
+                            <TableCell>{member.role}</TableCell>
+                            <TableCell>{member.startDate}</TableCell>
+                            <TableCell>{member.endDate}</TableCell>
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" onClick={() => { setVerMembro({ id: m.id, nome: m.nome, email: m.email ?? null, user_id: m.user_id ?? null }); setVerSenhaGerada(null); setVerMembroOpen(true); }}>
-                                <Eye className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => openEditarMembro(m)}>
-                                <Pencil className="h-4 w-4 mr-1" />
-                                Editar
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => openAlocar(m.id)}>
-                                <Users className="h-4 w-4 mr-1" />
-                                Alocar
-                              </Button>
                               <Button
                                 variant="ghost"
-                                size="icon"
-                                className="text-muted-foreground hover:text-destructive ml-1"
-                                aria-label="Excluir"
-                                onClick={() => setMembroToExcluir({ id: m.id, nome: m.nome })}
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewDetails(member, "conselheiro");
+                                }}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                Ver Detalhes
                               </Button>
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                    {membros.length === 0 && (
-                      <div className="py-12 text-center text-muted-foreground">
-                        <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>Nenhum membro cadastrado. Crie membros e aloque-os em conselhos, comitês ou comissões.</p>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                            Nenhum conselheiro encontrado
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+
+                <TabsContent value="documents">
+                  <div className="space-y-6">
+                    {/* Seletor de Conselho */}
+                    <div className="bg-white p-6 rounded-lg border">
+                      <h3 className="text-lg font-medium mb-4">Selecionar Conselho</h3>
+                      <Select value={selectedCouncilId} onValueChange={setSelectedCouncilId}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selecione um conselho para fazer upload de documentos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {councils.map((council) => (
+                            <SelectItem key={council.id} value={council.id}>
+                              {council.name} - {council.type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                        {/* Upload de Documentos - só aparece se um conselho estiver selecionado */}
+                    {selectedCouncilId && (
+                      <>
+                        {/* Configuração de Lembretes */}
+                        <CouncilReminderConfig councilId={selectedCouncilId} />
+
+                        <div className="bg-white p-6 rounded-lg border">
+                          <CouncilDocumentUpload
+                            councilId={selectedCouncilId}
+                            documentType="council_documents"
+                            onUploadSuccess={() => {
+                              toast({
+                                title: "Sucesso",
+                                description: "Documentos dos conselhos enviados com sucesso!",
+                              });
+                              // Recarregar lista de documentos
+                              fetchDocuments({ council_id: selectedCouncilId });
+                            }}
+                          />
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg border">
+                          <CouncilDocumentUpload
+                            councilId={selectedCouncilId}
+                            documentType="meeting_minutes"
+                            onUploadSuccess={() => {
+                              toast({
+                                title: "Sucesso",
+                                description: "Atas de reuniões enviadas com sucesso!",
+                              });
+                              // Recarregar lista de documentos
+                              fetchDocuments({ council_id: selectedCouncilId });
+                            }}
+                          />
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg border">
+                          <CouncilDocumentUpload
+                            councilId={selectedCouncilId}
+                            documentType="contracts"
+                            onUploadSuccess={() => {
+                              toast({
+                                title: "Sucesso",
+                                description: "Contratos de conselheiros enviados com sucesso!",
+                              });
+                              // Recarregar lista de documentos
+                              fetchDocuments({ council_id: selectedCouncilId });
+                            }}
+                          />
+                        </div>
+
+                        {/* Lista de Documentos */}
+                        <div className="bg-white p-6 rounded-lg border">
+                          <h3 className="text-lg font-medium mb-4">Documentos do Conselho</h3>
+                          {documentsLoading ? (
+                            <div className="text-center py-8">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-legacy-500 mx-auto"></div>
+                              <p className="mt-2 text-gray-600">Carregando documentos...</p>
+                            </div>
+                          ) : documents.length > 0 ? (
+                            <div className="space-y-4">
+                              {documents.map((doc) => (
+                                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                  <div className="flex items-center space-x-4">
+                                    <FileText className="h-8 w-8 text-blue-500" />
+                                    <div>
+                                      <h4 className="font-medium">{doc.name}</h4>
+                                      <p className="text-sm text-gray-500">
+                                        {doc.type} • {doc.file_size ? `${(parseInt(doc.file_size) / 1024 / 1024).toFixed(2)} MB` : 'Tamanho não disponível'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={async () => {
+                                        try {
+                                          const url = await getDownloadUrl(doc.id);
+                                          window.open(url, '_blank');
+                                        } catch (error) {
+                                          toast({
+                                            title: "Erro",
+                                            description: "Erro ao baixar documento",
+                                            variant: "destructive"
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      Download
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={async () => {
+                                        try {
+                                          await deleteDocument(doc.id);
+                                          toast({
+                                            title: "Sucesso",
+                                            description: "Documento removido com sucesso"
+                                          });
+                                          // Recarregar documentos
+                                          fetchDocuments({ council_id: selectedCouncilId });
+                                        } catch (error) {
+                                          toast({
+                                            title: "Erro",
+                                            description: "Erro ao remover documento",
+                                            variant: "destructive"
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      Remover
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                              <p>Nenhum documento encontrado</p>
+                              <p className="text-sm">Faça upload de documentos usando os formulários acima</p>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Mensagem quando nenhum conselho está selecionado */}
+                    {!selectedCouncilId && (
+                      <div className="bg-gray-50 p-6 rounded-lg border border-dashed">
+                        <div className="text-center text-gray-500">
+                          <FileText className="mx-auto h-12 w-12 mb-4" />
+                          <p className="text-lg font-medium mb-2">Selecione um conselho</p>
+                          <p className="text-sm">Escolha um conselho acima para fazer upload de documentos</p>
+                        </div>
                       </div>
                     )}
-                  </TabsContent>
-                </Tabs>
-              )}
+                  </div>
+                </TabsContent>
+
+              </Tabs>
             </CardContent>
           </Card>
-
-          {/* Dialog Ver Acesso do Membro */}
-          <Dialog open={verMembroOpen} onOpenChange={(open) => { setVerMembroOpen(open); if (!open) setVerSenhaGerada(null); }}>
-            <DialogContent className="sm:max-w-[420px]">
+          
+          {/* Modal de Detalhes do Projeto */}
+          <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Acesso do membro</DialogTitle>
+                <DialogTitle>Detalhes do Projeto</DialogTitle>
                 <DialogDescription>
-                  Credenciais para login no portal
+                  Informações completas do projeto submetido
                 </DialogDescription>
               </DialogHeader>
-              {verMembro && (
-                <div className="space-y-4 py-4">
-                  <p className="text-sm font-medium text-muted-foreground">{verMembro.nome}</p>
-                  {verMembro.email ? (
-                    <>
-                      <div className="space-y-2">
-                        <Label>E-mail</Label>
-                        <p className="text-sm font-mono bg-muted px-3 py-2 rounded-md">{verMembro.email}</p>
+              
+              {selectedProject && (
+                <div className="space-y-6">
+                  {/* Cabeçalho do Projeto */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-xl font-bold">{selectedProject.title}</h3>
+                      <div className="flex gap-2">
+                        <Badge variant={selectedProject.priority === "Alta" ? "destructive" : selectedProject.priority === "Média" ? "default" : "secondary"}>
+                          {selectedProject.priority}
+                        </Badge>
+                        <Badge variant="outline">{selectedProject.category}</Badge>
                       </div>
-                      {verSenhaGerada ? (
-                        <div className="space-y-2">
-                          <Label>Nova senha provisória</Label>
-                          <p className="text-sm font-mono bg-muted px-3 py-2 rounded-md">{verSenhaGerada}</p>
-                          <p className="text-xs text-amber-600 dark:text-amber-500">Copie e informe ao membro. Esta senha não será exibida novamente.</p>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">{selectedProject.description}</p>
+                  </div>
+
+                  {/* Informações Gerais */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-lg">Informações de Submissão</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">Submetido por:</span>
+                          <span>{selectedProject.submittedBy}</span>
                         </div>
-                      ) : verMembro.user_id ? (
-                        <>
-                          <p className="text-xs text-muted-foreground">
-                            A senha provisória original é exibida apenas no momento da criação.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={redefinirSenhaMembroLoading}
-                            onClick={async () => {
-                              const { data, error } = await redefinirSenhaMembro(verMembro!.user_id!);
-                              if (error) {
-                                toast({ title: error, variant: "destructive" });
-                                return;
-                              }
-                              if (data?.senha_provisoria) setVerSenhaGerada(data.senha_provisoria);
-                            }}
-                          >
-                            {redefinirSenhaMembroLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                            Gerar nova senha provisória
-                          </Button>
-                        </>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">Usuário sem user_id vinculado. Use Editar para corrigir.</p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Sem acesso ao portal (nenhum e-mail cadastrado)</p>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Data de Submissão:</span>
+                          <span>{selectedProject.submissionDate}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Conselho:</span>
+                          <span>{selectedProject.council}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Status:</span>
+                          <Badge variant={
+                            selectedProject.status === "Aprovado" ? "default" :
+                            selectedProject.status === "Rejeitado" ? "destructive" :
+                            selectedProject.status === "Analisado por IA" ? "secondary" : 
+                            selectedProject.status === "Enriquecido pela IA" ? "secondary" :
+                            selectedProject.status === "Submetido para Votação" ? "default" : "outline"
+                          }>
+                            {selectedProject.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timeline de Status */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-lg">Timeline do Projeto</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span>Projeto submetido - {selectedProject.submissionDate}</span>
+                        </div>
+                        {selectedProject.status !== "Aguardando Análise" && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <span>Análise por IA concluída</span>
+                          </div>
+                        )}
+                        {selectedProject.status === "Enriquecido pela IA" && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                            <span>Projeto enriquecido pela IA</span>
+                          </div>
+                        )}
+                        {selectedProject.status === "Submetido para Votação" && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                            <span>Submetido para votação</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Análise da IA */}
+                  {selectedProject.aiAnalysis && (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Bot className="h-5 w-5 text-blue-600" />
+                        <h4 className="font-semibold text-blue-900">Análise Detalhada da IA</h4>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium">Probabilidade de Aprovação</span>
+                              <span className="text-lg font-bold text-blue-600">{selectedProject.aiAnalysis.approvalProbability}%</span>
+                            </div>
+                            <Progress 
+                              value={selectedProject.aiAnalysis.approvalProbability} 
+                              className="h-3"
+                            />
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            {selectedProject.aiAnalysis.riskLevel === "Baixo" ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            ) : selectedProject.aiAnalysis.riskLevel === "Médio" ? (
+                              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                            ) : (
+                              <AlertTriangle className="h-5 w-5 text-red-600" />
+                            )}
+                            <span>
+                              Nível de Risco: <strong>{selectedProject.aiAnalysis.riskLevel}</strong>
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="h-5 w-5 text-blue-600" />
+                            <span className="font-medium">Comparação Histórica</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{selectedProject.aiAnalysis.historicalComparison}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <h5 className="font-medium mb-2">Recomendações:</h5>
+                        <ul className="text-sm text-gray-700 space-y-1">
+                          {selectedProject.aiAnalysis.recommendations.map((rec, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="text-blue-600 font-bold">•</span>
+                              {rec}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
-            </DialogContent>
-          </Dialog>
-
-          {/* Dialog Editar Membro */}
-          <Dialog open={editarMembroOpen} onOpenChange={setEditarMembroOpen}>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Editar Membro</DialogTitle>
-                <DialogDescription>
-                  Altere as informações do membro
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input value={editarMembroNome} onChange={(e) => setEditarMembroNome(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Cargo Principal</Label>
-                  <Input value={editarMembroCargo} onChange={(e) => setEditarMembroCargo(e.target.value)} />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleEditarMembro} disabled={updateMembroLoading}>
-                  {updateMembroLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Salvar
+              
+              <DialogFooter className="flex gap-2">
+                <Button variant="outline" onClick={() => setIsProjectModalOpen(false)}>
+                  Fechar
                 </Button>
+                {selectedProject && selectedProject.status === "Aguardando Análise" && (
+                  <Button 
+                    onClick={() => {
+                      handleAnalyzeWithAI(selectedProject.id);
+                      setIsProjectModalOpen(false);
+                    }}
+                    disabled={isAnalyzing}
+                  >
+                    <Bot className="mr-2 h-4 w-4" />
+                    {isAnalyzing ? "Analisando..." : "Analisar com IA"}
+                  </Button>
+                )}
+                {selectedProject && (selectedProject.status === "Analisado por IA" || selectedProject.status === "Enriquecido pela IA") && (
+                  <>
+                    {selectedProject.status === "Analisado por IA" && (
+                      <Button 
+                        onClick={() => {
+                          handleEnrichProject(selectedProject.id);
+                          setIsProjectModalOpen(false);
+                        }}
+                        disabled={isEnriching}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {isEnriching ? "Enriquecendo..." : "Enriquecer Projeto"}
+                      </Button>
+                    )}
+                    <Button 
+                      onClick={() => {
+                        handleSubmitForVoting(selectedProject.id);
+                        setIsProjectModalOpen(false);
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Vote className="mr-2 h-4 w-4" />
+                      Submeter para Votação
+                    </Button>
+                  </>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>
 
-          {/* Dialog Alocar Membro */}
-          <Dialog open={alocarOpen} onOpenChange={setAlocarOpen}>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Alocar Membro</DialogTitle>
-                <DialogDescription>
-                  Selecione o órgão onde o membro será alocado
+          {/* Modal de Detalhes da Reunião */}
+          <Dialog open={isMeetingModalOpen} onOpenChange={setIsMeetingModalOpen}>
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="pb-4 border-b border-gray-200">
+                <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <Calendar className="h-6 w-6 text-blue-600" />
+                  Detalhes da Reunião
+                </DialogTitle>
+                <DialogDescription className="text-gray-600 mt-2">
+                  Informações completas e ações disponíveis para esta reunião
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Órgão</Label>
-                  <Select value={alocarTipo} onValueChange={(v: "conselho" | "comite" | "comissao") => { setAlocarTipo(v); setAlocarOrgaoId(""); }}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="conselho">Conselho</SelectItem>
-                      <SelectItem value="comite">Comitê</SelectItem>
-                      <SelectItem value="comissao">Comissão</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{alocarTipo === "conselho" ? "Conselho" : alocarTipo === "comite" ? "Comitê" : "Comissão"}</Label>
-                  <Select value={alocarOrgaoId} onValueChange={setAlocarOrgaoId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {orgaosParaAlocacao.map((o) => (
-                        <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Cargo neste órgão (opcional)</Label>
-                  <Input value={alocarCargo} onChange={(e) => setAlocarCargo(e.target.value)} placeholder="Ex: Presidente, Conselheiro" />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleAlocar} disabled={insertAlocacaoLoading || !alocarOrgaoId}>
-                  {insertAlocacaoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Alocar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              
+              {selectedMeeting && (
+                <div className="space-y-8 py-6">
+                  {/* Cabeçalho da Reunião */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedMeeting.title}</h3>
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <Users className="h-4 w-4" />
+                          <span className="font-medium">Conselho:</span>
+                          <span className="text-gray-800">{selectedMeeting.council}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-semibold ${
+                            selectedMeeting.status === "Agendada"
+                              ? "bg-blue-100 text-blue-800 border border-blue-200"
+                              : selectedMeeting.status === "Realizada"
+                              ? "bg-green-100 text-green-800 border border-green-200"
+                              : selectedMeeting.status === "Cancelada"
+                              ? "bg-red-100 text-red-800 border border-red-200"
+                              : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                          }`}
+                        >
+                          {selectedMeeting.status}
+                        </span>
+                        <Badge variant="outline" className="text-xs font-medium">
+                          {selectedMeeting.type}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* AlertDialog Excluir Membro Definitivo */}
-          <AlertDialog open={!!membroToExcluir} onOpenChange={(open) => !open && setMembroToExcluir(null)}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Excluir membro</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tem certeza que deseja excluir <strong>{membroToExcluir?.nome}</strong> definitivamente? O membro será removido do banco de dados, de todas as alocações e, se tiver acesso ao portal, a conta de login será removida. Esta ação não pode ser desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={excluirMembroDefinitivoLoading}>Cancelar</AlertDialogCancel>
-                <Button
-                  variant="destructive"
-                  onClick={async () => {
-                    if (!membroToExcluir) return;
-                    const { error } = await excluirMembroDefinitivo(membroToExcluir.id);
-                    setMembroToExcluir(null);
-                    if (error) toast({ title: "Erro ao excluir", description: error, variant: "destructive" });
-                    else toast({ title: "Membro excluído definitivamente" });
-                  }}
-                  disabled={excluirMembroDefinitivoLoading}
+                  {/* Informações da Reunião */}
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    {/* Informações Básicas */}
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+                        <h4 className="text-lg font-semibold text-gray-900">Informações Básicas</h4>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium text-gray-700">Data:</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">{new Date(selectedMeeting.date).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium text-gray-700">Horário:</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">{selectedMeeting.time || '--:--'}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium text-gray-700">Tipo:</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">{selectedMeeting.type}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detalhes Adicionais */}
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-1 h-6 bg-green-600 rounded-full"></div>
+                        <h4 className="text-lg font-semibold text-gray-900">Detalhes Adicionais</h4>
+                      </div>
+                      <div className="space-y-4">
+                        {selectedMeeting.location && (
+                          <div className="p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Calendar className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium text-gray-700">Local:</span>
+                            </div>
+                            <p className="text-gray-900 font-medium">{selectedMeeting.location}</p>
+                          </div>
+                        )}
+                        {selectedMeeting.agenda && (
+                          <div className="p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <FileText className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium text-gray-700">Agenda:</span>
+                            </div>
+                            <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedMeeting.agenda}</p>
+                          </div>
+                        )}
+                        {selectedMeeting.minutes && (
+                          <div className="p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <FileText className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium text-gray-700">Ata:</span>
+                            </div>
+                            <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedMeeting.minutes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ações Rápidas */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-1 h-6 bg-indigo-600 rounded-full"></div>
+                      <h4 className="text-lg font-semibold text-gray-900">Ações Rápidas</h4>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2"
+                        onClick={() => {
+                          if (selectedMeeting.status === 'Agendada') {
+                            handleUpdateMeetingStatus(selectedMeeting.id, 'Realizada');
+                          } else if (selectedMeeting.status === 'Realizada') {
+                            handleUpdateMeetingStatus(selectedMeeting.id, 'Agendada');
+                          }
+                          setIsMeetingModalOpen(false);
+                        }}
+                      >
+                        {selectedMeeting.status === 'Agendada' ? 'Marcar como Realizada' : 
+                         selectedMeeting.status === 'Realizada' ? 'Reagendar' : 'Alterar Status'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-300 hover:bg-gray-50 font-medium px-4 py-2"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${selectedMeeting.title} - ${new Date(selectedMeeting.date).toLocaleDateString('pt-BR')} às ${selectedMeeting.time}`);
+                          toast({
+                            title: "Copiado",
+                            description: "Informações da reunião copiadas para a área de transferência",
+                          });
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Copiar Informações
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <DialogFooter className="pt-4 border-t border-gray-200">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsMeetingModalOpen(false)}
+                  className="font-medium"
                 >
-                  {excluirMembroDefinitivoLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {excluirMembroDefinitivoLoading ? "Excluindo..." : "Excluir definitivamente"}
+                  Fechar
                 </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

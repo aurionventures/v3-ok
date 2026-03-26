@@ -1,68 +1,94 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, CheckCircle, BarChart3, Lightbulb, Save } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, BarChart3, MessageCircle, Lightbulb, Send, Mail, Phone, MessageSquare } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import MaturityRadarChart from "@/components/MaturityRadarChart";
+import MaturityBarChart from "@/components/MaturityBarChart";
 import { QuestionInput } from "@/components/QuestionInput";
 import { COMPANY_DATA, QUESTIONS } from "@/data/maturityData";
 import { calcularPontuacao, convertToRadarData, detectFamilyBusiness } from "@/utils/maturityCalculator";
 import { UserAnswers } from "@/types/maturity";
-import { saveMaturityAssessment, getCurrentMaturityAssessment } from "@/utils/maturityStorage";
-import { upsertDiagnosticoMaturidade } from "@/services/maturidade";
-import { useEmpresas } from "@/hooks/useEmpresas";
+import { saveMaturityAssessment } from "@/utils/maturityStorage";
+import { saveLeadData, sendDiagnosticEmail } from "@/utils/leadStorage";
+
+interface ContactForm {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+}
 
 const MaturityQuiz = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [currentSection, setCurrentSection] = useState<'company' | 'questions'>('company');
+  const [currentSection, setCurrentSection] = useState<'company' | 'questions' | 'contact'>('company');
   const [answers, setAnswers] = useState<UserAnswers>({
     companyData: {},
     questions: {}
+  });
+  const [contactInfo, setContactInfo] = useState<ContactForm>({
+    name: "",
+    email: "",
+    phone: "",
+    company: ""
   });
   const [showResult, setShowResult] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFamilyBusiness, setIsFamilyBusiness] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { firstEmpresaId } = useEmpresas();
 
-  const totalSteps = COMPANY_DATA.length + QUESTIONS.length;
+  // Verificar se há dados de lead pré-preenchidos
+  React.useEffect(() => {
+    const storedLeadData = localStorage.getItem('diagnostic_lead_data');
+    if (storedLeadData) {
+      try {
+        const leadData = JSON.parse(storedLeadData);
+        setContactInfo(leadData);
+        // Avançar direto para perguntas se há dados de lead
+        setCurrentSection('company');
+        // Limpar dados do localStorage após uso
+        localStorage.removeItem('diagnostic_lead_data');
+        toast({
+          title: "Bem-vindo!",
+          description: `Bem-vindo, ${leadData.name}! Vamos iniciar seu diagnóstico.`,
+        });
+      } catch (error) {
+        console.error('Erro ao carregar dados do lead:', error);
+      }
+    }
+  }, []);
+
+  const totalSteps = COMPANY_DATA.length + QUESTIONS.length + 1; // +1 para contato
   const progress = (currentStep / totalSteps) * 100;
   
   const isCompanyDataPhase = currentSection === 'company';
   const isQuestionsPhase = currentSection === 'questions';
+  const isContactPhase = currentSection === 'contact';
 
   useEffect(() => {
     // Detectar se é empresa familiar quando dados da empresa mudarem
     setIsFamilyBusiness(detectFamilyBusiness(answers.companyData));
   }, [answers.companyData]);
 
-  const needsExplicitNext = () => {
-    if (isCompanyDataPhase && currentStep < COMPANY_DATA.length) {
-      const t = COMPANY_DATA[currentStep].tipo;
-      return t === "numerico" || t === "texto";
-    }
-    if (isQuestionsPhase && currentStep >= COMPANY_DATA.length) {
-      const q = QUESTIONS[currentStep - COMPANY_DATA.length];
-      const t = q.tipo;
-      return ["numerico", "numerico_multiplo", "multipla_escolha_multipla", "texto", "matriz"].includes(t);
-    }
-    return false;
-  };
-
-  const handleAnswer = (value: string | string[] | number) => {
+  const handleAnswer = (value: string | string[] | number | object) => {
     try {
+      let shouldAutoAdvance = true;
+      
       if (isCompanyDataPhase && currentStep < COMPANY_DATA.length) {
         const currentData = COMPANY_DATA[currentStep];
         setAnswers(prev => ({
           ...prev,
           companyData: { ...prev.companyData, [currentData.numero]: value }
         }));
+        
+        // Don't auto-advance for text inputs
+        shouldAutoAdvance = currentData.tipo !== "texto";
       } else if (isQuestionsPhase && currentStep >= COMPANY_DATA.length) {
         const questionIndex = currentStep - COMPANY_DATA.length;
         if (questionIndex < QUESTIONS.length) {
@@ -71,23 +97,20 @@ const MaturityQuiz = () => {
             ...prev,
             questions: { ...prev.questions, [currentQuestion.numero]: value }
           }));
+          
+          // Don't auto-advance for text inputs or numeric_multiplo
+          shouldAutoAdvance = currentQuestion.tipo !== "texto" && currentQuestion.tipo !== "numerico_multiplo";
         }
       }
-
-      const isSingleChoice = () => {
-        if (isCompanyDataPhase && currentStep < COMPANY_DATA.length)
-          return COMPANY_DATA[currentStep].tipo === "multipla_escolha_unica";
-        if (isQuestionsPhase && currentStep >= COMPANY_DATA.length)
-          return QUESTIONS[currentStep - COMPANY_DATA.length].tipo === "multipla_escolha_unica";
-        return false;
-      };
-
-      if (isSingleChoice()) {
+      
+      if (shouldAutoAdvance) {
         setIsTransitioning(true);
+        
+        // Auto-advance after selection
         setTimeout(() => {
-          handleNext(false);
+          handleNext();
           setIsTransitioning(false);
-        }, 400);
+        }, 800);
       }
     } catch (error) {
       console.error('Error handling answer:', error);
@@ -95,78 +118,115 @@ const MaturityQuiz = () => {
     }
   };
 
-  const getQuestionAtStep = (step: number) => {
-    if (step < COMPANY_DATA.length) return null;
-    const idx = step - COMPANY_DATA.length;
-    return idx < QUESTIONS.length ? QUESTIONS[idx] : null;
-  };
-
-  const handleNext = (validateRequired = true) => {
-    if (validateRequired) {
-      if (isCompanyDataPhase) {
-        const currentData = COMPANY_DATA[currentStep];
-        const currentValue = answers.companyData[currentData.numero];
-        if (currentValue === undefined || currentValue === null || currentValue === "")
+  const handleNext = () => {
+    // Validações por seção
+    if (isCompanyDataPhase) {
+      const currentData = COMPANY_DATA[currentStep];
+      const currentValue = answers.companyData[currentData.numero];
+      
+      // Validação específica por tipo
+      if (currentData.tipo === "texto") {
+        if (!currentValue || (typeof currentValue === 'string' && currentValue.trim() === '')) {
           return;
-        if (typeof currentValue === "number" && isNaN(currentValue)) return;
-        if (Array.isArray(currentValue) && currentValue.length === 0) return;
-      } else if (isQuestionsPhase) {
-        const questionIndex = currentStep - COMPANY_DATA.length;
-        const currentQuestion = QUESTIONS[questionIndex];
-        if (shouldSkipQuestion(currentQuestion)) {
-          // segue
-        } else {
-          const currentValue = answers.questions[currentQuestion.numero];
-          if (currentValue === undefined || currentValue === null || currentValue === "")
-            return;
-          if (typeof currentValue === "number" && isNaN(currentValue)) return;
-          if (Array.isArray(currentValue) && currentValue.length === 0) return;
+        }
+      } else if (currentData.tipo === "numerico") {
+        if (!currentValue && currentValue !== 0) {
+          return;
+        }
+      } else {
+        // Para múltipla escolha e outros tipos
+        if (!currentValue || (Array.isArray(currentValue) && currentValue.length === 0)) {
+          return;
         }
       }
-    }
-
-    let newStep = currentStep + 1;
-    // Pular questões condicionais quando não se aplicam
-    while (newStep < totalSteps) {
-      const q = getQuestionAtStep(newStep);
-      if (!q || !shouldSkipQuestion(q)) break;
-      newStep++;
-    }
-
-    if (newStep >= totalSteps) {
+    } else if (isQuestionsPhase) {
+      const questionIndex = currentStep - COMPANY_DATA.length;
+      const currentQuestion = QUESTIONS[questionIndex];
+      const currentValue = answers.questions[currentQuestion.numero];
+      
+      // Verificar questões condicionais
+      if (shouldSkipQuestion(currentQuestion)) {
+        // Pular questão automaticamente
+      } else {
+        // Validação específica por tipo
+        if (currentQuestion.tipo === "texto") {
+          if (!currentValue || (typeof currentValue === 'string' && currentValue.trim() === '')) {
+            return;
+          }
+        } else if (currentQuestion.tipo === "numerico") {
+          if (!currentValue && currentValue !== 0) {
+            return;
+          }
+        } else if (currentQuestion.tipo === "numerico_multiplo") {
+          const numericValue = currentValue as { total: number, women: number } | undefined;
+          if (!numericValue || (!numericValue.total && numericValue.total !== 0) || (!numericValue.women && numericValue.women !== 0)) {
+            return;
+          }
+        } else {
+          // Para múltipla escolha e outros tipos
+          if (!currentValue || (Array.isArray(currentValue) && currentValue.length === 0)) {
+            return;
+          }
+        }
+      }
+    } else if (isContactPhase) {
+      if (!contactInfo.name || !contactInfo.email || !contactInfo.phone) {
+        return;
+      }
+      // Calcular resultado
       const result = calcularPontuacao(answers, isFamilyBusiness);
-      saveMaturityAssessment(result, answers.companyData, undefined, firstEmpresaId);
-      setShowResult(true);
-      toast({
-        title: "Diagnóstico gerado!",
-        description: "Seu diagnóstico de maturidade foi processado com sucesso.",
+      
+      // Salvar no sistema de leads
+      const leadData = saveLeadData({
+        name: contactInfo.name,
+        email: contactInfo.email,
+        phone: contactInfo.phone,
+        company: contactInfo.company,
+        sector: 'tecnologia', // Default value
+        revenue: 'nao-informar', // Default value  
+        size: 'media', // Default value
+        maturityResult: result,
+        companyData: answers.companyData
       });
+
+      // Salvar assessment tradicional
+      saveMaturityAssessment(result, answers.companyData, contactInfo);
+
+      // Simular envio de email
+      sendDiagnosticEmail(leadData, result);
+
+      setShowResult(true);
       return;
     }
 
+    // Navegar para próxima etapa
+    const newStep = currentStep + 1;
     setCurrentStep(newStep);
+    
+    // Atualizar seção atual
     if (newStep < COMPANY_DATA.length) {
       setCurrentSection('company');
-    } else {
+    } else if (newStep < COMPANY_DATA.length + QUESTIONS.length) {
       setCurrentSection('questions');
+    } else {
+      setCurrentSection('contact');
     }
   };
 
   const shouldSkipQuestion = (question: any): boolean => {
-    if (question.numero === "4.1") return answers.questions["4"] !== "sim";
-    if (question.numero === "10.1") return answers.questions["10"] !== "sim";
+    // Lógica para questões condicionais (ex: 4.1 só aparece se 4 = "sim")
+    if (question.numero === "4.1") {
+      return answers.questions["4"] !== "sim";
+    }
+    if (question.numero === "10.1") {
+      return answers.questions["10"] !== "sim";
+    }
+    // Adicionar outras condições conforme necessário
     return false;
   };
 
   const handlePrevious = () => {
-    let prevStep = currentStep - 1;
-    while (prevStep >= COMPANY_DATA.length) {
-      const q = getQuestionAtStep(prevStep);
-      if (!q || !shouldSkipQuestion(q)) break;
-      prevStep--;
-    }
-    setCurrentStep(prevStep);
-    setCurrentSection(prevStep < COMPANY_DATA.length ? 'company' : 'questions');
+    setCurrentStep(prev => prev - 1);
   };
 
   const calculateMaturityData = () => {
@@ -186,20 +246,11 @@ const MaturityQuiz = () => {
   const overallScore = maturityData.reduce((sum, item) => sum + item.score, 0) / maturityData.length;
   const maturityLevel = getMaturityLevel(overallScore);
 
-  const handleSaveAndExit = async () => {
-    const result = calcularPontuacao(answers, isFamilyBusiness);
-    saveMaturityAssessment(result, answers.companyData, undefined, firstEmpresaId ?? undefined);
-    if (firstEmpresaId) {
-      const stored = getCurrentMaturityAssessment(firstEmpresaId);
-      if (stored) {
-        await upsertDiagnosticoMaturidade(firstEmpresaId, stored);
-      }
-    }
-    toast({
-      title: "Diagnóstico salvo",
-      description: "Os dados foram salvos com sucesso. Redirecionando...",
-    });
-    navigate("/maturidade-governanca");
+  const handleWhatsAppClick = () => {
+    const message = `Olá! Acabei de realizar o diagnóstico de maturidade em governança e gostaria de saber mais sobre como podem me ajudar. Meu resultado foi: ${maturityLevel.level} (${overallScore.toFixed(1)}/5.0)`;
+    const phoneNumber = "5511949783636";
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   if (showResult) {
@@ -209,7 +260,7 @@ const MaturityQuiz = () => {
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header title="Diagnóstico de Maturidade" />
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="w-full">
+            <div className="max-w-6xl mx-auto">
               <Card className="mb-4 sm:mb-6">
                 <CardHeader className="text-center px-3 sm:px-6 py-4 sm:py-6">
                   <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-full flex items-center justify-center mb-3 sm:mb-4">
@@ -217,70 +268,105 @@ const MaturityQuiz = () => {
                   </div>
                   <CardTitle className="text-lg sm:text-2xl leading-tight">Diagnóstico de Maturidade Concluído</CardTitle>
                   <CardDescription className="text-sm sm:text-base mt-2">
-                    Aqui está seu diagnóstico de maturidade em governança.
+                    Obrigado, <strong>{contactInfo.name}</strong>! Aqui está seu diagnóstico personalizado de governança para <strong>{contactInfo.company}</strong>.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6">
-                  <div className="space-y-8 sm:space-y-10">
-                    {/* Nível geral em destaque */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 w-full py-4 px-4 sm:px-6 bg-muted/30 rounded-lg">
-                      <h3 className="text-lg sm:text-xl font-semibold">Nível Geral de Maturidade</h3>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full ${maturityLevel.color}`} />
+                  {/* Mensagem em destaque */}
+                  <div className="bg-blue-50 border border-blue-200 p-4 sm:p-6 rounded-lg mb-6 sm:mb-8 text-center">
+                    <p className="text-sm sm:text-base font-medium text-blue-800 leading-relaxed">
+                      <BarChart3 className="inline w-4 h-4 mr-1" />
+                      <strong>Empresas com governança estruturada têm valor de mercado 47% maior que seus competidores e reduzem conflitos familiares em 73%.</strong>
+                      <br/><span className="text-xs sm:text-sm italic">Fonte: IBGC</span>
+                    </p>
+                  </div>
+
+                  {/* Layout aprimorado com visualizações melhoradas */}
+                  <div className="space-y-8">
+                    {/* Seção: Nível Geral de Maturidade */}
+                    <div className="text-center">
+                      <h3 className="text-xl sm:text-2xl font-bold mb-4">Nível Geral de Maturidade</h3>
+                      <div className="inline-flex items-center gap-3 bg-card p-4 rounded-lg border">
+                        <div className={`w-5 h-5 rounded-full ${maturityLevel.color}`}></div>
                         <span className={`font-bold text-xl sm:text-2xl ${maturityLevel.textColor}`}>
-                          {maturityLevel.level} ({overallScore.toFixed(1)}/5.0)
+                          {maturityLevel.level}
+                        </span>
+                        <span className="text-lg sm:text-xl text-muted-foreground">
+                          ({(overallScore * 20).toFixed(0)}%)
                         </span>
                       </div>
                     </div>
 
-                    {/* Radar + Barras lado a lado em telas grandes */}
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full">
-                      <div className="w-full">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-center xl:text-left">Radar de Maturidade</h3>
-                        <div className="w-full h-72 sm:h-80 xl:h-96">
-                          <MaturityRadarChart data={maturityData} />
-                        </div>
-                      </div>
-                      <div className="w-full">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-center xl:text-left">Resultados por Dimensão</h3>
-                        <div className="space-y-4">
-                          {maturityData.map((item) => {
-                            const level = getMaturityLevel(item.score);
-                            const pct = Math.round((item.score / item.fullMark) * 100);
-                            return (
-                              <div key={item.name} className="w-full">
-                                <div className="flex justify-between items-baseline mb-1.5">
-                                  <span className="text-sm sm:text-base font-medium">{item.name}</span>
-                                  <div className="flex items-center gap-2">
-                                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${level.color} text-white`}>
-                                      {level.level}
-                                    </span>
-                                    <span className="text-sm font-semibold min-w-[2.5rem] text-right">{item.score.toFixed(1)}</span>
-                                  </div>
-                                </div>
-                                <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full transition-all duration-500 ${level.color}`}
-                                    style={{ width: `${pct}%` }}
-                                  />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                    {/* Seção: Resultados por Dimensão em Barras */}
+                    <div className="max-w-4xl mx-auto">
+                      <h3 className="text-lg sm:text-xl font-semibold mb-6 text-center">Resultados por Dimensão</h3>
+                      <MaturityBarChart data={maturityData} />
+                    </div>
+
+                    {/* Seção: Radar de Maturidade */}
+                    <div className="max-w-5xl mx-auto">
+                      <h3 className="text-lg sm:text-xl font-semibold mb-6 text-center">Radar de Maturidade</h3>
+                      <div className="bg-card p-6 rounded-lg border">
+                        <MaturityRadarChart data={maturityData} />
                       </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 border-t mt-8">
-                      <Button
-                        onClick={handleSaveAndExit}
-                        className="bg-legacy-500 hover:bg-legacy-600"
-                      >
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar e Sair
-                      </Button>
+                    {/* Seção: Próximos Passos */}
+                    <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+                      <CardHeader className="text-center">
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Send className="h-6 w-6 text-primary" />
+                        </div>
+                        <CardTitle className="text-xl">Relatório Enviado por E-mail</CardTitle>
+                        <CardDescription>
+                          Acabamos de enviar o relatório completo para <strong>{contactInfo.email}</strong>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Card className="border-primary/20">
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <Phone className="h-5 w-5 text-primary" />
+                                <h4 className="font-semibold">Próximo Passo</h4>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                Nossa equipe de especialistas entrará em contato para apresentar como podemos ajudar a elevar ainda mais sua governança.
+                              </p>
+                              <Button 
+                                onClick={handleWhatsAppClick} 
+                                className="w-full bg-green-600 hover:bg-green-700"
+                              >
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                Falar Agora no WhatsApp
+                              </Button>
+                            </CardContent>
+                          </Card>
+
+                          <Card className="border-accent/20">
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <Mail className="h-5 w-5 text-accent" />
+                                <h4 className="font-semibold">Relatório Completo</h4>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                Verifique sua caixa de entrada. Incluímos recomendações detalhadas e um roadmap personalizado.
+                              </p>
+                              <div className="text-xs text-muted-foreground">
+                                📧 E-mail: <strong>{contactInfo.email}</strong>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+
+                        <div className="text-center p-4 bg-white/50 rounded-lg border border-accent/20">
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Legacy Governance</strong> • WhatsApp: (11) 94978-3636 • contato@legacygovernance.com.br
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
                     </div>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -297,17 +383,6 @@ const MaturityQuiz = () => {
         <Header title="Diagnóstico de Maturidade" />
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="max-w-2xl mx-auto">
-            <div className="mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/maturidade-governanca")}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
-              </Button>
-            </div>
             <div className="text-center mb-6 sm:mb-8 px-2">
               <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 text-primary mx-auto mb-3 sm:mb-4" />
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2 leading-tight">
@@ -319,22 +394,28 @@ const MaturityQuiz = () => {
               <div className="mt-3 sm:mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20 mx-2">
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed flex items-center justify-center gap-2">
                   <Lightbulb className="w-4 h-4 text-primary" />
-                  <strong>Perguntas de única escolha:</strong> avanço automático ao selecionar. <strong>Números ou múltipla escolha:</strong> use o botão Avançar.
+                  <strong>Avanço Automático:</strong> Selecione uma resposta e avançaremos automaticamente para a próxima pergunta
                 </p>
               </div>
             </div>
 
             <div className="mb-4 sm:mb-6 px-2">
-              <Progress value={progress} className="h-2" />
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2 text-center">
-                {isCompanyDataPhase && `Dados da empresa ${currentStep + 1} de ${COMPANY_DATA.length}`}
-                {isQuestionsPhase && `Pergunta ${currentStep - COMPANY_DATA.length + 1} de ${QUESTIONS.length}`}
-              </p>
+              <Progress value={progress} className="h-3" />
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {isCompanyDataPhase && `Dados da empresa ${currentStep + 1} de ${COMPANY_DATA.length}`}
+                  {isQuestionsPhase && `Pergunta ${currentStep - COMPANY_DATA.length + 1} de ${QUESTIONS.length}`}
+                  {isContactPhase && 'Dados de contato'}
+                </p>
+                <p className="text-xs sm:text-sm font-medium text-primary">
+                  {Math.round(progress)}%
+                </p>
+              </div>
             </div>
 
             <Card className="mx-2">
               <CardContent className="p-4 sm:p-6">
-                {(isCompanyDataPhase || isQuestionsPhase) && (
+                {(isCompanyDataPhase || isQuestionsPhase) ? (
                   <div>
                     <div className="mb-4 sm:mb-6">
                       {isCompanyDataPhase && currentStep < COMPANY_DATA.length && (
@@ -386,6 +467,7 @@ const MaturityQuiz = () => {
                           value={answers.companyData[COMPANY_DATA[currentStep].numero]}
                           onChange={handleAnswer}
                           disabled={isTransitioning}
+                          onNext={COMPANY_DATA[currentStep].tipo === "texto" ? handleNext : undefined}
                         />
                       )}
                       {isQuestionsPhase && (
@@ -394,8 +476,58 @@ const MaturityQuiz = () => {
                           value={answers.questions[QUESTIONS[currentStep - COMPANY_DATA.length].numero]}
                           onChange={handleAnswer}
                           disabled={isTransitioning}
+                          onNext={QUESTIONS[currentStep - COMPANY_DATA.length].tipo === "texto" || QUESTIONS[currentStep - COMPANY_DATA.length].tipo === "numerico_multiplo" ? handleNext : undefined}
                         />
                       )}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 leading-tight">
+                      Para receber seu diagnóstico personalizado
+                    </h2>
+                    <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
+                      Preencha seus dados abaixo e enviaremos o relatório completo
+                    </p>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Nome completo *</Label>
+                        <Input
+                          id="name"
+                          value={contactInfo.name}
+                          onChange={(e) => setContactInfo(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Seu nome completo"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">E-mail *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={contactInfo.email}
+                          onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="seu@email.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Telefone *</Label>
+                        <Input
+                          id="phone"
+                          value={contactInfo.phone}
+                          onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="(11) 99999-9999"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="company">Empresa</Label>
+                        <Input
+                          id="company"
+                          value={contactInfo.company}
+                          onChange={(e) => setContactInfo(prev => ({ ...prev, company: e.target.value }))}
+                          placeholder="Nome da sua empresa"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -410,15 +542,26 @@ const MaturityQuiz = () => {
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Anterior
                   </Button>
-                  {needsExplicitNext() && (
-                    <Button
-                      onClick={() => handleNext(true)}
+
+                  {isContactPhase ? (
+                    <Button 
+                      onClick={handleNext}
                       disabled={isTransitioning}
                       className="text-sm sm:text-base"
                     >
-                      Avançar
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      Gerar Diagnóstico
                     </Button>
+                  ) : (
+                    false && ( // Disable skip functionality for now
+                      <Button 
+                        onClick={handleNext}
+                        variant="ghost"
+                        className="text-muted-foreground text-sm sm:text-base"
+                      >
+                        Pular ⏭️
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )
                   )}
                 </div>
               </CardContent>

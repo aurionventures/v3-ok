@@ -1,98 +1,142 @@
-import { Card, CardContent } from "@/components/ui/card";
-import NotificationBell from "@/components/NotificationBell";
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useState } from "react";
+import { MemberLayout } from "@/components/member/MemberLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Eye, FileText, CalendarDays } from "lucide-react";
+import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { fetchReunioes } from "@/services/agenda";
-import { useCurrentMembro } from "@/hooks/useCurrentMembro";
-import type { ReuniaoEnriquecida } from "@/types/agenda";
+import { MemberAgendaModal } from "@/components/member/MemberAgendaModal";
+import { MemberMaterialsModal } from "@/components/member/MemberMaterialsModal";
+
+const mockMemberMeetings = [
+  {
+    id: 'meeting-1',
+    title: 'Reunião Ordinária',
+    council: 'Conselho de Administração',
+    date: addDays(new Date(), 6),
+    time: '14:00',
+    location: 'Sala de Reuniões 3º Andar',
+    status: 'PAUTA_DEFINIDA',
+    hasAgenda: true,
+    hasMaterials: true
+  },
+  {
+    id: 'meeting-2',
+    title: 'Reunião Extraordinária',
+    council: 'Comitê de Auditoria',
+    date: addDays(new Date(), 14),
+    time: '09:00',
+    location: 'Virtual (Teams)',
+    status: 'EM_PREPARACAO',
+    hasAgenda: true,
+    hasMaterials: false
+  },
+  {
+    id: 'meeting-3',
+    title: 'Reunião de Fechamento',
+    council: 'Comitê de Auditoria',
+    date: addDays(new Date(), 28),
+    time: '10:00',
+    location: 'Sala de Reuniões 2º Andar',
+    status: 'AGENDADA',
+    hasAgenda: false,
+    hasMaterials: false
+  }
+];
 
 const MemberReunioes = () => {
-  const { data: membro } = useCurrentMembro();
-  const { data: reunioes = [] } = useQuery({
-    queryKey: ["member", "reunioes", membro?.id, membro?.empresa_id],
-    enabled: !!membro?.id && !!membro?.empresa_id,
-    queryFn: async (): Promise<ReuniaoEnriquecida[]> => {
-      if (!membro?.id || !membro.empresa_id || !supabase) return [];
-      const { data: alocacoes } = await supabase
-        .from("alocacoes_membros")
-        .select("conselho_id, comite_id, comissao_id")
-        .eq("membro_id", membro.id)
-        .eq("ativo", true);
-      const conselhoIds = new Set((alocacoes ?? []).map((a) => a.conselho_id).filter(Boolean));
-      const comiteIds = new Set((alocacoes ?? []).map((a) => a.comite_id).filter(Boolean));
-      const comissaoIds = new Set((alocacoes ?? []).map((a) => a.comissao_id).filter(Boolean));
-      const temAlocacao = conselhoIds.size > 0 || comiteIds.size > 0 || comissaoIds.size > 0;
-      const todas = await fetchReunioes(membro.empresa_id);
-      const filtradas = temAlocacao
-        ? todas.filter(
-            (r) =>
-              (r.conselho_id && conselhoIds.has(r.conselho_id)) ||
-              (r.comite_id && comiteIds.has(r.comite_id)) ||
-              (r.comissao_id && comissaoIds.has(r.comissao_id)) ||
-              (!r.conselho_id && !r.comite_id && !r.comissao_id)
-          )
-        : todas;
-      return filtradas.sort((a, b) => (a.data_reuniao ?? "").localeCompare(b.data_reuniao ?? ""));
-    },
-  });
+  const [agendaModalOpen, setAgendaModalOpen] = useState(false);
+  const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
+  const [selectedMeeting, setSelectedMeeting] = useState<typeof mockMemberMeetings[0] | null>(null);
 
-  const reunioesFuturas = useMemo(
-    () =>
-      reunioes
-        .filter((r) => r.data_reuniao && new Date(r.data_reuniao) >= new Date())
-        .slice(0, 10),
-    [reunioes]
-  );
+  const handleViewAgenda = (meeting: typeof mockMemberMeetings[0]) => {
+    setSelectedMeeting(meeting);
+    setAgendaModalOpen(true);
+  };
+
+  const handleViewMaterials = (meeting: typeof mockMemberMeetings[0]) => {
+    setSelectedMeeting(meeting);
+    setMaterialsModalOpen(true);
+  };
 
   return (
-    <>
-      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold">Próximas Reuniões</h1>
-            <p className="text-sm text-muted-foreground">Reuniões agendadas para você</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="space-y-4">
-          {reunioesFuturas.map((r) => (
-            <Card key={r.id}>
-              <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
-                  <Calendar className="h-6 w-6" />
+    <MemberLayout 
+      title="Próximas Reuniões"
+      subtitle="Suas reuniões agendadas"
+    >
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <CalendarDays className="h-7 w-7 text-primary" />
+            Reuniões Agendadas
+            <Badge variant="secondary" className="text-base px-3 py-1 ml-2">
+              {mockMemberMeetings.length}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {mockMemberMeetings.map((meeting) => (
+            <div 
+              key={meeting.id} 
+              className="flex flex-col lg:flex-row lg:items-center justify-between p-6 rounded-xl border-2 bg-card hover:bg-accent/50 transition-colors gap-5"
+            >
+              <div className="flex items-center gap-5">
+                <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-8 w-8 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">{r.titulo || r.conselho_nome || r.comite_nome || r.comissao_nome || "Reunião"}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {r.data_reuniao ? format(new Date(r.data_reuniao), "dd/MM/yyyy", { locale: ptBR }) : "Data não definida"}
-                    {" às "}
-                    {r.horario ? String(r.horario).slice(0, 5) : "--:--"}
-                    {" • "}
-                    {r.tipo ?? "Ordinária"}
+                <div>
+                  <p className="text-xl font-bold">{meeting.council}</p>
+                  <p className="text-lg font-medium text-foreground/80">{meeting.title}</p>
+                  <p className="text-base text-muted-foreground mt-1">
+                    {format(meeting.date, "dd/MM/yyyy", { locale: ptBR })} às {meeting.time} • {meeting.location}
                   </p>
+                  <Badge variant="secondary" className="mt-3 text-sm px-4 py-1.5">
+                    {meeting.status === 'PAUTA_DEFINIDA' ? 'Pauta Definida' : 
+                     meeting.status === 'EM_PREPARACAO' ? 'Em Preparação' : 'Agendada'}
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex items-center gap-4 ml-auto lg:ml-0">
+                {meeting.hasAgenda && (
+                  <Button variant="outline" size="lg" onClick={() => handleViewAgenda(meeting)} className="text-base h-12 px-6">
+                    <Eye className="h-5 w-5 mr-2" />
+                    Ver Pauta
+                  </Button>
+                )}
+                {meeting.hasMaterials && (
+                  <Button variant="outline" size="lg" onClick={() => handleViewMaterials(meeting)} className="text-base h-12 px-6">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Materiais
+                  </Button>
+                )}
+              </div>
+            </div>
           ))}
-          {reunioesFuturas.length === 0 && (
-            <Card>
-              <CardContent className="p-6 text-sm text-muted-foreground">
-                Nenhuma das suas próximas reuniões foi encontrada na agenda.
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-    </>
+        </CardContent>
+      </Card>
+
+      {/* Modals */}
+      <MemberAgendaModal
+        open={agendaModalOpen}
+        onClose={() => setAgendaModalOpen(false)}
+        meeting={selectedMeeting ? {
+          title: selectedMeeting.title,
+          council: selectedMeeting.council,
+          date: format(selectedMeeting.date, "dd/MM/yyyy"),
+          time: selectedMeeting.time
+        } : null}
+      />
+      <MemberMaterialsModal
+        open={materialsModalOpen}
+        onClose={() => setMaterialsModalOpen(false)}
+        meeting={selectedMeeting ? {
+          title: selectedMeeting.title,
+          council: selectedMeeting.council,
+          date: format(selectedMeeting.date, "dd/MM/yyyy")
+        } : null}
+      />
+    </MemberLayout>
   );
 };
 

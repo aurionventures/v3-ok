@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Shield, AlertCircle, Plus, Search, Save, PanelRight, PieChart, Target, Cog, DollarSign, CheckCircle, Eye, Pencil, Clock } from "lucide-react";
+import { Shield, AlertCircle, Plus, Search, Save, PanelRight, PieChart } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,43 +52,53 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-// Eixos da matriz: Impacto (1-5) x Probabilidade (1=Baixa, 2=Média, 3=Alta)
-const IMPACTO_LABELS = ["Insignificante", "Menor", "Moderado", "Maior", "Catastrófico"] as const;
-const PROBABILIDADE_LABELS = ["Alta", "Média", "Baixa"] as const; // row 0 = Alta, row 1 = Média, row 2 = Baixa
-
-const getMatrixCellLevel = (impact: number, probability: number): "baixo" | "medio" | "alto" | "critico" => {
-  const score = impact * probability;
-  if (score <= 2) return "baixo";
-  if (score <= 6) return "medio";
-  if (score <= 9) return "alto";
-  return "critico";
-};
-
-// Riscos para a matriz (impacto 1-5, probabilidade 1=Baixa 2=Média 3=Alta)
-const matrixRisks = [
-  { id: "R1", risk: "Mudanças no Ambiente Competitivo", category: "Estratégicos", impact: 4, probability: 2, residual: 8, responsible: "CEO", previsao: "6 meses", status: "Ativo" as const, descricao: "Entrada de novos concorrentes ou mudanças tecnológicas disruptivas" },
-  { id: "R2", risk: "Falhas em Sistemas Críticos", category: "Operacionais", impact: 4, probability: 1, residual: 4, responsible: "CTO", previsao: "90 dias", status: "Mitigado" as const, descricao: "Interrupção de sistemas de TI essenciais para operação" },
-  { id: "R3", risk: "Risco de Liquidez", category: "Financeiros", impact: 4, probability: 1, residual: 5, responsible: "CFO", previsao: "3 meses", status: "Ativo" as const, descricao: "Dificuldade de honrar obrigações de curto prazo" },
-  { id: "R4", risk: "Não conformidade regulatória", category: "Conformidade", impact: 3, probability: 3, residual: 6, responsible: "Compliance", previsao: "12 meses", status: "Em análise" as const, descricao: "Mudanças em normas do setor não acompanhadas" },
-  { id: "R5", risk: "Dependência de fornecedor único", category: "Operacionais", impact: 4, probability: 2, residual: 4, responsible: "COO", previsao: "6 meses", status: "Mitigado" as const, descricao: "Concentração de insumos críticos em um único fornecedor" },
-  { id: "R6", risk: "Perda de talentos-chave", category: "Estratégicos", impact: 3, probability: 1, residual: 2, responsible: "RH", previsao: "12 meses", status: "Ativo" as const, descricao: "Saída de executivos ou especialistas críticos" },
-];
-
-// Categorias para os cards (nome, quantidade, ícone, cor)
-const categorySummary = [
-  { name: "Estratégicos", count: 2, icon: Target, color: "text-red-600", bg: "bg-red-100" },
-  { name: "Operacionais", count: 2, icon: Cog, color: "text-orange-600", bg: "bg-orange-100" },
-  { name: "Financeiros", count: 1, icon: DollarSign, color: "text-amber-600", bg: "bg-amber-100" },
-  { name: "Conformidade", count: 1, icon: CheckCircle, color: "text-green-600", bg: "bg-green-100" },
-];
-
-// Sample risks data (legado para outras abas)
+// Sample risks data
 const systemicRisks = [
-  { id: 1, category: "Poder", risk: "Concentração excessiva de poder no fundador", impact: 4, probability: 3, responsible: "Carlos Silva", hasAction: true },
-  { id: 2, category: "Cultura", risk: "Perda de valores essenciais na transição de gerações", impact: 5, probability: 4, responsible: "Ana Silva", hasAction: true },
-  { id: 3, category: "Pessoas", risk: "Falta de preparo dos sucessores", impact: 5, probability: 3, responsible: "Carlos Silva", hasAction: true },
-  { id: 4, category: "Sociedade", risk: "Mudanças regulatórias significativas no setor", impact: 4, probability: 2, responsible: "Pedro Silva", hasAction: false },
-  { id: 5, category: "Tecnologia", risk: "Disrupção tecnológica no modelo de negócio", impact: 5, probability: 3, responsible: "Lucas Silva", hasAction: true },
+  {
+    id: 1,
+    category: "Poder",
+    risk: "Concentração excessiva de poder no fundador",
+    impact: 4,
+    probability: 3,
+    responsible: "Carlos Silva",
+    hasAction: true,
+  },
+  {
+    id: 2,
+    category: "Cultura",
+    risk: "Perda de valores essenciais na transição de gerações",
+    impact: 5,
+    probability: 4,
+    responsible: "Ana Silva",
+    hasAction: true,
+  },
+  {
+    id: 3,
+    category: "Pessoas",
+    risk: "Falta de preparo dos sucessores",
+    impact: 5,
+    probability: 3,
+    responsible: "Carlos Silva",
+    hasAction: true,
+  },
+  {
+    id: 4,
+    category: "Sociedade",
+    risk: "Mudanças regulatórias significativas no setor",
+    impact: 4,
+    probability: 2,
+    responsible: "Pedro Silva",
+    hasAction: false,
+  },
+  {
+    id: 5,
+    category: "Tecnologia",
+    risk: "Disrupção tecnológica no modelo de negócio",
+    impact: 5,
+    probability: 3,
+    responsible: "Lucas Silva",
+    hasAction: true,
+  },
 ];
 
 // Sample risk mitigation actions
@@ -147,33 +157,9 @@ const riskFormSchema = z.object({
   mitigationAction: z.string().optional(),
 });
 
-// Probabilidade no eixo Y: índice 0 = Alta (3), 1 = Média (2), 2 = Baixa (1)
-const probIndexToValue = (rowIndex: number) => (rowIndex === 0 ? 3 : rowIndex === 1 ? 2 : 1);
-const impactIndexToValue = (colIndex: number) => colIndex + 1;
-
 const SystemicRisksPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedRisk, setSelectedRisk] = useState<number | null>(null);
-
-  // Agrupar riscos por célula (row = probIndex 0=Alta, 1=Média, 2=Baixa; col = impactIndex 0..4)
-  const risksByCell = React.useMemo(() => {
-    const map: Record<string, typeof matrixRisks[0][]> = {};
-    matrixRisks.forEach((r) => {
-      const rowIndex = r.probability === 3 ? 0 : r.probability === 2 ? 1 : 2;
-      const colIndex = r.impact - 1;
-      const key = `${rowIndex}-${colIndex}`;
-      if (!map[key]) map[key] = [];
-      map[key].push(r);
-    });
-    return map;
-  }, []);
-
-  const filteredMatrixRisks = matrixRisks.filter((r) => {
-    const matchSearch = !searchTerm || r.risk.toLowerCase().includes(searchTerm.toLowerCase()) || r.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCategory = categoryFilter === "all" || r.category === categoryFilter;
-    return matchSearch && matchCategory;
-  });
 
   const form = useForm<z.infer<typeof riskFormSchema>>({
     resolver: zodResolver(riskFormSchema),
@@ -226,7 +212,7 @@ const SystemicRisksPage = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Gestão de Riscos de Governança" />
+        <Header title="Riscos Sistêmicos" />
         <div className="flex-1 overflow-y-auto p-6">
           <Card className="mb-6">
             <CardContent className="pt-6 px-6">
@@ -253,33 +239,11 @@ const SystemicRisksPage = () => {
                   <TabsTrigger value="matrix">Matriz de Riscos</TabsTrigger>
                   <TabsTrigger value="mitigation">Planos de Mitigação</TabsTrigger>
                   <TabsTrigger value="assessment">Nova Avaliação</TabsTrigger>
-                  <TabsTrigger value="analytics">KPIs & Análise</TabsTrigger>
+                  <TabsTrigger value="analytics">Análise</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="matrix" className="space-y-6">
-                  {/* Filtros */}
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="relative flex-1 min-w-[200px] max-w-sm">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder="Buscar riscos..."
-                        className="pl-8 rounded-md border"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-[220px] rounded-md border">
-                        <SelectValue placeholder="Todas as categorias" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas as categorias</SelectItem>
-                        {categorySummary.map((c) => (
-                          <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <TabsContent value="matrix">
+                  <div className="flex justify-end mb-4">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button>
@@ -289,36 +253,50 @@ const SystemicRisksPage = () => {
                       <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
                           <DialogTitle>Adicionar Risco Sistêmico</DialogTitle>
-                          <DialogDescription>Cadastre um novo risco para monitoramento</DialogDescription>
+                          <DialogDescription>
+                            Cadastre um novo risco para monitoramento
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="riskCategory" className="text-right">Categoria</label>
+                            <label htmlFor="riskCategory" className="text-right">
+                              Categoria
+                            </label>
                             <Select>
                               <SelectTrigger className="col-span-3">
                                 <SelectValue placeholder="Selecione a categoria" />
                               </SelectTrigger>
                               <SelectContent>
-                                {categorySummary.map((c) => (
-                                  <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                                ))}
+                                <SelectItem value="poder">Poder</SelectItem>
+                                <SelectItem value="cultura">Cultura</SelectItem>
+                                <SelectItem value="pessoas">Pessoas</SelectItem>
+                                <SelectItem value="sociedade">Sociedade</SelectItem>
+                                <SelectItem value="tecnologia">Tecnologia</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="riskName" className="text-right">Risco</label>
+                            <label htmlFor="riskName" className="text-right">
+                              Risco
+                            </label>
                             <Input id="riskName" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="riskImpact" className="text-right">Impacto (1-5)</label>
+                            <label htmlFor="riskImpact" className="text-right">
+                              Impacto (1-5)
+                            </label>
                             <Input id="riskImpact" type="number" min="1" max="5" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="riskProbability" className="text-right">Probabilidade (1-5)</label>
+                            <label htmlFor="riskProbability" className="text-right">
+                              Probabilidade (1-5)
+                            </label>
                             <Input id="riskProbability" type="number" min="1" max="5" className="col-span-3" />
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="riskResponsible" className="text-right">Responsável</label>
+                            <label htmlFor="riskResponsible" className="text-right">
+                              Responsável
+                            </label>
                             <Input id="riskResponsible" className="col-span-3" />
                           </div>
                         </div>
@@ -328,183 +306,63 @@ const SystemicRisksPage = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-
-                  {/* Matriz Impacto x Probabilidade */}
-                  <div>
-                    <h3 className="text-center text-lg font-semibold text-gray-900 mb-4">
-                      Matriz de Riscos - Impacto x Probabilidade
-                    </h3>
-                    <div className="w-full overflow-x-auto">
-                      <div className="w-full min-w-0">
-                        <div className="grid grid-cols-6 gap-px bg-border rounded-lg overflow-hidden border border-border w-full">
-                          <div className="col-span-1 min-w-0" />
-                          {IMPACTO_LABELS.map((label) => (
-                            <div key={label} className="p-2 bg-muted/50 text-center text-xs font-medium text-muted-foreground min-w-0">
-                              {label}
-                            </div>
-                          ))}
-                          {[0, 1, 2].map((rowIndex) => {
-                            const probValue = probIndexToValue(rowIndex);
-                            return (
-                              <React.Fragment key={rowIndex}>
-                                <div className="p-2 bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground border-r border-border min-w-0">
-                                  {PROBABILIDADE_LABELS[rowIndex]}
-                                </div>
-                                {[0, 1, 2, 3, 4].map((colIndex) => {
-                                  const impactValue = impactIndexToValue(colIndex);
-                                  const level = getMatrixCellLevel(impactValue, probValue);
-                                  const cellRisks = risksByCell[`${rowIndex}-${colIndex}`] || [];
-                                  const levelClasses = {
-                                    baixo: "bg-emerald-100 border-emerald-200",
-                                    medio: "bg-amber-100 border-amber-200",
-                                    alto: "bg-red-100 border-red-200",
-                                    critico: "bg-red-200 border-red-300",
-                                  };
-                                  return (
-                                    <div
-                                      key={`${rowIndex}-${colIndex}`}
-                                      className={`min-h-[100px] p-3 border ${levelClasses[level]} flex flex-wrap items-center justify-center gap-1.5 min-w-0`}
-                                    >
-                                      {cellRisks.filter((r) => filteredMatrixRisks.some((f) => f.id === r.id)).map((r) => (
-                                        <span
-                                          key={r.id}
-                                          className="inline-flex items-center justify-center rounded-md bg-white/90 px-2 py-0.5 text-xs font-medium shadow-sm border border-gray-200"
-                                        >
-                                          {r.id}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  );
-                                })}
-                              </React.Fragment>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap justify-center gap-6 mt-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded bg-emerald-500" /> Baixo
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded bg-amber-500" /> Médio
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded bg-red-500" /> Alto
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded bg-red-700" /> Crítico
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Cards por categoria */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {categorySummary.map((cat) => {
-                      const Icon = cat.icon;
-                      return (
-                        <div
-                          key={cat.name}
-                          className="rounded-lg border bg-card p-4 shadow-sm flex items-center gap-3"
-                        >
-                          <div className={`rounded-lg p-2 ${cat.bg}`}>
-                            <Icon className={`h-5 w-5 ${cat.color}`} />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{cat.name}</p>
-                            <p className="text-sm text-muted-foreground">{cat.count} risco{cat.count !== 1 ? "s" : ""}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Tabela de riscos */}
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Risco</TableHead>
-                          <TableHead>Categoria</TableHead>
-                          <TableHead>Impacto</TableHead>
-                          <TableHead>Probabilidade</TableHead>
-                          <TableHead>Nível</TableHead>
-                          <TableHead>Risco Residual</TableHead>
-                          <TableHead>Responsável</TableHead>
-                          <TableHead>Previsão</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredMatrixRisks.map((r) => {
-                          const level = getMatrixCellLevel(r.impact, r.probability);
-                          const levelBadge = {
-                            baixo: "bg-emerald-100 text-emerald-800",
-                            medio: "bg-blue-100 text-blue-800",
-                            alto: "bg-red-100 text-red-800",
-                            critico: "bg-red-200 text-red-900",
-                          };
-                          const statusBadge = {
-                            Ativo: "bg-blue-100 text-blue-800",
-                            Mitigado: "bg-green-100 text-green-800",
-                            "Em análise": "bg-amber-100 text-amber-800",
-                          };
-                          const categoryBadge = {
-                            Estratégicos: "bg-red-100 text-red-800",
-                            Operacionais: "bg-orange-100 text-orange-800",
-                            Financeiros: "bg-amber-100 text-amber-800",
-                            Conformidade: "bg-green-100 text-green-800",
-                          };
-                          return (
-                            <TableRow key={r.id}>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium text-gray-900">{r.risk}</p>
-                                  <p className="text-xs text-muted-foreground">{r.descricao}</p>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryBadge[r.category as keyof typeof categoryBadge] || "bg-gray-100 text-gray-800"}`}>
-                                  {r.category}
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Risco</TableHead>
+                        <TableHead>Impacto</TableHead>
+                        <TableHead>Probabilidade</TableHead>
+                        <TableHead>Nível</TableHead>
+                        <TableHead>Responsável</TableHead>
+                        <TableHead>Plano de Ação</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRisks.map((risk) => {
+                        const riskLevel = getRiskLevel(risk.impact, risk.probability);
+                        return (
+                          <TableRow key={risk.id}>
+                            <TableCell>
+                              <span className="font-medium">{risk.category}</span>
+                            </TableCell>
+                            <TableCell>{risk.risk}</TableCell>
+                            <TableCell>{risk.impact}/5</TableCell>
+                            <TableCell>{risk.probability}/5</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${riskLevel.color}`}></div>
+                                <span>{riskLevel.text}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{risk.responsible}</TableCell>
+                            <TableCell>
+                              {risk.hasAction ? (
+                                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                  Sim
                                 </span>
-                              </TableCell>
-                              <TableCell>{r.impact}</TableCell>
-                              <TableCell>{r.probability}</TableCell>
-                              <TableCell>
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${levelBadge[level]}`}>
-                                  {level === "baixo" ? "Baixo" : level === "medio" ? "Médio" : level === "alto" ? "Alto" : "Crítico"}
+                              ) : (
+                                <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                  Não
                                 </span>
-                              </TableCell>
-                              <TableCell>{r.residual}</TableCell>
-                              <TableCell>{r.responsible}</TableCell>
-                              <TableCell>
-                                <span className="flex items-center gap-1 text-sm">
-                                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                                  {r.previsao}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusBadge[r.status] || "bg-gray-100 text-gray-800"}`}>
-                                  {r.status}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewRisk(risk.id)}
+                              >
+                                Ver Detalhes
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </TabsContent>
 
                 <TabsContent value="mitigation">

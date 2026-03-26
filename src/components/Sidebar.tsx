@@ -1,359 +1,766 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import {
-  BarChart3, Calendar, ClipboardList, FileText, ChevronRight,
-  ChevronLeft, ChevronUp, ChevronDown, LayoutDashboard, Settings, Shield,
-  Users, Building, Bot, DollarSign, PieChart,
-  Target, LogOut, Mic, Gift, Send, Award, Lock, Leaf, TrendingUp, Calculator,
-  Layers
+import { prefetchRoute } from "@/utils/routePrefetch";
+import { 
+  BarChart3, 
+  Calendar, 
+  FileText, 
+  ChevronRight, 
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+  LayoutDashboard, 
+  Leaf, 
+  Settings, 
+  Shield, 
+  Users, 
+  BookOpen, 
+  Layers, 
+  Building2, 
+  Send, 
+  TrendingUp,
+  Handshake,
+  DollarSign,
+  Link as LinkIcon,
+  Award,
+  Target,
+  Zap,
+  Bot,
+  Cpu,
+  Gift,
+  Lock,
+  Calculator,
+  FileSignature,
+  Receipt,
+  ScrollText,
+  LogOut,
+  Brain,
+  PieChart,
+  CheckCircle,
+  ActivitySquare,
+  Briefcase,
+  ClipboardList,
+  MessageSquare,
+  GraduationCap,
+  Share2,
+  Filter,
+  Ticket,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useCurrentAdminProfile } from "@/hooks/useCurrentAdminProfile";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { AddonModuleModal } from "@/components/AddonModuleModal";
-import { companyMenuPhases } from "@/config/companyMenu";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useAuth } from "@/contexts/AuthContext";
+import logoImage from "@/assets/legacy-logo-new.png";
 
-const PHASE_CONFIG: Record<string, { icon: React.ReactNode; color: string; badgeCount?: number }> = {
-  Início: { icon: <Target className="h-4 w-4" />, color: "text-blue-400" },
-  Parametrização: { icon: <Users className="h-4 w-4" />, color: "text-blue-400" },
-  Estruturação: { icon: <Shield className="h-4 w-4" />, color: "text-blue-400" },
-  "Add-ons": { icon: <Gift className="h-4 w-4" />, color: "text-legacy-gold", badgeCount: 3 },
-};
+// Base sections structure
+const BASE_SECTIONS = [
+  {
+    key: "inicio",
+    label: "INÍCIO",
+    items: [
+      { key: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+      { key: "ai_copilot", label: "Copiloto de IA", path: "/copiloto-governanca", icon: Brain },
+    ]
+  },
+  {
+    key: "parametrizacao",
+    label: "PARAMETRIZAÇÃO",
+    items: [
+      { key: "structure", label: "Estrutura Societária", path: "/shareholder-structure", icon: Users },
+      { key: "cap_table", label: "Cap Table", path: "/cap-table", icon: PieChart },
+      { key: "gov_maturity", label: "Maturidade de Governança", path: "/maturity", icon: CheckCircle },
+    ]
+  },
+  {
+    key: "preparacao",
+    label: "PREPARAÇÃO",
+    items: [
+      { key: "checklist", label: "Checklist", path: "/document-checklist", icon: FileText },
+      { key: "interviews", label: "Entrevistas", path: "/interviews", icon: ActivitySquare },
+      { key: "analysis_actions", label: "Análise e Ações", path: "/initial-report", icon: BarChart3 },
+    ]
+  },
+  {
+    key: "estruturacao",
+    label: "ESTRUTURAÇÃO",
+    items: [
+      { key: "gov_config", label: "Config. Governança", path: "/governance-config", icon: Settings },
+      { key: "annual_agenda", label: "Agenda Anual", path: "/annual-agenda", icon: Calendar },
+      { key: "secretariat", label: "Secretariado", path: "/secretariat", icon: Briefcase },
+    ]
+  }
+];
 
-const ITEM_ICONS: Record<string, React.ReactNode> = {
-  "/dashboard": <LayoutDashboard className="h-5 w-5" />,
-  "/copiloto-governanca": <Bot className="h-5 w-5" />,
-  "/family-structure": <Users className="h-5 w-5" />,
-  "/documents": <FileText className="h-5 w-5" />,
-  "/cap-table": <PieChart className="h-5 w-5" />,
-  "/maturidade-governanca": <BarChart3 className="h-5 w-5" />,
-  "/entrevistas": <Mic className="h-5 w-5" />,
-  "/councils": <Shield className="h-5 w-5" />,
-  "/analise-acoes": <BarChart3 className="h-5 w-5" />,
-  "/agenda": <Calendar className="h-5 w-5" />,
-  "/secretariado": <ClipboardList className="h-5 w-5" />,
-  "/planos": <Send className="h-5 w-5" />,
-};
+// Add-ons flat list
+const ADDON_ITEMS = [
+  { key: "project_submission", label: "Submeter Projetos", path: "/submit-projects", icon: Send },
+  { key: "leadership_performance", label: "Desenvolvimento e PDI", path: "/people-management", icon: Users },
+  { key: "board_performance", label: "Desempenho do Conselho", path: "/board-performance", icon: Award },
+  { key: "risks", label: "Riscos", path: "/governance-risk-management", icon: Shield },
+  { key: "esg_maturity", label: "Maturidade ESG", path: "/esg", icon: Leaf },
+  { key: "market_intel", label: "Inteligência de Mercado", path: "/market-intelligence", icon: TrendingUp },
+  { key: "benchmarking", label: "Benchmarking Global", path: "/benchmarking", icon: Target },
+  { key: "ai_agents", label: "Agentes de IA", path: "/ai-agents", icon: Bot },
+  { key: "scenario_simulator", label: "Simulador de Cenários", path: "/simulador-cenarios", icon: Calculator },
+];
 
-const ITEM_ICONS_ADDONS: Record<string, React.ReactNode> = {
-  "Submeter Projetos": <Send className="h-5 w-5" />,
-  "Desempenho do Conselho": <Award className="h-5 w-5" />,
-  Riscos: <Shield className="h-5 w-5" />,
-  "Desenvolvimento e PDI": <Users className="h-5 w-5" />,
-  "Maturidade ESG": <Leaf className="h-5 w-5" />,
-  "Inteligência de Mercado": <TrendingUp className="h-5 w-5" />,
-  "Benchmarking Global": <Target className="h-5 w-5" />,
-  "Agentes de IA": <Bot className="h-5 w-5" />,
-  "Simulador de Cenários": <Calculator className="h-5 w-5" />,
-};
+// Admin menu items organized by sections (PLG/Hyper-automation structure)
+const ADMIN_MENU_SECTIONS = [
+  {
+    label: "Visão Geral",
+    items: [
+      { icon: LayoutDashboard, href: "/admin", name: "Dashboard" },
+    ]
+  },
+  {
+    label: "Aquisição PLG",
+    items: [
+      { icon: Target, href: "/admin/plg-funnel", name: "Funil PLG" },
+      { icon: TrendingUp, href: "/admin/vendas", name: "Vendas" },
+    ]
+  },
+  {
+    label: "Parceiros & Afiliados",
+    items: [
+      { icon: Handshake, href: "/admin/parceiros", name: "Cadastro de Parceiros" },
+      { icon: DollarSign, href: "/admin/parceiros/comissoes", name: "Comissões de Parceiros" },
+      { icon: Settings, href: "/admin/tier-config", name: "Configuração de Tiers" },
+      { icon: Ticket, href: "/admin/discount-coupons", name: "Cupons de Desconto" },
+      { icon: Share2, href: "/admin/parceiros/conteudo", name: "Gestão de Conteúdo" },
+    ]
+  },
+  {
+    label: "Contratos",
+    items: [
+      { icon: ClipboardList, href: "/admin/contract-management", name: "Gestão de Contratos" },
+      // Esta página possui abas: "Contratos de Clientes" e "Contratos de Parceiros"
+    ]
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { icon: Receipt, href: "/admin/faturas", name: "Gestão de Faturas" },
+      { icon: DollarSign, href: "/admin/finances", name: "Finanças" },
+    ]
+  },
+  {
+    label: "Planos",
+    items: [
+      { icon: FileText, href: "/admin/planos", name: "Configurador de Planos" },
+    ]
+  },
+  {
+    label: "Tecnologia",
+    items: [
+      { icon: Cpu, href: "/admin/llm-management", name: "Gestao de LLMs" },
+      { icon: Bot, href: "/admin/prompts", name: "AI Engine" },
+    ]
+  },
+];
+
+// Parceiro menu items
+const PARTNER_MENU_ITEMS = [
+  { icon: LayoutDashboard, href: "/afiliado", name: "Dashboard" },
+  { icon: Share2, href: "/afiliado/link", name: "Link do Afiliado" },
+  { icon: Filter, href: "/afiliado/funil", name: "Funil de Indicações" },
+  { icon: DollarSign, href: "/afiliado/comissoes", name: "Comissões" },
+  { icon: GraduationCap, href: "/afiliado/academy", name: "Academy" },
+  { icon: MessageSquare, href: "/afiliado/chat", name: "Chat" },
+];
 
 const Sidebar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { nome, email } = useCurrentAdminProfile();
   const [open, setOpen] = useState(!isMobile);
-  const [addonModalOpen, setAddonModalOpen] = useState(false);
-  const [addonModuleName, setAddonModuleName] = useState<string | null>(null);
-  const [addonsSectionCollapsed, setAddonsSectionCollapsed] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [selectedAddon, setSelectedAddon] = useState({ key: "", label: "" });
+  const { hasAccess } = useModuleAccess();
+  const { user, logout } = useAuth();
+  
+  // Ref para o container de scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
   
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPartnerRoute = pathname.startsWith("/afiliado") || pathname.startsWith("/banca");
+  const isPartner = user?.role === 'parceiro';
   
+  // Verificar quais add-ons o cliente tem ativados (memoizado)
+  const enabledAddons = useMemo(() => {
+    // Módulos sempre desbloqueados para demo
+    const alwaysUnlocked = ['project_submission', 'board_performance', 'risks'];
+    
+    // Verificar se é um novo usuário (primeiro acesso)
+    const justCreatedPassword = localStorage.getItem('just_created_password');
+    const fromContractSign = localStorage.getItem('from_contract_sign');
+    
+    // Se for novo usuário, mostrar apenas os sempre desbloqueados
+    if (justCreatedPassword || fromContractSign) {
+      return ADDON_ITEMS.filter(item => alwaysUnlocked.includes(item.key));
+    }
+    
+    // Para usuários existentes, usar hasAccess para verificar + sempre desbloqueados
+    return ADDON_ITEMS.filter(item => 
+      hasAccess(item.key) || alwaysUnlocked.includes(item.key)
+    );
+  }, [hasAccess]);
+  
+  // Verificar se a rota atual é um Add-on (memoizado)
+  const isAddonRoute = useMemo(() => 
+    ADDON_ITEMS.some(item => pathname === item.path),
+    [pathname]
+  );
+  
+  // Estado da seção de Add-ons - começa expandido se estiver em uma rota de Add-on
+  const [addonsExpanded, setAddonsExpanded] = useState(isAddonRoute);
+  
+  // Manter a seção expandida quando navegar para um Add-on (otimizado)
   useEffect(() => {
-    setOpen(!isMobile);
-  }, [isMobile]);
+    if (isAddonRoute && !addonsExpanded) {
+      setAddonsExpanded(true);
+    }
+  }, [isAddonRoute]); // Removido pathname e addonsExpanded das dependências
+  
+  // Removido useEffect de scroll que causava re-render desnecessário
+  // O navegador mantém a posição do scroll automaticamente
+  
+  // Handler para salvar posição do scroll
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+    }
+  };
+  
+  // Gerenciar estado inicial do sidebar baseado em mobile/desktop
+  // IMPORTANTE: Não fechar o sidebar em desktop ao mudar isMobile
+  // Apenas inicializar o estado no primeiro render
+  useEffect(() => {
+    // Apenas ajustar o estado inicial uma vez no mount
+    // Em desktop, manter o sidebar aberto por padrão
+    // Não re-executar quando isMobile mudar para evitar fechar em desktop
+    if (typeof window !== 'undefined') {
+      const isMobileCheck = window.innerWidth < 768;
+      if (isMobileCheck) {
+        // Em mobile, começar com sidebar fechado
+        setOpen(false);
+      }
+      // Em desktop, manter o estado atual (não forçar)
+    }
+  }, []); // Array vazio = executa apenas no mount
+  
+  // Fechar sidebar apenas em mobile quando navegar (otimizado)
+  // IMPORTANTE: Não fechar em desktop ao navegar - deixar o usuário controlar
+  useEffect(() => {
+    if (isMobile && pathname) {
+      // Usar requestAnimationFrame para evitar bloqueio durante navegação
+      requestAnimationFrame(() => {
+        setOpen(false);
+      });
+    }
+    // Em desktop, não fazer nada - manter o estado atual (aberto/fechado)
+  }, [pathname, isMobile]);
   
   const toggleSidebar = () => {
     setOpen(!open);
   };
-  
-  useEffect(() => {
-    if (isMobile) {
-      setOpen(false);
-    }
-  }, [pathname, isMobile]);
 
-  const handleLogout = () => {
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso",
-    });
-    navigate("/");
+  const handleLockedClick = (key: string, label: string) => {
+    setSelectedAddon({ key, label });
+    setUpgradeModalOpen(true);
   };
 
-  const handleEditProfile = () => {
-    toast({
-      title: "Editar Perfil",
-      description: "Edição de perfil ativada",
-    });
-    navigate(isAdminRoute ? "/admin/settings" : "/settings?tab=profile");
-  };
+  // Render partner menu
+  const renderPartnerMenu = () => (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        {PARTNER_MENU_ITEMS.map(item => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          
+          return (
+            <TooltipProvider key={item.href} delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link 
+                    to={item.href}
+                    onMouseEnter={() => prefetchRoute(item.href)}
+                    className={cn(
+                      "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
+                      isActive
+                        ? "bg-[#C0A062] text-white" 
+                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {open && <span>{item.name}</span>}
+                  </Link>
+                </TooltipTrigger>
+                {!open && (
+                  <TooltipContent side="right">
+                    <p>{item.name}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+      </div>
+    </div>
+  );
 
-  // Admin menu items (podem ser seção { type: 'section', name } ou link { type: 'item', icon, href, name })
-  const adminMenuItems: Array<
-    | { type: "section"; name: string }
-    | { type: "item"; icon: React.ReactNode; href: string; name: string }
-  > = [
-    { type: "item", icon: <LayoutDashboard className="h-5 w-5" />, href: "/admin", name: "Dashboard" },
-    { type: "item", icon: <Shield className="h-5 w-5" />, href: "/admin/master", name: "Funil e Vendas" },
-    { type: "item", icon: <Users className="h-5 w-5" />, href: "/admin/partners", name: "Parceiros e links de afiliados" },
-    { type: "item", icon: <ClipboardList className="h-5 w-5" />, href: "/admin/contracts", name: "Gestão de Contratos" },
-    { type: "item", icon: <Building className="h-5 w-5" />, href: "/admin/companies", name: "Empresas" },
-    { type: "item", icon: <DollarSign className="h-5 w-5" />, href: "/admin/finances", name: "Finanças" },
-    { type: "item", icon: <FileText className="h-5 w-5" />, href: "/admin/finances/invoices", name: "Gestão de Faturas" },
-    { type: "item", icon: <Layers className="h-5 w-5" />, href: "/admin/configurador-planos", name: "Configurador de Planos" },
-    { type: "section", name: "Tecnologia" },
-    { type: "item", icon: <Bot className="h-5 w-5" />, href: "/admin/agent-config", name: "Gestão de IA" },
-    { type: "item", icon: <Settings className="h-5 w-5" />, href: "/admin/settings", name: "Configurações" }
-  ];
+  // Render admin menu with sections
+  const renderAdminMenu = () => (
+    <div className="space-y-4">
+      {ADMIN_MENU_SECTIONS.map((section, sectionIndex) => (
+        <div key={section.label} className="space-y-1">
+          {/* Section Label */}
+          {open && (
+            <div className="flex items-center gap-2 px-3 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+                {section.label}
+              </span>
+              <div className="flex-1 h-px bg-sidebar-border/50" />
+            </div>
+          )}
+          
+          {/* Section Items */}
+          {section.items.map(item => {
+            const Icon = item.icon;
+            // Verificar se é exatamente igual (prioridade máxima)
+            let isActive = pathname === item.href;
+            
+            // Se não for exatamente igual, verificar se há match exato em outros itens da mesma seção
+            if (!isActive && item.href !== "/admin") {
+              // Verificar se existe outro item com match exato na mesma seção
+              const hasExactMatch = section.items.some(otherItem => 
+                otherItem.href !== item.href && 
+                pathname === otherItem.href
+              );
+              
+              // Se há match exato em outro item, não marcar este como ativo
+              if (!hasExactMatch) {
+                const isSubPath = pathname.startsWith(item.href + "/");
+                
+                if (isSubPath) {
+                  // Verificar se existe outro item com href mais longo que também faz match exato
+                  const hasLongerExactMatch = section.items.some(otherItem => 
+                    otherItem.href !== item.href && 
+                    otherItem.href.length > item.href.length &&
+                    pathname === otherItem.href
+                  );
+                  
+                  // Verificar se existe outro item com href mais longo que faz match como subcaminho
+                  const hasLongerSubPathMatch = section.items.some(otherItem => 
+                    otherItem.href !== item.href && 
+                    otherItem.href.length > item.href.length &&
+                    pathname.startsWith(otherItem.href)
+                  );
+                  
+                  // Só marcar como ativo se não houver match exato ou subcaminho mais específico
+                  isActive = !hasLongerExactMatch && !hasLongerSubPathMatch;
+                }
+              }
+            }
+            
+            return (
+              <TooltipProvider key={item.href} delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link 
+                      to={item.href} 
+                      className={cn(
+                        "flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors", 
+                        isActive
+                          ? "bg-[#C0A062] text-white" 
+                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {open && <span>{item.name}</span>}
+                    </Link>
+                  </TooltipTrigger>
+                  {!open && (
+                    <TooltipContent side="right">
+                      <p>{item.name}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 
-  const menuPhases = companyMenuPhases.map((menuPhase) => {
-    const config = PHASE_CONFIG[menuPhase.phase] ?? { icon: <Shield className="h-4 w-4" />, color: "text-blue-400" };
-    return {
-      phase: menuPhase.phase,
-      icon: config.icon,
-      color: config.color,
-      badgeCount: config.badgeCount,
-      items: menuPhase.items.map((item) => ({
-        icon: item.locked ? (ITEM_ICONS_ADDONS[item.name] ?? <Gift className="h-5 w-5" />) : (ITEM_ICONS[item.href] ?? <FileText className="h-5 w-5" />),
-        href: item.href,
-        name: item.name,
-        moduleId: item.moduleId,
-        locked: item.locked,
-      })),
-    };
-  });
+  // Render company menu with Base + Add-ons structure
+  const renderCompanyMenu = () => (
+    <div className="space-y-2">
+      {/* ===== SISTEMA BASE ===== */}
+      <div className="space-y-2">
+        {BASE_SECTIONS.map(section => (
+          <div key={section.key}>
+            {open && (
+              <div className="flex items-center gap-2 px-3 mb-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+                  {section.label}
+                </span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+            )}
 
-  // Choose which menu items to display based on the route
-  const menuData = isAdminRoute ? adminMenuItems : menuPhases;
+            <div className="space-y-0">
+              {section.items.map(item => {
+                const Icon = item.icon;
+                const isActive = pathname === item.path;
+
+                return (
+                  <TooltipProvider key={item.path} delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={item.path}
+                          onMouseEnter={() => prefetchRoute(item.path)}
+                          className={cn(
+                            "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
+                            isActive
+                              ? "bg-[#C0A062] text-white"
+                              : "text-white/80 hover:bg-white/10 hover:text-white"
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {open && <span>{item.label}</span>}
+                        </Link>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ===== SEPARADOR ===== */}
+      <div className="relative py-1">
+        <div className="absolute inset-0 flex items-center px-3">
+          <div className="w-full border-t-2 border-[#C0A062]/40" />
+        </div>
+      </div>
+
+      {/* ===== ADD-ONS (Colapsável) ===== */}
+      <div>
+        {/* Header clicável para expandir/colapsar */}
+        {open ? (
+          <button
+            onClick={() => setAddonsExpanded(!addonsExpanded)}
+            className="flex items-center gap-2 px-3 py-2 w-full hover:bg-white/5 rounded-lg transition-colors"
+          >
+            <Gift className="h-3.5 w-3.5 text-[#C0A062]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C0A062] flex-1 text-left">
+              Add-ons
+            </span>
+            {enabledAddons.length > 0 && (
+              <span className="text-[9px] bg-[#C0A062]/20 text-[#C0A062] px-1.5 py-0.5 rounded-full font-medium">
+                {enabledAddons.length}
+              </span>
+            )}
+            {addonsExpanded ? (
+              <ChevronUp className="h-3.5 w-3.5 text-[#C0A062]/70" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5 text-[#C0A062]/70" />
+            )}
+          </button>
+        ) : (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setAddonsExpanded(!addonsExpanded)}
+                  className="flex items-center justify-center py-2 px-3 w-full hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <Gift className="h-4 w-4 text-[#C0A062]" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Add-ons ({enabledAddons.length} {enabledAddons.length === 1 ? 'ativo' : 'ativos'})</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* Lista de Add-ons - Mostrar apenas quando expandido */}
+        {addonsExpanded && (
+          <div className="space-y-0 mt-1">
+            {/* Mostrar add-ons ativados primeiro */}
+            {enabledAddons.length > 0 && (
+              <>
+                {enabledAddons.map(item => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.path;
+
+                  return (
+                    <TooltipProvider key={item.path} delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            to={item.path}
+                            onMouseEnter={() => prefetchRoute(item.path)}
+                            className={cn(
+                              "flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all",
+                              isActive
+                                ? "bg-[#C0A062] text-white"
+                                : "text-white/80 hover:bg-white/10 hover:text-white"
+                            )}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {open && <span className="flex-1 text-left">{item.label}</span>}
+                          </Link>
+                        </TooltipTrigger>
+                        {!open && (
+                          <TooltipContent side="right">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Mostrar add-ons bloqueados (sem acesso) */}
+            {(() => {
+              // Módulos sempre desbloqueados para demo
+              const alwaysUnlocked = ['project_submission', 'board_performance', 'risks'];
+              
+              const lockedAddons = ADDON_ITEMS.filter(item => 
+                !hasAccess(item.key) && !alwaysUnlocked.includes(item.key)
+              );
+              const justCreatedPassword = localStorage.getItem('just_created_password');
+              const fromContractSign = localStorage.getItem('from_contract_sign');
+              
+              // Se for novo usuário, mostrar todos os add-ons como bloqueados (exceto os sempre desbloqueados)
+              const addonsToShow = (justCreatedPassword || fromContractSign) 
+                ? ADDON_ITEMS.filter(item => !alwaysUnlocked.includes(item.key))
+                : lockedAddons;
+              
+              return addonsToShow.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-white/10">
+                  {addonsToShow.map(item => {
+                    const Icon = item.icon;
+                    
+                    return (
+                      <TooltipProvider key={item.path} delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => {
+                                setSelectedAddon({ key: item.key, label: item.label });
+                                setUpgradeModalOpen(true);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm font-medium transition-all opacity-50 hover:opacity-70 cursor-pointer",
+                                "text-white/60 hover:text-white/80 hover:bg-white/5"
+                              )}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              {open && (
+                                <>
+                                  <span className="flex-1 text-left">{item.label}</span>
+                                  <Lock className="h-3.5 w-3.5 text-amber-500/70 shrink-0" />
+                                </>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          {!open && (
+                            <TooltipContent side="right">
+                              <p>{item.label} (Bloqueado)</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <>
-    <aside className={cn("bg-legacy-500 h-screen border-r border-legacy-600 transition-all duration-300 ease-in-out z-10 relative", 
-      open ? "flex flex-col w-64 sm:w-64 md:w-72 max-w-full" : "w-16 flex flex-col"
-    )}>
-      <div className="overflow-hidden p-4 border-b border-legacy-600 bg-legacy-500 text-white">
-        <div className="flex items-center justify-between gap-2">
-          <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center gap-2 min-w-0 flex-1">
-            <img
-              src="/lovable-uploads/2c829115-41cf-4d67-be3a-ab60b0628e1f.png"
-              alt="Legacy OS"
-              className="h-8 w-auto brightness-0 invert"
-            />
-          </Link>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className="h-8 w-8 shrink-0 border-0 bg-transparent text-white hover:bg-legacy-600 hover:text-white"
-              title={open ? "Recolher menu" : "Expandir menu"}
-            >
-              {open ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-            </Button>
+      <aside className={cn(
+        "bg-sidebar h-screen border-r border-sidebar-border transition-all duration-300 ease-in-out z-10 sticky top-0 flex flex-col", 
+        open ? "w-64 sm:w-64 md:w-72 max-w-full" : "w-16"
+      )}>
+        {/* Header */}
+        <div className="p-4 border-b border-sidebar-border">
+          <div className="flex items-center justify-between">
+            <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="flex items-center">
+              {open ? (
+                <img 
+                  src={logoImage} 
+                  alt="Legacy" 
+                  className="h-10 w-auto"
+                />
+              ) : (
+                <img 
+                  src={logoImage} 
+                  alt="Legacy" 
+                  className="h-8 w-8 object-contain"
+                />
+              )}
+            </Link>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={toggleSidebar}
+                    className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  >
+                    {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>{open ? "Recolher menu" : "Expandir menu"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
-      </div>
 
-      <div className="overflow-y-auto flex-1 py-2 scrollbar-thin">
-        <div className="px-3 py-2">
-          {isAdminRoute ? (
-            // Admin menu (seções e links)
-            <div className="space-y-1">
-              {adminMenuItems.map((item, index) =>
-                item.type === "section" ? (
-                  open ? (
-                    <div
-                      key={`section-${item.name}-${index}`}
-                      className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-white/70"
-                    >
-                      {item.name}
-                    </div>
-                  ) : null
-                ) : (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors",
-                      pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
-                        ? "bg-legacy-600 text-white"
-                        : "text-white hover:bg-legacy-600"
-                    )}
-                    title={!open ? item.name : undefined}
-                  >
-                    {item.icon}
-                    {open && <span className="ml-2">{item.name}</span>}
-                  </Link>
-                )
-              )}
+        {/* Content */}
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="overflow-y-auto flex-1 py-4 px-2 scrollbar-thin"
+        >
+          {isAdminRoute ? renderAdminMenu() : (isPartner && isPartnerRoute ? renderPartnerMenu() : renderCompanyMenu())}
+        </div>
+
+        {/* Footer - User Profile */}
+        <div className="border-t border-sidebar-border p-3">
+          {open ? (
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-sm font-semibold text-sidebar-foreground truncate">
+                  {user?.name || 'Usuário'}
+                </p>
+                <p className="text-xs text-sidebar-foreground/70">
+                  {isAdminRoute ? 'Admin Master' : (isPartner ? 'Parceiro' : 'Cliente')}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
+                        onClick={() => navigate(
+                          isAdminRoute ? '/admin/settings' : 
+                          isPartner ? '/afiliado/configuracoes' : 
+                          '/settings'
+                        )}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Configurações</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0"
+                        onClick={async () => {
+                          await logout();
+                          navigate('/login');
+                        }}
+                      >
+                        <LogOut className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Sair</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           ) : (
-            // Company menu (organized by phases)
-            <div className="space-y-4">
-              {menuPhases.map((phase, phaseIndex) => (
-                <div key={phase.phase}>
-                  {open && (
-                    <div className="flex items-center gap-2 px-2 py-1 mb-2">
-                      <span className={cn("flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider", phase.color)}>
-                        {phase.icon}
-                        {phase.phase}
-                      </span>
-                      {"badgeCount" in phase && phase.badgeCount != null && (
-                        <>
-                          <span className={cn(
-                            "flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
-                            phase.phase === "Add-ons" ? "bg-legacy-gold text-white" : "bg-white/20 text-white"
-                          )}>
-                            {phase.badgeCount}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setAddonsSectionCollapsed((prev) => !prev)}
-                            className="shrink-0 rounded p-0.5 text-white/70 hover:bg-white/20 hover:text-white transition-colors"
-                            title={addonsSectionCollapsed ? "Expandir seção Add-ons" : "Recolher seção Add-ons"}
-                            aria-expanded={!addonsSectionCollapsed}
-                          >
-                            {addonsSectionCollapsed ? (
-                              <ChevronDown className="h-3.5 w-3.5" />
-                            ) : (
-                              <ChevronUp className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        </>
-                      )}
-                      <div className="flex-1 h-px bg-white/20" />
-                    </div>
-                  )}
-                  
-                  <div className={cn("space-y-1", phase.phase === "Add-ons" && addonsSectionCollapsed && "hidden")}>
-                    {phase.items.map((item, itemIndex) => {
-                      const isActive = pathname === item.href && !("locked" in item && item.locked);
-                      const isLocked = "locked" in item && item.locked;
-                      const showDivider = phase.phase === "Add-ons" && isLocked && phase.items[itemIndex - 1] && !("locked" in phase.items[itemIndex - 1] && phase.items[itemIndex - 1].locked);
-
-                      return (
-                        <span key={`${item.href}-${itemIndex}`}>
-                          {showDivider && <div className="my-2 h-px bg-white/20 mx-3" />}
-                          {isLocked ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setAddonModuleName(item.name);
-                                setAddonModalOpen(true);
-                              }}
-                              className={cn(
-                                "flex items-center w-full py-2 px-3 rounded-md text-sm font-medium transition-colors group relative text-left",
-                                "text-white/70 hover:bg-legacy-600 hover:text-white"
-                              )}
-                              title={!open ? item.name : undefined}
-                            >
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                {item.icon}
-                                {open && <span className="flex-1 truncate">{item.name}</span>}
-                                {open && <Lock className="h-3.5 w-3.5 shrink-0 text-white/70" />}
-                              </div>
-                            </button>
-                          ) : (
-                            <Link
-                              to={item.href}
-                              className={cn(
-                                "flex items-center py-2 px-3 rounded-md text-sm font-medium transition-colors group relative",
-                                isActive
-                                  ? "bg-legacy-600 text-white"
-                                  : "text-white hover:bg-legacy-600"
-                              )}
-                              title={!open ? item.name : undefined}
-                            >
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                {item.icon}
-                                {open && <span className="flex-1 truncate">{item.name}</span>}
-                              </div>
-                            </Link>
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-col items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      onClick={() => navigate(isAdminRoute ? '/admin/settings' : '/settings')}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Configurações</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={async () => {
+                        await logout();
+                        navigate('/login');
+                      }}
+                      className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Sair</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
         </div>
-      </div>
+      </aside>
 
-      <div className="border-t border-legacy-600 px-3 py-3 mt-auto shrink-0">
-        <div className={cn("flex items-center gap-2", !open && "justify-center")}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-legacy-500"
-                title="Perfil"
-              >
-                <Avatar className="h-9 w-9 shrink-0 border-2 border-white/20">
-                  <AvatarFallback className="bg-legacy-600 text-white text-sm">U</AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align={open ? "start" : "center"} side="right" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span className="font-medium">{nome || "Usuário Admin"}</span>
-                  <span className="text-xs text-muted-foreground">{email || "—"}</span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleEditProfile}>
-                <Settings className="mr-2 h-4 w-4" />
-                Configurações
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {open && (
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-medium text-white truncate">{nome || "Usuário Admin"}</span>
-            </div>
-          )}
-          <Link
-            to={isAdminRoute ? "/admin/settings" : "/settings"}
-            className="shrink-0 rounded-md p-2 text-white hover:bg-legacy-600 transition-colors"
-            title="Configurações"
-          >
-            <Settings className="h-5 w-5" />
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="shrink-0 rounded-md p-2 text-white hover:bg-legacy-600 transition-colors"
-            title="Sair"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-    </aside>
-    <AddonModuleModal
-      open={addonModalOpen}
-      onOpenChange={setAddonModalOpen}
-      moduleName={addonModuleName}
-    />
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        moduleKey={selectedAddon.key}
+        moduleName={selectedAddon.label}
+      />
     </>
   );
 };

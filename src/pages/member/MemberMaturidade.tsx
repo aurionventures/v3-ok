@@ -1,57 +1,58 @@
-import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import NotificationBell from "@/components/NotificationBell";
-import { BarChart3, ChevronRight, Loader2 } from "lucide-react";
-import { useMaturidadeScore } from "@/hooks/useMaturidadeScore";
+import { MemberLayout } from "@/components/member/MemberLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { BarChart3 } from "lucide-react";
+
+const maturityData = [
+  { name: 'Sócios', score: 4.1 },
+  { name: 'Conselho', score: 3.9 },
+  { name: 'Diretoria', score: 4.3 },
+  { name: 'Órgãos de Fiscalização', score: 3.8 },
+  { name: 'Conduta e Conflitos', score: 4.0 },
+];
 
 const MemberMaturidade = () => {
-  const { score, fullMark, isLoading } = useMaturidadeScore();
-
   return (
-    <>
-      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold">Maturidade</h1>
-            <p className="text-sm text-muted-foreground">Score de maturidade da governança</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-          </div>
+    <MemberLayout 
+      title="Maturidade de Governança"
+      subtitle="Visão geral da maturidade da sua empresa"
+    >
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <BarChart3 className="h-6 w-6 text-primary" />
+          <h3 className="text-xl font-semibold">Maturidade por Pilar IBGC</h3>
         </div>
-      </header>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <Link to="/member/dashboard">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Score atual</h3>
-                  {isLoading ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
-                      <span className="text-sm text-muted-foreground">Carregando...</span>
-                    </div>
-                  ) : (
-                    <p className="text-2xl font-bold text-gray-900">
-                      {score !== null ? `${score}/${fullMark}` : "—"}
-                    </p>
-                  )}
-                  <p className="text-sm text-muted-foreground">
-                    {score !== null ? "Ver análise completa" : "Aguardando diagnóstico do ADM"}
-                  </p>
-                </div>
+        
+        <div className="space-y-4">
+          {maturityData.map((pillar) => (
+            <div key={pillar.name} className="flex items-center gap-4">
+              <span className="text-base w-44 truncate" title={pillar.name}>
+                {pillar.name}
+              </span>
+              <div className="flex-1">
+                <Progress 
+                  value={(pillar.score / 5) * 100} 
+                  className="h-3"
+                />
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-    </>
+              <span className="text-base font-bold text-primary w-10 text-right">
+                {pillar.score.toFixed(1)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-4 mt-6">
+          <Button variant="outline" size="lg" className="flex-1 text-base h-12">
+            Ver Detalhes
+          </Button>
+          <Button size="lg" className="flex-1 text-base h-12">
+            Nova Avaliação
+          </Button>
+        </div>
+      </Card>
+    </MemberLayout>
   );
 };
 
