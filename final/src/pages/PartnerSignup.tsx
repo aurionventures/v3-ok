@@ -1,0 +1,438 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Loader2, CheckCircle2, AlertCircle, Clock, Building2, User, Mail, Phone } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { InputCNPJ, InputPhone } from '@/components/ui/input-masked';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import PartnerOnboardingProgress from '@/components/PartnerOnboardingProgress';
+
+interface PartnerInvitation {
+  id: string;
+  invitation_token: string;
+  invitation_level: 'afiliado_basico' | 'afiliado_avancado' | 'parceiro' | 'tier_1_commercial' | 'tier_2_qualified' | 'tier_3_simple' | 'tier_4_premium';
+  status: string;
+  expires_at: string;
+  email?: string;
+  name?: string;
+  company_name?: string;
+  partner_type?: string;
+}
+
+// Tokens de teste para simulação
+const TEST_TOKENS: Record<string, PartnerInvitation> = {
+  'test-demo': {
+    id: 'test-demo-123',
+    invitation_token: 'test-demo',
+    invitation_level: 'tier_3_simple',
+    status: 'pending',
+    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 dias
+  },
+};
+
+export default function PartnerSignup() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [invitation, setInvitation] = useState<PartnerInvitation | null>(null);
+  const [formData, setFormData] = useState({
+    email: '',
+    name: '',
+    company_name: '',
+    cnpj: '',
+    phone: '',
+    partner_type: '',
+  });
+
+  useEffect(() => {
+    if (!token) {
+      toast.error('Token de convite não fornecido');
+      navigate('/');
+      return;
+    }
+
+    validateInvitation();
+  }, [token]);
+
+  const validateInvitation = async () => {
+    try {
+      // Verificar se é um token de teste
+      if (token && token.startsWith('test-')) {
+        const testInvitation = TEST_TOKENS[token] || {
+          id: `test-${Date.now()}`,
+          invitation_token: token || 'test-demo',
+          invitation_level: (token.includes('tier') ? token.split('-')[2] : 'tier_3_simple') as any,
+          status: 'pending',
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        };
+        
+        setInvitation(testInvitation);
+        setLoading(false);
+        toast.success('Modo de Teste: Usando dados simulados');
+        return;
+      }
+
+      // Validar token real do Supabase
+      const { data, error } = await supabase
+        .from('partner_invitations')
+        .select('*')
+        .eq('invitation_token', token)
+        .single();
+
+      if (error || !data) {
+        toast.error('Convite inválido ou não encontrado');
+        navigate('/');
+        return;
+      }
+
+      if (data.status !== 'pending') {
+        const statusMessages: Record<string, string> = {
+          'used': 'usado',
+          'expired': 'expirado',
+          'submitted': 'já foi enviado',
+          'approved': 'aprovado',
+          'rejected': 'rejeitado'
+        };
+        toast.error(`Este convite já foi ${statusMessages[data.status] || 'processado'}`);
+        navigate('/');
+        return;
+      }
+
+      const now = new Date();
+      const expiresAt = new Date(data.expires_at);
+      if (now > expiresAt) {
+        toast.error('Este convite expirou');
+        navigate('/');
+        return;
+      }
+
+      setInvitation(data);
+      setFormData(prev => ({
+        ...prev,
+        email: data.email || '',
+        name: data.name || '',
+        company_name: data.company_name || '',
+        cnpj: data.cnpj || '',
+        phone: data.phone || '',
+        partner_type: data.partner_type || '',
+      }));
+    } catch (err) {
+      console.error('Erro ao validar convite:', err);
+      toast.error('Erro ao validar convite');
+      navigate('/');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      // Se for token de teste, simular sucesso e redirecionar para criação de senha
+      if (token && token.startsWith('test-')) {
+        // Salvar dados do cadastro no sessionStorage para o próximo passo
+        sessionStorage.setItem('partner_signup_data', JSON.stringify({
+          ...formData,
+          invitation_level: invitation?.invitation_level || 'tier_3_simple',
+          invitation_token: token,
+        }));
+        
+        toast.success('Cadastro concluído! Redirecionando para o contrato...');
+        setTimeout(() => {
+          navigate('/parceiros/contrato?token=' + token);
+        }, 1500);
+        return;
+      }
+
+      // Fluxo real: enviar para Edge Function
+      const { data, error } = await supabase.functions.invoke('submit-partner-invitation', {
+        body: {
+          token,
+          form_data: formData
+        }
+      });
+
+      if (error) {
+        toast.error(error.message || 'Erro ao enviar cadastro');
+        return;
+      }
+
+      toast.success('Cadastro enviado com sucesso! Aguardando aprovação do Super ADM.');
+      setInvitation({ ...invitation!, status: 'submitted' });
+    } catch (err: any) {
+      console.error('Erro ao enviar cadastro:', err);
+      toast.error(err.message || 'Erro ao enviar cadastro');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Validando convite...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!invitation || invitation.status !== 'pending') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Convite Inválido
+            </CardTitle>
+            <CardDescription>Este convite não está mais disponível</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  const getLevelLabel = (level: string) => {
+    const levels: Record<string, string> = {
+      'afiliado_basico': 'Afiliado Básico (Nível 1)',
+      'afiliado_avancado': 'Afiliado Avançado (Nível 2)',
+      'parceiro': 'Parceiro Estratégico (Nível 3)',
+      'tier_1_commercial': 'Tier 1 - Parceiro Comercial',
+      'tier_2_qualified': 'Tier 2 - Afiliado Qualificado',
+      'tier_3_simple': 'Tier 3 - Afiliado Simples',
+      'tier_4_premium': 'Tier 4 - Parceiro Premium',
+    };
+    return levels[level] || level;
+  };
+
+  const getLevelDescription = (level: string) => {
+    const descriptions: Record<string, string> = {
+      'afiliado_basico': 'Você será responsável apenas por indicar clientes através do seu link de afiliado.',
+      'afiliado_avancado': 'Você indicará clientes e acompanhará o onboarding básico.',
+      'parceiro': 'Você fará a implantação completa e pode indicar clientes através do link de afiliado.',
+      'tier_1_commercial': 'Atuação completa no ciclo de vendas',
+      'tier_2_qualified': 'Prospecção ativa e qualificação inicial',
+      'tier_3_simple': 'Indicação e validação básica',
+      'tier_4_premium': 'Posicionamento de mercado e abertura de portas',
+    };
+    return descriptions[level] || '';
+  };
+
+  const expiresAt = new Date(invitation.expires_at);
+  const daysUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white p-4 py-12">
+      <Card className="w-full max-w-2xl shadow-lg">
+        <CardHeader className="border-b">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">Cadastro de Parceiro</CardTitle>
+              <CardDescription className="mt-2">
+                Você foi convidado como <strong className="text-primary">{getLevelLabel(invitation.invitation_level)}</strong>
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Expira em {daysUntilExpiry} dia{daysUntilExpiry !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          
+          {/* Barra de Progresso */}
+          <div className="mt-6">
+            <PartnerOnboardingProgress currentStep={1} />
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <Alert className="mb-6">
+            <Building2 className="h-4 w-4" />
+            <AlertDescription>
+              {getLevelDescription(invitation.invitation_level)}
+            </AlertDescription>
+          </Alert>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* CNPJ - Primeiro campo */}
+            <div className="space-y-2">
+              <InputCNPJ
+                id="cnpj"
+                label={`CNPJ ${invitation.invitation_level !== 'parceiro' ? '(Opcional)' : '*'}`}
+                value={formData.cnpj}
+                onChange={(value, company) => {
+                  setFormData(prev => ({ ...prev, cnpj: value }));
+                  // Preencher automaticamente os dados da empresa quando disponível
+                  if (company) {
+                    // Formatar telefone: a API pode retornar apenas DDD ou telefone completo
+                    let formattedPhone = '';
+                    if (company.telefone1) {
+                      const cleanPhone = company.telefone1.replace(/\D/g, '');
+                      // Se tiver mais de 2 dígitos, é um telefone completo
+                      if (cleanPhone.length >= 10) {
+                        if (cleanPhone.length === 10) {
+                          // Telefone fixo: (11) 3333-4444
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 6)}-${cleanPhone.substring(6)}`;
+                        } else if (cleanPhone.length === 11) {
+                          // Celular: (11) 98765-4321
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+                        }
+                      }
+                      // Se for apenas DDD (2 dígitos), não preenche o telefone
+                    }
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      cnpj: value,
+                      company_name: company.nomeFantasia || company.razaoSocial,
+                      phone: formattedPhone || prev.phone,
+                    }));
+                  }
+                }}
+                onCompanyLoaded={(company) => {
+                  // Preencher automaticamente os dados da empresa
+                  if (company) {
+                    // Formatar telefone: a API pode retornar apenas DDD ou telefone completo
+                    let formattedPhone = '';
+                    if (company.telefone1) {
+                      const cleanPhone = company.telefone1.replace(/\D/g, '');
+                      // Se tiver mais de 2 dígitos, é um telefone completo
+                      if (cleanPhone.length >= 10) {
+                        if (cleanPhone.length === 10) {
+                          // Telefone fixo: (11) 3333-4444
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 6)}-${cleanPhone.substring(6)}`;
+                        } else if (cleanPhone.length === 11) {
+                          // Celular: (11) 98765-4321
+                          formattedPhone = `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+                        }
+                      }
+                      // Se for apenas DDD (2 dígitos), não preenche o telefone
+                    }
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      company_name: company.nomeFantasia || company.razaoSocial,
+                      phone: formattedPhone || prev.phone,
+                    }));
+                    toast.success('Dados da empresa preenchidos automaticamente!');
+                  }
+                }}
+                required={invitation.invitation_level === 'parceiro'}
+                placeholder="00.000.000/0000-00"
+                autoFetch={true}
+                showSearchButton={true}
+              />
+            </div>
+
+            {/* Nome da Empresa - Preenchido automaticamente pelo CNPJ */}
+            <div className="space-y-2">
+              <Label htmlFor="company_name" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Nome da Empresa *
+              </Label>
+              <Input
+                id="company_name"
+                value={formData.company_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
+                required
+                placeholder="Nome da sua empresa (será preenchido automaticamente ao consultar o CNPJ)"
+              />
+            </div>
+
+            {/* Email e Nome Completo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email *
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                  disabled={!!invitation.email}
+                  placeholder="seu@email.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Nome Completo *
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                  placeholder="Seu nome completo"
+                />
+              </div>
+            </div>
+
+            {/* Telefone - Preenchido automaticamente pelo CNPJ */}
+            <div className="space-y-2">
+              <InputPhone
+                id="phone"
+                label="Telefone *"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                required
+                placeholder="(11) 99999-9999 (será preenchido automaticamente ao consultar o CNPJ)"
+              />
+            </div>
+
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-900">
+                Após o envio, seu cadastro será revisado pelo Super ADM. Você receberá um email quando for aprovado e poderá acessar a plataforma.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => navigate('/')}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1" 
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Enviar Cadastro para Aprovação
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
