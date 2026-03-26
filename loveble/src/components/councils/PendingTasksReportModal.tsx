@@ -1,0 +1,505 @@
+import { useState, useMemo } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  AlertCircle, 
+  Clock, 
+  CheckCircle2, 
+  FileDown, 
+  Filter,
+  Building2,
+  Users,
+  UserCog,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
+import { generatePendingTasksReportPDF, ReportTask } from "./PendingTasksReportPDF";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGovernanceOrgans } from "@/hooks/useGovernanceOrgans";
+
+interface Task {
+  id: string;
+  task: string;
+  priority?: "high" | "medium" | "low"; // Agora opcional
+  dueDate: Date;
+  organ?: string;
+  organType?: string;
+  organName?: string;
+}
+
+interface PendingTasksReportModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  tasks: Task[];
+}
+
+export const PendingTasksReportModal = ({
+  open,
+  onOpenChange,
+  tasks,
+}: PendingTasksReportModalProps) => {
+  const { toast } = useToast();
+  const [selectedOrganType, setSelectedOrganType] = useState<'conselho' | 'comite' | 'comissao' | 'all'>('all');
+  const [selectedOrganId, setSelectedOrganId] = useState<string>('all');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Buscar todos os órgãos de governança
+  const { organs: allOrgans } = useGovernanceOrgans();
+
+  // Organizar órgãos por tipo
+  const organsByType = useMemo(() => {
+    return {
+      conselhos: allOrgans.filter(o => o.organ_type === 'conselho'),
+      comites: allOrgans.filter(o => o.organ_type === 'comite'),
+      comissoes: allOrgans.filter(o => o.organ_type === 'comissao'),
+    };
+  }, [allOrgans]);
+
+  // Enriquecer tarefas com órgãos e tipos
+  const enrichedTasks: ReportTask[] = useMemo(() => {
+    return tasks.map(task => {
+      // Tentar encontrar o órgão baseado no nome da tarefa
+      let organ = task.organ;
+      let organType: 'conselho' | 'comite' | 'comissao' = 'conselho';
+
+      if (!organ) {
+        // Buscar nos órgãos mockados
+        const foundOrgan = allOrgans.find(o => 
+          task.task.toLowerCase().includes(o.name.toLowerCase())
+        );
+        
+        if (foundOrgan) {
+          organ = foundOrgan.name;
+          organType = foundOrgan.organ_type as 'conselho' | 'comite' | 'comissao';
+        } else {
+          // Fallback baseado em palavras-chave
+          if (task.task.toLowerCase().includes('conselho')) {
+            organType = 'conselho';
+            organ = 'Conselho de Administração';
+          } else if (task.task.toLowerCase().includes('comitê')) {
+            organType = 'comite';
+            organ = 'Comitê de Auditoria';
+          } else if (task.task.toLowerCase().includes('comissão')) {
+            organType = 'comissao';
+            organ = 'Comissão de Ética';
+          } else {
+            organ = 'Secretaria Geral';
+          }
+        }
+      }
+
+      return {
+        ...task,
+        organ,
+        organType,
+      };
+    });
+  }, [tasks, allOrgans]);
+
+  // Filtrar tarefas
+  const filteredTasks = useMemo(() => {
+    return enrichedTasks.filter((task) => {
+      // Se "all" foi selecionado ou nenhum órgão específico, mostrar todas as tarefas
+      if (!selectedOrganId || selectedOrganId === 'all') {
+        return true;
+      }
+      
+      // Encontrar o órgão selecionado para comparar com o nome
+      const selectedOrgan = allOrgans.find(o => o.id === selectedOrganId);
+      const organMatch = selectedOrgan ? task.organ === selectedOrgan.name : true;
+      
+      return organMatch;
+    });
+  }, [enrichedTasks, selectedOrganId, allOrgans]);
+
+  // Calcular resumo
+  const summary = useMemo(() => {
+    return {
+      total: filteredTasks.length,
+      byOrganType: {
+        conselhos: filteredTasks.filter(t => t.organType === 'conselho').length,
+        comites: filteredTasks.filter(t => t.organType === 'comite').length,
+        comissoes: filteredTasks.filter(t => t.organType === 'comissao').length,
+      },
+    };
+  }, [filteredTasks]);
+
+  const handleTogglePriority = (priority: string) => {
+    // Removido - não usado mais
+  };
+
+
+  const handleExportPDF = async () => {
+    setIsGenerating(true);
+    try {
+      const selectedOrgan = selectedOrganId !== 'all' ? allOrgans.find(o => o.id === selectedOrganId) : null;
+      
+      // Organizar filtros para o PDF
+      const organsByTypeSelected = {
+        conselhos: selectedOrgan?.organ_type === 'conselho' ? [selectedOrgan.name] : [],
+        comites: selectedOrgan?.organ_type === 'comite' ? [selectedOrgan.name] : [],
+        comissoes: selectedOrgan?.organ_type === 'comissao' ? [selectedOrgan.name] : [],
+      };
+
+      await generatePendingTasksReportPDF({
+        filters: {
+          priorities: [],
+          organs: selectedOrgan ? [selectedOrgan.name] : [],
+          organsByType: organsByTypeSelected,
+        },
+        tasks: filteredTasks,
+        summary,
+      });
+      
+      toast({
+        title: "PDF Gerado com Sucesso",
+        description: `Relatório com ${filteredTasks.length} tarefas exportado.`,
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({
+        title: "Erro ao Gerar PDF",
+        description: "Não foi possível exportar o relatório.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const getOrganTypeIcon = (type: string) => {
+    switch (type) {
+      case 'conselho':
+        return <Building2 className="h-4 w-4 text-blue-500" />;
+      case 'comite':
+        return <Users className="h-4 w-4 text-green-500" />;
+      case 'comissao':
+        return <UserCog className="h-4 w-4 text-amber-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case "medium":
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case "low":
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case "high": return "Alta";
+      case "medium": return "Média";
+      case "low": return "Baixa";
+      default: return priority;
+    }
+  };
+
+  const getOrganTypeColor = (organType: string) => {
+    switch (organType) {
+      case 'conselho': return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'comite': return 'bg-green-100 text-green-700 border-green-300';
+      case 'comissao': return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+      default: return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
+  };
+
+  const getOrganTypeLabel = (organType: string) => {
+    switch (organType) {
+      case 'conselho': return 'Conselho';
+      case 'comite': return 'Comitê';
+      case 'comissao': return 'Comissão';
+      default: return organType;
+    }
+  };
+
+  const getOrganTypeLabelPlural = (organType: string) => {
+    switch (organType) {
+      case 'conselho': return 'conselhos';
+      case 'comite': return 'comitês';
+      case 'comissao': return 'comissões';
+      default: return organType;
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileDown className="h-5 w-5 text-blue-600" />
+            Gerar Relatório de Pendências
+          </DialogTitle>
+          <DialogDescription>
+            Configure os filtros por órgãos de governança e visualize o relatório antes de exportar
+          </DialogDescription>
+        </DialogHeader>
+
+        <Tabs defaultValue="filters" className="flex-1 overflow-hidden flex flex-col">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="filters" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Filtros
+            </TabsTrigger>
+            <TabsTrigger value="preview" className="gap-2">
+              <FileDown className="h-4 w-4" />
+              Preview ({filteredTasks.length})
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ABA DE FILTROS */}
+          <TabsContent value="filters" className="flex-1 overflow-y-auto space-y-6 mt-4">
+            {/* Filtro de Tipo de Órgão */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">
+                Tipo de Órgão
+              </Label>
+              <Select 
+                value={selectedOrganType} 
+                onValueChange={(value) => {
+                  setSelectedOrganType(value as 'conselho' | 'comite' | 'comissao' | 'all');
+                  setSelectedOrganId('all'); // Resetar órgão ao mudar tipo
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o tipo de órgão" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="conselho">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-blue-500" />
+                      Conselho
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="comite">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-green-500" />
+                      Comitê
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="comissao">
+                    <div className="flex items-center gap-2">
+                      <UserCog className="h-4 w-4 text-amber-500" />
+                      Comissão
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro de Órgão Específico (condicional) */}
+            {selectedOrganType !== 'all' && (
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  {getOrganTypeIcon(selectedOrganType)}
+                  Órgão Específico
+                </Label>
+                <Select 
+                  value={selectedOrganId} 
+                  onValueChange={setSelectedOrganId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={`Selecione o ${getOrganTypeLabel(selectedOrganType).toLowerCase()}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      Todos os {getOrganTypeLabelPlural(selectedOrganType)}
+                    </SelectItem>
+                    {organsByType[
+                      selectedOrganType === 'conselho' ? 'conselhos' : 
+                      selectedOrganType === 'comite' ? 'comites' : 
+                      'comissoes'
+                    ].map((organ) => (
+                      <SelectItem key={organ.id} value={organ.id}>
+                        <div className="flex items-center gap-2">
+                          {getOrganTypeIcon(selectedOrganType)}
+                          {organ.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <Separator />
+
+            {/* Resumo dos Filtros */}
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                  Resumo do Relatório
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Por Prioridade */}
+                  <div>
+                    <Label className="text-xs text-blue-700 mb-2 block">Total de Tarefas</Label>
+                    <div className="grid grid-cols-1 gap-3 text-center">
+                      <div className="bg-white p-3 rounded-lg shadow-sm">
+                        <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
+                        <div className="text-xs text-muted-foreground">Total</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Por Tipo de Órgão */}
+                  <div>
+                    <Label className="text-xs text-blue-700 mb-2 block">Por Tipo de Órgão</Label>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="bg-blue-100 p-3 rounded-lg border border-blue-300">
+                        <div className="text-2xl font-bold text-blue-700">{summary.byOrganType.conselhos}</div>
+                        <div className="text-xs text-blue-600">Conselhos</div>
+                      </div>
+                      <div className="bg-green-100 p-3 rounded-lg border border-green-300">
+                        <div className="text-2xl font-bold text-green-700">{summary.byOrganType.comites}</div>
+                        <div className="text-xs text-green-600">Comitês</div>
+                      </div>
+                      <div className="bg-yellow-100 p-3 rounded-lg border border-yellow-300">
+                        <div className="text-2xl font-bold text-yellow-700">{summary.byOrganType.comissoes}</div>
+                        <div className="text-xs text-yellow-600">Comissões</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ABA DE PREVIEW */}
+          <TabsContent value="preview" className="flex-1 overflow-y-auto space-y-4 mt-4">
+            {filteredTasks.length === 0 ? (
+              <Card className="bg-gray-50 border-dashed border-2">
+                <CardContent className="text-center py-16">
+                  <FileDown className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Nenhuma tarefa encontrada
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    Ajuste os filtros para visualizar as tarefas pendentes
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Cabeçalho do Preview */}
+                <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-bold">
+                      Relatório de Tarefas Pendentes
+                    </CardTitle>
+                    <p className="text-sm text-blue-100">
+                      Gerado em {format(new Date(), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </CardHeader>
+                </Card>
+
+                {/* Lista de Tarefas */}
+                <div className="space-y-3">
+                  {filteredTasks.map((task, index) => (
+                    <Card key={task.id} className="hover:shadow-lg transition-all border-l-4" style={{
+                      borderLeftColor: 
+                        task.priority === 'high' ? '#ef4444' :
+                        task.priority === 'medium' ? '#f59e0b' :
+                        '#10b981'
+                    }}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm shadow-sm">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs font-semibold ${getOrganTypeColor(task.organType)}`}
+                                >
+                                  {getOrganTypeLabel(task.organType)}
+                                </Badge>
+                              </div>
+                              <p className="font-semibold text-gray-900 leading-relaxed">
+                                {task.task}
+                              </p>
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <span className="flex items-center gap-1.5">
+                                  <Clock className="h-3.5 w-3.5 text-gray-500" />
+                                  {format(task.dueDate, "dd/MM/yyyy")}
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span className="font-medium text-gray-700">{task.organ}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Footer com Botão de Exportar */}
+        <div className="flex items-center justify-between pt-4 border-t bg-gray-50 -mx-6 -mb-6 px-6 py-4 rounded-b-lg">
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {filteredTasks.length} {filteredTasks.length === 1 ? 'tarefa' : 'tarefas'}
+            </Badge>
+            {selectedOrganId !== 'all' && (
+              <Badge variant="outline" className="text-sm px-3 py-1 flex items-center gap-1">
+                {getOrganTypeIcon(selectedOrganType)}
+                {allOrgans.find(o => o.id === selectedOrganId)?.name}
+              </Badge>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleExportPDF}
+              disabled={filteredTasks.length === 0 || isGenerating}
+              className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-md"
+            >
+              <FileDown className="h-4 w-4" />
+              {isGenerating ? "Gerando PDF..." : "Exportar PDF"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
